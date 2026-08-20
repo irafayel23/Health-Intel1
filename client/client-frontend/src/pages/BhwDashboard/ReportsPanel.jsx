@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import { autoTable } from "jspdf-autotable";
 import { FileSpreadsheet, ShieldAlert, Download } from "lucide-react";
 
 export default function ReportsPanel() {
@@ -75,7 +75,7 @@ export default function ReportsPanel() {
       ["6", "Routine Child Immunization", "Infants (0-11m)", "19", "Completed"],
     ];
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: 63,
       head: tableHeaders,
       body: tableRows,
@@ -174,7 +174,7 @@ export default function ReportsPanel() {
       ],
     ];
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: 63,
       head: tableHeaders,
       body: tableRows,

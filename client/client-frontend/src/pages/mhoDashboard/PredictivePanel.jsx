@@ -225,7 +225,7 @@ export default function PredictivePanel() {
                 <div>
                   <h5 className="font-bold text-red-800">PREVENTATIVE URGENT: High Probability Dengue Spike</h5>
                   <p className="text-sm text-red-700 mt-1">
-                    The AI model forecasts a breach of the outbreak threshold (>15 cases) in Poblacion over the next 14 days due to recent weather patterns.<br />
+                    The AI model forecasts a breach of the outbreak threshold ({">"}15 cases) in Poblacion over the next 14 days due to recent weather patterns.<br />
                     <strong>Prescribed Action:</strong> Pre-emptively deploy Fogging Operations and distribute Ovicidal Traps in Poblacion immediately.
                   </p>
                 </div>

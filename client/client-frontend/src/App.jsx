@@ -1,11 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
-import AdminDashboardPage from "./pages/AdminDashboard/AdminDashboardPage";
+import AdminDashboardPage from "./pages/adminDash/adminDashboard";
 import BhwDashboardPage from "./pages/BhwDashboard/BhwDashboardPage";
 import MhoDashboardPage from "./pages/MhoDashboard/MhoDashboardPage";
 import SuperAdminDashboardPage from "./pages/SuperAdminDashboard/SuperAdminDashboardPage";
 import MunicipalDashboardPage from "./pages/MunicipalDashboard/MunicipalDashboardPage";
-import ProtectedRoute from "./auth/ProtectedRoute";
+import ProtectedRoute from "./auth/protectedRoutes";
 
 function App() {
   return (
