@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Portal | HEALTH-INTEL</title>
+    <link rel="stylesheet" href="assets/css/municipal.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <i data-lucide="shield-plus" style="width: 28px; height: 28px"></i>
+        <h2>HEALTH-INTEL</h2>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-target="view-dashboard">
+          <i data-lucide="layout-dashboard" style="width: 20px"></i> Executive
+          Dash
+        </button>
+
+        <button class="nav-item" data-target="view-heatmap">
+          <i data-lucide="map" style="width: 20px"></i> Heatmap Cases
+        </button>
+
+        <button class="nav-item" data-target="view-reports">
+          <i data-lucide="file-text" style="width: 20px"></i> Policy Reports
+        </button>
+
+        <div class="sidebar-sticker">
+          <div class="sticker-icon mun-sticker-color">
+            <i
+              data-lucide="globe"
+              style="width: 22px; height: 22px; stroke-width: 2.5"
+            ></i>
+          </div>
+          <div class="sticker-info">
+            <h4>Municipal Mayor</h4>
+            <p>Elected Official</p>
+          </div>
+        </div>
+
+        <a href="index.html" class="nav-item sign-out">
+          <i data-lucide="log-out" style="width: 20px"></i> Sign Out
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-wrapper">
+      <div class="top-bar">
+        Municipal Official Portal — Executive Monitoring
+      </div>
+
+      <div class="dashboard-content">
+        <div id="view-dashboard" class="view-section">
+          <h1 class="page-title">Executive Dashboard</h1>
+          <p class="page-subtitle">
+            High-level public health summaries. Patient data anonymized.
+          </p>
+
+          <div class="grid-4">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Total Cover</span>
+                <div
+                  class="stat-icon"
+                  style="color: #0284c7; background: #e0f2fe"
+                >
+                  <i data-lucide="globe" style="width: 18px"></i>
+                </div>
+              </div>
+              <div class="stat-value">92,241</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Brgys Monitored</span>
+                <div
+                  class="stat-icon"
+                  style="color: #16a34a; background: #dcfce7"
+                >
+                  <i data-lucide="map-pin" style="width: 18px"></i>
+                </div>
+              </div>
+              <div class="stat-value">23 / 23</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">System Alerts</span>
+                <div
+                  class="stat-icon"
+                  style="color: #ea580c; background: #ffedd5"
+                >
+                  <i data-lucide="bell" style="width: 18px"></i>
+                </div>
+              </div>
+              <div class="stat-value" style="color: #ef4444">3</div>
+            </div>
+          </div>
+
+          <div class="white-panel">
+            <h3 class="panel-title">Program Status Breakdown</h3>
+            <div class="breakdown-grid">
+              <div class="pastel-card bg-green">
+                <div class="b-val">87%</div>
+                <div class="b-label">Immunization</div>
+                <div class="b-sub">On Target</div>
+              </div>
+              <div class="pastel-card bg-blue">
+                <div class="b-val">92%</div>
+                <div class="b-label">Maternal Care</div>
+                <div class="b-sub">Exceeding</div>
+              </div>
+              <div class="pastel-card bg-orange">
+                <div class="b-val">65%</div>
+                <div class="b-label">Senior Care</div>
+                <div class="b-sub">Needs Work</div>
+              </div>
+              <div class="pastel-card bg-gray">
+                <div class="b-val">--</div>
+                <div class="b-label">Nutrition</div>
+                <div class="b-sub">Pending</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-heatmap" class="view-section hidden white-panel">
+          <h1 class="page-title">Municipality Heatmap (Active Cases)</h1>
+          <p class="page-subtitle">
+            Live GIS mapping of outbreak clusters across Murcia using
+            OpenStreetMap.
+          </p>
+
+          <div
+            id="murciaMap"
+            style="
+              height: 450px;
+              width: 100%;
+              border-radius: 8px;
+              border: 1px solid #e2e8f0;
+              z-index: 1;
+            "
+          ></div>
+        </div>
+
+        <div id="view-reports" class="view-section hidden white-panel">
+          <h1 class="page-title">Policy & Planning Documents</h1>
+          <p class="page-subtitle">
+            Executive summaries for LGU session planning.
+          </p>
+          <button
+            style="
+              padding: 1rem;
+              background: #6366f1;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              font-weight: bold;
+              cursor: pointer;
+            "
+          >
+            Download Mayor's Abstract (.pdf)
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
+</html>

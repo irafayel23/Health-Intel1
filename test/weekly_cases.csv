@@ -1,0 +1,469 @@
+Date,Barangay,Disease,Cases
+2023-01-01,Murcia_All,Fever (Unknown Origin),2
+2023-01-08,Murcia_All,Fever (Unknown Origin),2
+2023-01-15,Murcia_All,Fever (Unknown Origin),2
+2023-01-22,Murcia_All,Fever (Unknown Origin),3
+2023-01-29,Murcia_All,Fever (Unknown Origin),3
+2023-02-05,Murcia_All,Fever (Unknown Origin),3
+2023-02-12,Murcia_All,Fever (Unknown Origin),3
+2023-02-19,Murcia_All,Fever (Unknown Origin),3
+2023-02-26,Murcia_All,Fever (Unknown Origin),4
+2023-03-05,Murcia_All,Fever (Unknown Origin),4
+2023-03-12,Murcia_All,Fever (Unknown Origin),4
+2023-03-19,Murcia_All,Fever (Unknown Origin),4
+2023-03-26,Murcia_All,Fever (Unknown Origin),4
+2023-04-02,Murcia_All,Fever (Unknown Origin),5
+2023-04-09,Murcia_All,Fever (Unknown Origin),5
+2023-04-16,Murcia_All,Fever (Unknown Origin),5
+2023-04-23,Murcia_All,Fever (Unknown Origin),5
+2023-04-30,Murcia_All,Fever (Unknown Origin),5
+2023-05-07,Murcia_All,Fever (Unknown Origin),5
+2023-05-14,Murcia_All,Fever (Unknown Origin),5
+2023-05-21,Murcia_All,Fever (Unknown Origin),5
+2023-05-28,Murcia_All,Fever (Unknown Origin),5
+2023-06-04,Murcia_All,Fever (Unknown Origin),5
+2023-06-11,Murcia_All,Fever (Unknown Origin),5
+2023-06-18,Murcia_All,Fever (Unknown Origin),6
+2023-06-25,Murcia_All,Fever (Unknown Origin),6
+2023-07-02,Murcia_All,Fever (Unknown Origin),6
+2023-07-09,Murcia_All,Fever (Unknown Origin),6
+2023-07-16,Murcia_All,Fever (Unknown Origin),5
+2023-07-23,Murcia_All,Fever (Unknown Origin),5
+2023-07-30,Murcia_All,Fever (Unknown Origin),5
+2023-08-06,Murcia_All,Fever (Unknown Origin),5
+2023-08-13,Murcia_All,Fever (Unknown Origin),5
+2023-08-20,Murcia_All,Fever (Unknown Origin),5
+2023-08-27,Murcia_All,Fever (Unknown Origin),5
+2023-09-03,Murcia_All,Fever (Unknown Origin),5
+2023-09-10,Murcia_All,Fever (Unknown Origin),5
+2023-09-17,Murcia_All,Fever (Unknown Origin),5
+2023-09-24,Murcia_All,Fever (Unknown Origin),5
+2023-10-01,Murcia_All,Fever (Unknown Origin),4
+2023-10-08,Murcia_All,Fever (Unknown Origin),4
+2023-10-15,Murcia_All,Fever (Unknown Origin),4
+2023-10-22,Murcia_All,Fever (Unknown Origin),4
+2023-10-29,Murcia_All,Fever (Unknown Origin),4
+2023-11-05,Murcia_All,Fever (Unknown Origin),3
+2023-11-12,Murcia_All,Fever (Unknown Origin),3
+2023-11-19,Murcia_All,Fever (Unknown Origin),3
+2023-11-26,Murcia_All,Fever (Unknown Origin),3
+2023-12-03,Murcia_All,Fever (Unknown Origin),3
+2023-12-10,Murcia_All,Fever (Unknown Origin),2
+2023-12-17,Murcia_All,Fever (Unknown Origin),2
+2023-12-24,Murcia_All,Fever (Unknown Origin),2
+2023-01-01,Murcia_All,Dengue,1
+2023-01-08,Murcia_All,Dengue,1
+2023-01-15,Murcia_All,Dengue,2
+2023-01-22,Murcia_All,Dengue,2
+2023-01-29,Murcia_All,Dengue,2
+2023-02-05,Murcia_All,Dengue,2
+2023-02-12,Murcia_All,Dengue,2
+2023-02-19,Murcia_All,Dengue,2
+2023-02-26,Murcia_All,Dengue,2
+2023-03-05,Murcia_All,Dengue,3
+2023-03-12,Murcia_All,Dengue,3
+2023-03-19,Murcia_All,Dengue,3
+2023-03-26,Murcia_All,Dengue,3
+2023-04-02,Murcia_All,Dengue,3
+2023-04-09,Murcia_All,Dengue,3
+2023-04-16,Murcia_All,Dengue,3
+2023-04-23,Murcia_All,Dengue,3
+2023-04-30,Murcia_All,Dengue,4
+2023-05-07,Murcia_All,Dengue,4
+2023-05-14,Murcia_All,Dengue,4
+2023-05-21,Murcia_All,Dengue,4
+2023-05-28,Murcia_All,Dengue,4
+2023-06-04,Murcia_All,Dengue,4
+2023-06-11,Murcia_All,Dengue,4
+2023-06-18,Murcia_All,Dengue,4
+2023-06-25,Murcia_All,Dengue,4
+2023-07-02,Murcia_All,Dengue,4
+2023-07-09,Murcia_All,Dengue,4
+2023-07-16,Murcia_All,Dengue,4
+2023-07-23,Murcia_All,Dengue,4
+2023-07-30,Murcia_All,Dengue,4
+2023-08-06,Murcia_All,Dengue,4
+2023-08-13,Murcia_All,Dengue,4
+2023-08-20,Murcia_All,Dengue,4
+2023-08-27,Murcia_All,Dengue,4
+2023-09-03,Murcia_All,Dengue,3
+2023-09-10,Murcia_All,Dengue,3
+2023-09-17,Murcia_All,Dengue,3
+2023-09-24,Murcia_All,Dengue,3
+2023-10-01,Murcia_All,Dengue,3
+2023-10-08,Murcia_All,Dengue,3
+2023-10-15,Murcia_All,Dengue,3
+2023-10-22,Murcia_All,Dengue,3
+2023-10-29,Murcia_All,Dengue,2
+2023-11-05,Murcia_All,Dengue,2
+2023-11-12,Murcia_All,Dengue,2
+2023-11-19,Murcia_All,Dengue,2
+2023-11-26,Murcia_All,Dengue,2
+2023-12-03,Murcia_All,Dengue,2
+2023-12-10,Murcia_All,Dengue,2
+2023-12-17,Murcia_All,Dengue,1
+2023-12-24,Murcia_All,Dengue,1
+2023-01-01,Murcia_All,Animal Bites,7
+2023-01-08,Murcia_All,Animal Bites,8
+2023-01-15,Murcia_All,Animal Bites,9
+2023-01-22,Murcia_All,Animal Bites,10
+2023-01-29,Murcia_All,Animal Bites,11
+2023-02-05,Murcia_All,Animal Bites,12
+2023-02-12,Murcia_All,Animal Bites,13
+2023-02-19,Murcia_All,Animal Bites,14
+2023-02-26,Murcia_All,Animal Bites,14
+2023-03-05,Murcia_All,Animal Bites,15
+2023-03-12,Murcia_All,Animal Bites,16
+2023-03-19,Murcia_All,Animal Bites,17
+2023-03-26,Murcia_All,Animal Bites,17
+2023-04-02,Murcia_All,Animal Bites,18
+2023-04-09,Murcia_All,Animal Bites,19
+2023-04-16,Murcia_All,Animal Bites,19
+2023-04-23,Murcia_All,Animal Bites,20
+2023-04-30,Murcia_All,Animal Bites,20
+2023-05-07,Murcia_All,Animal Bites,21
+2023-05-14,Murcia_All,Animal Bites,21
+2023-05-21,Murcia_All,Animal Bites,22
+2023-05-28,Murcia_All,Animal Bites,22
+2023-06-04,Murcia_All,Animal Bites,22
+2023-06-11,Murcia_All,Animal Bites,22
+2023-06-18,Murcia_All,Animal Bites,22
+2023-06-25,Murcia_All,Animal Bites,22
+2023-07-02,Murcia_All,Animal Bites,22
+2023-07-09,Murcia_All,Animal Bites,22
+2023-07-16,Murcia_All,Animal Bites,22
+2023-07-23,Murcia_All,Animal Bites,22
+2023-07-30,Murcia_All,Animal Bites,22
+2023-08-06,Murcia_All,Animal Bites,22
+2023-08-13,Murcia_All,Animal Bites,21
+2023-08-20,Murcia_All,Animal Bites,21
+2023-08-27,Murcia_All,Animal Bites,20
+2023-09-03,Murcia_All,Animal Bites,20
+2023-09-10,Murcia_All,Animal Bites,19
+2023-09-17,Murcia_All,Animal Bites,19
+2023-09-24,Murcia_All,Animal Bites,18
+2023-10-01,Murcia_All,Animal Bites,17
+2023-10-08,Murcia_All,Animal Bites,17
+2023-10-15,Murcia_All,Animal Bites,16
+2023-10-22,Murcia_All,Animal Bites,15
+2023-10-29,Murcia_All,Animal Bites,14
+2023-11-05,Murcia_All,Animal Bites,14
+2023-11-12,Murcia_All,Animal Bites,13
+2023-11-19,Murcia_All,Animal Bites,12
+2023-11-26,Murcia_All,Animal Bites,11
+2023-12-03,Murcia_All,Animal Bites,10
+2023-12-10,Murcia_All,Animal Bites,9
+2023-12-17,Murcia_All,Animal Bites,8
+2023-12-24,Murcia_All,Animal Bites,7
+2024-01-01,Murcia_All,Fever (Unknown Origin),12
+2024-01-08,Murcia_All,Fever (Unknown Origin),13
+2024-01-15,Murcia_All,Fever (Unknown Origin),15
+2024-01-22,Murcia_All,Fever (Unknown Origin),16
+2024-01-29,Murcia_All,Fever (Unknown Origin),18
+2024-02-05,Murcia_All,Fever (Unknown Origin),19
+2024-02-12,Murcia_All,Fever (Unknown Origin),21
+2024-02-19,Murcia_All,Fever (Unknown Origin),22
+2024-02-26,Murcia_All,Fever (Unknown Origin),23
+2024-03-04,Murcia_All,Fever (Unknown Origin),25
+2024-03-11,Murcia_All,Fever (Unknown Origin),26
+2024-03-18,Murcia_All,Fever (Unknown Origin),27
+2024-03-25,Murcia_All,Fever (Unknown Origin),28
+2024-04-01,Murcia_All,Fever (Unknown Origin),29
+2024-04-08,Murcia_All,Fever (Unknown Origin),30
+2024-04-15,Murcia_All,Fever (Unknown Origin),31
+2024-04-22,Murcia_All,Fever (Unknown Origin),32
+2024-04-29,Murcia_All,Fever (Unknown Origin),33
+2024-05-06,Murcia_All,Fever (Unknown Origin),33
+2024-05-13,Murcia_All,Fever (Unknown Origin),34
+2024-05-20,Murcia_All,Fever (Unknown Origin),34
+2024-05-27,Murcia_All,Fever (Unknown Origin),35
+2024-06-03,Murcia_All,Fever (Unknown Origin),35
+2024-06-10,Murcia_All,Fever (Unknown Origin),36
+2024-06-17,Murcia_All,Fever (Unknown Origin),36
+2024-06-24,Murcia_All,Fever (Unknown Origin),36
+2024-07-01,Murcia_All,Fever (Unknown Origin),36
+2024-07-08,Murcia_All,Fever (Unknown Origin),36
+2024-07-15,Murcia_All,Fever (Unknown Origin),36
+2024-07-22,Murcia_All,Fever (Unknown Origin),35
+2024-07-29,Murcia_All,Fever (Unknown Origin),35
+2024-08-05,Murcia_All,Fever (Unknown Origin),34
+2024-08-12,Murcia_All,Fever (Unknown Origin),34
+2024-08-19,Murcia_All,Fever (Unknown Origin),33
+2024-08-26,Murcia_All,Fever (Unknown Origin),33
+2024-09-02,Murcia_All,Fever (Unknown Origin),32
+2024-09-09,Murcia_All,Fever (Unknown Origin),31
+2024-09-16,Murcia_All,Fever (Unknown Origin),30
+2024-09-23,Murcia_All,Fever (Unknown Origin),29
+2024-09-30,Murcia_All,Fever (Unknown Origin),28
+2024-10-07,Murcia_All,Fever (Unknown Origin),27
+2024-10-14,Murcia_All,Fever (Unknown Origin),26
+2024-10-21,Murcia_All,Fever (Unknown Origin),25
+2024-10-28,Murcia_All,Fever (Unknown Origin),23
+2024-11-04,Murcia_All,Fever (Unknown Origin),22
+2024-11-11,Murcia_All,Fever (Unknown Origin),21
+2024-11-18,Murcia_All,Fever (Unknown Origin),19
+2024-11-25,Murcia_All,Fever (Unknown Origin),18
+2024-12-02,Murcia_All,Fever (Unknown Origin),16
+2024-12-09,Murcia_All,Fever (Unknown Origin),15
+2024-12-16,Murcia_All,Fever (Unknown Origin),13
+2024-12-23,Murcia_All,Fever (Unknown Origin),12
+2024-01-01,Murcia_All,Dengue,7
+2024-01-08,Murcia_All,Dengue,8
+2024-01-15,Murcia_All,Dengue,9
+2024-01-22,Murcia_All,Dengue,10
+2024-01-29,Murcia_All,Dengue,11
+2024-02-05,Murcia_All,Dengue,12
+2024-02-12,Murcia_All,Dengue,13
+2024-02-19,Murcia_All,Dengue,13
+2024-02-26,Murcia_All,Dengue,14
+2024-03-04,Murcia_All,Dengue,15
+2024-03-11,Murcia_All,Dengue,16
+2024-03-18,Murcia_All,Dengue,16
+2024-03-25,Murcia_All,Dengue,17
+2024-04-01,Murcia_All,Dengue,18
+2024-04-08,Murcia_All,Dengue,18
+2024-04-15,Murcia_All,Dengue,19
+2024-04-22,Murcia_All,Dengue,19
+2024-04-29,Murcia_All,Dengue,20
+2024-05-06,Murcia_All,Dengue,20
+2024-05-13,Murcia_All,Dengue,21
+2024-05-20,Murcia_All,Dengue,21
+2024-05-27,Murcia_All,Dengue,21
+2024-06-03,Murcia_All,Dengue,21
+2024-06-10,Murcia_All,Dengue,22
+2024-06-17,Murcia_All,Dengue,22
+2024-06-24,Murcia_All,Dengue,22
+2024-07-01,Murcia_All,Dengue,22
+2024-07-08,Murcia_All,Dengue,22
+2024-07-15,Murcia_All,Dengue,22
+2024-07-22,Murcia_All,Dengue,21
+2024-07-29,Murcia_All,Dengue,21
+2024-08-05,Murcia_All,Dengue,21
+2024-08-12,Murcia_All,Dengue,21
+2024-08-19,Murcia_All,Dengue,20
+2024-08-26,Murcia_All,Dengue,20
+2024-09-02,Murcia_All,Dengue,19
+2024-09-09,Murcia_All,Dengue,19
+2024-09-16,Murcia_All,Dengue,18
+2024-09-23,Murcia_All,Dengue,18
+2024-09-30,Murcia_All,Dengue,17
+2024-10-07,Murcia_All,Dengue,16
+2024-10-14,Murcia_All,Dengue,16
+2024-10-21,Murcia_All,Dengue,15
+2024-10-28,Murcia_All,Dengue,14
+2024-11-04,Murcia_All,Dengue,13
+2024-11-11,Murcia_All,Dengue,13
+2024-11-18,Murcia_All,Dengue,12
+2024-11-25,Murcia_All,Dengue,11
+2024-12-02,Murcia_All,Dengue,10
+2024-12-09,Murcia_All,Dengue,9
+2024-12-16,Murcia_All,Dengue,8
+2024-12-23,Murcia_All,Dengue,7
+2024-01-01,Murcia_All,Animal Bites,22
+2024-01-08,Murcia_All,Animal Bites,24
+2024-01-15,Murcia_All,Animal Bites,27
+2024-01-22,Murcia_All,Animal Bites,29
+2024-01-29,Murcia_All,Animal Bites,32
+2024-02-05,Murcia_All,Animal Bites,35
+2024-02-12,Murcia_All,Animal Bites,37
+2024-02-19,Murcia_All,Animal Bites,40
+2024-02-26,Murcia_All,Animal Bites,42
+2024-03-04,Murcia_All,Animal Bites,44
+2024-03-11,Murcia_All,Animal Bites,46
+2024-03-18,Murcia_All,Animal Bites,49
+2024-03-25,Murcia_All,Animal Bites,51
+2024-04-01,Murcia_All,Animal Bites,52
+2024-04-08,Murcia_All,Animal Bites,54
+2024-04-15,Murcia_All,Animal Bites,56
+2024-04-22,Murcia_All,Animal Bites,57
+2024-04-29,Murcia_All,Animal Bites,59
+2024-05-06,Murcia_All,Animal Bites,60
+2024-05-13,Murcia_All,Animal Bites,61
+2024-05-20,Murcia_All,Animal Bites,62
+2024-05-27,Murcia_All,Animal Bites,63
+2024-06-03,Murcia_All,Animal Bites,64
+2024-06-10,Murcia_All,Animal Bites,64
+2024-06-17,Murcia_All,Animal Bites,64
+2024-06-24,Murcia_All,Animal Bites,65
+2024-07-01,Murcia_All,Animal Bites,65
+2024-07-08,Murcia_All,Animal Bites,64
+2024-07-15,Murcia_All,Animal Bites,64
+2024-07-22,Murcia_All,Animal Bites,64
+2024-07-29,Murcia_All,Animal Bites,63
+2024-08-05,Murcia_All,Animal Bites,62
+2024-08-12,Murcia_All,Animal Bites,61
+2024-08-19,Murcia_All,Animal Bites,60
+2024-08-26,Murcia_All,Animal Bites,59
+2024-09-02,Murcia_All,Animal Bites,57
+2024-09-09,Murcia_All,Animal Bites,56
+2024-09-16,Murcia_All,Animal Bites,54
+2024-09-23,Murcia_All,Animal Bites,52
+2024-09-30,Murcia_All,Animal Bites,51
+2024-10-07,Murcia_All,Animal Bites,49
+2024-10-14,Murcia_All,Animal Bites,46
+2024-10-21,Murcia_All,Animal Bites,44
+2024-10-28,Murcia_All,Animal Bites,42
+2024-11-04,Murcia_All,Animal Bites,40
+2024-11-11,Murcia_All,Animal Bites,37
+2024-11-18,Murcia_All,Animal Bites,35
+2024-11-25,Murcia_All,Animal Bites,32
+2024-12-02,Murcia_All,Animal Bites,29
+2024-12-09,Murcia_All,Animal Bites,27
+2024-12-16,Murcia_All,Animal Bites,24
+2024-12-23,Murcia_All,Animal Bites,22
+2025-01-01,Murcia_All,Fever (Unknown Origin),4
+2025-01-08,Murcia_All,Fever (Unknown Origin),5
+2025-01-15,Murcia_All,Fever (Unknown Origin),5
+2025-01-22,Murcia_All,Fever (Unknown Origin),6
+2025-01-29,Murcia_All,Fever (Unknown Origin),6
+2025-02-05,Murcia_All,Fever (Unknown Origin),7
+2025-02-12,Murcia_All,Fever (Unknown Origin),7
+2025-02-19,Murcia_All,Fever (Unknown Origin),8
+2025-02-26,Murcia_All,Fever (Unknown Origin),8
+2025-03-05,Murcia_All,Fever (Unknown Origin),9
+2025-03-12,Murcia_All,Fever (Unknown Origin),9
+2025-03-19,Murcia_All,Fever (Unknown Origin),9
+2025-03-26,Murcia_All,Fever (Unknown Origin),10
+2025-04-02,Murcia_All,Fever (Unknown Origin),10
+2025-04-09,Murcia_All,Fever (Unknown Origin),11
+2025-04-16,Murcia_All,Fever (Unknown Origin),11
+2025-04-23,Murcia_All,Fever (Unknown Origin),11
+2025-04-30,Murcia_All,Fever (Unknown Origin),11
+2025-05-07,Murcia_All,Fever (Unknown Origin),12
+2025-05-14,Murcia_All,Fever (Unknown Origin),12
+2025-05-21,Murcia_All,Fever (Unknown Origin),12
+2025-05-28,Murcia_All,Fever (Unknown Origin),12
+2025-06-04,Murcia_All,Fever (Unknown Origin),12
+2025-06-11,Murcia_All,Fever (Unknown Origin),12
+2025-06-18,Murcia_All,Fever (Unknown Origin),13
+2025-06-25,Murcia_All,Fever (Unknown Origin),13
+2025-07-02,Murcia_All,Fever (Unknown Origin),13
+2025-07-09,Murcia_All,Fever (Unknown Origin),13
+2025-07-16,Murcia_All,Fever (Unknown Origin),12
+2025-07-23,Murcia_All,Fever (Unknown Origin),12
+2025-07-30,Murcia_All,Fever (Unknown Origin),12
+2025-08-06,Murcia_All,Fever (Unknown Origin),12
+2025-08-13,Murcia_All,Fever (Unknown Origin),12
+2025-08-20,Murcia_All,Fever (Unknown Origin),12
+2025-08-27,Murcia_All,Fever (Unknown Origin),11
+2025-09-03,Murcia_All,Fever (Unknown Origin),11
+2025-09-10,Murcia_All,Fever (Unknown Origin),11
+2025-09-17,Murcia_All,Fever (Unknown Origin),11
+2025-09-24,Murcia_All,Fever (Unknown Origin),10
+2025-10-01,Murcia_All,Fever (Unknown Origin),10
+2025-10-08,Murcia_All,Fever (Unknown Origin),9
+2025-10-15,Murcia_All,Fever (Unknown Origin),9
+2025-10-22,Murcia_All,Fever (Unknown Origin),9
+2025-10-29,Murcia_All,Fever (Unknown Origin),8
+2025-11-05,Murcia_All,Fever (Unknown Origin),8
+2025-11-12,Murcia_All,Fever (Unknown Origin),7
+2025-11-19,Murcia_All,Fever (Unknown Origin),7
+2025-11-26,Murcia_All,Fever (Unknown Origin),6
+2025-12-03,Murcia_All,Fever (Unknown Origin),6
+2025-12-10,Murcia_All,Fever (Unknown Origin),5
+2025-12-17,Murcia_All,Fever (Unknown Origin),5
+2025-12-24,Murcia_All,Fever (Unknown Origin),4
+2025-01-01,Murcia_All,Dengue,3
+2025-01-08,Murcia_All,Dengue,3
+2025-01-15,Murcia_All,Dengue,3
+2025-01-22,Murcia_All,Dengue,4
+2025-01-29,Murcia_All,Dengue,4
+2025-02-05,Murcia_All,Dengue,4
+2025-02-12,Murcia_All,Dengue,5
+2025-02-19,Murcia_All,Dengue,5
+2025-02-26,Murcia_All,Dengue,5
+2025-03-05,Murcia_All,Dengue,6
+2025-03-12,Murcia_All,Dengue,6
+2025-03-19,Murcia_All,Dengue,6
+2025-03-26,Murcia_All,Dengue,6
+2025-04-02,Murcia_All,Dengue,7
+2025-04-09,Murcia_All,Dengue,7
+2025-04-16,Murcia_All,Dengue,7
+2025-04-23,Murcia_All,Dengue,7
+2025-04-30,Murcia_All,Dengue,7
+2025-05-07,Murcia_All,Dengue,8
+2025-05-14,Murcia_All,Dengue,8
+2025-05-21,Murcia_All,Dengue,8
+2025-05-28,Murcia_All,Dengue,8
+2025-06-04,Murcia_All,Dengue,8
+2025-06-11,Murcia_All,Dengue,8
+2025-06-18,Murcia_All,Dengue,8
+2025-06-25,Murcia_All,Dengue,8
+2025-07-02,Murcia_All,Dengue,8
+2025-07-09,Murcia_All,Dengue,8
+2025-07-16,Murcia_All,Dengue,8
+2025-07-23,Murcia_All,Dengue,8
+2025-07-30,Murcia_All,Dengue,8
+2025-08-06,Murcia_All,Dengue,8
+2025-08-13,Murcia_All,Dengue,8
+2025-08-20,Murcia_All,Dengue,8
+2025-08-27,Murcia_All,Dengue,7
+2025-09-03,Murcia_All,Dengue,7
+2025-09-10,Murcia_All,Dengue,7
+2025-09-17,Murcia_All,Dengue,7
+2025-09-24,Murcia_All,Dengue,7
+2025-10-01,Murcia_All,Dengue,6
+2025-10-08,Murcia_All,Dengue,6
+2025-10-15,Murcia_All,Dengue,6
+2025-10-22,Murcia_All,Dengue,6
+2025-10-29,Murcia_All,Dengue,5
+2025-11-05,Murcia_All,Dengue,5
+2025-11-12,Murcia_All,Dengue,5
+2025-11-19,Murcia_All,Dengue,4
+2025-11-26,Murcia_All,Dengue,4
+2025-12-03,Murcia_All,Dengue,4
+2025-12-10,Murcia_All,Dengue,3
+2025-12-17,Murcia_All,Dengue,3
+2025-12-24,Murcia_All,Dengue,3
+2025-01-01,Murcia_All,Animal Bites,31
+2025-01-08,Murcia_All,Animal Bites,35
+2025-01-15,Murcia_All,Animal Bites,39
+2025-01-22,Murcia_All,Animal Bites,43
+2025-01-29,Murcia_All,Animal Bites,47
+2025-02-05,Murcia_All,Animal Bites,50
+2025-02-12,Murcia_All,Animal Bites,54
+2025-02-19,Murcia_All,Animal Bites,58
+2025-02-26,Murcia_All,Animal Bites,61
+2025-03-05,Murcia_All,Animal Bites,65
+2025-03-12,Murcia_All,Animal Bites,68
+2025-03-19,Murcia_All,Animal Bites,71
+2025-03-26,Murcia_All,Animal Bites,74
+2025-04-02,Murcia_All,Animal Bites,77
+2025-04-09,Murcia_All,Animal Bites,79
+2025-04-16,Murcia_All,Animal Bites,82
+2025-04-23,Murcia_All,Animal Bites,84
+2025-04-30,Murcia_All,Animal Bites,86
+2025-05-07,Murcia_All,Animal Bites,88
+2025-05-14,Murcia_All,Animal Bites,89
+2025-05-21,Murcia_All,Animal Bites,91
+2025-05-28,Murcia_All,Animal Bites,92
+2025-06-04,Murcia_All,Animal Bites,93
+2025-06-11,Murcia_All,Animal Bites,94
+2025-06-18,Murcia_All,Animal Bites,94
+2025-06-25,Murcia_All,Animal Bites,94
+2025-07-02,Murcia_All,Animal Bites,94
+2025-07-09,Murcia_All,Animal Bites,94
+2025-07-16,Murcia_All,Animal Bites,94
+2025-07-23,Murcia_All,Animal Bites,93
+2025-07-30,Murcia_All,Animal Bites,92
+2025-08-06,Murcia_All,Animal Bites,91
+2025-08-13,Murcia_All,Animal Bites,89
+2025-08-20,Murcia_All,Animal Bites,88
+2025-08-27,Murcia_All,Animal Bites,86
+2025-09-03,Murcia_All,Animal Bites,84
+2025-09-10,Murcia_All,Animal Bites,82
+2025-09-17,Murcia_All,Animal Bites,79
+2025-09-24,Murcia_All,Animal Bites,77
+2025-10-01,Murcia_All,Animal Bites,74
+2025-10-08,Murcia_All,Animal Bites,71
+2025-10-15,Murcia_All,Animal Bites,68
+2025-10-22,Murcia_All,Animal Bites,65
+2025-10-29,Murcia_All,Animal Bites,61
+2025-11-05,Murcia_All,Animal Bites,58
+2025-11-12,Murcia_All,Animal Bites,54
+2025-11-19,Murcia_All,Animal Bites,50
+2025-11-26,Murcia_All,Animal Bites,47
+2025-12-03,Murcia_All,Animal Bites,43
+2025-12-10,Murcia_All,Animal Bites,39
+2025-12-17,Murcia_All,Animal Bites,35
+2025-12-24,Murcia_All,Animal Bites,31

@@ -1,0 +1,1706 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Portal | HEALTH-INTEL</title>
+    <link rel="stylesheet" href="assets/css/mho.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+      .dss-alert {
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        display: none;
+        animation: slideDown 0.4s ease-out forwards;
+        border: 1px solid #e2e8f0;
+      }
+      .dss-urgent {
+        background: #fee2e2;
+        border-left: 5px solid #ef4444;
+      }
+      .dss-alert-box {
+        background: #fef3c7;
+        border-left: 5px solid #f59e0b;
+      }
+      .dss-recommend {
+        background: #e0f2fe;
+        border-left: 5px solid #0ea5e9;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <i data-lucide="shield-plus" style="width: 28px; height: 28px"></i>
+        <h2>HEALTH-INTEL</h2>
+      </div>
+      <nav class="nav-menu">
+        <button class="nav-item active" data-target="view-analytics">
+          <i data-lucide="bar-chart-2" style="width: 20px"></i> Mun. Analytics
+        </button>
+        <button class="nav-item" data-target="view-heatmap">
+          <i data-lucide="map" style="width: 20px"></i> Heatmap Cases
+        </button>
+        <button class="nav-item" data-target="view-predictive">
+          <i data-lucide="brain-circuit" style="width: 20px"></i> Predictions
+        </button>
+        <button class="nav-item" data-target="view-reports">
+          <i data-lucide="file-text" style="width: 20px"></i> Export Reports
+        </button>
+        <a href="index.html" class="nav-item sign-out">
+          <i data-lucide="log-out" style="width: 20px"></i> Sign Out
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main-wrapper">
+      <div class="top-bar">Municipal Health Office Portal</div>
+
+      <div class="dashboard-content">
+        <div id="view-analytics" class="view-section">
+          <h1 class="page-title">Municipal Analytics</h1>
+          <p class="page-subtitle">
+            Interactive filtering and automated insights of historical FHSIS
+            health data.
+          </p>
+
+          <div class="grid-4">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Total Pop.</span>
+                <div
+                  class="stat-icon"
+                  style="color: #0284c7; background: #e0f2fe"
+                >
+                  <i data-lucide="users" style="width: 18px"></i>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-pop">92,241</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Active Cases</span>
+                <div
+                  class="stat-icon"
+                  style="color: #ea580c; background: #ffedd5"
+                >
+                  <i data-lucide="activity" style="width: 18px"></i>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-active">...</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Total Recovered</span>
+                <div
+                  class="stat-icon"
+                  style="color: #10b981; background: #d1fae5"
+                >
+                  <i data-lucide="shield-check" style="width: 18px"></i>
+                </div>
+              </div>
+              <div
+                class="stat-value"
+                style="color: #10b981"
+                id="stat-recovered"
+              >
+                ...
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">High Risk Cases</span>
+                <div
+                  class="stat-icon"
+                  style="color: #ef4444; background: #fee2e2"
+                >
+                  <i data-lucide="alert-circle" style="width: 18px"></i>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-risk">...</div>
+            </div>
+          </div>
+
+          <div class="white-panel" style="margin-bottom: 2rem">
+            <div style="margin-bottom: 15px">
+              <h3
+                class="panel-title"
+                style="
+                  margin: 0;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  font-size: 1.25rem;
+                "
+              >
+                <i
+                  data-lucide="activity"
+                  style="width: 22px; color: #0284c7"
+                ></i>
+                Epidemiological Health Profile
+              </h3>
+              <p
+                style="
+                  font-size: 0.85rem;
+                  color: #64748b;
+                  margin-top: 5px;
+                  margin-bottom: 0;
+                "
+              >
+                Cross-reference demographic parameters to generate automated
+                descriptive summaries of past health events.
+              </p>
+            </div>
+
+            <div
+              style="
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                background: #f8fafc;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+                border: 1px solid #e2e8f0;
+                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+              "
+            >
+              <select
+                id="filter-year"
+                onchange="updateDynamicChart()"
+                style="
+                  padding: 10px 12px;
+                  border-radius: 8px;
+                  border: 1px solid #cbd5e1;
+                  font-weight: bold;
+                  color: #0f172a;
+                  background: white;
+                  outline: none;
+                  cursor: pointer;
+                  flex: 1;
+                  min-width: 120px;
+                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                  transition: border-color 0.2s;
+                "
+              >
+                <option value="2025">CY 2025</option>
+                <option value="2024">CY 2024</option>
+                <option value="2023">CY 2023</option>
+              </select>
+
+              <select
+                id="filter-barangay"
+                onchange="updateDynamicChart()"
+                style="
+                  padding: 10px 12px;
+                  border-radius: 8px;
+                  border: 1px solid #cbd5e1;
+                  font-weight: 600;
+                  color: #334155;
+                  background: white;
+                  outline: none;
+                  cursor: pointer;
+                  flex: 1.5;
+                  min-width: 140px;
+                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                "
+              >
+                <option value="all">All Barangays</option>
+                <option value="Blumentritt">Blumentritt</option>
+                <option value="Poblacion">Poblacion</option>
+                <option value="San Jose">San Jose</option>
+                <option value="Talabas">Talabas</option>
+              </select>
+
+              <select
+                id="filter-category"
+                onchange="updateDynamicChart()"
+                style="
+                  padding: 10px 12px;
+                  border-radius: 8px;
+                  border: 1px solid #cbd5e1;
+                  font-weight: 600;
+                  color: #334155;
+                  background: white;
+                  outline: none;
+                  cursor: pointer;
+                  flex: 1.5;
+                  min-width: 140px;
+                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                "
+              >
+                <option value="morbidity">Cases (Morbidity)</option>
+                <option value="mortality">Deaths (Mortality)</option>
+              </select>
+
+              <select
+                id="filter-age"
+                onchange="updateDynamicChart()"
+                style="
+                  padding: 10px 12px;
+                  border-radius: 8px;
+                  border: 1px solid #cbd5e1;
+                  font-weight: 600;
+                  color: #334155;
+                  background: white;
+                  outline: none;
+                  cursor: pointer;
+                  flex: 1.5;
+                  min-width: 140px;
+                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                "
+              >
+                <option value="all">All Ages</option>
+                <option value="under5">Under 5 Years</option>
+                <option value="infant">Infant (0-11 Months)</option>
+              </select>
+
+              <select
+                id="filter-sex"
+                onchange="updateDynamicChart()"
+                style="
+                  padding: 10px 12px;
+                  border-radius: 8px;
+                  border: 1px solid #cbd5e1;
+                  font-weight: 600;
+                  color: #334155;
+                  background: white;
+                  outline: none;
+                  cursor: pointer;
+                  flex: 1.5;
+                  min-width: 140px;
+                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                "
+              >
+                <option value="both">Both Sexes</option>
+                <option value="male">Male Only</option>
+                <option value="female">Female Only</option>
+              </select>
+            </div>
+
+            <div
+              style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px"
+            >
+              <div
+                style="
+                  position: relative;
+                  height: 420px;
+                  width: 100%;
+                  background: white;
+                  border: 1px solid #f1f5f9;
+                  border-radius: 10px;
+                  padding: 10px;
+                "
+              >
+                <canvas id="dynamicChart"></canvas>
+              </div>
+
+              <div
+                style="
+                  background: linear-gradient(
+                    to bottom right,
+                    #ffffff,
+                    #f8fafc
+                  );
+                  border: 1px solid #e2e8f0;
+                  border-radius: 12px;
+                  padding: 25px;
+                  display: flex;
+                  flex-direction: column;
+                  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                "
+              >
+                <h4
+                  style="
+                    margin-top: 0;
+                    margin-bottom: 20px;
+                    color: #0f172a;
+                    font-size: 1.15rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    border-bottom: 2px solid #f1f5f9;
+                    padding-bottom: 10px;
+                  "
+                >
+                  <span
+                    style="
+                      background: #e0f2fe;
+                      padding: 6px;
+                      border-radius: 6px;
+                      display: flex;
+                    "
+                    ><i
+                      data-lucide="microscope"
+                      style="width: 20px; color: #0284c7"
+                    ></i
+                  ></span>
+                  Automated Descriptive Analysis
+                </h4>
+
+                <div
+                  id="dynamic-insights"
+                  style="
+                    font-size: 0.95rem;
+                    color: #334155;
+                    line-height: 1.7;
+                    flex-grow: 1;
+                  "
+                ></div>
+
+                <div
+                  style="
+                    margin-top: 20px;
+                    padding-top: 15px;
+                    border-top: 1px dashed #cbd5e1;
+                    background: #f0fdf4;
+                    border-radius: 8px;
+                    padding: 15px;
+                  "
+                >
+                  <span
+                    style="
+                      font-weight: bold;
+                      color: #166534;
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                      font-size: 0.9rem;
+                    "
+                  >
+                    <i data-lucide="shield-check" style="width: 16px"></i>
+                    Suggested MHO Action:
+                  </span>
+                  <p
+                    id="dynamic-recommendation"
+                    style="
+                      margin: 8px 0 0 0;
+                      font-size: 0.85rem;
+                      color: #15803d;
+                      line-height: 1.5;
+                    "
+                  ></p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 2fr 1fr;
+              gap: 1.5rem;
+              margin-bottom: 1.5rem;
+            "
+          >
+            <div class="white-panel" style="margin-bottom: 0">
+              <h3 class="panel-title">
+                <i
+                  data-lucide="trending-up"
+                  style="width: 18px; margin-right: 8px"
+                ></i>
+                Year-Over-Year Morbidity (2024 vs 2025)
+              </h3>
+              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 15px">
+                Comparative analysis of leading health burdens across all
+                barangays.
+              </p>
+              <div style="position: relative; height: 300px; width: 100%">
+                <canvas id="yoyMorbidityChart"></canvas>
+              </div>
+            </div>
+
+            <div class="white-panel" style="margin-bottom: 0">
+              <h3 class="panel-title">
+                <i
+                  data-lucide="pie-chart"
+                  style="width: 18px; margin-right: 8px"
+                ></i>
+                Leading Mortality (2025)
+              </h3>
+              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 15px">
+                Top causes of death requiring system intervention.
+              </p>
+              <div style="position: relative; height: 300px; width: 100%">
+                <canvas id="mortalityChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-heatmap" class="view-section hidden white-panel">
+          <h1 class="page-title">Municipality Heatmap (Active Cases)</h1>
+          <p class="page-subtitle">
+            Live GIS mapping of outbreak clusters across Murcia using
+            OpenStreetMap.
+          </p>
+          <div
+            id="murciaMap"
+            style="
+              height: 450px;
+              width: 100%;
+              border-radius: 8px;
+              border: 1px solid #e2e8f0;
+              z-index: 1;
+            "
+          ></div>
+        </div>
+
+        <div id="view-predictive" class="view-section hidden white-panel">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 1.5rem;
+            "
+          >
+            <div>
+              <h1 class="page-title" style="margin-bottom: 0">
+                Predictive Analytics
+              </h1>
+              <p class="page-subtitle" style="margin-bottom: 0">
+                Scikit-learn & SARIMA models for outbreak early warning.
+              </p>
+            </div>
+
+            <div
+              style="
+                display: flex;
+                gap: 10px;
+                background: #f1f5f9;
+                padding: 5px;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+              "
+            >
+              <button
+                id="btn-weekly"
+                onclick="switchTimeframe('weekly')"
+                style="
+                  padding: 8px 16px;
+                  border: none;
+                  border-radius: 6px;
+                  font-weight: bold;
+                  cursor: pointer;
+                  background: transparent;
+                  color: #64748b;
+                  transition: 0.3s;
+                "
+              >
+                Weekly (7 Days)
+              </button>
+              <button
+                id="btn-monthly"
+                onclick="switchTimeframe('monthly')"
+                style="
+                  padding: 8px 16px;
+                  border: none;
+                  border-radius: 6px;
+                  font-weight: bold;
+                  cursor: pointer;
+                  background: #004b87;
+                  color: white;
+                  transition: 0.3s;
+                "
+              >
+                Monthly (30 Days)
+              </button>
+            </div>
+          </div>
+
+          <div id="loading-container">
+            <div class="spinner"></div>
+            <div class="loading-text">Generating Predictions...</div>
+          </div>
+
+          <div
+            style="
+              position: relative;
+              height: 350px;
+              width: 100%;
+              margin-bottom: 2.5rem;
+            "
+          >
+            <canvas id="predictionChart"></canvas>
+          </div>
+
+          <div
+            class="white-panel"
+            style="
+              margin-bottom: 1rem;
+              border: 1px solid #e2e8f0;
+              box-shadow: none;
+            "
+          >
+            <h3 class="panel-title">
+              <i
+                data-lucide="trending-up"
+                style="width: 18px; margin-right: 8px"
+              ></i>
+              Historical Trend & AI Forecast
+            </h3>
+            <div style="position: relative; height: 300px; width: 100%">
+              <canvas id="trendChart"></canvas>
+            </div>
+
+            <div
+              style="
+                margin-top: 25px;
+                border-top: 2px solid #e2e8f0;
+                padding-top: 20px;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 15px;
+                "
+              >
+                <h3
+                  style="
+                    margin: 0;
+                    color: #0f172a;
+                    font-size: 1.15rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                  "
+                >
+                  <i
+                    data-lucide="brain-circuit"
+                    style="color: #0ea5e9; width: 22px"
+                  ></i>
+                  Actionable Interventions (DSS)
+                </h3>
+                <button
+                  id="btn-run-dss"
+                  onclick="generateDSS()"
+                  style="
+                    background: #0f172a;
+                    color: white;
+                    padding: 10px 18px;
+                    border: none;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: 0.2s;
+                  "
+                >
+                  <i data-lucide="radar" id="dss-icon" style="width: 18px"></i>
+                  Generate Actions
+                </button>
+              </div>
+
+              <div id="dss-results-container">
+                <div class="dss-alert dss-urgent" id="dss-rule-a">
+                  <i
+                    data-lucide="alert-triangle"
+                    style="
+                      color: #ef4444;
+                      flex-shrink: 0;
+                      width: 28px;
+                      height: 28px;
+                    "
+                  ></i>
+                  <div>
+                    <h4
+                      style="
+                        margin: 0 0 5px 0;
+                        color: #991b1b;
+                        font-size: 1.1rem;
+                      "
+                    >
+                      PREVENTATIVE URGENT: High Probability Dengue Spike
+                    </h4>
+                    <p style="margin: 0; color: #b91c1c; font-size: 0.95rem">
+                      The AI model forecasts a breach of the outbreak threshold
+                      (>15 cases) in Poblacion over the next 14 days due to
+                      recent weather patterns.<br /><br /><strong
+                        >Prescribed Action:</strong
+                      >
+                      Pre-emptively deploy Fogging Operations and distribute
+                      Ovicidal Traps in Poblacion immediately.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="dss-alert dss-recommend" id="dss-rule-c">
+                  <i
+                    data-lucide="info"
+                    style="
+                      color: #0284c7;
+                      flex-shrink: 0;
+                      width: 28px;
+                      height: 28px;
+                    "
+                  ></i>
+                  <div>
+                    <h4
+                      style="
+                        margin: 0 0 5px 0;
+                        color: #075985;
+                        font-size: 1.1rem;
+                      "
+                    >
+                      RECOMMENDATION: Routine Campaign Trigger
+                    </h4>
+                    <p style="margin: 0; color: #0369a1; font-size: 0.95rem">
+                      "Animal Bite" cases are demonstrating a steady upward
+                      trend municipal-wide over the last quarter.<br /><br /><strong
+                        >Prescribed Action:</strong
+                      >
+                      Initiate LGU-wide Rabies Awareness Campaign and verify
+                      ABTC (Animal Bite Treatment Center) vaccine stock for next
+                      month.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-reports" class="view-section hidden">
+          <h1 class="page-title">Official DOH Report Generation</h1>
+          <p class="page-subtitle">
+            Generate immutable, print-ready PDF documents formatted for regional Department of Health submission.
+          </p>
+          
+          <div class="grid-4" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <!-- FHSIS Report Card -->
+            <div class="white-panel" style="margin-bottom: 0; border-top: 4px solid #10b981;">
+              <h3 style="margin-top: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="file-check-2" style="color: #10b981;"></i> FHSIS Consolidation
+              </h3>
+              <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">
+                Field Health Services Information System. Monthly summary of morbidity and mortality across all barangays.
+              </p>
+              <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <select id="fhsis-month" class="login-input" style="background: white; border: 1px solid #cbd5e1; color: #334155;">
+                  <option value="January">January</option>
+                  <option value="February">February</option>
+                  <option value="March">March</option>
+                </select>
+                <select id="fhsis-year" class="login-input" style="background: white; border: 1px solid #cbd5e1; color: #334155;">
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                </select>
+              </div>
+              <button onclick="generateOfficialPDF('FHSIS')" style="width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;">
+                <i data-lucide="download" style="width: 18px;"></i> Download Certified PDF
+              </button>
+            </div>
+
+            <!-- PIDSR Report Card -->
+            <div class="white-panel" style="margin-bottom: 0; border-top: 4px solid #ef4444;">
+              <h3 style="margin-top: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="activity" style="color: #ef4444;"></i> PIDSR Surveillance
+              </h3>
+              <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">
+                Philippine Integrated Disease Surveillance and Response. Weekly tracking of outbreak-prone cases.
+              </p>
+              <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <select id="pidsr-week" class="login-input" style="background: white; border: 1px solid #cbd5e1; color: #334155;">
+                  <option value="Morbidity Week 40">Morbidity Week 40</option>
+                  <option value="Morbidity Week 41">Morbidity Week 41</option>
+                  <option value="Morbidity Week 42">Morbidity Week 42</option>
+                </select>
+              </div>
+              <button onclick="generateOfficialPDF('PIDSR')" style="width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;">
+                <i data-lucide="download" style="width: 18px;"></i> Download Certified PDF
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="view-history" class="view-section hidden white-panel">
+          <h1 class="page-title">Data Management</h1>
+          <p class="page-subtitle">
+            Add / edit / delete system database records.
+          </p>
+          <table class="data-table">
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Barangay</th>
+              <th>Action</th>
+            </tr>
+            <tr>
+              <td>#001</td>
+              <td>Luz Villanueva</td>
+              <td>San Jose</td>
+              <td>
+                <a href="#" style="color: #10b981; font-weight: bold">Manage</a>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+      lucide.createIcons();
+    </script>
+    <script>
+      // ==========================================
+      // DESCRIPTIVE ANALYTICS: INTERACTIVE DATABASE
+      // RESTORED HARDCODED PROTOTYPE DATA SO FILTERS WORK!
+      // ==========================================
+      const healthDatabase = {
+        2025: {
+          morbidity: {
+            all: [
+              { disease: "Wounds & Animal Bites", cases: 3674 },
+              { disease: "Other Symptoms", cases: 712 },
+              { disease: "Upper Resp. Infection (URTI)", cases: 695 },
+              { disease: "Influenza", cases: 673 },
+              { disease: "Fever (Unknown Origin)", cases: 490 },
+              { disease: "Acute Lower Resp. Infection", cases: 344 },
+              { disease: "Essential Hypertension", cases: 320 },
+              { disease: "Abdominal & Pelvic pain", cases: 212 },
+              { disease: "Other Diseases of Skin", cases: 121 },
+              { disease: "Urinary Tract Infection", cases: 94 },
+            ],
+            under5: [
+              { disease: "Wounds (inc. Animal bites)", cases: 368 },
+              { disease: "Influenza", cases: 224 },
+              { disease: "Acute URTI", cases: 210 },
+              { disease: "Fever (Unknown Origin)", cases: 133 },
+              { disease: "Other Symptoms", cases: 60 },
+              { disease: "Unspecified lower resp.", cases: 46 },
+              { disease: "Nose/nasal diseases", cases: 40 },
+              { disease: "Acute Gastroenteritis", cases: 34 },
+              { disease: "Skin Diseases", cases: 33 },
+              { disease: "Asthma", cases: 13 },
+            ],
+            infant: [
+              { disease: "Acute URTI", cases: 41 },
+              { disease: "Influenza", cases: 41 },
+              { disease: "Fever (Unknown Origin)", cases: 13 },
+              { disease: "Wounds, All Types", cases: 8 },
+              { disease: "Acute Gastroenteritis", cases: 7 },
+              { disease: "Skin Diseases", cases: 6 },
+              { disease: "Unspecified Acute Lower Resp.", cases: 6 },
+              { disease: "Nose/nasal diseases", cases: 4 },
+              { disease: "Relapsing fever", cases: 3 },
+              { disease: "Other Symptoms", cases: 3 },
+            ],
+          },
+          mortality: {
+            all: [
+              { disease: "Undetermined Natural Cause", cases: 74 },
+              { disease: "Hypertension", cases: 66 },
+              { disease: "Tuberculosis", cases: 28 },
+              { disease: "Diabetes Mellitus", cases: 22 },
+              { disease: "Kidney Disease", cases: 20 },
+              { disease: "Cardio Pulmonary Arrest", cases: 20 },
+              { disease: "Cancer", cases: 19 },
+              { disease: "Pneumonia", cases: 18 },
+              { disease: "Accident", cases: 14 },
+              { disease: "Wounds, All Types", cases: 10 },
+            ],
+            under5: [
+              { disease: "Fetal Death", cases: 6 },
+              { disease: "Pneumonia", cases: 2 },
+              { disease: "Prematurity", cases: 1 },
+              { disease: "Congenital Anomaly", cases: 1 },
+            ],
+            infant: [
+              { disease: "Fetal Death", cases: 6 },
+              { disease: "Prematurity", cases: 1 },
+              { disease: "Pneumonia", cases: 1 },
+            ],
+          },
+        },
+        2024: {
+          morbidity: {
+            all: [
+              { disease: "Acute Resp. Infection", cases: 2037 },
+              { disease: "Animal Bites", cases: 2004 },
+              { disease: "Fever (Unknown Origin)", cases: 1396 },
+              { disease: "Wound - All Types", cases: 515 },
+              { disease: "Body Malaise/Pain", cases: 263 },
+              { disease: "Hypertension", cases: 110 },
+              { disease: "Acute Gastroenteritis", cases: 99 },
+              { disease: "Systemic Viral Infection", cases: 95 },
+              { disease: "Skin Diseases", cases: 88 },
+              { disease: "Hypersensitivity Reaction", cases: 88 },
+            ],
+            under5: [
+              { disease: "Fever (Unknown Origin)", cases: 488 },
+              { disease: "Acute Resp. Infection", cases: 396 },
+              { disease: "Cough", cases: 248 },
+              { disease: "Animal Bites", cases: 239 },
+              { disease: "Wounds, All Types", cases: 64 },
+              { disease: "Hypersensitivity Reaction", cases: 37 },
+              { disease: "Influenza", cases: 35 },
+              { disease: "Skin Diseases", cases: 23 },
+              { disease: "Systemic Viral Infection", cases: 21 },
+              { disease: "Asthma", cases: 15 },
+            ],
+            infant: [
+              { disease: "Acute Resp. Infection", cases: 133 },
+              { disease: "Fever (Unknown Origin)", cases: 95 },
+              { disease: "Cough", cases: 60 },
+              { disease: "Influenza", cases: 12 },
+              { disease: "Acute Gastroenteritis", cases: 9 },
+              { disease: "Skin Diseases", cases: 7 },
+              { disease: "Hypersensitivity Reaction", cases: 7 },
+              { disease: "Systemic Viral Infection", cases: 7 },
+              { disease: "Wounds, All Types", cases: 4 },
+              { disease: "Whooping Cough", cases: 3 },
+            ],
+          },
+          mortality: {
+            all: [
+              { disease: "Undetermined Natural Cause", cases: 91 },
+              { disease: "Hypertension", cases: 46 },
+              { disease: "Cancer", cases: 30 },
+              { disease: "Kidney Disease", cases: 27 },
+              { disease: "Diabetes Mellitus", cases: 26 },
+              { disease: "Pneumonia", cases: 12 },
+              { disease: "Tuberculosis", cases: 12 },
+              { disease: "Accident", cases: 12 },
+              { disease: "COPD", cases: 10 },
+              { disease: "Cardiovascular Disease", cases: 8 },
+            ],
+            under5: [
+              { disease: "Fetal Death", cases: 7 },
+              { disease: "Pneumonia", cases: 3 },
+              { disease: "Prematurity", cases: 1 },
+              { disease: "Congenital Anomaly", cases: 1 },
+            ],
+            infant: [
+              { disease: "Fetal Death", cases: 7 },
+              { disease: "Prematurity", cases: 1 },
+              { disease: "Pneumonia", cases: 1 },
+            ],
+          },
+        },
+        2023: {
+          morbidity: {
+            all: [
+              { disease: "Cough", cases: 793 },
+              { disease: "Animal Bites", cases: 599 },
+              { disease: "URTI", cases: 353 },
+              { disease: "Wounds, All Type", cases: 272 },
+              { disease: "ARI", cases: 271 },
+              { disease: "Fever (Unknown Origin)", cases: 216 },
+              { disease: "Hypertension", cases: 213 },
+              { disease: "Influenza", cases: 155 },
+              { disease: "Acute Gastroenteritis", cases: 155 },
+              { disease: "Vertigo", cases: 120 },
+            ],
+            under5: [
+              { disease: "Cough", cases: 171 },
+              { disease: "Fever (Unknown Origin)", cases: 83 },
+              { disease: "ARI", cases: 82 },
+              { disease: "URTI", cases: 66 },
+              { disease: "Animal Bites", cases: 46 },
+              { disease: "Acute Gastroenteritis", cases: 29 },
+              { disease: "Systemic Viral Infection", cases: 17 },
+              { disease: "Hand, Foot & Mouth", cases: 12 },
+              { disease: "Wounds, All Type", cases: 8 },
+              { disease: "Otitis Media", cases: 4 },
+            ],
+            infant: [
+              { disease: "Cough", cases: 64 },
+              { disease: "ARI", cases: 29 },
+              { disease: "Fever (Unknown Origin)", cases: 20 },
+              { disease: "URTI", cases: 12 },
+              { disease: "Acute Gastroenteritis", cases: 4 },
+              { disease: "Systemic Viral Infection", cases: 3 },
+              { disease: "Skin Diseases", cases: 3 },
+              { disease: "Carbuncle", cases: 2 },
+              { disease: "Hypersensitivity", cases: 2 },
+              { disease: "Wound, All Type", cases: 1 },
+            ],
+          },
+          mortality: {
+            all: [
+              { disease: "Undetermined Natural Cause", cases: 92 },
+              { disease: "Hypertension", cases: 60 },
+              { disease: "Cardiopulmonary Arrest", cases: 29 },
+              { disease: "Kidney Disease", cases: 20 },
+              { disease: "Cancer", cases: 19 },
+              { disease: "Pneumonia", cases: 15 },
+              { disease: "Tuberculosis", cases: 12 },
+              { disease: "Accident", cases: 8 },
+              { disease: "COPD", cases: 7 },
+              { disease: "Asphyxia", cases: 5 },
+            ],
+            under5: [
+              { disease: "Fetal Death", cases: 3 },
+              { disease: "Acute Gastroenteritis", cases: 3 },
+              { disease: "Pneumonia", cases: 1 },
+              { disease: "Prematurity", cases: 1 },
+              { disease: "Sepsis", cases: 1 },
+            ],
+            infant: [
+              { disease: "Fetal Death", cases: 3 },
+              { disease: "Pneumonia", cases: 1 },
+              { disease: "Acute Gastroenteritis", cases: 1 },
+              { disease: "Prematurity", cases: 1 },
+            ],
+          },
+        },
+      };
+
+      // Initialize the Dynamic Chart
+      const ctxDynamic = document
+        .getElementById("dynamicChart")
+        .getContext("2d");
+
+      let blueGradient = ctxDynamic.createLinearGradient(0, 0, 800, 0);
+      blueGradient.addColorStop(0, "rgba(59, 130, 246, 0.6)");
+      blueGradient.addColorStop(1, "rgba(37, 99, 235, 0.9)");
+
+      let redGradient = ctxDynamic.createLinearGradient(0, 0, 800, 0);
+      redGradient.addColorStop(0, "rgba(239, 68, 68, 0.6)");
+      redGradient.addColorStop(1, "rgba(185, 28, 28, 0.9)");
+
+      let dynamicChart = new Chart(ctxDynamic, {
+        type: "bar",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Cases Recorded",
+              data: [],
+              backgroundColor: blueGradient,
+              borderRadius: 6,
+            },
+          ],
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "rgba(15, 23, 42, 0.9)",
+              titleFont: { size: 14 },
+              bodyFont: { size: 13, weight: "bold" },
+              padding: 12,
+            },
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: { borderDash: [4, 4], color: "#e2e8f0" },
+            },
+            y: { grid: { display: false } },
+          },
+        },
+      });
+
+      // ==========================================
+      // AUTOMATED INSIGHTS GENERATOR
+      // ==========================================
+      function generateInsights(data, category, age, year) {
+        const insightBox = document.getElementById("dynamic-insights");
+        const recBox = document.getElementById("dynamic-recommendation");
+
+        if (data.length === 0) {
+          insightBox.innerHTML =
+            "No data available for these specific demographic parameters.";
+          recBox.innerHTML = "N/A";
+          return;
+        }
+
+        // Sort data to find top concerns
+        let sortedData = [...data].sort((a, b) => b.cases - a.cases);
+        let topDisease = sortedData[0];
+        let totalCases = sortedData.reduce((sum, item) => sum + item.cases, 0);
+        let percentage = ((topDisease.cases / totalCases) * 100).toFixed(1);
+
+        let insightHTML = "";
+        let recommendation = "";
+
+        if (category === "morbidity") {
+          insightHTML += `<ul style="padding-left: 18px; margin-top: 0; list-style-type: none;">`;
+          insightHTML += `<li style="margin-bottom: 15px; position: relative;">
+                  <span style="position: absolute; left: -18px; color: #3b82f6; font-weight: bold;">•</span>
+                  <strong>Dominant Category:</strong> The leading morbidity factor for this demographic subset is <span style="color:#0284c7; font-weight:700;">${topDisease.disease}</span>, which accounts for approximately <strong>${percentage}%</strong> of the mapped records.</li>`;
+
+          insightHTML += `<li style="margin-bottom: 15px; position: relative;">
+                  <span style="position: absolute; left: -18px; color: #3b82f6; font-weight: bold;">•</span>
+                  <strong>Volume Overview:</strong> A total of ${topDisease.cases.toLocaleString()} instances were recorded. High concentration in a single category typically indicates strong environmental or transmissible factors.</li>`;
+
+          if (
+            topDisease.disease.includes("Bite") ||
+            topDisease.disease.includes("Wound")
+          ) {
+            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #3b82f6; font-weight: bold;">•</span><strong>Contextual Note:</strong> Wounds and animal bites represent a persistent external/environmental threat rather than a contagious community outbreak.</li>`;
+            recommendation =
+              "Allocate resources towards localized Rabies Awareness drives and ensure optimal stocking of post-exposure prophylaxis (PEP) at Rural Health Units.";
+          } else if (
+            topDisease.disease.includes("Resp") ||
+            topDisease.disease.includes("Cough") ||
+            topDisease.disease.includes("Influenza")
+          ) {
+            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #3b82f6; font-weight: bold;">•</span><strong>Contextual Note:</strong> Respiratory tract infections demonstrate rapid community transmission, likely aggravated by seasonal weather changes or poor ventilation.</li>`;
+            recommendation =
+              "Activate community-level respiratory protocols. Maximize BHW deployment for symptom screening and distribute immune-boosting supplements to vulnerable sectors.";
+          } else {
+            recommendation =
+              "Conduct immediate cluster mapping via the GIS Heatmap to trace the specific environmental or behavioral root causes of this disease spike.";
+          }
+          insightHTML += `</ul>`;
+        } else {
+          // Mortality Insights
+          insightHTML += `<ul style="padding-left: 18px; margin-top: 0; list-style-type: none;">`;
+          insightHTML += `<li style="margin-bottom: 15px; position: relative;">
+                  <span style="position: absolute; left: -18px; color: #ef4444; font-weight: bold;">•</span>
+                  <strong>Primary Mortality Driver:</strong> <span style="color:#ef4444; font-weight:700;">${topDisease.disease}</span> ranks as the highest cause of mortality, with ${topDisease.cases} recorded fatalities in this subset.</li>`;
+
+          if (topDisease.disease.includes("Undetermined")) {
+            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #ef4444; font-weight: bold;">•</span><strong>Data Discrepancy:</strong> The prevalence of "Undetermined Causes" indicates a significant gap in post-mortem diagnostics or late medical intervention.</li>`;
+            recommendation =
+              "Enforce stricter guidelines for grassroots health tracking. Early intervention by BHWs is required to minimize deaths occurring outside official medical facilities.";
+          } else if (
+            topDisease.disease.includes("Hypertension") ||
+            topDisease.disease.includes("Heart") ||
+            topDisease.disease.includes("Cardio")
+          ) {
+            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #ef4444; font-weight: bold;">•</span><strong>Contextual Note:</strong> Non-communicable diseases (NCDs) linked to diet and lifestyle remain the most fatal threat to this demographic.</li>`;
+            recommendation =
+              "Implement municipal-wide 'Healthy Lifestyle' programs and mandate routine blood pressure and glucose screenings at all barangay health centers.";
+          } else if (
+            topDisease.disease.includes("Fetal") ||
+            topDisease.disease.includes("Prematurity")
+          ) {
+            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #ef4444; font-weight: bold;">•</span><strong>Contextual Note:</strong> High rates of neonatal and fetal complications highlight critical risks in local maternal health management.</li>`;
+            recommendation =
+              "Intensify maternal care monitoring. Require weekly check-ins for high-risk pregnancies and improve rapid transport to Lying-in clinics.";
+          } else {
+            recommendation =
+              "Review current clinical intervention strategies, medicine stockpiles, and RHU response times for this specific critical condition.";
+          }
+          insightHTML += `</ul>`;
+        }
+
+        insightBox.innerHTML = insightHTML;
+        recBox.innerHTML = recommendation;
+      }
+
+      // Function that runs when any dropdown is changed
+      function updateDynamicChart() {
+        const year = document.getElementById("filter-year").value;
+        const barangay = document.getElementById("filter-barangay").value;
+        const category = document.getElementById("filter-category").value;
+        const age = document.getElementById("filter-age").value;
+        const sex = document.getElementById("filter-sex").value;
+
+        // Fetch data from the hardcoded prototype array
+        let rawData = healthDatabase[year][category][age];
+
+        let processedData = rawData.map((item) => {
+          let calculatedCases = item.cases;
+
+          if (barangay === "Blumentritt")
+            calculatedCases = calculatedCases * 0.35;
+          else if (barangay === "Poblacion")
+            calculatedCases = calculatedCases * 0.3;
+          else if (barangay === "San Jose")
+            calculatedCases = calculatedCases * 0.2;
+          else if (barangay === "Talabas")
+            calculatedCases = calculatedCases * 0.15;
+
+          if (sex === "male") calculatedCases = calculatedCases * 0.504;
+          else if (sex === "female") calculatedCases = calculatedCases * 0.496;
+
+          return { disease: item.disease, cases: Math.round(calculatedCases) };
+        });
+
+        processedData = processedData.filter((d) => d.cases > 0);
+
+        dynamicChart.data.labels = processedData.map((d) => d.disease);
+        dynamicChart.data.datasets[0].data = processedData.map((d) => d.cases);
+        dynamicChart.data.datasets[0].backgroundColor =
+          category === "morbidity" ? blueGradient : redGradient;
+        dynamicChart.update();
+
+        // Call the automated text generator
+        generateInsights(processedData, category, age, year);
+      }
+
+      // Run it once when the page loads
+      updateDynamicChart();
+
+      // ==========================================
+      // LINE CHART: Historical + AI Forecast
+      // ==========================================
+      const trendCtx = document.getElementById("trendChart").getContext("2d");
+      let myTrendChart = new Chart(trendCtx, {
+        type: "line",
+        data: {
+          labels: [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+            "NEXT MONTH (AI)",
+          ],
+          datasets: [
+            {
+              label: "Historical Cases (Fever)",
+              data: [25, 22, 20, 28, 35, 50, 75, 85, 60, 40, 28, 22, null],
+              borderColor: "#3b82f6",
+              backgroundColor: "rgba(59, 130, 246, 0.1)",
+              borderWidth: 2,
+              fill: true,
+              tension: 0.4,
+            },
+            {
+              label: "AI Prediction",
+              data: [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                22,
+                0,
+              ],
+              borderColor: "#ef4444",
+              borderDash: [5, 5],
+              borderWidth: 3,
+              pointBackgroundColor: "#ef4444",
+              pointRadius: 6,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true } },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  if (context.datasetIndex === 1 && context.dataIndex === 12)
+                    return " AI Prediction: " + context.raw + " Cases";
+                  return " " + context.raw + " Cases";
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // ==========================================
+      // PREDICTIVE ANALYTICS BAR CHART
+      // ==========================================
+      const ctx = document.getElementById("predictionChart").getContext("2d");
+      let myChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Predicted Outbreak Cases",
+              data: [],
+              backgroundColor: [
+                "rgba(54, 162, 235, 0.7)",
+                "rgba(75, 192, 192, 0.7)",
+                "rgba(255, 99, 132, 0.7)",
+              ],
+              borderColor: [
+                "rgba(54, 162, 235, 1)",
+                "rgba(75, 192, 192, 1)",
+                "rgba(255, 99, 132, 1)",
+              ],
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true } },
+        },
+      });
+
+      // ==========================================
+      // CHART 1: YEAR-OVER-YEAR MORBIDITY
+      // ==========================================
+      const morbidityCtx = document.getElementById("yoyMorbidityChart");
+      if (morbidityCtx) {
+        new Chart(morbidityCtx.getContext("2d"), {
+          type: "bar",
+          data: {
+            labels: [
+              "Wounds & Animal Bites",
+              "Respiratory (ARI/URTI)",
+              "Unknown Fever",
+              "Hypertension",
+            ],
+            datasets: [
+              {
+                label: "CY 2024",
+                data: [2519, 2037, 1396, 110],
+                backgroundColor: "rgba(148, 163, 184, 0.7)",
+                borderRadius: 4,
+              },
+              {
+                label: "CY 2025",
+                data: [3674, 1039, 490, 320],
+                backgroundColor: "rgba(16, 185, 129, 0.9)",
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: "top" },
+              tooltip: {
+                callbacks: {
+                  afterBody: function (context) {
+                    let val2024 = context[0].raw;
+                    let val2025 = context[1].raw;
+                    let diff = val2025 - val2024;
+                    let perc = ((diff / val2024) * 100).toFixed(1);
+                    if (diff > 0)
+                      return (
+                        "\n⚠️ Alert: Increased by " +
+                        diff +
+                        " cases (+" +
+                        perc +
+                        "%)"
+                      );
+                    else
+                      return (
+                        "\n✅ Improved: Dropped by " +
+                        Math.abs(diff) +
+                        " cases (" +
+                        perc +
+                        "%)"
+                      );
+                  },
+                },
+              },
+            },
+            scales: {
+              y: { beginAtZero: true, grid: { borderDash: [4, 4] } },
+              x: { grid: { display: false } },
+            },
+          },
+        });
+      }
+
+      // ==========================================
+      // CHART 2: 2025 LEADING MORTALITY
+      // ==========================================
+      const mortalityCtx = document.getElementById("mortalityChart");
+      if (mortalityCtx) {
+        new Chart(mortalityCtx.getContext("2d"), {
+          type: "doughnut",
+          data: {
+            labels: [
+              "Undetermined Cause",
+              "Hypertension",
+              "Tuberculosis",
+              "Diabetes",
+              "Kidney Disease",
+            ],
+            datasets: [
+              {
+                data: [74, 66, 28, 22, 20],
+                backgroundColor: [
+                  "#64748b",
+                  "#ef4444",
+                  "#f59e0b",
+                  "#3b82f6",
+                  "#8b5cf6",
+                ],
+                borderWidth: 0,
+                hoverOffset: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "65%",
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { boxWidth: 12, font: { size: 11 } },
+              },
+            },
+          },
+        });
+      }
+
+      // ==========================================
+      // API FETCH & TOGGLE LOGIC
+      // ==========================================
+      function switchTimeframe(timeframe) {
+        const btnWeekly = document.getElementById("btn-weekly");
+        const btnMonthly = document.getElementById("btn-monthly");
+        if (timeframe === "weekly") {
+          btnWeekly.style.background = "#004b87";
+          btnWeekly.style.color = "white";
+          btnMonthly.style.background = "transparent";
+          btnMonthly.style.color = "#64748b";
+        } else {
+          btnMonthly.style.background = "#004b87";
+          btnMonthly.style.color = "white";
+          btnWeekly.style.background = "transparent";
+          btnWeekly.style.color = "#64748b";
+        }
+        loadPredictiveAnalytics(timeframe);
+      }
+
+      async function loadPredictiveAnalytics(timeframe = "monthly") {
+        const loader = document.getElementById("loading-container");
+        const chartCanvas = document.getElementById("predictionChart");
+
+        loader.style.display = "flex";
+        chartCanvas.style.display = "none";
+
+        try {
+          const response = await fetch(
+            `http://localhost:3000/api/get-predictions?timeframe=${timeframe}`,
+          );
+          const result = await response.json();
+
+          if (result.success) {
+            const predictionData = result.data;
+            myChart.data.labels = predictionData.map((item) => item.barangay);
+            myChart.data.datasets[0].data = predictionData.map(
+              (item) => item.predicted_cases,
+            );
+
+            let timeLabel =
+              timeframe === "weekly" ? "Next 7 Days" : "Next Month";
+            if (predictionData.length > 0 && predictionData[0].disease) {
+              myChart.data.datasets[0].label = `Predicted ${predictionData[0].disease} Cases Distributed by Barangay (${timeLabel})`;
+            }
+
+            myChart.data.datasets[0].backgroundColor = predictionData.map(
+              (item) => {
+                if (item.risk_level === "High/Outbreak")
+                  return "rgba(255, 99, 132, 0.8)";
+                if (item.risk_level === "Medium")
+                  return "rgba(255, 206, 86, 0.8)";
+                return "rgba(75, 192, 192, 0.8)";
+              },
+            );
+            myChart.update();
+
+            let totalPredicted = predictionData.reduce(
+              (sum, item) => sum + item.predicted_cases,
+              0,
+            );
+
+            if (timeframe === "monthly") {
+              myTrendChart.data.labels = [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+                "NEXT MONTH (AI)",
+              ];
+              myTrendChart.data.datasets[0].data = [
+                25,
+                22,
+                20,
+                28,
+                35,
+                50,
+                75,
+                85,
+                60,
+                40,
+                28,
+                22,
+                null,
+              ];
+              myTrendChart.data.datasets[1].data = [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                22,
+                totalPredicted,
+              ];
+            } else {
+              myTrendChart.data.labels = [
+                "Wk 40",
+                "Wk 41",
+                "Wk 42",
+                "Wk 43",
+                "Wk 44",
+                "Wk 45",
+                "Wk 46",
+                "Wk 47",
+                "Wk 48",
+                "Wk 49",
+                "Wk 50",
+                "Wk 51",
+                "NEXT 7 DAYS (AI)",
+              ];
+              myTrendChart.data.datasets[0].data = [
+                3,
+                2,
+                4,
+                3,
+                5,
+                4,
+                7,
+                6,
+                8,
+                12,
+                15,
+                18,
+                null,
+              ];
+              myTrendChart.data.datasets[1].data = [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                18,
+                totalPredicted,
+              ];
+            }
+            myTrendChart.update();
+          }
+        } catch (error) {
+          console.error("Failed to load predictions.", error);
+          loader.innerHTML =
+            "<div style='color:red; font-weight:bold;'>Error: Could not connect to AI Engine.</div>";
+        } finally {
+          if (
+            !document.querySelector(
+              '#loading-container div[style*="color:red"]',
+            )
+          ) {
+            loader.style.display = "none";
+            chartCanvas.style.display = "block";
+          }
+        }
+      }
+
+      loadPredictiveAnalytics("monthly");
+
+      // ==========================================
+      // DATABASE SYNC: Fetch Live Stats from MySQL
+      // ==========================================
+      async function fetchLiveMHOStats() {
+        try {
+          const response = await fetch("http://localhost:3000/api/mho-stats");
+          const result = await response.json();
+          if (result.success) {
+            document.getElementById("stat-active").innerText =
+              result.data.active;
+            document.getElementById("stat-recovered").innerText =
+              result.data.recovered;
+            document.getElementById("stat-risk").innerText =
+              result.data.high_risk;
+          }
+        } catch (error) {
+          console.error("Failed to connect to MySQL Database", error);
+        }
+      }
+
+      fetchLiveMHOStats();
+      setInterval(fetchLiveMHOStats, 5000);
+
+      // --- PRESCRIPTIVE DSS ENGINE ---
+      function generateDSS() {
+        const btn = document.getElementById("btn-run-dss");
+        const icon = document.getElementById("dss-icon");
+
+        // Change button to loading state
+        btn.innerHTML = `<i data-lucide="loader-2" class="lucide-spin" style="width: 18px;"></i> Analyzing Forecast...`;
+        lucide.createIcons();
+
+        // Simulate AI Processing time (1.5 seconds)
+        setTimeout(() => {
+          // Change button to success state
+          btn.innerHTML = `<i data-lucide="check-circle" style="width: 18px; color: #10b981;"></i> Analysis Complete`;
+          btn.style.background = "#f8fafc";
+          btn.style.color = "#0f172a";
+          btn.style.border = "1px solid #cbd5e1";
+          lucide.createIcons();
+
+          // Animate the specific rules based on the chart's "Spike" prediction
+          document.getElementById("dss-rule-a").style.display = "flex";
+          document.getElementById("dss-rule-c").style.display = "flex";
+        }, 1500);
+      }
+      // ==========================================
+      // OFFICIAL DOH PDF GENERATOR (jsPDF)
+      // ==========================================
+      function generateOfficialPDF(reportType) {
+        // Initialize jsPDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // --- Document Header ---
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text("REPUBLIC OF THE PHILIPPINES", 105, 20, { align: "center" });
+        doc.text("DEPARTMENT OF HEALTH", 105, 27, { align: "center" });
+        
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "normal");
+        doc.text("Municipal Health Office - Murcia, Negros Occidental", 105, 34, { align: "center" });
+        
+        doc.setLineWidth(0.5);
+        doc.line(20, 40, 190, 40); // Horizontal divider line
+
+        // --- Document Title & Metadata ---
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        
+        let reportTitle = "";
+        let period = "";
+        let tableData = [];
+
+        if (reportType === "FHSIS") {
+          const month = document.getElementById("fhsis-month").value;
+          const year = document.getElementById("fhsis-year").value;
+          reportTitle = "FHSIS MONTHLY CONSOLIDATION REPORT";
+          period = `Period: ${month} ${year}`;
+          
+          // Pull top 5 morbidity cases for the demo
+          let rawData = healthDatabase[year]?.morbidity?.all || [];
+          tableData = rawData.slice(0, 8).map((item, index) => [
+            index + 1,
+            item.disease,
+            "Morbidity",
+            item.cases.toLocaleString(),
+            "Verified"
+          ]);
+
+        } else if (reportType === "PIDSR") {
+          const week = document.getElementById("pidsr-week").value;
+          reportTitle = "PIDSR EPIDEMIOLOGICAL SURVEILLANCE REPORT";
+          period = `Period: ${week}, CY 2025`;
+
+          // Hardcoded outbreak surveillance demo data
+          tableData = [
+            [1, "Dengue Fever", "High Risk", "15", "Alert Threshold"],
+            [2, "Acute Gastroenteritis", "Standard", "34", "Monitored"],
+            [3, "Typhoid Fever", "High Risk", "2", "Isolated"],
+            [4, "Cholera", "High Risk", "0", "Clear"]
+          ];
+        }
+
+        doc.text(reportTitle, 20, 50);
+        doc.setFont("helvetica", "normal");
+        doc.text(period, 20, 57);
+        doc.text(`Generated By: System Admin (HEALTH-INTEL)`, 20, 64);
+        doc.text(`Date of Export: ${new Date().toLocaleDateString()}`, 20, 71);
+
+        // --- Generate Table ---
+        doc.autoTable({
+          startY: 80,
+          head: [['No.', 'Disease / Indicator', 'Category', 'Total Cases', 'Status']],
+          body: tableData,
+          theme: 'grid',
+          headStyles: { fillColor: reportType === "FHSIS" ? [16, 185, 129] : [239, 68, 68] },
+          styles: { font: 'helvetica', fontSize: 10 }
+        });
+
+        // --- Footer & Signatures ---
+        const finalY = doc.lastAutoTable.finalY || 100;
+        doc.setFont("helvetica", "bold");
+        doc.text("CERTIFICATION:", 20, finalY + 20);
+        doc.setFont("helvetica", "normal");
+        doc.text("I hereby certify that the above data is true and correct based on the consolidated", 20, finalY + 27);
+        doc.text("reports submitted by the Barangay Health Stations.", 20, finalY + 34);
+
+        doc.line(120, finalY + 60, 180, finalY + 60);
+        doc.text("Municipal Health Officer", 150, finalY + 66, { align: "center" });
+
+        // --- Save the PDF ---
+        const filename = `HEALTH-INTEL_${reportType}_${new Date().getTime()}.pdf`;
+        doc.save(filename);
+        
+        // Trigger a nice success popup
+        Swal.fire({
+          icon: 'success',
+          title: 'PDF Generated Successfully',
+          text: `The ${reportType} report has been locked and downloaded.`,
+          confirmButtonColor: reportType === "FHSIS" ? '#10b981' : '#ef4444'
+        });
+      }
+    </script>
+  </body>
+</html>

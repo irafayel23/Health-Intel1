@@ -1,0 +1,238 @@
+/* assets/css/index.css */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --bg-light: #f8fafc;
+  --bg-white: #ffffff;
+  --brand-blue: #1e3a8a;
+  --text-main: #334155;
+  --text-muted: #64748b;
+  --border-color: #cbd5e1;
+  --action-blue: #2563eb;
+  --action-hover: #1d4ed8;
+  --secondary-color: #10b981;
+  --secondary-hover: #059669;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+body {
+  background-color: var(--bg-light);
+  background-image:
+    radial-gradient(
+      circle at 15% 50%,
+      rgba(224, 242, 254, 0.8),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 85% 30%,
+      rgba(219, 234, 254, 0.8),
+      transparent 25%
+    );
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* The Card */
+.login-card {
+  background: var(--bg-white);
+  padding: 3rem 2.5rem;
+  border-radius: 16px;
+  box-shadow:
+    0 10px 25px -5px rgba(30, 58, 138, 0.1),
+    0 8px 10px -6px rgba(30, 58, 138, 0.1);
+  width: 100%;
+  max-width: 440px;
+  border: 1px solid var(--border-color);
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+}
+
+/* Header */
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.app-logo {
+  width: 80px;
+  height: auto;
+  filter: drop-shadow(0 4px 6px rgba(30, 58, 138, 0.15));
+}
+.app-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--brand-blue);
+  letter-spacing: -0.5px;
+  margin-bottom: 0.25rem;
+}
+.app-subtitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Forms & Inputs */
+.form-group {
+  margin-bottom: 1.25rem;
+  width: 100%;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  width: 18px;
+  height: 18px;
+}
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  background-color: var(--bg-white);
+  transition: all 0.2s ease;
+  outline: none;
+}
+.form-control.no-icon {
+  padding-left: 1rem;
+}
+.form-control:focus {
+  border-color: var(--action-blue);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+select.form-control {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.2em;
+  padding-right: 2.5rem;
+}
+
+/* Buttons */
+.btn-submit {
+  width: 100%;
+  background-color: var(--action-blue);
+  color: white;
+  padding: 0.875rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+  margin-top: 1rem;
+}
+.btn-submit:hover {
+  background-color: var(--action-hover);
+}
+.btn-submit:active {
+  transform: scale(0.98);
+}
+
+/* Toggle Links */
+.auth-switch {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+.auth-switch a {
+  color: var(--action-blue);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+/* --- NEW: HYBRID GATEWAY & GOOGLE BUTTON STYLES --- */
+.privacy-box {
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  text-align: left;
+}
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-weight: bold;
+  color: var(--text-main);
+  font-size: 1rem;
+  opacity: 0.5;
+  cursor: not-allowed;
+  transition: all 0.3s;
+}
+.btn-google.active {
+  opacity: 1;
+  cursor: pointer;
+}
+.btn-google.active:hover {
+  background: var(--bg-light);
+}
+
+/* Prevent SweetAlert from breaking layout */
+body.swal2-height-auto {
+  height: 100vh !important;
+}

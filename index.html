@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>HEALTH-INTEL | Secure Access</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- YOUR ORIGINAL STYLING IS RESTORED HERE -->
+    <link rel="stylesheet" href="assets/css/index.css" />
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+  <body>
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo-wrapper">
+          <i
+            data-lucide="shield-plus"
+            style="color: var(--brand-blue); width: 48px; height: 48px"
+          ></i>
+        </div>
+        <h2 class="app-title">HEALTH-INTEL</h2>
+        <p id="form-subtitle" class="app-subtitle">Secure LGU Access Portal</p>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SCREEN 1: THE SECURE LOGIN (DEFAULT) -->
+      <!-- ============================================== -->
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="login_id">System ID / Username</label>
+          <div class="input-wrapper">
+            <i data-lucide="user" class="input-icon"></i>
+            <input
+              type="text"
+              id="login_id"
+              class="form-control"
+              placeholder="e.g. BHW-001"
+              required
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login_password">Password</label>
+          <div class="input-wrapper">
+            <i data-lucide="lock" class="input-icon"></i>
+            <input
+              type="password"
+              id="login_password"
+              class="form-control"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          Secure Login
+          <i data-lucide="arrow-right" style="width: 18px; height: 18px"></i>
+        </button>
+
+        <div class="auth-switch">
+          <a onclick="toggleForms('gateway')"
+            >Don't have an account? Request Access</a
+          >
+        </div>
+      </form>
+
+      <!-- ============================================== -->
+      <!-- SCREEN 2: GOOGLE SECURITY GATEWAY -->
+      <!-- ============================================== -->
+      <div id="gateway-screen" class="hidden">
+        <div class="privacy-box">
+          <h4
+            style="margin-top: 0; margin-bottom: 5px; color: var(--brand-blue)"
+          >
+            Data Privacy Notice
+          </h4>
+          <p style="margin-bottom: 10px">
+            By accessing this government system, you agree to the Data Privacy
+            Act of 2012. All interactions are logged.
+          </p>
+          <label
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              cursor: pointer;
+              font-weight: bold;
+              color: var(--text-main);
+            "
+          >
+            <input
+              type="checkbox"
+              id="privacy-checkbox"
+              style="width: 16px; height: 16px"
+            />
+            I acknowledge and agree to the terms.
+          </label>
+        </div>
+
+        <button id="btn-google-login" class="btn-google" disabled>
+          <svg width="20" height="20" viewBox="0 0 48 48">
+            <path
+              fill="#EA4335"
+              d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+            />
+            <path
+              fill="#4285F4"
+              d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+            />
+            <path
+              fill="#34A853"
+              d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+            />
+          </svg>
+          Sign in with Google
+        </button>
+
+        <div class="auth-switch">
+          <a onclick="toggleForms('login')">Back to Login</a>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SCREEN 3: EMPLOYEE REGISTRATION FORM -->
+      <!-- ============================================== -->
+      <form id="profile-screen" class="hidden">
+        <div
+          style="
+            background: #e0f2fe;
+            border-left: 4px solid var(--action-blue);
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+          "
+        >
+          <span style="font-size: 0.8rem; color: var(--action-blue)"
+            >Google Account Verified:</span
+          ><br />
+          <strong id="verified-email-text" style="color: var(--text-main)"
+            >Waiting...</strong
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input
+              type="text"
+              id="reg_first"
+              class="form-control no-icon"
+              placeholder="Juan"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input
+              type="text"
+              id="reg_last"
+              class="form-control no-icon"
+              placeholder="Dela Cruz"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- ROLE AND AUTO-ID GENERATOR ROW -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Assign Role</label>
+            <select id="reg_role" class="form-control" required style="padding-left: 10px;">
+              <option value="" disabled selected>Select position...</option>
+              <option value="bhw">Barangay Health Worker</option>
+              <option value="mho">MHO Physician</option>
+              <option value="admin">LGU Admin</option>
+              <!-- REMOVED SUPERADMIN HERE -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">System ID</label>
+            <input
+              type="text"
+              id="reg_system_id"
+              class="form-control no-icon"
+              placeholder="Select role first..."
+              readonly
+              style="background-color: #f1f5f9; color: #64748b; font-weight: bold;"
+            />
+          </div>
+        </div>
+        <!-- END OF NEW ROW -->
+
+        <!-- NEW BARANGAY DROPDOWN (Hidden by default, styled to match your design) -->
+        <div class="form-group" id="barangay-group" style="display: none;">
+          <label class="form-label">Assign to Barangay (Required for BHW)</label>
+          <div class="input-wrapper">
+            <i data-lucide="map-pin" class="input-icon"></i>
+            <select id="reg_barangay" class="form-control" style="padding-left: 40px;">
+              <option value="" disabled selected>Select assigned barangay...</option>
+              <option value="Alegria">Brgy. Alegria</option>
+              <option value="Blumentritt">Brgy. Blumentritt</option>
+              <option value="Poblacion">Brgy. Poblacion</option>
+              <option value="San Jose">Brgy. San Jose</option>
+              <option value="Santa Cruz">Brgy. Santa Cruz</option>
+              <option value="Talabas">Brgy. Talabas</option>
+              <option value="Zone 1">Brgy. Zone 1</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Official HR Employee ID</label>
+          <div class="input-wrapper">
+            <i data-lucide="badge" class="input-icon"></i>
+            <input
+              type="text"
+              id="reg_emp_id"
+              class="form-control"
+              placeholder="EMP-2026-123"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Create System Password</label>
+          <div class="input-wrapper">
+            <i data-lucide="key" class="input-icon"></i>
+            <input
+              type="password"
+              id="reg_password"
+              class="form-control"
+              placeholder="Create a strong password"
+              required
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="btn-submit"
+          style="background-color: var(--secondary-color)"
+        >
+          Submit for HR Approval
+        </button>
+
+        <div class="auth-switch">
+          <a onclick="toggleForms('login')">Cancel Request</a>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      lucide.createIcons();
+
+      // ==========================================
+      // FIREBASE INITIALIZATION
+      // ==========================================
+      const firebaseConfig = {
+        apiKey: "AIzaSyA0oMqNoeAhihnrC82_BCYitEyM7xecDIE",
+        authDomain: "health-intel-2a0ed.firebaseapp.com",
+        projectId: "health-intel-2a0ed",
+        storageBucket: "health-intel-2a0ed.firebasestorage.app",
+        messagingSenderId: "568295909990",
+        appId: "1:568295909990:web:7852352967a13e5ac01ba7",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+
+      // ==========================================
+      // UI TOGGLE LOGIC
+      // ==========================================
+      function toggleForms(target) {
+        document.getElementById("login-form").classList.add("hidden");
+        document.getElementById("gateway-screen").classList.add("hidden");
+        document.getElementById("profile-screen").classList.add("hidden");
+
+        const subtitle = document.getElementById("form-subtitle");
+
+        if (target === "gateway") {
+          document.getElementById("gateway-screen").classList.remove("hidden");
+          subtitle.innerText = "Step 1: Security Verification";
+        } else if (target === "profile") {
+          document.getElementById("profile-screen").classList.remove("hidden");
+          subtitle.innerText = "Step 2: Complete Employee Profile";
+        } else {
+          document.getElementById("login-form").classList.remove("hidden");
+          subtitle.innerText = "Secure LGU Access Portal";
+        }
+      }
+
+      // ==========================================
+      // GOOGLE AUTH LOGIC
+      // ==========================================
+      const privacyCheckbox = document.getElementById("privacy-checkbox");
+      const googleBtn = document.getElementById("btn-google-login");
+      let userEmail = "";
+
+      privacyCheckbox.addEventListener("change", function () {
+        if (this.checked) {
+          googleBtn.disabled = false;
+          googleBtn.classList.add("active");
+        } else {
+          googleBtn.disabled = true;
+          googleBtn.classList.remove("active");
+        }
+      });
+
+      googleBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({
+          prompt: 'select_account'
+        });
+        googleBtn.innerHTML = "Opening Google Sign-In...";
+
+        auth
+          .signInWithPopup(provider)
+          .then((result) => {
+            const user = result.user;
+            userEmail = user.email;
+            document.getElementById("verified-email-text").innerText =
+              userEmail + " (Verified)";
+            if (user.displayName) {
+              const names = user.displayName.split(" ");
+              document.getElementById("reg_first").value = names[0];
+              document.getElementById("reg_last").value =
+                names[names.length - 1] || "";
+            }
+            toggleForms("profile");
+          })
+          .catch((error) => {
+            console.error("Auth Error:", error);
+            Swal.fire({
+              icon: "error",
+              title: "Authentication Failed",
+              text: "Google Sign-In failed. Please try again.",
+            });
+            googleBtn.innerHTML = "Sign in with Google";
+          });
+      });
+
+      // ==========================================
+      // AUTO-GENERATE SYSTEM ID & DYNAMIC BARANGAY LOGIC
+      // ==========================================
+      document.getElementById("reg_role").addEventListener("change", async function() {
+          const selectedRole = this.value;
+          const systemIdInput = document.getElementById("reg_system_id");
+          
+          // --- BARANGAY DROPDOWN LOGIC ---
+          const brgyGroup = document.getElementById("barangay-group");
+          const brgySelect = document.getElementById("reg_barangay");
+          
+          if (selectedRole === 'bhw') {
+              brgyGroup.style.display = 'block';
+              brgySelect.setAttribute('required', 'true');
+          } else {
+              brgyGroup.style.display = 'none';
+              brgySelect.removeAttribute('required');
+              brgySelect.value = "";
+          }
+          
+          systemIdInput.value = "Generating...";
+          
+          try {
+              const response = await fetch("http://localhost:3000/api/get-next-id", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ role: selectedRole })
+              });
+              const data = await response.json();
+              
+              if (data.success) {
+                  systemIdInput.value = data.next_id; // e.g., BHW-001 or ADM-001
+              } else {
+                  systemIdInput.value = "Error generating ID";
+              }
+          } catch (error) {
+              console.error("ID Generation Error:", error);
+              systemIdInput.value = "Server offline";
+          }
+      });
+
+      // ==========================================
+      // LOGIN SUBMISSION LOGIC
+      // ==========================================
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const systemId = document
+            .getElementById("login_id")
+            .value.trim()
+            .toUpperCase();
+          const password = document.getElementById("login_password").value;
+
+          try {
+            const response = await fetch("http://localhost:3000/api/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ system_id: systemId, password: password }),
+            });
+            const result = await response.json();
+
+            if (result.success) {
+              localStorage.setItem("health_intel_token", result.token);
+              Swal.fire({
+                icon: "success",
+                title: "Login Successful",
+                text: "Routing to dashboard...",
+                timer: 1500,
+                showConfirmButton: false,
+              }).then(() => {
+                window.location.href = result.redirect;
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Login Failed",
+                text: result.error,
+              });
+            }
+          } catch (error) {
+            Swal.fire({
+              icon: "error",
+              title: "Connection Error",
+              text: "Could not connect to the server.",
+            });
+          }
+        });
+
+      // ==========================================
+      // REGISTRATION SUBMISSION LOGIC
+      // ==========================================
+      document
+        .getElementById("profile-screen")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          
+          // Verify ID generated successfully before submission
+          const generatedId = document.getElementById("reg_system_id").value;
+          if (!generatedId || generatedId === "Generating..." || generatedId === "Error generating ID") {
+            Swal.fire({
+              icon: "warning",
+              title: "Invalid ID",
+              text: "Please select a valid role to generate your System ID.",
+            });
+            return;
+          }
+
+          // UPDATED PAYLOAD
+          const payload = {
+            system_id: generatedId,
+            first_name: document.getElementById("reg_first").value.trim(),
+            last_name: document.getElementById("reg_last").value.trim(),
+            employee_hr_id: document.getElementById("reg_emp_id").value.trim(),
+            role: document.getElementById("reg_role").value,
+            password: document.getElementById("reg_password").value,
+            email: userEmail,
+            assigned_barangay: document.getElementById("reg_barangay").value
+          };
+
+          try {
+            const response = await fetch("http://localhost:3000/api/register", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const result = await response.json();
+
+            if (result.success) {
+              Swal.fire({
+                icon: "success",
+                title: "Profile Submitted!",
+                text: "Please wait for HR Approval.",
+                confirmButtonColor: "var(--brand-blue)",
+              }).then(() => {
+                toggleForms("login");
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "Registration Failed",
+                text: result.error,
+              });
+            }
+          } catch (error) {
+            Swal.fire({
+              icon: "error",
+              title: "Connection Error",
+              text: "Cannot connect to server.",
+            });
+          }
+        });
+    </script>
+  </body>
+</html>

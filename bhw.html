@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Portal | HEALTH-INTEL</title>
+    <link rel="stylesheet" href="assets/css/bhw.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- ADDED: jsPDF Libraries for Report Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <i data-lucide="shield-plus" style="width: 28px; height: 28px"></i>
+          <h2>HEALTH-INTEL</h2>
+        </div>
+
+        <nav class="nav-menu">
+          <button class="nav-item active" data-target="view-dashboard">
+            <i data-lucide="layout-dashboard" style="width: 20px"></i> Dashboard
+          </button>
+          <button class="nav-item" data-target="view-patients">
+            <i data-lucide="users" style="width: 20px"></i> Patient Records
+          </button>
+
+          <button class="nav-item" data-target="view-heatmap">
+            <i data-lucide="map" style="width: 20px"></i> Heatmap Cases
+          </button>
+
+          <button class="nav-item" data-target="view-programs">
+            <i data-lucide="activity" style="width: 20px"></i> Programs
+          </button>
+          <button class="nav-item" data-target="view-reports">
+            <i data-lucide="file-text" style="width: 20px"></i> Brgy Reports
+          </button>
+
+          <a href="index.html" class="nav-item sign-out">
+            <i data-lucide="log-out" style="width: 20px"></i> Sign Out
+          </a>
+        </nav>
+      </aside>
+
+      <main class="main-wrapper">
+        <div class="top-bar">
+          Barangay Health Worker Portal — Brgy. Poblacion
+        </div>
+
+        <div class="dashboard-content">
+          <div id="view-dashboard" class="view-section">
+            <h1 class="page-title">Dashboard Overview</h1>
+            <p class="page-subtitle">
+              Real-time insights for Barangay Poblacion.
+            </p>
+
+            <div class="grid-4">
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title">Total Patients</span>
+                  <div
+                    class="stat-icon"
+                    style="color: #0284c7; background: #e0f2fe"
+                  >
+                    <i data-lucide="users" style="width: 18px"></i>
+                  </div>
+                </div>
+                <div class="stat-value" id="stat-total">Loading...</div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title">Active Cases</span>
+                  <div
+                    class="stat-icon"
+                    style="color: #9333ea; background: #f3e8ff"
+                  >
+                    <i data-lucide="activity" style="width: 18px"></i>
+                  </div>
+                </div>
+                <div class="stat-value" id="stat-active">...</div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title">Cleared Cases</span>
+                  <div
+                    class="stat-icon"
+                    style="color: #16a34a; background: #dcfce7"
+                  >
+                    <i data-lucide="shield-check" style="width: 18px"></i>
+                  </div>
+                </div>
+                <div class="stat-value" id="stat-cleared">...</div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-header">
+                  <span class="stat-title">High Risk</span>
+                  <div
+                    class="stat-icon"
+                    style="color: #ea580c; background: #ffedd5"
+                  >
+                    <i data-lucide="alert-triangle" style="width: 18px"></i>
+                  </div>
+                </div>
+                <div class="stat-value">12</div>
+              </div>
+            </div>
+
+            <div class="white-panel">
+              <h3 class="panel-title">
+                <i data-lucide="activity" style="width: 16px"></i> Disease
+                Status Breakdown
+              </h3>
+              <div class="breakdown-grid">
+                <div class="pastel-card bg-gray">
+                  <div class="b-val">1,863</div>
+                  <div class="b-label">Cleared</div>
+                  <div class="b-sub">97% of population</div>
+                </div>
+                <div class="pastel-card bg-green">
+                  <div class="b-val">22</div>
+                  <div class="b-label">Mild Cases</div>
+                  <div class="b-sub">Recovering</div>
+                </div>
+                <div class="pastel-card bg-blue">
+                  <div class="b-val">11</div>
+                  <div class="b-label">Monitored</div>
+                  <div class="b-sub">Weekly checkup</div>
+                </div>
+                <div class="pastel-card bg-orange">
+                  <div class="b-val">12</div>
+                  <div class="b-label">High Risk</div>
+                  <div class="b-sub">Requires attention</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="white-panel">
+              <h3 class="panel-title">Disease Trend</h3>
+              <div style="position: relative; height: 250px; width: 100%">
+                <canvas id="bhwChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div id="view-patients" class="view-section hidden white-panel">
+            <h1 id="patients-page-title" class="page-title">
+              Patient Records Profiling
+            </h1>
+            <p class="page-subtitle" style="margin-bottom: 1.5rem">
+              Basic information and health records collection.
+            </p>
+
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1.5rem;
+              "
+            >
+              <div style="display: flex; gap: 10px">
+                <button
+                  onclick="openAddPatientModal()"
+                  style="
+                    padding: 0.75rem 1.5rem;
+                    background: #007bff;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    cursor: pointer;
+                  "
+                >
+                  + Add New Resident Profile
+                </button>
+                <button
+                  id="toggle-archive-btn"
+                  onclick="toggleArchiveView()"
+                  style="
+                    padding: 0.75rem 1.5rem;
+                    background: #64748b;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-weight: bold;
+                    cursor: pointer;
+                  "
+                >
+                  🗑️ View Archived Records
+                </button>
+              </div>
+
+              <div style="position: relative; width: 300px">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#94a3b8"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  style="position: absolute; left: 12px; top: 12px"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                  type="text"
+                  id="patient-search-input"
+                  placeholder="Search patient name..."
+                  onkeyup="filterTable()"
+                  style="
+                    width: 100%;
+                    padding: 10px 10px 10px 40px;
+                    border: 1px solid #cbd5e1;
+                    border-radius: 8px;
+                    font-size: 0.95rem;
+                    outline: none;
+                    background: #f8fafc;
+                  "
+                />
+              </div>
+            </div>
+
+            <table class="data-table" id="main-patient-table">
+              <thead>
+                <tr>
+                  <th
+                    style="text-align: left; padding: 12px; background: #f8fafc"
+                  >
+                    Name
+                  </th>
+                  <th
+                    style="text-align: left; padding: 12px; background: #f8fafc"
+                  >
+                    Purok
+                  </th>
+                  <th
+                    style="text-align: left; padding: 12px; background: #f8fafc"
+                  >
+                    Condition
+                  </th>
+                  <th
+                    style="text-align: left; padding: 12px; background: #f8fafc"
+                  >
+                    Status
+                  </th>
+                  <th
+                    style="text-align: left; padding: 12px; background: #f8fafc"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="patients-table-body"></tbody>
+            </table>
+          </div>
+
+          <div id="view-heatmap" class="view-section hidden white-panel">
+            <h1 class="page-title">Barangay Heatmap (Active Cases)</h1>
+            <p class="page-subtitle">
+              Live GIS mapping of outbreak clusters within Brgy. Poblacion.
+            </p>
+            <div
+              id="bhwMap"
+              style="
+                height: 450px;
+                width: 100%;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                z-index: 1;
+              "
+            ></div>
+          </div>
+
+          <div id="view-programs" class="view-section hidden white-panel">
+            <h1 class="page-title">Program Implementation</h1>
+            <div style="position: relative; height: 300px; width: 100%">
+              <canvas id="bhwProgramsChart"></canvas>
+            </div>
+          </div>
+
+          <!-- UPDATED: Report Generation Section -->
+          <div id="view-reports" class="view-section hidden">
+            <h1 class="page-title">Barangay Health Station Report Generation</h1>
+            <p class="page-subtitle">
+              Generate immutable, print-ready certified health summaries for submission to the Rural Health Unit (RHU/MHO).
+            </p>
+          
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+              
+              <!-- BHS Monthly Health Summary Card -->
+              <div class="white-panel" style="margin-bottom: 0; border-top: 4px solid #0066cc;">
+                <h3 style="margin-top: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                  <i data-lucide="file-spreadsheet" style="color: #0066cc;"></i> BHS-M1: Monthly Health Summary
+                </h3>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">
+                  Standardized monthly consolidation of barangay consultations, common morbidity cases, and vital health services.
+                </p>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                  <select id="bhw-report-month" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                  </select>
+                  <select id="bhw-report-year" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                  </select>
+                </div>
+                <button onclick="generateBHWReport('MONTHLY')" style="width: 100%; padding: 12px; background: #0066cc; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                  <i data-lucide="download" style="width: 18px;"></i> Generate BHS Monthly Summary (PDF)
+                </button>
+              </div>
+          
+              <!-- Field Surveillance Card -->
+              <div class="white-panel" style="margin-bottom: 0; border-top: 4px solid #ea580c;">
+                <h3 style="margin-top: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
+                  <i data-lucide="shield-alert" style="color: #ea580c;"></i> Household Surveillance Registry
+                </h3>
+                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">
+                  Event-based surveillance registry of monitored household clusters, fever alerts, and active high-risk patients.
+                </p>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                  <select id="bhw-purok-filter" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="All Puroks">All Puroks / Zones</option>
+                    <option value="Purok 1">Purok 1</option>
+                    <option value="Purok 2">Purok 2</option>
+                    <option value="Purok 3">Purok 3</option>
+                  </select>
+                </div>
+                <button onclick="generateBHWReport('SURVEILLANCE')" style="width: 100%; padding: 12px; background: #ea580c; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                  <i data-lucide="download" style="width: 18px;"></i> Generate Surveillance Log (PDF)
+                </button>
+              </div>
+          
+            </div>
+          </div>
+          
+        </div>
+      </main>
+    </div>
+
+    <script>
+      lucide.createIcons();
+
+      // ==========================================
+      // 1. SIDEBAR TAB SWITCHING LOGIC
+      // ==========================================
+      const navButtons = document.querySelectorAll(".nav-menu .nav-item");
+      const viewSections = document.querySelectorAll(".view-section");
+
+      navButtons.forEach((button) => {
+        if (button.classList.contains("sign-out")) return;
+
+        button.addEventListener("click", () => {
+          navButtons.forEach((btn) => btn.classList.remove("active"));
+          button.classList.add("active");
+
+          viewSections.forEach((section) => {
+            section.classList.add("hidden");
+            section.style.display = "none";
+          });
+
+          const targetId = button.getAttribute("data-target");
+          const targetSection = document.getElementById(targetId);
+          targetSection.classList.remove("hidden");
+          targetSection.style.display = "block";
+        });
+      });
+
+      // ==========================================
+      // 2. CRUD LOGIC FOR PATIENT RECORDS
+      // ==========================================
+      let isViewingArchive = false;
+
+      function filterTable() {
+        const input = document.getElementById("patient-search-input");
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById("main-patient-table");
+        const trs = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < trs.length; i++) {
+          const tdName = trs[i].getElementsByTagName("td")[0];
+          if (tdName) {
+            const textValue = tdName.textContent || tdName.innerText;
+            if (textValue.toLowerCase().indexOf(filter) > -1) {
+              trs[i].style.display = "";
+            } else {
+              trs[i].style.display = "none";
+            }
+          }
+        }
+      }
+
+      function toggleArchiveView() {
+        isViewingArchive = !isViewingArchive;
+        const btn = document.getElementById("toggle-archive-btn");
+        const pageTitle = document.getElementById("patients-page-title");
+        const searchInput = document.getElementById("patient-search-input");
+        searchInput.value = "";
+
+        if (isViewingArchive) {
+          btn.innerHTML = "🔙 Back to Active Records";
+          btn.style.background = "#0f172a";
+          pageTitle.innerText = "Archived Patient Records";
+          loadArchivedPatients();
+        } else {
+          btn.innerHTML = "🗑️ View Archived Records";
+          btn.style.background = "#64748b";
+          pageTitle.innerText = "Patient Records Profiling";
+          loadPatients();
+        }
+      }
+
+      async function loadPatients() {
+        try {
+          const response = await fetch("http://localhost:3000/api/patients");
+          const result = await response.json();
+          const tbody = document.getElementById("patients-table-body");
+          tbody.innerHTML = "";
+
+          if (result.success) {
+            if (result.data.length === 0) {
+              tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">No active records found.</td></tr>`;
+              return;
+            }
+
+            result.data.forEach((patient) => {
+              let statusColor =
+                patient.status === "Cleared" ? "#16a34a" : "#ea580c";
+              tbody.innerHTML += `
+                <tr style="border-bottom: 1px solid #e2e8f0;" class="patient-row">
+                  <td style="padding: 12px; color: #0f172a;"><strong>${patient.patient_name}</strong></td>
+                  <td style="padding: 12px;">${patient.purok}</td>
+                  <td style="padding: 12px;">${patient.disease}</td>
+                  <td style="padding: 12px; color: ${statusColor}; font-weight: bold;">${patient.status}</td>
+                  <td style="padding: 12px; display: flex; gap: 8px;">
+                    <button onclick="updateStatus(${patient.id})" style="background:#f59e0b; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size: 0.85rem; font-weight: bold;">Update Status</button>
+                    <button onclick="archivePatient(${patient.id})" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size: 0.85rem; font-weight: bold;">Archive</button>
+                  </td>
+                </tr>
+              `;
+            });
+          }
+        } catch (error) {
+          console.error("Failed to load patients", error);
+        }
+      }
+
+      async function loadArchivedPatients() {
+        try {
+          const response = await fetch(
+            "http://localhost:3000/api/patients/archived",
+          );
+          const result = await response.json();
+          const tbody = document.getElementById("patients-table-body");
+          tbody.innerHTML = "";
+
+          if (result.success) {
+            if (result.data.length === 0) {
+              tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">Trash is empty.</td></tr>`;
+              return;
+            }
+
+            result.data.forEach((patient) => {
+              tbody.innerHTML += `
+                <tr style="border-bottom: 1px solid #e2e8f0; background: #fef2f2;" class="patient-row">
+                  <td style="padding: 12px; color: #94a3b8;"><strong>${patient.patient_name}</strong></td>
+                  <td style="padding: 12px; color: #94a3b8;">${patient.purok}</td>
+                  <td style="padding: 12px; color: #94a3b8;">${patient.disease}</td>
+                  <td style="padding: 12px; color: #ef4444; font-weight: bold;">Archived</td>
+                  <td style="padding: 12px; display: flex; gap: 8px;">
+                    <button onclick="restorePatient(${patient.id})" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size: 0.85rem; font-weight: bold;">♻️ Restore Record</button>
+                  </td>
+                </tr>
+              `;
+            });
+          }
+        } catch (error) {
+          console.error("Failed to load archived patients", error);
+        }
+      }
+
+      function openAddPatientModal() {
+        Swal.fire({
+          title: "New Patient Record",
+          width: "600px",
+          html: `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-bottom: 15px;">
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">First Name *</label>
+                    <input id="swal-fname" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;" placeholder="e.g. Juan">
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Last Name *</label>
+                    <input id="swal-lname" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;" placeholder="e.g. Dela Cruz">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-bottom: 15px;">
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Age *</label>
+                    <input id="swal-age" type="number" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;" placeholder="e.g. 45">
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Purok / Zone *</label>
+                    <select id="swal-purok" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;">
+                        <option value="" disabled selected>Select Purok</option>
+                        <option value="Purok 1">Purok 1</option>
+                        <option value="Purok 2">Purok 2</option>
+                        <option value="Purok 3">Purok 3</option>
+                        <option value="Blumentritt">Blumentritt</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="text-align: left; margin-bottom: 15px;">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Diagnosed Disease / Case *</label>
+                
+                <input list="disease-options" id="swal-disease" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;" placeholder="Select from list or type manually...">
+                <datalist id="disease-options">
+                    <option value="Acute Respiratory Infection (ARI)">
+                    <option value="Animal Bite / Wound">
+                    <option value="Dengue">
+                    <option value="Hypertension">
+                    <option value="Influenza">
+                    <option value="Pneumonia">
+                    <option value="Unknown Fever">
+                </datalist>
+            </div>
+
+            <div style="text-align: left;">
+                <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Symptoms / Remarks (Optional)</label>
+                <textarea id="swal-remarks" class="swal2-textarea" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem; height: 80px;" placeholder="e.g. Patient has 3 days continuous fever..."></textarea>
+            </div>
+          `,
+          confirmButtonText: "Save Record",
+          confirmButtonColor: "#007bff",
+          showCancelButton: true,
+          preConfirm: () => {
+            const fname = document.getElementById("swal-fname").value;
+            const lname = document.getElementById("swal-lname").value;
+            const age = document.getElementById("swal-age").value;
+            const purok = document.getElementById("swal-purok").value;
+            const disease = document.getElementById("swal-disease").value;
+            const remarks = document.getElementById("swal-remarks").value;
+
+            // Enforce that all required fields are filled
+            if (!fname || !lname || !age || !purok || !disease) {
+              Swal.showValidationMessage(
+                "Please fill out all required fields (*)",
+              );
+              return false; // Stops the modal from closing
+            }
+
+            return {
+              first_name: fname,
+              last_name: lname,
+              patient_name: `${fname} ${lname}`, // Merged for the frontend table display
+              age: age,
+              purok: purok,
+              disease: disease,
+              remarks: remarks,
+              status: "Active",
+            };
+          },
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              const res = await fetch("http://localhost:3000/api/patients", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(result.value),
+              });
+              const data = await res.json();
+              if (data.success) {
+                Swal.fire({
+                  icon: "success",
+                  title: "Saved!",
+                  text: "Patient recorded successfully.",
+                  confirmButtonColor: "#007bff",
+                });
+                isViewingArchive ? loadArchivedPatients() : loadPatients();
+                loadDashboardStats();
+              }
+            } catch (e) {
+              Swal.fire(
+                "Error",
+                "Could not save patient. Ensure Node.js server is running.",
+                "error",
+              );
+            }
+          }
+        });
+      }
+
+      async function updateStatus(id) {
+        Swal.fire({
+          title: "Update Patient Status",
+          text: "Has this patient recovered? Mark them as Cleared?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#16a34a",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "Yes, mark as Cleared!",
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              await fetch(`http://localhost:3000/api/patients/${id}/status`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ new_status: "Cleared" }),
+              });
+              Swal.fire({
+                icon: "success",
+                title: "Updated!",
+                text: "Patient status changed to Cleared.",
+                confirmButtonColor: "#16a34a",
+              });
+              loadPatients();
+              loadDashboardStats();
+            } catch (e) {
+              Swal.fire("Error", "Could not update status.", "error");
+            }
+          }
+        });
+      }
+
+      async function archivePatient(id) {
+        Swal.fire({
+          title: "Archive Record?",
+          text: "Move this patient to the archive?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#ef4444",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "Yes, archive it!",
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              await fetch(`http://localhost:3000/api/patients/${id}/archive`, {
+                method: "PUT",
+              });
+              Swal.fire({
+                icon: "success",
+                title: "Archived!",
+                text: "Record moved to trash.",
+                confirmButtonColor: "#ef4444",
+              });
+              loadPatients();
+              loadDashboardStats();
+            } catch (e) {
+              Swal.fire("Error", "Could not archive record.", "error");
+            }
+          }
+        });
+      }
+
+      async function restorePatient(id) {
+        Swal.fire({
+          title: "Restore Record?",
+          text: "Put this patient back into active records?",
+          icon: "info",
+          showCancelButton: true,
+          confirmButtonColor: "#10b981",
+          cancelButtonColor: "#64748b",
+          confirmButtonText: "Yes, restore!",
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              await fetch(`http://localhost:3000/api/patients/${id}/restore`, {
+                method: "PUT",
+              });
+              Swal.fire({
+                icon: "success",
+                title: "Restored!",
+                text: "Record is active again.",
+                confirmButtonColor: "#10b981",
+              });
+              loadArchivedPatients();
+              loadDashboardStats();
+            } catch (e) {
+              Swal.fire("Error", "Could not restore record.", "error");
+            }
+          }
+        });
+      }
+
+      async function loadDashboardStats() {
+        try {
+          const response = await fetch("http://localhost:3000/api/bhw-stats");
+          const result = await response.json();
+          if (result.success) {
+            document.getElementById("stat-total").innerText = result.total;
+            document.getElementById("stat-active").innerText = result.active;
+            document.getElementById("stat-cleared").innerText = result.cleared;
+          }
+        } catch (error) {
+          console.error("Failed to load stats", error);
+        }
+      }
+
+      // ==========================================
+      // 4. INITIALIZE DISEASE TREND CHART
+      // ==========================================
+      const ctx = document.getElementById("bhwChart").getContext("2d");
+      const bhwTrendChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May"],
+          datasets: [
+            {
+              label: "Monthly Cases",
+              data: [15, 28, 22, 35, 45],
+              borderColor: "#0ea5e9",
+              backgroundColor: "rgba(14, 165, 233, 0.1)",
+              borderWidth: 3,
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: "#0ea5e9",
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: "#f1f5f9" } },
+            x: { grid: { display: false } },
+          },
+        },
+      });
+
+      // ==========================================
+      // 5. BHW GIS MAP LOGIC
+      // ==========================================
+      const mapContainer = document.getElementById("bhwMap");
+      if (mapContainer) {
+        // Initialize map closer to the center of Murcia (Zoom 13 for Barangay level)
+        const map = L.map("bhwMap").setView([10.612, 123.0483], 13);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 18,
+          attribution: "© OpenStreetMap contributors | HEALTH-INTEL GIS",
+        }).addTo(map);
+
+        // Simulated Data for just this BHW's area
+        const brgyData = [
+          {
+            name: "Purok 1",
+            lat: 10.615,
+            lng: 123.045,
+            cases: 5,
+            risk: "Medium",
+          },
+          { name: "Purok 2", lat: 10.61, lng: 123.05, cases: 2, risk: "Low" },
+          {
+            name: "Purok 3",
+            lat: 10.608,
+            lng: 123.042,
+            cases: 12,
+            risk: "CRITICAL",
+          },
+        ];
+
+        brgyData.forEach((brgy) => {
+          let circleRadius = brgy.cases * 30;
+
+          let circleColor =
+            brgy.risk === "CRITICAL"
+              ? "#ef4444"
+              : brgy.risk === "Medium"
+                ? "#f59e0b"
+                : "#3b82f6";
+
+          const circle = L.circle([brgy.lat, brgy.lng], {
+            color: circleColor,
+            fillColor: circleColor,
+            fillOpacity: 0.5,
+            radius: circleRadius,
+          }).addTo(map);
+
+          circle.bindPopup(`
+                  <div style="text-align: center;">
+                      <h4 style="margin: 0; color: #0f172a;">${brgy.name}</h4>
+                      <p style="margin: 5px 0; color: #ef4444; font-weight: bold;">${brgy.cases} Active Cases</p>
+                      <span style="font-size: 0.8rem; color: #64748b;">Status: ${brgy.risk}</span>
+                  </div>
+              `);
+        });
+
+        // Vital fix to render the map correctly when switching tabs
+        document
+          .querySelector('[data-target="view-heatmap"]')
+          .addEventListener("click", function () {
+            setTimeout(() => {
+              map.invalidateSize();
+            }, 100);
+          });
+      }
+
+      // ==========================================
+      // 6. OFFICIAL BHW PDF GENERATOR (jsPDF)
+      // ==========================================
+      function generateBHWReport(type) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        const currentBrgy = "Brgy. Poblacion"; // Can be populated dynamically from user session
+
+        // --- Official Header ---
+        doc.setFontSize(13);
+        doc.setFont("helvetica", "bold");
+        doc.text("REPUBLIC OF THE PHILIPPINES", 105, 18, { align: "center" });
+        doc.text("DEPARTMENT OF HEALTH - FIELD HEALTH SERVICE", 105, 25, { align: "center" });
+        
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Barangay Health Station — ${currentBrgy}`, 105, 32, { align: "center" });
+        
+        doc.setLineWidth(0.5);
+        doc.line(20, 37, 190, 37);
+
+        let title = "";
+        let metaPeriod = "";
+        let tableHeaders = [];
+        let tableRows = [];
+        let headerColor = [0, 102, 204];
+
+        if (type === "MONTHLY") {
+          const month = document.getElementById("bhw-report-month").value;
+          const year = document.getElementById("bhw-report-year").value;
+          title = "BARANGAY HEALTH CONSOLIDATION REPORT (BHS-M1)";
+          metaPeriod = `Reporting Period: ${month} ${year}`;
+          headerColor = [0, 102, 204];
+
+          tableHeaders = [["No.", "Service / Morbidity Indicator", "Target Sector", "Cases Recorded", "Status"]];
+          tableRows = [
+            ["1", "Acute Respiratory Infections (ARI)", "Pediatric (0-5)", "14", "Managed"],
+            ["2", "Animal Bites / Rabies Screening", "General Pop.", "8", "Referred to RHU"],
+            ["3", "Fever of Unknown Origin", "All Ages", "6", "Under Observation"],
+            ["4", "Hypertension Screenings", "Adults (40+)", "22", "Maintenance Issued"],
+            ["5", "Prenatal / Maternal Checkups", "Maternal", "11", "On-Track"],
+            ["6", "Routine Child Immunization", "Infants (0-11m)", "19", "Completed"]
+          ];
+        } else {
+          const purok = document.getElementById("bhw-purok-filter").value;
+          title = "COMMUNITY SURVEILLANCE & CLUSTER LOG";
+          metaPeriod = `Scope: ${purok} | Generated: ${new Date().toLocaleDateString()}`;
+          headerColor = [234, 88, 12];
+
+          tableHeaders = [["Entry #", "Location / Purok", "Reported Symptoms", "Patients", "Action Taken"]];
+          tableRows = [
+            ["SR-101", "Purok 2", "Suspected Dengue (Fever, Rashes)", "3", "Field Visit / Ovi-Trap Deployed"],
+            ["SR-102", "Purok 1", "Acute Gastroenteritis cluster", "2", "Water Source Sampled"],
+            ["SR-103", "Purok 3", "Hypertensive Emergency", "1", "Immediate RHU Escalation"],
+            ["SR-104", "Purok 2", "Unvaccinated Infant Flag", "1", "Scheduled for BHS Immunization"]
+          ];
+        }
+
+        // --- Document Metadata ---
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text(title, 20, 46);
+        
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        doc.text(metaPeriod, 20, 52);
+        doc.text(`Recorded By: Assigned BHW Officer`, 20, 57);
+
+        // --- Table Rendering ---
+        doc.autoTable({
+          startY: 63,
+          head: tableHeaders,
+          body: tableRows,
+          theme: "grid",
+          headStyles: { fillColor: headerColor },
+          styles: { font: "helvetica", fontSize: 9 }
+        });
+
+        // --- Sign-off Signatures ---
+        const finalY = doc.lastAutoTable.finalY || 120;
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text("SUBMISSION CERTIFICATION:", 20, finalY + 15);
+        doc.setFont("helvetica", "normal");
+        doc.text("Prepared by:", 20, finalY + 25);
+        doc.line(20, finalY + 40, 75, finalY + 40);
+        doc.text("Barangay Health Worker (BHW)", 20, finalY + 45);
+
+        doc.text("Noted and Verified by:", 125, finalY + 25);
+        doc.line(125, finalY + 40, 180, finalY + 40);
+        doc.text("Rural Health Midwife / RHU Officer", 125, finalY + 45);
+
+        // --- Save File ---
+        doc.save(`BHS_${type}_REPORT_${new Date().getTime()}.pdf`);
+
+        if (typeof Swal !== "undefined") {
+          Swal.fire({
+            icon: "success",
+            title: "Report Downloaded",
+            text: `${title} generated successfully as a verified PDF.`,
+            confirmButtonColor: type === "MONTHLY" ? "#0066cc" : "#ea580c"
+          });
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadPatients();
+        loadDashboardStats();
+      });
+    </script>
+  </body>
+</html>

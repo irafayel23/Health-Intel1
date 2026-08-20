@@ -1,0 +1,281 @@
+/* assets/css/mho.css */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", sans-serif;
+}
+body {
+  background-color: #f3f4f6;
+  color: #1e293b;
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+.hidden {
+  display: none !important;
+}
+
+/* ================== SIDEBAR ================== */
+.sidebar {
+  width: 260px;
+  background-color: #095045; /* FIXED: Deep Teal */
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+}
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+  padding: 0 0.5rem;
+}
+.sidebar-brand h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.nav-menu {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+.nav-item.active {
+  background-color: #10b981;
+  color: white;
+  font-weight: 600;
+} /* Emerald Pill */
+
+/* Fix for the Sign Out Button */
+/* Fix for the Sign Out Button */
+.sign-out {
+  margin-top: auto; /* <--- THIS IS THE MAGIC LINE */
+  background-color: white;
+  color: #dc2626;
+  font-weight: 700;
+  justify-content: flex-start;
+  border: 1px solid #fee2e2;
+}
+
+.sign-out:hover {
+  background-color: #fef2f2;
+  color: #b91c1c;
+}
+
+.sidebar-sticker {
+  margin-top: auto;
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.sticker-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  color: #16a34a;
+}
+.sticker-info h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.1rem;
+}
+.sticker-info p {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ================== MAIN CONTENT ================== */
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 2.5rem;
+}
+.top-bar {
+  padding: 1.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 1px solid transparent;
+}
+
+.dashboard-content {
+  padding: 1.5rem 0;
+}
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+.page-subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 2rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+.stat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+.stat-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.white-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+}
+.panel-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.pastel-card {
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.pastel-card .b-val {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+.pastel-card .b-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+.pastel-card .b-sub {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.bg-gray {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+.bg-green {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+.bg-blue {
+  background-color: #e0f2fe;
+  color: #0284c7;
+}
+.bg-orange {
+  background-color: #ffedd5;
+  color: #ea580c;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.data-table th {
+  padding: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+  color: #64748b;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.data-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.95rem;
+  color: #1e293b;
+}

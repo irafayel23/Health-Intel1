@@ -1,0 +1,212 @@
+<div
+  class="registration-card"
+  style="
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 500px;
+    margin: auto;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  "
+>
+  <h2 style="color: #004b87; margin-bottom: 0.5rem">Create LGU Account</h2>
+  <p style="color: #64748b; margin-bottom: 2rem; font-size: 0.9rem">
+    Register for official HEALTH-INTEL access.
+  </p>
+
+  <form id="registrationForm" action="/api/register" method="POST">
+    <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
+      <div style="flex: 1">
+        <label
+          style="
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+          "
+          >First Name</label
+        >
+        <input
+          type="text"
+          name="first_name"
+          required
+          placeholder="Juan"
+          style="
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+          "
+        />
+      </div>
+      <div style="flex: 1">
+        <label
+          style="
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+          "
+          >Last Name</label
+        >
+        <input
+          type="text"
+          name="last_name"
+          required
+          placeholder="Dela Cruz"
+          style="
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+          "
+        />
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1rem">
+      <label
+        style="
+          display: block;
+          font-size: 0.85rem;
+          font-weight: bold;
+          margin-bottom: 0.3rem;
+        "
+        >Assign Role</label
+      >
+      <select
+        id="role_select"
+        name="role"
+        required
+        style="
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          background: white;
+        "
+      >
+        <option value="" disabled selected>Select your position...</option>
+        <option value="bhw">Barangay Health Worker (BHW)</option>
+        <option value="mho">Municipal Health Officer (MHO)</option>
+        <option value="municipal">LGU Staff</option>
+      </select>
+    </div>
+
+    <div style="margin-bottom: 1rem">
+      <label
+        style="
+          display: block;
+          font-size: 0.85rem;
+          font-weight: bold;
+          margin-bottom: 0.3rem;
+        "
+        >System ID (Your Username)</label
+      >
+      <input
+        type="text"
+        id="username_input"
+        name="system_id"
+        readonly
+        placeholder="Will generate after selecting role..."
+        style="
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          background-color: #f8fafc;
+          color: #0f172a;
+          font-weight: bold;
+        "
+      />
+    </div>
+
+    <div style="margin-bottom: 2rem">
+      <label
+        style="
+          display: block;
+          font-size: 0.85rem;
+          font-weight: bold;
+          margin-bottom: 0.3rem;
+        "
+        >Password</label
+      >
+      <input
+        type="password"
+        name="password"
+        required
+        placeholder="Create a strong password"
+        style="
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+        "
+      />
+    </div>
+
+    <button
+      type="submit"
+      style="
+        width: 100%;
+        padding: 12px;
+        background: #004b87;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+      "
+    >
+      Submit for MHO Approval
+    </button>
+  </form>
+</div>
+
+<script>
+  // Add an event listener to intercept the form submission
+  document
+    .getElementById("registrationForm")
+    .addEventListener("submit", async function (e) {
+      e.preventDefault(); // Stop the form from submitting normally
+
+      // Gather the form data
+      const formData = new FormData(this);
+      const payload = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch("http://localhost:3000/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          Swal.fire({
+            icon: "success",
+            title: "Profile Submitted!",
+            text: "Please wait for HR Approval.",
+            confirmButtonColor: "#004b87",
+          }).then(() => {
+            // You can redirect them here if you want
+            // window.location.href = "login.html";
+            this.reset();
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Registration Failed",
+            text: result.error,
+          });
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Connection Error",
+          text: "Cannot connect to server. Is Node.js running?",
+        });
+      }
+    });
+</script>
