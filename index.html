@@ -92,7 +92,12 @@
       .brand-text p { margin: 0; font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
 
       .main-heading { font-size: 2.6rem; font-weight: 600; color: var(--dark); line-height: 1.2; margin-bottom: 15px; }
-      .gradient-text { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+     .gradient-text {
+        background: var(--gradient);
+        -webkit-background-clip: text;
+        background-clip: text; /* <-- ADD THIS LINE */
+        -webkit-text-fill-color: transparent;
+      }
       .sub-heading { color: var(--gray); font-size: 0.9rem; line-height: 1.5; max-width: 420px; margin-bottom: 30px; }
 
       .feature-list { display: flex; flex-direction: column; gap: 18px; position: relative; }
