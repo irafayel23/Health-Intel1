@@ -17,7 +17,7 @@
 
       /* --- DASHBOARD LAYOUT --- */
       #dashboard-section {
-        display: flex; /* CHANGED FROM NONE TO FLEX */
+        display: flex; 
         height: 100vh;
         width: 100%;
       }
@@ -174,7 +174,6 @@
         max-width: 90%;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
       }
-      /* Added button styles that were previously tied to the login screen */
       .login-btn {
         width: 100%;
         padding: 14px;
@@ -210,58 +209,26 @@
     <div id="dashboard-section">
       <aside class="sidebar">
         <div class="sidebar-brand">
-          <i
-            data-lucide="server"
-            style="width: 28px; height: 28px; color: #38bdf8"
-          ></i>
-          <h2 style="margin: 0; font-size: 1.2rem; letter-spacing: 1px">
-            ADMIN DASHBOARD
-          </h2>
+          <i data-lucide="server" style="width: 28px; height: 28px; color: #38bdf8"></i>
+          <h2 style="margin: 0; font-size: 1.2rem; letter-spacing: 1px">ADMIN DASHBOARD</h2>
         </div>
         <nav class="nav-menu">
-          <button
-            class="nav-item active"
-            id="nav-iam"
-            onclick="switchMainView('view-iam', 'nav-iam')"
-          >
-            <i data-lucide="users-round" style="width: 20px"></i> User
-            Management
+          <button class="nav-item active" id="nav-iam" onclick="switchMainView('view-iam', 'nav-iam')">
+            <i data-lucide="users-round" style="width: 20px"></i> User Management
           </button>
-          <button
-            class="nav-item"
-            id="nav-data"
-            onclick="switchMainView('view-data', 'nav-data')"
-          >
+          <button class="nav-item" id="nav-data" onclick="switchMainView('view-data', 'nav-data')">
             <i data-lucide="database" style="width: 20px"></i> Master Records
           </button>
-          <button
-            class="nav-item"
-            id="nav-diseases"
-            onclick="switchMainView('view-diseases', 'nav-diseases')"
-          >
-            <i data-lucide="clipboard-list" style="width: 20px"></i> Disease
-            Registry
+          <button class="nav-item" id="nav-diseases" onclick="switchMainView('view-diseases', 'nav-diseases')">
+            <i data-lucide="clipboard-list" style="width: 20px"></i> Disease Registry
+          </button>
+          <!-- NEW: Security Audit Trail Tab -->
+          <button class="nav-item" id="nav-audit" onclick="switchMainView('view-audit', 'nav-audit')">
+            <i data-lucide="history" style="width: 20px"></i> Security Audit Trail
           </button>
         </nav>
         <div style="padding: 20px">
-          <!-- Updated Sign Out to route back to index.html -->
-          <button
-            onclick="window.location.href = 'index.html'"
-            style="
-              width: 100%;
-              background: #ef4444;
-              color: white;
-              border: none;
-              padding: 12px;
-              border-radius: 6px;
-              font-weight: bold;
-              cursor: pointer;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              gap: 8px;
-            "
-          >
+          <button onclick="window.location.href = 'index.html'" style="width: 100%; background: #ef4444; color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;">
             <i data-lucide="log-out" style="width: 18px"></i> Sign Out
           </button>
         </div>
@@ -269,36 +236,34 @@
 
       <main class="main-content">
         <div class="top-bar">
-          <div style="font-weight: bold; color: #0f172a; font-size: 1.1rem">
-            MHO & HR Control Center
-          </div>
+          <div style="font-weight: bold; color: #0f172a; font-size: 1.1rem">MHO & HR Control Center</div>
           <div style="font-size: 0.9rem; color: #64748b">
-            Logged in as:
-            <span style="font-weight: bold; color: #0ea5e9">System Admin</span>
+            Logged in as: <span style="font-weight: bold; color: #0ea5e9">LGU Admin</span>
           </div>
         </div>
 
         <div class="dashboard-wrapper">
+          
+          <!-- ============================================== -->
+          <!-- 1. USER MANAGEMENT (IAM) -->
+          <!-- ============================================== -->
           <div id="view-iam" class="view-section active">
             <h1 style="margin-top: 0; color: #0f172a">User Management</h1>
             <br />
             <div class="white-panel">
               <div class="sub-tabs">
-                <button
-                  class="sub-tab-btn active"
-                  id="btn-iam-pending"
-                  onclick="switchSubView('iam', 'pending')"
-                >
+                <button class="sub-tab-btn active" id="btn-iam-pending" onclick="switchSubView('iam', 'pending')">
                   Pending Approvals
                 </button>
-                <button
-                  class="sub-tab-btn"
-                  id="btn-iam-archived"
-                  onclick="switchSubView('iam', 'archived')"
-                >
+                <button class="sub-tab-btn" id="btn-iam-active" onclick="switchSubView('iam', 'active')">
+                  Active Personnel Directory
+                </button>
+                <button class="sub-tab-btn" id="btn-iam-archived" onclick="switchSubView('iam', 'archived')">
                   Archived / Denied
                 </button>
               </div>
+
+              <!-- Pending Approvals View -->
               <div id="iam-pending-view">
                 <div style="overflow-x: auto">
                   <table>
@@ -315,6 +280,27 @@
                   </table>
                 </div>
               </div>
+
+              <!-- Active Personnel View -->
+              <div id="iam-active-view" style="display: none">
+                <div style="overflow-x: auto">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>System ID</th>
+                        <th>Full Name</th>
+                        <th>Role</th>
+                        <th>Assigned Barangay</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="active-users-table-body"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Archived / Denied View -->
               <div id="iam-archived-view" style="display: none">
                 <div style="overflow-x: auto">
                   <table>
@@ -333,113 +319,45 @@
             </div>
           </div>
 
+          <!-- ============================================== -->
+          <!-- 2. MASTER RECORD DATABASE (PATIENTS) -->
+          <!-- ============================================== -->
           <div id="view-data" class="view-section">
-            <h1 style="margin-top: 0; color: #0f172a">
-              Master Record Database
-            </h1>
-            <p style="color: #64748b; margin-bottom: 25px">
-              Centralized oversight of all patient encodings by BHWs.
-            </p>
+            <h1 style="margin-top: 0; color: #0f172a">Master Record Database</h1>
+            <p style="color: #64748b; margin-bottom: 25px">Centralized oversight of all patient encodings by BHWs.</p>
 
             <div class="white-panel">
               <div class="sub-tabs">
-                <button
-                  class="sub-tab-btn active"
-                  id="btn-data-active"
-                  onclick="switchSubView('data', 'active')"
-                >
+                <button class="sub-tab-btn active" id="btn-data-active" onclick="switchSubView('data', 'active')">
                   Active Patient Records
                 </button>
-                <button
-                  class="sub-tab-btn"
-                  id="btn-data-archived"
-                  onclick="switchSubView('data', 'archived')"
-                >
+                <button class="sub-tab-btn" id="btn-data-archived" onclick="switchSubView('data', 'archived')">
                   Archived Records
                 </button>
               </div>
 
               <div id="data-active-view">
-                <div
-                  style="
-                    display: flex;
-                    gap: 15px;
-                    margin-bottom: 20px;
-                    flex-wrap: wrap;
-                  "
-                >
-                  <input
-                    type="text"
-                    id="search-patient"
-                    onkeyup="filterData()"
-                    placeholder="Search name or System ID..."
-                    style="
-                      flex: 2;
-                      min-width: 220px;
-                      padding: 12px;
-                      border: 1px solid #cbd5e1;
-                      border-radius: 6px;
-                      outline: none;
-                      font-size: 0.95rem;
-                    "
-                  />
-
-                  <select
-                    id="filter-table-brgy"
-                    onchange="filterData()"
-                    style="
-                      flex: 1;
-                      min-width: 140px;
-                      padding: 12px;
-                      border: 1px solid #cbd5e1;
-                      border-radius: 6px;
-                      font-weight: bold;
-                      color: #334155;
-                    "
-                  >
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                  <input type="text" id="search-patient" onkeyup="filterData()" placeholder="Search name or System ID..." style="flex: 2; min-width: 220px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-size: 0.95rem;"/>
+                  <select id="filter-table-brgy" onchange="filterData()" style="flex: 1; min-width: 140px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #334155;">
                     <option value="">All Barangays</option>
                     <option value="Blumentritt">Blumentritt</option>
                     <option value="Poblacion">Poblacion</option>
                     <option value="San Jose">San Jose</option>
                   </select>
-
-                  <select
-                    id="filter-table-disease"
-                    onchange="filterData()"
-                    style="
-                      flex: 1;
-                      min-width: 140px;
-                      padding: 12px;
-                      border: 1px solid #cbd5e1;
-                      border-radius: 6px;
-                      font-weight: bold;
-                      color: #334155;
-                    "
-                  >
+                  <select id="filter-table-disease" onchange="filterData()" style="flex: 1; min-width: 140px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #334155;">
                     <option value="">All Diseases</option>
                     <option value="animal bite">Animal Bite / Wound</option>
                     <option value="dengue">Dengue</option>
                     <option value="pneumonia">Pneumonia</option>
                   </select>
-
-                  <select
-                    id="filter-table-status"
-                    onchange="filterData()"
-                    style="
-                      flex: 1;
-                      min-width: 120px;
-                      padding: 12px;
-                      border: 1px solid #cbd5e1;
-                      border-radius: 6px;
-                      font-weight: bold;
-                      color: #334155;
-                    "
-                  >
+                  <select id="filter-table-status" onchange="filterData()" style="flex: 1; min-width: 120px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #334155;">
                     <option value="">All Statuses</option>
                     <option value="active">Active Cases</option>
                     <option value="recovered">Recovered</option>
                   </select>
                 </div>
+                
                 <div style="overflow-x: auto">
                   <table>
                     <thead>
@@ -450,6 +368,9 @@
                         <th>Disease</th>
                         <th>Barangay</th>
                         <th>Status</th>
+                        <!-- NEW PROVENANCE COLUMNS -->
+                        <th style="color: #0284c7;">Encoded By</th>
+                        <th style="color: #0284c7;">Last Updated</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -469,6 +390,9 @@
                         <th>Disease</th>
                         <th>Barangay</th>
                         <th>Status</th>
+                        <!-- NEW PROVENANCE COLUMNS -->
+                        <th style="color: #0284c7;">Encoded By</th>
+                        <th style="color: #0284c7;">Last Updated</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -479,61 +403,26 @@
             </div>
           </div>
 
+          <!-- ============================================== -->
+          <!-- 3. DISEASE REGISTRY -->
+          <!-- ============================================== -->
           <div id="view-diseases" class="view-section">
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 25px;
-              "
-            >
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
               <div>
-                <h1 style="margin: 0; color: #0f172a">
-                  Master Disease Registry
-                </h1>
-                <p style="color: #64748b; margin: 0">
-                  Manage the standardized list of diseases stored in the
-                  database.
-                </p>
+                <h1 style="margin: 0; color: #0f172a">Master Disease Registry</h1>
+                <p style="color: #64748b; margin: 0">Manage the standardized list of diseases stored in the database.</p>
               </div>
-              <button
-                onclick="openDiseaseModal()"
-                style="
-                  background: #10b981;
-                  color: white;
-                  padding: 10px 20px;
-                  border: none;
-                  border-radius: 6px;
-                  font-weight: bold;
-                  cursor: pointer;
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                "
-              >
-                <i data-lucide="plus-circle" style="width: 18px"></i> Add New
-                Disease
+              <button onclick="openDiseaseModal()" style="background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="plus-circle" style="width: 18px"></i> Add New Disease
               </button>
             </div>
 
             <div class="white-panel">
               <div class="sub-tabs">
-                <button
-                  class="sub-tab-btn active"
-                  id="btn-disease-active"
-                  onclick="switchSubView('disease', 'active')"
-                >
-                  Active Registry
-                </button>
-                <button
-                  class="sub-tab-btn"
-                  id="btn-disease-archived"
-                  onclick="switchSubView('disease', 'archived')"
-                >
-                  Archived Registry
-                </button>
+                <button class="sub-tab-btn active" id="btn-disease-active" onclick="switchSubView('disease', 'active')">Active Registry</button>
+                <button class="sub-tab-btn" id="btn-disease-archived" onclick="switchSubView('disease', 'archived')">Archived Registry</button>
               </div>
+              
               <div id="disease-active-view">
                 <div style="overflow-x: auto">
                   <table>
@@ -550,6 +439,7 @@
                   </table>
                 </div>
               </div>
+
               <div id="disease-archived-view" style="display: none">
                 <div style="overflow-x: auto">
                   <table>
@@ -568,39 +458,57 @@
               </div>
             </div>
           </div>
+
+          <!-- ============================================== -->
+          <!-- 4. SECURITY AUDIT TRAIL (NEW MODULE) -->
+          <!-- ============================================== -->
+          <div id="view-audit" class="view-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+              <div>
+                <h1 style="margin: 0; color: #0f172a">Immutable Audit Trail</h1>
+                <p style="color: #64748b; margin: 0">Permanent ledger of all system actions and modifications.</p>
+              </div>
+              <button onclick="loadAuditLogs()" style="background: white; color: #0f172a; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="refresh-cw" style="width: 16px"></i> Refresh Ledger
+              </button>
+            </div>
+
+            <div class="white-panel">
+              <div style="overflow-x: auto">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>User ID</th>
+                      <th>Role</th>
+                      <th>Action Executed</th>
+                      <th>System Details</th>
+                    </tr>
+                  </thead>
+                  <tbody id="audit-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
         </div>
       </main>
     </div>
 
+    <!-- ============================================== -->
+    <!-- MODALS -->
+    <!-- ============================================== -->
     <div id="approvalModal" class="modal-overlay hidden">
       <div class="modal-box">
         <h3 style="margin-top: 0; color: #0f172a">Approve Employee Account</h3>
         <input type="hidden" id="modal_temp_id" />
-        <select
-          id="modal_role"
-          class="login-input"
-          style="margin-top: 15px; margin-bottom: 20px"
-        >
-          <!-- FIXED: Removed Superadmin role -->
+        <select id="modal_role" class="login-input" style="margin-top: 15px; margin-bottom: 20px">
           <option value="bhw">Barangay Health Worker (BHW)</option>
           <option value="mho">Municipal Health Officer (MHO)</option>
-          <option value="admin">LGU Admin</option>
         </select>
         <div style="display: flex; gap: 10px">
-          <button
-            onclick="submitApproval()"
-            class="login-btn"
-            style="margin-top: 0"
-          >
-            Approve & Save
-          </button>
-          <button
-            onclick="closeModal('approvalModal')"
-            class="login-btn"
-            style="margin-top: 0; background: #e2e8f0; color: #475569"
-          >
-            Cancel
-          </button>
+          <button onclick="submitApproval()" class="login-btn" style="margin-top: 0">Approve & Save</button>
+          <button onclick="closeModal('approvalModal')" class="login-btn" style="margin-top: 0; background: #e2e8f0; color: #475569">Cancel</button>
         </div>
       </div>
     </div>
@@ -608,154 +516,147 @@
     <div id="diseaseModal" class="modal-overlay hidden">
       <div class="modal-box">
         <h3 style="margin-top: 0; color: #0f172a">Add to Registry</h3>
-        <input
-          type="text"
-          id="new_disease_name"
-          class="login-input"
-          placeholder="e.g. Typhoid Fever"
-          style="margin-top: 10px"
-        />
-        <select
-          id="new_disease_cat"
-          class="login-input"
-          style="margin-top: 15px"
-        >
+        <input type="text" id="new_disease_name" class="login-input" placeholder="e.g. Typhoid Fever" style="margin-top: 10px" />
+        <select id="new_disease_cat" class="login-input" style="margin-top: 15px">
           <option value="Morbidity">Morbidity (Sickness)</option>
           <option value="Mortality">Mortality (Death)</option>
         </select>
-        <select
-          id="new_disease_class"
-          class="login-input"
-          style="margin-top: 15px; margin-bottom: 20px"
-        >
+        <select id="new_disease_class" class="login-input" style="margin-top: 15px; margin-bottom: 20px">
           <option value="Standard">Standard Case</option>
           <option value="High Risk">High Risk / Alert</option>
         </select>
         <div style="display: flex; gap: 10px">
-          <button
-            onclick="saveNewDisease()"
-            class="login-btn"
-            style="margin-top: 0; background: #10b981"
-          >
-            Save to Database
-          </button>
-          <button
-            onclick="closeModal('diseaseModal')"
-            class="login-btn"
-            style="margin-top: 0; background: #e2e8f0; color: #475569"
-          >
-            Cancel
-          </button>
+          <button onclick="saveNewDisease()" class="login-btn" style="margin-top: 0; background: #10b981">Save to Database</button>
+          <button onclick="closeModal('diseaseModal')" class="login-btn" style="margin-top: 0; background: #e2e8f0; color: #475569">Cancel</button>
         </div>
       </div>
     </div>
 
+    <!-- ============================================== -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================== -->
     <script>
       lucide.createIcons();
 
-      // --- INITIALIZE DASHBOARD ON PAGE LOAD ---
       window.addEventListener('DOMContentLoaded', () => {
         loadUsers();
         fetchPatientRecords();
-        loadArchivedPatients();
         loadDiseases();
+        loadAuditLogs(); // Automatically load the audit trail on start
       });
 
-      // --- UI TOGGLE LOGIC ---
       function switchMainView(viewId, btnId) {
-        document
-          .querySelectorAll(".nav-item")
-          .forEach((btn) => btn.classList.remove("active"));
+        document.querySelectorAll(".nav-item").forEach((btn) => btn.classList.remove("active"));
         document.getElementById(btnId).classList.add("active");
 
-        document
-          .querySelectorAll(".view-section")
-          .forEach((view) => view.classList.remove("active"));
+        document.querySelectorAll(".view-section").forEach((view) => view.classList.remove("active"));
         document.getElementById(viewId).classList.add("active");
+
+        // Refresh logs if the audit tab is clicked
+        if(viewId === 'view-audit') {
+          loadAuditLogs();
+        }
       }
 
       function switchSubView(module, type) {
-        document
-          .getElementById(`btn-${module}-active`)
-          ?.classList.remove("active");
-        document
-          .getElementById(`btn-${module}-archived`)
-          ?.classList.remove("active");
-        document
-          .getElementById(`btn-${module}-pending`)
-          ?.classList.remove("active");
+        document.getElementById(`btn-${module}-active`)?.classList.remove("active");
+        document.getElementById(`btn-${module}-archived`)?.classList.remove("active");
+        document.getElementById(`btn-${module}-pending`)?.classList.remove("active");
+        
+        document.getElementById(`${module}-active-view`) && (document.getElementById(`${module}-active-view`).style.display = "none");
+        document.getElementById(`${module}-archived-view`) && (document.getElementById(`${module}-archived-view`).style.display = "none");
+        document.getElementById(`${module}-pending-view`) && (document.getElementById(`${module}-pending-view`).style.display = "none");
 
-        document.getElementById(`${module}-active-view`) &&
-          (document.getElementById(`${module}-active-view`).style.display =
-            "none");
-        document.getElementById(`${module}-archived-view`) &&
-          (document.getElementById(`${module}-archived-view`).style.display =
-            "none");
-        document.getElementById(`${module}-pending-view`) &&
-          (document.getElementById(`${module}-pending-view`).style.display =
-            "none");
-
-        document
-          .getElementById(`btn-${module}-${type}`)
-          .classList.add("active");
-        document.getElementById(`${module}-${type}-view`).style.display =
-          "block";
+        document.getElementById(`btn-${module}-${type}`).classList.add("active");
+        document.getElementById(`${module}-${type}-view`).style.display = "block";
       }
 
       function closeModal(modalId) {
         document.getElementById(modalId).classList.add("hidden");
       }
 
-      // --- 1. IAM USERS ---
+      // ==========================================
+      // IAM USER MANAGEMENT 
+      // ==========================================
       async function loadUsers() {
         try {
-          const pRes = await fetch(
-            "http://localhost:3000/api/admin/pending-users",
-          );
+          // Fetch Pending Users
+          const pRes = await fetch("http://localhost:3000/api/admin/pending-users");
           const pData = await pRes.json();
           const pTable = document.getElementById("pending-table-body");
           pTable.innerHTML = "";
           if (pData.success) {
             pData.data.forEach((u) => {
-              pTable.innerHTML += `<tr><td><strong>${u.system_id}</strong></td><td>${u.first_name} ${u.last_name}</td><td>${u.employee_hr_id}</td><td><span style="background:#fef08a; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#854d0e; font-weight:bold;">PENDING</span></td><td><button style="background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="document.getElementById('modal_temp_id').value='${u.system_id}'; document.getElementById('approvalModal').classList.remove('hidden');">Approve</button> <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px;" onclick="denyUser('${u.system_id}')">Deny</button></td></tr>`;
+              pTable.innerHTML += `
+                <tr>
+                  <td><strong>${u.system_id}</strong></td>
+                  <td>${u.first_name} ${u.last_name}</td>
+                  <td>${u.employee_hr_id}</td>
+                  <td><span style="background:#fef08a; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#854d0e; font-weight:bold;">PENDING</span></td>
+                  <td>
+                    <button style="background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="document.getElementById('modal_temp_id').value='${u.system_id}'; document.getElementById('approvalModal').classList.remove('hidden');">Approve</button> 
+                    <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px;" onclick="denyUser('${u.system_id}')">Deny</button>
+                  </td>
+                </tr>
+              `;
             });
           }
 
-          const dRes = await fetch(
-            "http://localhost:3000/api/admin/denied-users",
-          );
+          // Fetch Active Personnel
+          const aRes = await fetch("http://localhost:3000/api/admin/active-users");
+          const aData = await aRes.json();
+          const aTable = document.getElementById("active-users-table-body");
+          aTable.innerHTML = "";
+          if (aData.success) {
+            aData.data.forEach((u) => {
+              aTable.innerHTML += `
+                <tr>
+                  <td><strong>${u.system_id}</strong></td>
+                  <td>${u.first_name} ${u.last_name}</td>
+                  <td style="text-transform: uppercase;">${u.role}</td>
+                  <td>${u.assigned_barangay || 'Municipality'}</td>
+                  <td><span style="background:#dcfce7; color:#16a34a; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">ACTIVE</span></td>
+                  <td>
+                    <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="suspendUser('${u.system_id}')">Suspend Access</button>
+                  </td>
+                </tr>
+              `;
+            });
+          }
+
+          // Fetch Archived Users
+          const dRes = await fetch("http://localhost:3000/api/admin/denied-users");
           const dData = await dRes.json();
           const dTable = document.getElementById("denied-table-body");
           dTable.innerHTML = "";
           if (dData.success) {
             dData.data.forEach((u) => {
-              dTable.innerHTML += `<tr><td style="color:#64748b;">${u.system_id}</td><td style="color:#64748b;">${u.first_name} ${u.last_name}</td><td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">ARCHIVED</span></td><td><button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="undoDeny('${u.system_id}')">Restore User</button></td></tr>`;
+              dTable.innerHTML += `
+                <tr>
+                  <td style="color:#64748b;">${u.system_id}</td>
+                  <td style="color:#64748b;">${u.first_name} ${u.last_name}</td>
+                  <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">ARCHIVED</span></td>
+                  <td><button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="undoDeny('${u.system_id}')">Restore User</button></td>
+                </tr>
+              `;
             });
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error("Error loading users:", e);
+        }
       }
 
-      // FIXED: Added try-catch and handled error correctly to stop infinite freeze
       async function submitApproval() {
         const id = document.getElementById("modal_temp_id").value;
         const role = document.getElementById("modal_role").value;
         
-        Swal.fire({
-          title: "Processing...",
-          didOpen: () => Swal.showLoading(),
-        });
-
+        Swal.fire({ title: "Processing...", didOpen: () => Swal.showLoading() });
         try {
-          const res = await fetch(
-            "http://localhost:3000/api/admin/approve-user",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
+          const res = await fetch("http://localhost:3000/api/admin/approve-user", {
+              method: "POST", headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ temp_system_id: id, assigned_role: role }),
-            }
-          );
+            });
           const data = await res.json();
-          
           if (data.success) {
             Swal.fire("Success", data.message, "success");
             closeModal("approvalModal");
@@ -769,23 +670,31 @@
       }
 
       async function denyUser(id) {
-        await fetch("http://localhost:3000/api/admin/deny-user", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ temp_system_id: id }),
-        });
+        await fetch("http://localhost:3000/api/admin/deny-user", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temp_system_id: id }) });
         loadUsers();
       }
+      
       async function undoDeny(id) {
-        await fetch("http://localhost:3000/api/admin/undo-deny", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ temp_system_id: id }),
-        });
+        await fetch("http://localhost:3000/api/admin/undo-deny", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temp_system_id: id }) });
         loadUsers();
       }
 
-      // --- 2. PATIENT DATA ---
+      async function suspendUser(id) {
+        Swal.fire({
+          title: "Suspend User?", text: "This will revoke their access to the system.", icon: "warning",
+          showCancelButton: true, confirmButtonColor: "#ef4444", confirmButtonText: "Yes, Suspend"
+        }).then(async (result) => {
+          if(result.isConfirmed) {
+            await fetch("http://localhost:3000/api/admin/suspend-user", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system_id: id }) });
+            loadUsers();
+            Swal.fire("Suspended", "User access revoked.", "success");
+          }
+        });
+      }
+
+      // ==========================================
+      // MASTER PATIENT RECORDS
+      // ==========================================
       let allPatients = [];
       async function fetchPatientRecords() {
         try {
@@ -795,103 +704,111 @@
             renderPatientTable(allPatients);
           }
         } catch (e) {
-          console.error("Failed to load diseases:", e);
+          console.error("Failed to load patients:", e);
         }
       }
 
       function renderPatientTable(data) {
         const tbody = document.getElementById("patient-table-body");
         tbody.innerHTML = "";
+        
         data.forEach((p) => {
-          let c = (p.disease || "").toLowerCase().includes("bite")
-            ? "#ef4444"
-            : "#334155";
+          let c = (p.disease || "").toLowerCase().includes("bite") ? "#ef4444" : "#334155";
           let statusText = p.status || "Active";
-          let statusColor =
-            statusText.toLowerCase() === "active" ? "#ea580c" : "#10b981";
+          let statusColor = statusText.toLowerCase() === "active" ? "#ea580c" : "#10b981";
 
-          tbody.innerHTML += `<tr><td style="color:#64748b;">#REC-${p.id}</td><td><strong>${p.patient_name || p.first_name + " " + p.last_name}</strong></td><td>${p.age || "N/A"}</td><td style="color:${c}; font-weight:bold;">${p.disease || "Unknown"}</td><td>${p.purok}</td><td><span style="color:${statusColor}; font-weight:bold;">${statusText}</span></td><td><button style="border:1px solid #ef4444; background:transparent; color:#ef4444; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="archivePatient(${p.id})">Archive</button></td></tr>`;
+          let dateObj = p.updated_at ? new Date(p.updated_at) : (p.created_at ? new Date(p.created_at) : new Date());
+          let timeString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+          let encodedBy = p.encoded_by || "System";
+
+          tbody.innerHTML += `
+            <tr>
+              <td style="color:#64748b;">#REC-${p.id}</td>
+              <td><strong>${p.patient_name || p.first_name + " " + p.last_name}</strong></td>
+              <td>${p.age || "N/A"}</td>
+              <td style="color:${c}; font-weight:bold;">${p.disease || "Unknown"}</td>
+              <td>${p.purok}</td>
+              <td><span style="color:${statusColor}; font-weight:bold;">${statusText}</span></td>
+              
+              <td style="color:#0284c7; font-weight:bold; font-size: 0.9rem;">${encodedBy}</td>
+              <td style="color:#64748b; font-size: 0.85rem;">${timeString}</td>
+              
+              <td>
+                <button style="border:1px solid #ef4444; background:transparent; color:#ef4444; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="archivePatient(${p.id})">Archive</button>
+              </td>
+            </tr>
+          `;
         });
       }
 
       function filterData() {
-        const searchInput = document
-          .getElementById("search-patient")
-          .value.toLowerCase();
-        const brgyQuery = document
-          .getElementById("filter-table-brgy")
-          .value.toLowerCase();
-        const diseaseQuery = document
-          .getElementById("filter-table-disease")
-          .value.toLowerCase();
-        const statusQuery = document
-          .getElementById("filter-table-status")
-          .value.toLowerCase();
+        const searchInput = document.getElementById("search-patient").value.toLowerCase();
+        const brgyQuery = document.getElementById("filter-table-brgy").value.toLowerCase();
+        const diseaseQuery = document.getElementById("filter-table-disease").value.toLowerCase();
+        const statusQuery = document.getElementById("filter-table-status").value.toLowerCase();
 
         const filteredData = allPatients.filter((p) => {
-          const fullName = (
-            p.patient_name ||
-            p.first_name + " " + p.last_name ||
-            ""
-          ).toLowerCase();
+          const fullName = (p.patient_name || p.first_name + " " + p.last_name || "").toLowerCase();
           const sysId = `#rec-${p.id}`.toLowerCase();
 
-          const matchesSearch =
-            fullName.includes(searchInput) ||
-            sysId.includes(searchInput) ||
-            searchInput.replace("#", "") === p.id.toString();
-          const matchesBrgy =
-            brgyQuery === "" ||
-            (p.purok || "").toLowerCase().includes(brgyQuery);
-          const matchesDisease =
-            diseaseQuery === "" ||
-            (p.disease || "").toLowerCase().includes(diseaseQuery);
+          const matchesSearch = fullName.includes(searchInput) || sysId.includes(searchInput) || searchInput.replace("#", "") === p.id.toString();
+          const matchesBrgy = brgyQuery === "" || (p.purok || "").toLowerCase().includes(brgyQuery);
+          const matchesDisease = diseaseQuery === "" || (p.disease || "").toLowerCase().includes(diseaseQuery);
+          const matchesStatus = statusQuery === "" || (p.status || "active").toLowerCase() === statusQuery;
 
-          const currentStatus = (p.status || "active").toLowerCase();
-          const matchesStatus =
-            statusQuery === "" || currentStatus === statusQuery;
-
-          return (
-            matchesSearch && matchesBrgy && matchesDisease && matchesStatus
-          );
+          return matchesSearch && matchesBrgy && matchesDisease && matchesStatus;
         });
 
         renderPatientTable(filteredData);
       }
 
-      async function archivePatient(id) {
-        await fetch(`http://localhost:3000/api/patients/${id}/archive`, {
-          method: "PUT",
-        });
-        fetchPatientRecords();
-        loadArchivedPatients();
-      }
-
       async function loadArchivedPatients() {
         try {
-          const res = await fetch(
-            "http://localhost:3000/api/patients/archived",
-          );
+          const res = await fetch("http://localhost:3000/api/patients/archived");
           const data = await res.json();
           const tbody = document.getElementById("patient-archived-table-body");
           tbody.innerHTML = "";
           if (data.success) {
             data.data.forEach((p) => {
-              tbody.innerHTML += `<tr><td style="color:#64748b;">#REC-${p.id}</td><td style="color:#64748b;">${p.patient_name || p.first_name + " " + p.last_name}</td><td>${p.age || "N/A"}</td><td style="color:#64748b;">${p.disease || "Unknown"}</td><td>${p.purok}</td><td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td><td><button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="restorePatient(${p.id})">Restore</button></td></tr>`;
+              let dateObj = p.updated_at ? new Date(p.updated_at) : (p.created_at ? new Date(p.created_at) : new Date());
+              let timeString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+              let encodedBy = p.encoded_by || "System";
+
+              tbody.innerHTML += `
+                <tr>
+                  <td style="color:#64748b;">#REC-${p.id}</td>
+                  <td style="color:#64748b;">${p.patient_name || p.first_name + " " + p.last_name}</td>
+                  <td>${p.age || "N/A"}</td>
+                  <td style="color:#64748b;">${p.disease || "Unknown"}</td>
+                  <td>${p.purok}</td>
+                  <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td>
+                  
+                  <td style="color:#0284c7; font-weight:bold; font-size: 0.9rem;">${encodedBy}</td>
+                  <td style="color:#64748b; font-size: 0.85rem;">${timeString}</td>
+
+                  <td><button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="restorePatient(${p.id})">Restore</button></td>
+                </tr>
+              `;
             });
           }
         } catch (e) {}
       }
 
-      async function restorePatient(id) {
-        await fetch(`http://localhost:3000/api/patients/${id}/restore`, {
-          method: "PUT",
-        });
+      async function archivePatient(id) {
+        await fetch(`http://localhost:3000/api/patients/${id}/archive`, { method: "PUT" });
         fetchPatientRecords();
         loadArchivedPatients();
       }
 
-      // --- 3. DISEASE REGISTRY ---
+      async function restorePatient(id) {
+        await fetch(`http://localhost:3000/api/patients/${id}/restore`, { method: "PUT" });
+        fetchPatientRecords();
+        loadArchivedPatients();
+      }
+
+      // ==========================================
+      // DISEASE REGISTRY
+      // ==========================================
       async function loadDiseases() {
         try {
           const actRes = await fetch("http://localhost:3000/api/diseases");
@@ -900,25 +817,34 @@
           actBody.innerHTML = "";
           if (actData.success) {
             actData.data.forEach((d) => {
-              let classColor =
-                d.classification === "High Risk"
-                  ? "color: #ef4444; background: #fee2e2;"
-                  : "color: #0284c7; background: #e0f2fe;";
-              actBody.innerHTML += `<tr><td style="font-weight:bold; color:#0f172a;">${d.name}</td><td style="color:#64748b;">${d.category}</td><td><span style="${classColor} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">${d.classification}</span></td><td style="color:#10b981; font-weight:bold;">Active</td><td><button onclick="archiveDisease(${d.id})" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">Archive</button></td></tr>`;
+              let classColor = d.classification === "High Risk" ? "color: #ef4444; background: #fee2e2;" : "color: #0284c7; background: #e0f2fe;";
+              actBody.innerHTML += `
+                <tr>
+                  <td style="font-weight:bold; color:#0f172a;">${d.name}</td>
+                  <td style="color:#64748b;">${d.category}</td>
+                  <td><span style="${classColor} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">${d.classification}</span></td>
+                  <td style="color:#10b981; font-weight:bold;">Active</td>
+                  <td><button onclick="archiveDisease(${d.id})" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">Archive</button></td>
+                </tr>
+              `;
             });
           }
 
-          const arcRes = await fetch(
-            "http://localhost:3000/api/diseases/archived",
-          );
+          const arcRes = await fetch("http://localhost:3000/api/diseases/archived");
           const arcData = await arcRes.json();
-          const arcBody = document.getElementById(
-            "disease-archived-table-body",
-          );
+          const arcBody = document.getElementById("disease-archived-table-body");
           arcBody.innerHTML = "";
           if (arcData.success) {
             arcData.data.forEach((d) => {
-              arcBody.innerHTML += `<tr><td style="color:#64748b;">${d.name}</td><td style="color:#64748b;">${d.category}</td><td style="color:#64748b;">${d.classification}</td><td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td><td><button onclick="restoreDisease(${d.id})" style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">Restore</button></td></tr>`;
+              arcBody.innerHTML += `
+                <tr>
+                  <td style="color:#64748b;">${d.name}</td>
+                  <td style="color:#64748b;">${d.category}</td>
+                  <td style="color:#64748b;">${d.classification}</td>
+                  <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td>
+                  <td><button onclick="restoreDisease(${d.id})" style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">Restore</button></td>
+                </tr>
+              `;
             });
           }
         } catch (e) {}
@@ -943,26 +869,52 @@
           body: JSON.stringify(payload),
         });
         closeModal("diseaseModal");
-        Swal.fire({
-          icon: "success",
-          title: "Saved to Database",
-          showConfirmButton: false,
-          timer: 1500,
-        });
+        Swal.fire({ icon: "success", title: "Saved to Database", showConfirmButton: false, timer: 1500 });
         loadDiseases();
       }
 
       async function archiveDisease(id) {
-        await fetch(`http://localhost:3000/api/diseases/${id}/archive`, {
-          method: "PUT",
-        });
+        await fetch(`http://localhost:3000/api/diseases/${id}/archive`, { method: "PUT" });
         loadDiseases();
       }
+      
       async function restoreDisease(id) {
-        await fetch(`http://localhost:3000/api/diseases/${id}/restore`, {
-          method: "PUT",
-        });
+        await fetch(`http://localhost:3000/api/diseases/${id}/restore`, { method: "PUT" });
         loadDiseases();
+      }
+
+      // ==========================================
+      // SECURITY AUDIT TRAIL LOGIC
+      // ==========================================
+      async function loadAuditLogs() {
+        try {
+          const res = await fetch("http://localhost:3000/api/superadmin/audit-logs");
+          const result = await res.json();
+          const tbody = document.getElementById("audit-table-body");
+          tbody.innerHTML = "";
+
+          if (result.success) {
+            result.data.forEach((log) => {
+              const date = new Date(log.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+              
+              let badgeClass = 'background:#e2e8f0; color:#475569;'; // Default gray
+              if (log.role === 'BHW') badgeClass = 'background:#dcfce7; color:#16a34a;'; 
+              else if (log.role === 'Admin' || log.role === 'LGU Admin') badgeClass = 'background:#e0f2fe; color:#0284c7;';
+              
+              tbody.innerHTML += `
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                  <td style="color: #64748b; font-size: 0.85rem;">${date}</td>
+                  <td style="font-weight: bold; color: #0f172a;">${log.user_id}</td>
+                  <td><span style="${badgeClass} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; text-transform:uppercase;">${log.role}</span></td>
+                  <td style="color: #0ea5e9; font-weight: bold;">${log.action}</td>
+                  <td style="color: #475569; font-size: 0.9rem;">${log.details}</td>
+                </tr>
+              `;
+            });
+          }
+        } catch (e) {
+          console.error("Failed to load audit logs", e);
+        }
       }
     </script>
   </body>
