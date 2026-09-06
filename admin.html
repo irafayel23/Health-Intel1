@@ -591,10 +591,10 @@
                 <tr>
                   <td><strong>${u.system_id}</strong></td>
                   <td>${u.first_name} ${u.last_name}</td>
-                  <td>${u.employee_hr_id}</td>
+                  <td>${u.employee_id || 'N/A'}</td>
                   <td><span style="background:#fef08a; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#854d0e; font-weight:bold;">PENDING</span></td>
                   <td>
-                    <button style="background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="document.getElementById('modal_temp_id').value='${u.system_id}'; document.getElementById('approvalModal').classList.remove('hidden');">Approve</button> 
+                    <button style="background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="approveUserDirectly('${u.system_id}')">Approve</button> 
                     <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px;" onclick="denyUser('${u.system_id}')">Deny</button>
                   </td>
                 </tr>
@@ -631,12 +631,23 @@
           dTable.innerHTML = "";
           if (dData.success) {
             dData.data.forEach((u) => {
+              let badgeHTML = "";
+              let btnHTML = "";
+              
+              if (u.status === 'suspended') {
+                badgeHTML = `<span style="background:#fee2e2; color:#b91c1c; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">ACCESS SUSPENDED</span>`;
+                btnHTML = `<button style="background:#e0f2fe; color:#0369a1; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="restoreSuspended('${u.system_id}')">Restore Access</button>`;
+              } else {
+                badgeHTML = `<span style="background:#fef3c7; color:#b45309; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">DENIED REGISTRATION</span>`;
+                btnHTML = `<button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="undoDeny('${u.system_id}')">Re-evaluate</button>`;
+              }
+
               dTable.innerHTML += `
                 <tr>
                   <td style="color:#64748b;">${u.system_id}</td>
                   <td style="color:#64748b;">${u.first_name} ${u.last_name}</td>
-                  <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">ARCHIVED</span></td>
-                  <td><button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="undoDeny('${u.system_id}')">Restore User</button></td>
+                  <td>${badgeHTML}</td>
+                  <td>${btnHTML}</td>
                 </tr>
               `;
             });
@@ -646,27 +657,29 @@
         }
       }
 
-      async function submitApproval() {
-        const id = document.getElementById("modal_temp_id").value;
-        const role = document.getElementById("modal_role").value;
-        
-        Swal.fire({ title: "Processing...", didOpen: () => Swal.showLoading() });
-        try {
-          const res = await fetch("http://localhost:3000/api/admin/approve-user", {
-              method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ temp_system_id: id, assigned_role: role }),
-            });
-          const data = await res.json();
-          if (data.success) {
-            Swal.fire("Success", data.message, "success");
-            closeModal("approvalModal");
-            loadUsers();
-          } else {
-            Swal.fire("Error", data.error || "Failed to approve account.", "error");
+      async function approveUserDirectly(temp_id) {
+        Swal.fire({
+          title: "Approve Employee?", text: `Are you sure you want to approve ${temp_id}?`, icon: "question",
+          showCancelButton: true, confirmButtonColor: "#0ea5e9", confirmButtonText: "Yes, Approve"
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              const res = await fetch("http://localhost:3000/api/admin/approve-user", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ temp_system_id: temp_id }),
+              });
+              const data = await res.json();
+              if (data.success) {
+                Swal.fire("Success", data.message, "success");
+                loadUsers();
+              } else {
+                Swal.fire("Error", data.error || "Failed to approve account.", "error");
+              }
+            } catch (error) {
+              Swal.fire("Error", "Server connection failed.", "error");
+            }
           }
-        } catch (error) {
-          Swal.fire("Error", "Server connection failed.", "error");
-        }
+        });
       }
 
       async function denyUser(id) {
@@ -688,6 +701,19 @@
             await fetch("http://localhost:3000/api/admin/suspend-user", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system_id: id }) });
             loadUsers();
             Swal.fire("Suspended", "User access revoked.", "success");
+          }
+        });
+      }
+
+      async function restoreSuspended(id) {
+        Swal.fire({
+          title: "Restore Access?", text: "This will restore full system access to the user.", icon: "info",
+          showCancelButton: true, confirmButtonColor: "#0ea5e9", confirmButtonText: "Yes, Restore"
+        }).then(async (result) => {
+          if(result.isConfirmed) {
+            await fetch("http://localhost:3000/api/admin/restore-suspended", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system_id: id }) });
+            loadUsers();
+            Swal.fire("Restored", "User access restored.", "success");
           }
         });
       }

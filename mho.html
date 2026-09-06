@@ -79,11 +79,41 @@
 
       <div class="dashboard-content">
         <div id="view-analytics" class="view-section">
-          <h1 class="page-title">Municipal Analytics</h1>
-          <p class="page-subtitle">
-            Interactive filtering and automated insights of historical FHSIS
-            health data.
-          </p>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+            <div>
+              <h1 class="page-title" style="margin-bottom: 5px;">Municipal Analytics</h1>
+              <p class="page-subtitle" style="margin-bottom: 0;">
+                Interactive filtering and automated insights of historical FHSIS health data.
+              </p>
+            </div>
+            <div>
+              <select
+                id="filter-barangay"
+                onchange="updateDynamicChart()"
+                style="
+                  padding: 12px 16px;
+                  border-radius: 8px;
+                  border: 2px solid #0284c7;
+                  font-weight: bold;
+                  color: #0f172a;
+                  background: #f0f9ff;
+                  outline: none;
+                  cursor: pointer;
+                  min-width: 220px;
+                  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                  font-size: 1rem;
+                "
+              >
+                <option value="Blumentritt">Blumentritt</option>
+                <option value="Salvacion">Salvacion</option>
+                <option value="Minoyan">Minoyan</option>
+                <option value="Caliban">Caliban</option>
+                <option value="Cansilayan">Cansilayan</option>
+                <option value="Alegria">Alegria</option>
+                <option value="Sta. Rosa">Sta. Rosa</option>
+              </select>
+            </div>
+          </div>
 
           <div class="grid-4">
             <div class="stat-card">
@@ -207,34 +237,13 @@
                   transition: border-color 0.2s;
                 "
               >
+                <option value="2026">CY 2026</option>
                 <option value="2025">CY 2025</option>
                 <option value="2024">CY 2024</option>
                 <option value="2023">CY 2023</option>
               </select>
 
-              <select
-                id="filter-barangay"
-                onchange="updateDynamicChart()"
-                style="
-                  padding: 10px 12px;
-                  border-radius: 8px;
-                  border: 1px solid #cbd5e1;
-                  font-weight: 600;
-                  color: #334155;
-                  background: white;
-                  outline: none;
-                  cursor: pointer;
-                  flex: 1.5;
-                  min-width: 140px;
-                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-                "
-              >
-                <option value="all">All Barangays</option>
-                <option value="Blumentritt">Blumentritt</option>
-                <option value="Poblacion">Poblacion</option>
-                <option value="San Jose">San Jose</option>
-                <option value="Talabas">Talabas</option>
-              </select>
+
 
               <select
                 id="filter-category"
@@ -279,27 +288,6 @@
                 <option value="infant">Infant (0-11 Months)</option>
               </select>
 
-              <select
-                id="filter-sex"
-                onchange="updateDynamicChart()"
-                style="
-                  padding: 10px 12px;
-                  border-radius: 8px;
-                  border: 1px solid #cbd5e1;
-                  font-weight: 600;
-                  color: #334155;
-                  background: white;
-                  outline: none;
-                  cursor: pointer;
-                  flex: 1.5;
-                  min-width: 140px;
-                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-                "
-              >
-                <option value="both">Both Sexes</option>
-                <option value="male">Male Only</option>
-                <option value="female">Female Only</option>
-              </select>
             </div>
 
             <div
@@ -712,8 +700,10 @@
                   <option value="March">March</option>
                 </select>
                 <select id="fhsis-year" class="login-input" style="background: white; border: 1px solid #cbd5e1; color: #334155;">
+                  <option value="2026">2026</option>
                   <option value="2025">2025</option>
                   <option value="2024">2024</option>
+                  <option value="2023">2023</option>
                 </select>
               </div>
               <button onclick="generateOfficialPDF('FHSIS')" style="width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;">
@@ -1117,45 +1107,77 @@
         recBox.innerHTML = recommendation;
       }
 
+      function parseCSVRow(row) {
+          let result = [];
+          let cur = '';
+          let inQuotes = false;
+          for(let i=0; i<row.length; i++) {
+              if(row[i] === '"') inQuotes = !inQuotes;
+              else if(row[i] === ',' && !inQuotes) {
+                  result.push(cur);
+                  cur = '';
+              } else {
+                  cur += row[i];
+              }
+          }
+          result.push(cur);
+          return result;
+      }
+
       // Function that runs when any dropdown is changed
-      function updateDynamicChart() {
+      async function updateDynamicChart() {
         const year = document.getElementById("filter-year").value;
         const barangay = document.getElementById("filter-barangay").value;
         const category = document.getElementById("filter-category").value;
-        const age = document.getElementById("filter-age").value;
-        const sex = document.getElementById("filter-sex").value;
+        
+        try {
+            const response = await fetch("datasets/health_data.csv");
+            const csvText = await response.text();
+            const rows = csvText.split('\n').filter(row => row.trim() !== '');
+            
+            let diseaseCounts = {};
 
-        // Fetch data from the hardcoded prototype array
-        let rawData = healthDatabase[year][category][age];
+            for(let i = 1; i < rows.length; i++) {
+                const cols = parseCSVRow(rows[i]);
+                if (cols.length >= 4) {
+                    const rowDate = cols[0].trim();
+                    const rowBrgy = cols[1].trim();
+                    const disease = cols[2].replace(/"/g, '').trim();
+                    let cases = parseInt(cols[cols.length - 1].trim());
+                    if (isNaN(cases)) cases = 0;
+                    
+                    if (barangay !== "all" && rowBrgy !== barangay) continue;
+                    if (rowDate !== "Unknown" && !rowDate.includes(year)) continue;
+                    
+                    // Currently dataset only has morbidity cases
+                    if (category === "mortality") continue;
 
-        let processedData = rawData.map((item) => {
-          let calculatedCases = item.cases;
+                    if (!diseaseCounts[disease]) {
+                        diseaseCounts[disease] = 0;
+                    }
+                    diseaseCounts[disease] += cases;
+                }
+            }
 
-          if (barangay === "Blumentritt")
-            calculatedCases = calculatedCases * 0.35;
-          else if (barangay === "Poblacion")
-            calculatedCases = calculatedCases * 0.3;
-          else if (barangay === "San Jose")
-            calculatedCases = calculatedCases * 0.2;
-          else if (barangay === "Talabas")
-            calculatedCases = calculatedCases * 0.15;
+            let processedData = [];
+            for (const [disease, cases] of Object.entries(diseaseCounts)) {
+                processedData.push({ disease, cases });
+            }
+            
+            // Sort by cases descending and take top 10
+            processedData.sort((a, b) => b.cases - a.cases);
+            processedData = processedData.slice(0, 10);
 
-          if (sex === "male") calculatedCases = calculatedCases * 0.504;
-          else if (sex === "female") calculatedCases = calculatedCases * 0.496;
+            dynamicChart.data.labels = processedData.map((d) => d.disease);
+            dynamicChart.data.datasets[0].data = processedData.map((d) => d.cases);
+            dynamicChart.data.datasets[0].backgroundColor =
+              category === "morbidity" ? blueGradient : redGradient;
+            dynamicChart.update();
 
-          return { disease: item.disease, cases: Math.round(calculatedCases) };
-        });
-
-        processedData = processedData.filter((d) => d.cases > 0);
-
-        dynamicChart.data.labels = processedData.map((d) => d.disease);
-        dynamicChart.data.datasets[0].data = processedData.map((d) => d.cases);
-        dynamicChart.data.datasets[0].backgroundColor =
-          category === "morbidity" ? blueGradient : redGradient;
-        dynamicChart.update();
-
-        // Call the automated text generator
-        generateInsights(processedData, category, age, year);
+            generateInsights(processedData, category, "all", year);
+        } catch (error) {
+            console.error("Failed to update chart from CSV", error);
+        }
       }
 
       // Run it once when the page loads
@@ -1562,23 +1584,60 @@
       // ==========================================
       async function fetchLiveMHOStats() {
         try {
-          const response = await fetch("http://localhost:3000/api/mho-stats");
-          const result = await response.json();
-          if (result.success) {
-            document.getElementById("stat-active").innerText =
-              result.data.active;
-            document.getElementById("stat-recovered").innerText =
-              result.data.recovered;
-            document.getElementById("stat-risk").innerText =
-              result.data.high_risk;
+          const response = await fetch("datasets/health_data.csv");
+          const csvText = await response.text();
+          const rows = csvText.split('\n').filter(row => row.trim() !== '');
+          const headers = rows[0].split(',');
+          
+          let activeCases = 0;
+          let recovered = 0;
+          let highRisk = 0;
+          
+          const selectedBarangay = document.getElementById("filter-barangay").value;
+
+          for(let i = 1; i < rows.length; i++) {
+             // CSV format: Date,Barangay,Disease,Cases
+             const cols = parseCSVRow(rows[i]);
+             if (cols.length >= 4) {
+                 const brgy = cols[1].trim();
+                 const disease = cols[2].replace(/"/g, '').trim();
+                 let cases = parseInt(cols[cols.length - 1].trim());
+                 if (isNaN(cases)) cases = 0;
+                 
+                 // If a specific barangay is selected, filter by it
+                 if (selectedBarangay !== "all" && brgy !== selectedBarangay) {
+                     continue;
+                 }
+                 
+                 activeCases += cases;
+                 
+                 // simple heuristic for high risk
+                 if (disease.toLowerCase().includes("dengue") || disease.toLowerCase().includes("rabies") || disease.toLowerCase().includes("typhoid") || disease.toLowerCase().includes("measles")) {
+                     highRisk += cases;
+                 }
+                 
+                 if (disease.toLowerCase().includes("recovered")) {
+                     recovered += cases;
+                 }
+             }
           }
+          
+          document.getElementById("stat-active").innerText = activeCases;
+          document.getElementById("stat-recovered").innerText = recovered;
+          document.getElementById("stat-risk").innerText = highRisk;
+          
         } catch (error) {
-          console.error("Failed to connect to MySQL Database", error);
+          console.error("Failed to read CSV dataset", error);
         }
       }
 
       fetchLiveMHOStats();
-      setInterval(fetchLiveMHOStats, 5000);
+      // Re-fetch when barangay filter changes (add event listener to the existing updateDynamicChart function)
+      const oldUpdate = updateDynamicChart;
+      updateDynamicChart = function() {
+          oldUpdate();
+          fetchLiveMHOStats();
+      };
 
       // --- PRESCRIPTIVE DSS ENGINE ---
       function generateDSS() {

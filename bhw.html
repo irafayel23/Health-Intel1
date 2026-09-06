@@ -16,6 +16,25 @@
     <!-- jsPDF Libraries for Report Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+      /* Mobile Responsiveness for Original Layout */
+      @media (max-width: 768px) {
+        .app-layout { flex-direction: column; overflow: auto; }
+        .sidebar { width: 100%; height: auto; min-height: fit-content; padding: 10px; }
+        .sidebar-brand { justify-content: center; margin-bottom: 15px; }
+        .nav-menu { display: flex; flex-wrap: wrap; gap: 5px; }
+        .nav-item { flex: 1 1 45%; justify-content: center; font-size: 0.85rem; padding: 10px; }
+        .main-wrapper { margin-left: 0 !important; width: 100%; padding: 15px; }
+        .grid-4 { grid-template-columns: 1fr 1fr; }
+        .top-bar { font-size: 1rem; text-align: center; }
+      }
+      @media (max-width: 480px) {
+        .grid-4 { grid-template-columns: 1fr; }
+        .nav-item { flex: 1 1 100%; }
+        #bhwMap { height: 300px !important; }
+        .top-bar { font-size: 0.9rem; padding: 10px; }
+      }
+    </style>
   </head>
   <body>
     <div class="app-layout">
@@ -52,16 +71,17 @@
       </aside>
 
       <main class="main-wrapper">
-        <div class="top-bar">
-          Barangay Health Worker Portal — Brgy. Poblacion
+        <div class="top-bar" id="dynamic-portal-title">
+          Barangay Health Worker Portal - Loading...
         </div>
 
         <div class="dashboard-content">
           <!-- DASHBOARD VIEW -->
           <div id="view-dashboard" class="view-section">
-            <h1 class="page-title">Dashboard Overview</h1>
-            <p class="page-subtitle">Real-time insights for Barangay Poblacion.</p>
-
+            <div style="margin-bottom: 24px;">
+              <h1 class="page-title">Dashboard Overview</h1>
+              <p class="page-subtitle" id="dynamic-dashboard-subtitle">Real-time insights for your Barangay.</p>
+            </div>
             <div class="grid-4">
               <div class="stat-card">
                 <div class="stat-header">
@@ -100,7 +120,7 @@
                     <i data-lucide="alert-triangle" style="width: 18px"></i>
                   </div>
                 </div>
-                <div class="stat-value">12</div>
+                <div class="stat-value" id="stat-high-risk">...</div>
               </div>
             </div>
 
@@ -110,22 +130,22 @@
               </h3>
               <div class="breakdown-grid">
                 <div class="pastel-card bg-gray">
-                  <div class="b-val">1,863</div>
+                  <div class="b-val" id="bd-cleared">...</div>
                   <div class="b-label">Cleared</div>
-                  <div class="b-sub">97% of population</div>
+                  <div class="b-sub">Recovered patients</div>
                 </div>
                 <div class="pastel-card bg-green">
-                  <div class="b-val">22</div>
+                  <div class="b-val" id="bd-mild">...</div>
                   <div class="b-label">Mild Cases</div>
                   <div class="b-sub">Recovering</div>
                 </div>
                 <div class="pastel-card bg-blue">
-                  <div class="b-val">11</div>
+                  <div class="b-val" id="bd-monitored">...</div>
                   <div class="b-label">Monitored</div>
                   <div class="b-sub">Weekly checkup</div>
                 </div>
                 <div class="pastel-card bg-orange">
-                  <div class="b-val">12</div>
+                  <div class="b-val" id="bd-high">...</div>
                   <div class="b-label">High Risk</div>
                   <div class="b-sub">Requires attention</div>
                 </div>
@@ -199,7 +219,7 @@
           <!-- HEATMAP VIEW -->
           <div id="view-heatmap" class="view-section hidden white-panel">
             <h1 class="page-title">Barangay Heatmap (Active Cases)</h1>
-            <p class="page-subtitle">Live GIS mapping of outbreak clusters within Brgy. Poblacion.</p>
+            <p class="page-subtitle" id="heatmap-subtitle">Live GIS mapping of outbreak clusters across the Municipality of Murcia.</p>
             <div id="bhwMap" style="height: 450px; width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; z-index: 1;"></div>
           </div>
 
@@ -365,7 +385,8 @@
 
       async function loadPatients() {
         try {
-          const response = await fetch("http://localhost:3000/api/patients");
+          const url = window.currentBrgyId ? `http://localhost:3000/api/patients?barangay_id=${window.currentBrgyId}` : "http://localhost:3000/api/patients";
+          const response = await fetch(url);
           const result = await response.json();
           const tbody = document.getElementById("patients-table-body");
           tbody.innerHTML = "";
@@ -408,7 +429,8 @@
 
       async function loadArchivedPatients() {
         try {
-          const response = await fetch("http://localhost:3000/api/patients/archived");
+          const url = window.currentBrgyId ? `http://localhost:3000/api/patients/archived?barangay_id=${window.currentBrgyId}` : "http://localhost:3000/api/patients/archived";
+          const response = await fetch(url);
           const result = await response.json();
           const tbody = document.getElementById("patients-table-body");
           tbody.innerHTML = "";
@@ -593,64 +615,72 @@
 
       async function loadDashboardStats() {
         try {
-          const res = await fetch("http://localhost:3000/api/bhw-stats");
+          const url = window.currentBrgyId ? `http://localhost:3000/api/bhw-stats?barangay_id=${window.currentBrgyId}` : "http://localhost:3000/api/bhw-stats";
+          const res = await fetch(url);
           const data = await res.json();
           if (data.success) {
+            // Top 4 Stat Cards
             document.getElementById("stat-total").innerText = data.total;
             document.getElementById("stat-active").innerText = data.active;
             document.getElementById("stat-cleared").innerText = data.cleared;
+            document.getElementById("stat-high-risk").innerText = data.high_risk;
+
+            // 4 Disease Status Breakdown Boxes
+            document.getElementById("bd-cleared").innerText = data.cleared;
+            document.getElementById("bd-mild").innerText = data.mild;
+            document.getElementById("bd-monitored").innerText = data.monitored;
+            document.getElementById("bd-high").innerText = data.high_risk;
           }
-        } catch (e) {}
+        } catch (e) { console.error("Error loading stats:", e); }
       }
 
       // ==========================================
       // 3. RESIDENT PROFILES DIRECTORY LOGIC
       // ==========================================
-      function loadResidentDirectory() {
+      async function loadResidentDirectory() {
           const grid = document.getElementById("resident-grid");
-          grid.innerHTML = "";
+          grid.innerHTML = "<div style='grid-column: 1 / -1; text-align: center; color: #64748b;'>Loading directory...</div>";
 
-          if(allPatients.length === 0) {
-              grid.innerHTML = `<div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; color: #64748b; grid-column: 1 / -1;">No residents registered yet.</div>`;
-              return;
-          }
+          try {
+              const response = await fetch(`http://localhost:3000/api/residents?barangay_id=${window.currentBrgyId}`);
+              const result = await response.json();
 
-          const uniqueResidents = {};
-          
-          allPatients.forEach(p => {
-              const name = p.patient_name || p.first_name + " " + p.last_name;
-              const identifier = p.birthdate || p.age || "Unknown";
-              const compositeKey = name.toLowerCase() + "_" + identifier;
-
-              if (!uniqueResidents[compositeKey]) {
-                  uniqueResidents[compositeKey] = {
-                      compositeKey: compositeKey, 
-                      name: name,
-                      age: p.age,
-                      purok: p.purok,
-                      caseCount: 0
-                  };
+              if (!result.success || result.data.length === 0) {
+                  grid.innerHTML = `<div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; color: #64748b; grid-column: 1 / -1;">No residents registered yet.</div>`;
+                  return;
               }
-              uniqueResidents[compositeKey].caseCount += 1;
-          });
 
-          Object.values(uniqueResidents).forEach(res => {
-              const nameParts = res.name.split(" ");
-              const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
+              grid.innerHTML = "";
+              result.data.forEach(res => {
+                  let patientName = res.patient_name || res.first_name + " " + res.last_name;
+                  if (!patientName || patientName.trim() === "null") patientName = "Unknown";
+                  
+                  const nameParts = patientName.split(" ");
+                  const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
 
-              grid.innerHTML += `
-                  <div class="resident-card" data-name="${res.name.toLowerCase()}" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: #f8fafc; display: flex; flex-direction: column; align-items: center; text-align: center;">
-                      <div style="width: 60px; height: 60px; background: #bae6fd; color: #0284c7; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">
-                          ${initials.toUpperCase()}
+                  // Add some vulnerability badges automatically based on age!
+                  let badges = "";
+                  if (res.age >= 60) badges += `<span style="background: #fef08a; color: #854d0e; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 5px;">Senior Citizen</span>`;
+                  if (res.age <= 12) badges += `<span style="background: #bbf7d0; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 5px;">Child</span>`;
+
+                  grid.innerHTML += `
+                      <div class="resident-card" data-name="${patientName.toLowerCase()}" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: #f8fafc; display: flex; flex-direction: column; align-items: center; text-align: center;">
+                          <div style="width: 60px; height: 60px; background: #bae6fd; color: #0284c7; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">
+                              ${initials.toUpperCase()}
+                          </div>
+                          <h3 style="margin: 0 0 5px 0; color: #0f172a; font-size: 1.1rem;">${patientName}</h3>
+                          <div style="margin-bottom: 10px;">${badges}</div>
+                          <p style="margin: 0 0 15px 0; color: #64748b; font-size: 0.85rem;">${res.purok} | ${res.age || '?'} yrs</p>
+                          <button onclick="openProfileModal('${res.id}')" style="width: 100%; padding: 8px; background: #0ea5e9; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                              View Medical Dossier (${res.case_count} Records)
+                          </button>
                       </div>
-                      <h3 style="margin: 0 0 5px 0; color: #0f172a; font-size: 1.1rem;">${res.name}</h3>
-                      <p style="margin: 0 0 15px 0; color: #64748b; font-size: 0.85rem;">${res.purok} | ${res.age || '?'} yrs</p>
-                      <button onclick="openProfileModal('${res.compositeKey}')" style="width: 100%; padding: 8px; background: #0ea5e9; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
-                          View Medical Dossier (${res.caseCount} Records)
-                      </button>
-                  </div>
-              `;
-          });
+                  `;
+              });
+          } catch(e) {
+              console.error("Error loading directory", e);
+              grid.innerHTML = `<div style="grid-column: 1 / -1; color: red;">Failed to load directory.</div>`;
+          }
       }
 
       function filterDirectory() {
@@ -663,44 +693,59 @@
       // ==========================================
       // MASTER PATIENT PROFILE MODAL LOGIC
       // ==========================================
-      function openProfileModal(targetCompositeKey) {
-        const history = allPatients.filter(p => {
-            let fullName = p.patient_name || p.first_name + " " + p.last_name;
-            let identifier = p.birthdate || p.age || "Unknown";
-            let recordKey = fullName.toLowerCase() + "_" + identifier;
-            return recordKey === targetCompositeKey;
-        });
+      async function openProfileModal(residentId) {
+          try {
+              const response = await fetch(`http://localhost:3000/api/residents/${residentId}/dossier`);
+              const result = await response.json();
+              if(!result.success) return;
 
-        if(history.length === 0) return;
+              const res = result.resident;
+              const history = result.history;
 
-        const latest = history[0]; 
-        let patientName = latest.patient_name || latest.first_name + " " + latest.last_name;
-        const nameParts = patientName.split(" ");
-        const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
+              let patientName = res.patient_name || res.first_name + " " + res.last_name;
+              if (!patientName || patientName.trim() === "null") patientName = "Unknown";
+              
+              const nameParts = patientName.split(" ");
+              const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
 
-        document.getElementById('profile-initials').innerText = initials.toUpperCase();
-        document.getElementById('profile-name').innerText = patientName;
-        document.getElementById('profile-purok').innerText = latest.purok || "Unknown";
-        document.getElementById('profile-age').innerText = latest.age || "N/A";
+              document.getElementById('profile-initials').innerText = initials.toUpperCase();
+              document.getElementById('profile-name').innerText = patientName;
+              document.getElementById('profile-purok').innerText = res.purok || "Unknown";
+              document.getElementById('profile-age').innerText = res.age || "N/A";
 
-        const tbody = document.getElementById('profile-history-body');
-        tbody.innerHTML = ""; 
-        
-        history.forEach(record => {
-            let statusColor = record.status === "Cleared" ? "#16a34a" : "#ea580c";
-            tbody.innerHTML += `
-              <tr style="border-bottom: 1px solid #e2e8f0;">
-                <td style="padding: 12px; color: #94a3b8; font-family: monospace;">#REC-${record.id}</td>
-                <td style="padding: 12px; font-weight: bold; color: #0f172a;">${record.disease}</td>
-                <td style="padding: 12px; color: #64748b; font-size: 0.85rem;">${record.remarks || "No remarks"}</td>
-                <td style="padding: 12px; color: ${statusColor}; font-weight: bold; font-size: 0.85rem;">${record.status}</td>
-              </tr>
-            `;
-        });
+              const tbody = document.getElementById('profile-history-body');
+              tbody.innerHTML = ""; 
+              
+              if (history.length === 0) {
+                  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">No records found.</td></tr>`;
+              } else {
+                  history.forEach(record => {
+                      let statusColor = record.status === "Cleared" ? "#16a34a" : (record.status === "Deceased" ? "#64748b" : "#ea580c");
+                      let severityBadge = record.severity === "High Risk" ? `<span style="background:#fef2f2; color:#ef4444; border-radius:4px; padding: 2px 5px; font-size:0.7rem;">High Risk</span>` : "";
+                      let dateStr = new Date(record.date_recorded).toLocaleDateString();
+                      
+                      tbody.innerHTML += `
+                        <tr style="border-bottom: 1px solid #e2e8f0;">
+                          <td style="padding: 12px; color: #94a3b8; font-family: monospace;">
+                            #REC-${record.id}<br><small style="color:#64748b">${dateStr}</small>
+                          </td>
+                          <td style="padding: 12px; font-weight: bold; color: #0f172a;">
+                            ${record.disease} <br>${severityBadge}
+                          </td>
+                          <td style="padding: 12px; color: #64748b; font-size: 0.85rem;">${record.remarks || "No remarks"}</td>
+                          <td style="padding: 12px;">
+                             <span style="color: ${statusColor}; font-weight: bold; font-size: 0.85rem;">${record.status}</span>
+                          </td>
+                        </tr>
+                      `;
+                  });
+              }
 
-        const modal = document.getElementById('patientProfileModal');
-        modal.classList.remove('hidden'); 
-        modal.style.display = 'flex';
+              const modal = document.getElementById('patientProfileModal');
+              modal.classList.remove('hidden'); 
+              modal.style.display = 'flex';
+
+          } catch(e) { console.error("Error opening dossier", e); }
       }
 
       function closeProfileModal() {
@@ -725,12 +770,70 @@
       let map;
       const mapContainer = document.getElementById("bhwMap");
       if (mapContainer) {
-        map = L.map("bhwMap").setView([10.612, 123.0483], 13);
+        // Default center to Murcia, Negros Occidental. We will pan it dynamically.
+        map = L.map("bhwMap").setView([10.609090, 123.026559], 13);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-        [{ name: "Purok 1", lat: 10.615, lng: 123.045, cases: 5, risk: "Medium" }, { name: "Purok 2", lat: 10.61, lng: 123.05, cases: 2, risk: "Low" }, { name: "Purok 3", lat: 10.608, lng: 123.042, cases: 12, risk: "CRITICAL" }].forEach((brgy) => {
-          let circleColor = brgy.risk === "CRITICAL" ? "#ef4444" : brgy.risk === "Medium" ? "#f59e0b" : "#3b82f6";
-          L.circle([brgy.lat, brgy.lng], { color: circleColor, fillColor: circleColor, fillOpacity: 0.5, radius: brgy.cases * 30 }).addTo(map).bindPopup(`<div style="text-align: center;"><h4 style="margin: 0;">${brgy.name}</h4><p style="margin: 5px 0; color: #ef4444; font-weight: bold;">${brgy.cases} Active Cases</p></div>`);
-        });
+        
+        async function loadHeatmap() {
+          try {
+            const response = await fetch("http://localhost:3000/api/heatmap-data");
+            const result = await response.json();
+            if (result.success) {
+              const barangays = result.data;
+              let targetLat = null;
+              let targetLng = null;
+
+              barangays.forEach((brgy) => {
+                // If this is the BHW's own barangay, save coords to zoom later
+                if (window.currentBrgyName && brgy.name === window.currentBrgyName) {
+                    targetLat = brgy.lat;
+                    targetLng = brgy.lng;
+                }
+
+                // Make the base size bigger as requested
+                // Multiply cases by 50 for scaling, cap minimum size
+                let calculatedRadius = 550 + (brgy.cases * 50); 
+
+                const circle = L.circle([brgy.lat, brgy.lng], { 
+                  color: brgy.color, 
+                  fillColor: brgy.color, 
+                  fillOpacity: 0.5, 
+                  weight: 2,
+                  radius: calculatedRadius 
+                }).addTo(map);
+
+                // Make the Barangay name permanently visible perfectly centered in the circle (like the 3rd picture)
+                circle.bindTooltip(`<div style="text-align: center; color: #333;"><strong>${brgy.name}</strong><br><small>${brgy.cases} Cases</small></div>`, {
+                    permanent: true, 
+                    direction: "center",
+                    className: "bg-transparent border-0 shadow-none text-xs font-semibold"
+                });
+
+                // Add popup for clicking
+                circle.bindPopup(
+                    `<div style="text-align: center;">
+                        <h4 style="margin: 0;">Brgy. ${brgy.name}</h4>
+                        <p style="margin: 5px 0; color: ${brgy.color}; font-weight: bold;">
+                          ${brgy.cases} Active Cases
+                        </p>
+                        <small>Risk: ${brgy.risk}</small>
+                    </div>`
+                );
+              });
+
+              // Smart Zooming: Zoom perfectly to their Barangay, or show the whole town
+              if (targetLat && targetLng) {
+                  map.setView([targetLat, targetLng], 14);
+              } else {
+                  // Fallback to center of Murcia
+                  map.setView([10.609090, 123.026559], 12);
+              }
+            }
+          } catch(e) { console.error("Map load error", e); }
+        }
+        
+        // Wait 1 second to ensure currentBrgyName is loaded from DOMContentLoaded
+        setTimeout(loadHeatmap, 1000);
       }
 
       function generateBHWReport(type) {
@@ -752,7 +855,25 @@
         doc.save(`BHS_${type}_REPORT.pdf`);
       }
 
-      document.addEventListener("DOMContentLoaded", () => {
+      document.addEventListener("DOMContentLoaded", async () => {
+        const userId = localStorage.getItem("active_user_id");
+        if (userId) {
+          try {
+            const res = await fetch(`http://localhost:3000/api/bhw/context?system_id=${userId}`);
+            const result = await res.json();
+            if (result.success) {
+              window.currentBrgyId = result.data.barangay_id;
+              window.currentBrgyName = result.data.barangay_name;
+              
+              // Update DOM Text
+              const brgyDisplay = window.currentBrgyName || "Unknown Barangay";
+              document.getElementById("dynamic-portal-title").innerText = `Barangay Health Worker Portal — ${brgyDisplay}`;
+              const subtitle = document.getElementById("dynamic-dashboard-subtitle");
+              if (subtitle) subtitle.innerText = `Real-time insights for ${brgyDisplay}.`;
+            }
+          } catch(e) { console.error("Error fetching context:", e); }
+        }
+
         loadPatients();
         loadDashboardStats();
       });

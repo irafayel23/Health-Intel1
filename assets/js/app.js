@@ -65,45 +65,87 @@ if (mapContainer) {
         attribution: '© OpenStreetMap contributors | HEALTH-INTEL GIS'
     }).addTo(map);
 
-    // Simulated Database Data (Latitude and Longitude for Murcia Barangays)
-    const brgyData = [
-        // Poblacion (Center)
-        { name: "Brgy. Poblacion", lat: 10.6120, lng: 123.0483, cases: 10, risk: "Low" },
-        // Alegria (South-West)
-        { name: "Brgy. Alegria", lat: 10.5900, lng: 123.0200, cases: 5, risk: "Low" },
-        // Blumentritt (North)
-        { name: "Brgy. Blumentritt", lat: 10.6300, lng: 123.0500, cases: 15, risk: "Medium" },
-        // Minoyan (East / Mountainous area - Simulated Outbreak)
-        { name: "Brgy. Minoyan", lat: 10.6250, lng: 123.1100, cases: 45, risk: "CRITICAL" }
-    ];
+    // Base coordinates for the 7 target barangays in Murcia
+    const brgyCoords = {
+        "Blumentritt": { lat: 10.6300, lng: 123.0500 },
+        "Salvacion": { lat: 10.6100, lng: 123.0800 },
+        "Minoyan": { lat: 10.6250, lng: 123.1100 },
+        "Caliban": { lat: 10.5850, lng: 123.0500 },
+        "Cansilayan": { lat: 10.6400, lng: 123.0600 },
+        "Alegria": { lat: 10.5900, lng: 123.0200 },
+        "Sta. Rosa": { lat: 10.6500, lng: 123.0800 }
+    };
 
-    // Loop through the data and draw glowing red circles on the map
-    brgyData.forEach(brgy => {
-        // Calculate radius based on case count (multiply for visual scale)
-        let circleRadius = brgy.cases * 40; 
-        
-        // Determine color based on risk
-        let circleColor = brgy.risk === "CRITICAL" ? "#ef4444" : // Red for critical
-                          brgy.risk === "Medium" ? "#f59e0b" :   // Orange
-                          "#3b82f6";                             // Blue for low
+    let mapCircles = [];
 
-        // Add the circle to the map
-        const circle = L.circle([brgy.lat, brgy.lng], {
-            color: circleColor,
-            fillColor: circleColor,
-            fillOpacity: 0.5,
-            radius: circleRadius // Radius in meters
-        }).addTo(map);
+    function parseCSVRow(row) {
+        let result = [];
+        let cur = '';
+        let inQuotes = false;
+        for(let i=0; i<row.length; i++) {
+            if(row[i] === '"') inQuotes = !inQuotes;
+            else if(row[i] === ',' && !inQuotes) {
+                result.push(cur);
+                cur = '';
+            } else {
+                cur += row[i];
+            }
+        }
+        result.push(cur);
+        return result;
+    }
 
-        // Add a click popup to the circle
-        circle.bindPopup(`
-            <div style="text-align: center;">
-                <h4 style="margin: 0; color: #0f172a;">${brgy.name}</h4>
-                <p style="margin: 5px 0; color: #ef4444; font-weight: bold;">${brgy.cases} Active Cases</p>
-                <span style="font-size: 0.8rem; color: #64748b;">Status: ${brgy.risk}</span>
-            </div>
-        `);
-    });
+    // Fetch live cases from CSV
+    fetch("datasets/health_data.csv")
+      .then(response => response.text())
+      .then(csvText => {
+          const rows = csvText.split('\n').filter(row => row.trim() !== '');
+          let casesPerBrgy = {
+              "Blumentritt": 0, "Salvacion": 0, "Minoyan": 0, 
+              "Caliban": 0, "Cansilayan": 0, "Alegria": 0, "Sta. Rosa": 0
+          };
+          
+          for(let i = 1; i < rows.length; i++) {
+              const cols = parseCSVRow(rows[i]);
+              if (cols.length >= 4) {
+                  const brgy = cols[1].trim();
+                  let cases = parseInt(cols[cols.length - 1].trim()); // cases is always the last column
+                  if (isNaN(cases)) cases = 0;
+                  
+                  if (casesPerBrgy[brgy] !== undefined) {
+                      casesPerBrgy[brgy] += cases;
+                  }
+              }
+          }
+
+          for (const [brgyName, cases] of Object.entries(casesPerBrgy)) {
+              let risk = cases >= 15 ? "CRITICAL" : (cases >= 5 ? "Medium" : "Low");
+              let circleColor = risk === "CRITICAL" ? "#ef4444" : 
+                                risk === "Medium" ? "#f59e0b" : 
+                                "#3b82f6";
+              
+              // Base radius plus scaling
+              let circleRadius = 300 + (cases * 30); 
+
+              const circle = L.circle([brgyCoords[brgyName].lat, brgyCoords[brgyName].lng], {
+                  color: circleColor,
+                  fillColor: circleColor,
+                  fillOpacity: 0.5,
+                  radius: circleRadius
+              }).addTo(map);
+
+              circle.bindPopup(`
+                  <div style="text-align: center;">
+                      <h4 style="margin: 0; color: #0f172a;">Brgy. ${brgyName}</h4>
+                      <p style="margin: 5px 0; color: ${circleColor}; font-weight: bold;">${cases} Active Cases</p>
+                      <span style="font-size: 0.8rem; color: #64748b;">Status: ${risk}</span>
+                  </div>
+              `);
+              
+              mapCircles.push(circle);
+          }
+      })
+      .catch(error => console.error("Error loading heatmap data:", error));
     
     // Fix for Leaflet rendering inside a hidden div (Very important for tabs!)
     // When the user clicks the "Heatmap Cases" button, we tell the map to recalculate its size

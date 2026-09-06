@@ -54,21 +54,56 @@ app.post('/api/get-next-id', async (req, res) => {
 });
 
 // ==========================================
-// 3. ZERO-TRUST REGISTRATION
+// 3. EMAIL DUPLICATE CHECK
+// ==========================================
+app.post('/api/check-email', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const [rows] = await db.execute('SELECT system_id FROM users WHERE email = ?', [email]);
+        if (rows.length > 0) {
+            return res.json({ exists: true, system_id: rows[0].system_id });
+        }
+        res.json({ exists: false });
+    } catch (error) {
+        res.json({ exists: false });
+    }
+});
+
+// ==========================================
+// 4. ZERO-TRUST REGISTRATION
 // ==========================================
 app.post('/api/register', async (req, res) => {
     try {
-        const { first_name, last_name, role, system_id, employee_hr_id, password, email, assigned_barangay } = req.body;
-        const finalBarangay = (role === 'bhw') ? assigned_barangay : 'Municipality';
+        const { first_name, last_name, role, system_id, password, assigned_barangay, email, employee_id } = req.body;
+
+        // DUPLICATE EMAIL CHECK - Prevent re-registration
+        if (email) {
+            const [existing] = await db.execute('SELECT system_id FROM users WHERE email = ?', [email]);
+            if (existing.length > 0) {
+                return res.status(409).json({ success: false, error: "This email is already registered. Please log in instead." });
+            }
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Find barangay ID if role is bhw
+        let barangay_id = null;
+        if (role === 'bhw' && assigned_barangay) {
+            // "Brgy. Blumentritt" or "Blumentritt" => match wildcard
+            const cleanName = assigned_barangay.replace('Brgy. ', '');
+            const [bRows] = await db.execute('SELECT id FROM barangays WHERE name LIKE ?', [`%${cleanName}%`]);
+            if (bRows.length > 0) {
+                barangay_id = bRows[0].id;
+            }
+        }
 
         const query = `
             INSERT INTO users 
-            (first_name, last_name, email, role, system_id, employee_hr_id, password_hash, assigned_barangay, account_status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            (system_id, first_name, last_name, role, barangay_id, password_hash, status, email, employee_id) 
+            VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)
         `;
         
-        await db.execute(query, [first_name, last_name, email, role, system_id, employee_hr_id, hashedPassword, finalBarangay]);
+        await db.execute(query, [system_id, first_name, last_name, role, barangay_id, hashedPassword, email || null, employee_id || null]);
         res.json({ success: true, message: "Registration submitted for HR Approval." });
 
     } catch (error) {
@@ -96,10 +131,10 @@ app.post('/api/login', async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).json({ success: false, error: "Invalid System ID or Password." });
         }
-        if (user.account_status === 'pending') {
+        if (user.status === 'pending') {
             return res.status(403).json({ success: false, error: "Account pending. Please wait for MHO Admin approval." });
         }
-        if (user.account_status === 'denied') {
+        if (user.status === 'denied') {
             return res.status(403).json({ success: false, error: "Account access denied by HR." });
         }
 
@@ -123,7 +158,7 @@ app.post('/api/login', async (req, res) => {
 // Get Pending
 app.get('/api/admin/pending-users', async (req, res) => {
     try {
-        const query = `SELECT system_id, email, first_name, last_name, employee_hr_id, role, created_at FROM users WHERE account_status = 'pending' AND role IN ('bhw', 'mho') ORDER BY created_at DESC`;
+        const query = `SELECT system_id, email, first_name, last_name, employee_id, role, created_at FROM users WHERE status = 'pending' AND role IN ('bhw', 'mho') ORDER BY created_at DESC`;
         const [rows] = await db.execute(query);
         res.json({ success: true, data: rows });
     } catch (error) {
@@ -134,7 +169,7 @@ app.get('/api/admin/pending-users', async (req, res) => {
 // Get Active Personnel Directory (NEW)
 app.get('/api/admin/active-users', async (req, res) => {
     try {
-        const query = `SELECT system_id, email, first_name, last_name, employee_hr_id, role, assigned_barangay, created_at FROM users WHERE account_status = 'approved' AND role IN ('bhw', 'mho') ORDER BY created_at DESC`;
+        const query = `SELECT u.system_id, u.email, u.first_name, u.last_name, u.employee_id, u.role, b.name AS assigned_barangay, u.created_at FROM users u LEFT JOIN barangays b ON u.barangay_id = b.id WHERE u.status = 'approved' AND u.role IN ('bhw', 'mho') ORDER BY u.created_at DESC`;
         const [rows] = await db.execute(query);
         res.json({ success: true, data: rows });
     } catch (error) {
@@ -146,7 +181,7 @@ app.get('/api/admin/active-users', async (req, res) => {
 app.post('/api/admin/suspend-user', async (req, res) => {
     const { system_id } = req.body;
     try {
-        await db.execute(`UPDATE users SET account_status = 'denied' WHERE system_id = ?`, [system_id]);
+        await db.execute(`UPDATE users SET status = 'suspended' WHERE system_id = ?`, [system_id]);
         
         // AUDIT TRAIL LOGGING
         await db.execute(
@@ -163,7 +198,7 @@ app.post('/api/admin/suspend-user', async (req, res) => {
 // Get Denied/Archived
 app.get('/api/admin/denied-users', async (req, res) => {
     try {
-        const query = `SELECT system_id, first_name, last_name, employee_hr_id FROM users WHERE account_status = 'denied' ORDER BY created_at DESC`;
+        const query = `SELECT system_id, first_name, last_name, employee_id, status FROM users WHERE status IN ('denied', 'suspended') ORDER BY created_at DESC`;
         const [rows] = await db.execute(query);
         res.json({ success: true, data: rows });
     } catch (error) {
@@ -173,31 +208,22 @@ app.get('/api/admin/denied-users', async (req, res) => {
 
 // Approve User (Sends Email)
 app.post('/api/admin/approve-user', async (req, res) => {
-    const { temp_system_id, assigned_role } = req.body; 
-
-    let prefix = '';
-    if (assigned_role === 'bhw') prefix = 'BHW-';
-    else if (assigned_role === 'mho') prefix = 'MHO-';
-    else if (assigned_role === 'admin') prefix = 'ADM-'; 
-    else return res.status(400).json({ success: false, error: "Invalid role assigned." });
+    const { temp_system_id } = req.body; 
 
     try {
-        const [rows] = await db.execute(`SELECT system_id FROM users WHERE system_id LIKE ? ORDER BY system_id DESC LIMIT 1`, [`${prefix}%`]);
-
-        let finalId = prefix + '001'; 
-        if (rows.length > 0) {
-            const lastId = rows[0].system_id;
-            const nextNumber = parseInt(lastId.split('-')[1]) + 1;
-            finalId = prefix + nextNumber.toString().padStart(3, '0');
+        const updateQuery = `UPDATE users SET status = 'approved' WHERE system_id = ?`;
+        const [result] = await db.execute(updateQuery, [temp_system_id]);
+        
+        if (result.affectedRows === 0) {
+             return res.status(404).json({ success: false, error: "User not found." });
         }
-
-        const updateQuery = `UPDATE users SET system_id = ?, role = ?, account_status = 'approved' WHERE system_id = ?`;
-        await db.execute(updateQuery, [finalId, assigned_role, temp_system_id]);
+        
+        const finalId = temp_system_id;
 
         // AUDIT TRAIL LOGGING
         await db.execute(
             `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'Admin', 'User Approved', ?)`,
-            ['LGU Admin', `Approved and assigned ID: ${finalId} to role: ${assigned_role}`]
+            ['LGU Admin', `Approved registration for ID: ${finalId}`]
         );
 
         const [userRow] = await db.execute('SELECT email, first_name FROM users WHERE system_id = ?', [finalId]);
@@ -207,7 +233,7 @@ app.post('/api/admin/approve-user', async (req, res) => {
         // THE GMAIL DISPATCHER
         const transporter = nodemailer.createTransport({
             service: 'gmail',
-            auth: { user: 'yapjohnrichard@gmail.com', pass: 'tdxeywhbxyhlywpc' }
+            auth: { user: 'yapjohnrichard@gmail.com', pass: 'cjrfnlxzljuvhfkq' }
         });
 
         const mailOptions = {
@@ -229,7 +255,7 @@ app.post('/api/admin/approve-user', async (req, res) => {
             if (error) console.log("Email Error: ", error);
         });
 
-        res.json({ success: true, message: `Account Approved! Official ID: ${finalId}.` });
+        res.json({ success: true, message: `Account Approved! Official ID: ${finalId}. An automated email has been dispatched to the user.` });
     } catch (error) {
         console.error("Approval Error:", error);
         res.status(500).json({ success: false, error: "Database error during approval process." });
@@ -240,7 +266,7 @@ app.post('/api/admin/approve-user', async (req, res) => {
 app.post('/api/admin/deny-user', async (req, res) => {
     const { temp_system_id } = req.body; 
     try {
-        await db.execute(`UPDATE users SET account_status = 'denied' WHERE system_id = ?`, [temp_system_id]);
+        await db.execute(`UPDATE users SET status = 'denied' WHERE system_id = ?`, [temp_system_id]);
         
         // AUDIT TRAIL LOGGING
         await db.execute(
@@ -258,10 +284,28 @@ app.post('/api/admin/deny-user', async (req, res) => {
 app.post('/api/admin/undo-deny', async (req, res) => {
     const { temp_system_id } = req.body; 
     try {
-        await db.execute(`UPDATE users SET account_status = 'pending' WHERE system_id = ?`, [temp_system_id]);
+        await db.execute(`UPDATE users SET status = 'pending' WHERE system_id = ?`, [temp_system_id]);
         res.json({ success: true, message: `Account returned to pending status.` });
     } catch (error) {
         res.status(500).json({ success: false, error: "Database error during undo process." });
+    }
+});
+
+// Restore Suspended
+app.post('/api/admin/restore-suspended', async (req, res) => {
+    const { system_id } = req.body; 
+    try {
+        await db.execute(`UPDATE users SET status = 'approved' WHERE system_id = ?`, [system_id]);
+        
+        // AUDIT TRAIL LOGGING
+        await db.execute(
+            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'Admin', 'Access Restored', ?)`,
+            ['LGU Admin', `Restored system access for ID: ${system_id}`]
+        );
+
+        res.json({ success: true, message: `Account access restored.` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: "Database error during restore process." });
     }
 });
 
@@ -271,7 +315,7 @@ app.post('/api/admin/undo-deny', async (req, res) => {
 // ==========================================
 app.get('/api/superadmin/pending-admins', async (req, res) => {
     try {
-        const query = `SELECT system_id, email, first_name, last_name, employee_hr_id, role, created_at FROM users WHERE account_status = 'pending' AND role = 'admin' ORDER BY created_at DESC`;
+        const query = `SELECT system_id, email, first_name, last_name, employee_id, role, created_at FROM users WHERE status = 'pending' AND role = 'admin' ORDER BY created_at DESC`;
         const [rows] = await db.execute(query);
         res.json({ success: true, data: rows });
     } catch (error) {
@@ -282,7 +326,7 @@ app.get('/api/superadmin/pending-admins', async (req, res) => {
 app.post('/api/superadmin/approve-admin', async (req, res) => {
     const { system_id } = req.body;
     try {
-        await db.execute(`UPDATE users SET account_status = 'approved' WHERE system_id = ?`, [system_id]);
+        await db.execute(`UPDATE users SET status = 'approved' WHERE system_id = ?`, [system_id]);
         
         // AUDIT TRAIL LOGGING
         await db.execute(
@@ -319,7 +363,7 @@ app.get('/api/superadmin/health', async (req, res) => {
 
 app.get('/api/superadmin/audit-logs', async (req, res) => {
     try {
-        const [rows] = await db.execute(`SELECT * FROM system_audit_logs ORDER BY created_at DESC LIMIT 50`);
+        const [rows] = await db.execute(`SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs ORDER BY timestamp DESC LIMIT 50`);
         res.json({ success: true, data: rows });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
@@ -332,14 +376,42 @@ app.get('/api/superadmin/audit-logs', async (req, res) => {
 // ==========================================
 
 // CREATE NEW PATIENT
+// BHW CONTEXT (NEW API for Dynamic UI)
+app.get('/api/bhw/context', async (req, res) => {
+    const { system_id } = req.query;
+    try {
+        const [rows] = await db.execute(`
+            SELECT u.first_name, u.barangay_id, b.name as barangay_name 
+            FROM users u 
+            LEFT JOIN barangays b ON u.barangay_id = b.id 
+            WHERE u.system_id = ?`, 
+        [system_id]);
+        if (rows.length > 0) {
+            res.json({ success: true, data: rows[0] });
+        } else {
+            res.status(404).json({ success: false, error: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Database error' });
+    }
+});
+
+// CREATE PATIENT
 app.post('/api/patients', async (req, res) => {
     const { first_name, last_name, patient_name, birthdate, age, purok, disease, remarks, status, encoded_by } = req.body;
     
     try {
+        // Look up the encoder's barangay_id securely!
+        let brgy_id = null;
+        if (encoded_by) {
+            const [uRows] = await db.execute('SELECT barangay_id FROM users WHERE system_id = ?', [encoded_by]);
+            if(uRows.length > 0) brgy_id = uRows[0].barangay_id;
+        }
+
         const query = `
             INSERT INTO health_cases 
-            (first_name, last_name, patient_name, birthdate, age, purok, disease, remarks, status, encoded_by) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (first_name, last_name, patient_name, birthdate, age, purok, disease, remarks, status, encoded_by, barangay_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         
         const encoder_name = encoded_by || "System"; 
@@ -354,7 +426,8 @@ app.post('/api/patients', async (req, res) => {
             disease, 
             remarks || '', 
             status || 'Active', 
-            encoder_name
+            encoder_name,
+            brgy_id
         ]);
         
         // Log to immutable audit trail
@@ -370,20 +443,80 @@ app.post('/api/patients', async (req, res) => {
     }
 });
 
-// READ ACTIVE
+// READ ACTIVE (Filtered by Barangay)
 app.get('/api/patients', async (req, res) => {
+    const { barangay_id } = req.query;
     try {
-        const [rows] = await db.execute(`SELECT * FROM health_cases WHERE deleted_at IS NULL ORDER BY created_at DESC`);
+        let query = `SELECT * FROM health_cases WHERE is_archived = FALSE`;
+        let params = [];
+        if (barangay_id && barangay_id !== 'null') {
+            query += ` AND barangay_id = ?`;
+            params.push(barangay_id);
+        }
+        query += ` ORDER BY created_at DESC`;
+        
+        const [rows] = await db.execute(query, params);
         res.json({ success: true, data: rows });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
     }
 });
 
-// READ ARCHIVED
-app.get('/api/patients/archived', async (req, res) => {
+app.get('/api/residents', async (req, res) => {
+    const { barangay_id } = req.query;
     try {
-        const [rows] = await db.execute(`SELECT * FROM health_cases WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC`);
+        // Get residents + count of their health cases
+        let query = `
+            SELECT r.*, COUNT(h.id) as case_count 
+            FROM residents r
+            LEFT JOIN health_cases h ON r.id = h.resident_id
+            WHERE 1=1
+        `;
+        let params = [];
+        if (barangay_id && barangay_id !== 'null') {
+            query += ` AND r.barangay_id = ?`;
+            params.push(barangay_id);
+        }
+        query += ` GROUP BY r.id ORDER BY r.last_name ASC, r.first_name ASC`;
+        
+        const [rows] = await db.execute(query, params);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Residents error:", error);
+        res.status(500).json({ success: false, error: 'Database error' });
+    }
+});
+
+app.get('/api/residents/:id/dossier', async (req, res) => {
+    try {
+        const residentId = req.params.id;
+        // Fetch the resident details
+        const [residentRows] = await db.execute("SELECT * FROM residents WHERE id = ?", [residentId]);
+        if (residentRows.length === 0) return res.status(404).json({ success: false, error: 'Resident not found' });
+        
+        // Fetch their full health history from health_cases
+        const [historyRows] = await db.execute("SELECT * FROM health_cases WHERE resident_id = ? ORDER BY date_recorded DESC", [residentId]);
+        
+        res.json({ success: true, resident: residentRows[0], history: historyRows });
+    } catch (error) {
+        console.error("Dossier error:", error);
+        res.status(500).json({ success: false, error: 'Database error' });
+    }
+});
+
+// READ ARCHIVED (Filtered by Barangay)
+app.get('/api/patients/archived', async (req, res) => {
+    const { barangay_id } = req.query;
+    try {
+        let query = `SELECT * FROM health_cases WHERE is_archived = TRUE`;
+        let params = [];
+        if (barangay_id && barangay_id !== 'null') {
+            query += ` AND barangay_id = ?`;
+            params.push(barangay_id);
+        }
+        query += ` ORDER BY deleted_at DESC`;
+        
+        const [rows] = await db.execute(query, params);
         res.json({ success: true, data: rows });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
@@ -404,7 +537,7 @@ app.put('/api/patients/:id/status', async (req, res) => {
 // ARCHIVE
 app.put('/api/patients/:id/archive', async (req, res) => {
     try {
-        await db.execute(`UPDATE health_cases SET deleted_at = CURRENT_TIMESTAMP WHERE id = ?`, [req.params.id]);
+        await db.execute(`UPDATE health_cases SET is_archived = TRUE WHERE id = ?`, [req.params.id]);
         
         // AUDIT TRAIL LOGGING
         await db.execute(
@@ -418,10 +551,49 @@ app.put('/api/patients/:id/archive', async (req, res) => {
     }
 });
 
+app.get('/api/heatmap-data', async (req, res) => {
+    try {
+        const query = `
+            SELECT b.id as barangay_id, b.name as barangay_name, b.latitude, b.longitude, COUNT(h.id) as cases 
+            FROM barangays b
+            LEFT JOIN health_cases h ON h.barangay_id = b.id AND h.status = 'Active' AND h.is_archived = FALSE
+            GROUP BY b.id, b.name, b.latitude, b.longitude
+        `;
+        const [rows] = await db.execute(query);
+
+        const data = rows.map(r => {
+            let risk = "Low";
+            let color = "#3b82f6"; // Blue
+            if (r.cases >= 20) {
+                risk = "CRITICAL";
+                color = "#ef4444"; // Red
+            } else if (r.cases >= 10) {
+                risk = "Medium";
+                color = "#f59e0b"; // Yellow
+            }
+
+            return {
+                id: r.barangay_id,
+                name: r.barangay_name,
+                lat: parseFloat(r.latitude),
+                lng: parseFloat(r.longitude),
+                cases: r.cases,
+                risk: risk,
+                color: color
+            };
+        });
+
+        res.json({ success: true, data });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, error: 'Database error' });
+    }
+});
+
 // RESTORE
 app.put('/api/patients/:id/restore', async (req, res) => {
     try {
-        await db.execute(`UPDATE health_cases SET deleted_at = NULL WHERE id = ?`, [req.params.id]);
+        await db.execute(`UPDATE health_cases SET is_archived = FALSE WHERE id = ?`, [req.params.id]);
         res.json({ success: true, message: 'Record restored successfully.' });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
@@ -432,12 +604,23 @@ app.put('/api/patients/:id/restore', async (req, res) => {
 // 8. DASHBOARD STATS & ANALYTICS
 // ==========================================
 app.get('/api/bhw-stats', async (req, res) => {
+    const { barangay_id } = req.query;
     try {
-        const [[total]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases WHERE deleted_at IS NULL`);
-        const [[active]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases WHERE status = 'Active' AND deleted_at IS NULL`);
-        const [[cleared]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases WHERE status = 'Cleared' AND deleted_at IS NULL`);
+        let baseFilter = `WHERE is_archived = FALSE`;
+        let params = [];
+        if (barangay_id && barangay_id !== 'null') {
+            baseFilter += ` AND barangay_id = ?`;
+            params.push(barangay_id);
+        }
 
-        res.json({ success: true, total: total.count, active: active.count, cleared: cleared.count });
+        const [[total]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases ${baseFilter}`, params);
+        const [[active]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases ${baseFilter} AND status = 'Active'`, params);
+        const [[cleared]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases ${baseFilter} AND status = 'Cleared'`, params);
+        const [[mild]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases ${baseFilter} AND status = 'Active' AND severity = 'Mild'`, params);
+        const [[monitored]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases ${baseFilter} AND status = 'Active' AND severity = 'Monitored'`, params);
+        const [[high_risk]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases ${baseFilter} AND status = 'Active' AND severity = 'High Risk'`, params);
+
+        res.json({ success: true, total: total.count, active: active.count, cleared: cleared.count, mild: mild.count, monitored: monitored.count, high_risk: high_risk.count });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
     }
@@ -445,9 +628,9 @@ app.get('/api/bhw-stats', async (req, res) => {
 
 app.get('/api/mho-stats', async (req, res) => {
     try {
-        const [[activeResult]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases WHERE status = 'Active' AND deleted_at IS NULL`);
-        const [[recoveredResult]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases WHERE status IN ('Recovered', 'Cleared') AND deleted_at IS NULL`);
-        const [[highRiskResult]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases WHERE status = 'Active' AND disease IN ('Dengue', 'Pneumonia', 'Tuberculosis', 'Animal Bite', 'Animal Bite / Wound') AND deleted_at IS NULL`);
+        const [[activeResult]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases WHERE status = 'Active' AND is_archived = FALSE`);
+        const [[recoveredResult]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases WHERE status IN ('Recovered', 'Cleared') AND is_archived = FALSE`);
+        const [[highRiskResult]] = await db.execute(`SELECT COUNT(*) as count FROM health_cases WHERE status = 'Active' AND disease IN ('Dengue', 'Pneumonia', 'Tuberculosis', 'Animal Bite', 'Animal Bite / Wound') AND is_archived = FALSE`);
         
         res.json({ success: true, data: { active: activeResult.count, recovered: recoveredResult.count, high_risk: highRiskResult.count } });
     } catch (error) {
@@ -457,7 +640,7 @@ app.get('/api/mho-stats', async (req, res) => {
 
 app.get('/api/analytics/demographics', async (req, res) => {
     try {
-        const [diseaseStats] = await db.execute(`SELECT disease, COUNT(*) as cases FROM health_cases WHERE status = 'Active' AND deleted_at IS NULL GROUP BY disease ORDER BY cases DESC`);
+        const [diseaseStats] = await db.execute(`SELECT disease, COUNT(*) as cases FROM health_cases WHERE status = 'Active' AND is_archived = FALSE GROUP BY disease ORDER BY cases DESC`);
         res.json({ success: true, data: diseaseStats });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database aggregation failed.' });
@@ -504,7 +687,7 @@ app.post('/api/diseases', async (req, res) => {
 
 app.get('/api/diseases', async (req, res) => {
     try {
-        const [rows] = await db.execute(`SELECT * FROM disease_registry WHERE deleted_at IS NULL ORDER BY name ASC`);
+        const [rows] = await db.execute(`SELECT * FROM disease_registry WHERE is_archived = FALSE ORDER BY name ASC`);
         res.json({ success: true, data: rows });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
@@ -513,7 +696,7 @@ app.get('/api/diseases', async (req, res) => {
 
 app.get('/api/diseases/archived', async (req, res) => {
     try {
-        const [rows] = await db.execute(`SELECT * FROM disease_registry WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC`);
+        const [rows] = await db.execute(`SELECT * FROM disease_registry WHERE is_archived = TRUE ORDER BY deleted_at DESC`);
         res.json({ success: true, data: rows });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
@@ -522,7 +705,7 @@ app.get('/api/diseases/archived', async (req, res) => {
 
 app.put('/api/diseases/:id/archive', async (req, res) => {
     try {
-        await db.execute(`UPDATE disease_registry SET deleted_at = CURRENT_TIMESTAMP, status = 'Archived' WHERE id = ?`, [req.params.id]);
+        await db.execute(`UPDATE disease_registry SET is_archived = TRUE, status = 'Archived' WHERE id = ?`, [req.params.id]);
         res.json({ success: true, message: 'Disease archived.' });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
@@ -531,7 +714,7 @@ app.put('/api/diseases/:id/archive', async (req, res) => {
 
 app.put('/api/diseases/:id/restore', async (req, res) => {
     try {
-        await db.execute(`UPDATE disease_registry SET deleted_at = NULL, status = 'Active' WHERE id = ?`, [req.params.id]);
+        await db.execute(`UPDATE disease_registry SET is_archived = FALSE, status = 'Active' WHERE id = ?`, [req.params.id]);
         res.json({ success: true, message: 'Disease restored.' });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });

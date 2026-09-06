@@ -125,7 +125,7 @@
         width: 100%;
         max-width: 440px;
         border-radius: 24px;
-        padding: 45px 35px 20px 35px; /* Tighter vertical padding */
+        padding: 25px 35px 20px 35px; /* Tighter vertical padding */
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
         position: relative;
         text-align: center;
@@ -134,18 +134,19 @@
 
       /* SCALED DOWN NOTCH */
       .notch {
-        position: absolute;
-        top: -35px;
-        left: 50%;
-        transform: translateX(-50%);
+        margin: -15px auto 15px auto;
         width: 80px;
         height: 80px;
         background: white;
         border-radius: 25px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.05);
         display: flex;
         justify-content: center;
         align-items: center;
+      }
+      .notch img {
+        width: 75%;
+        height: auto;
       }
 
       .form-header h3 { color: var(--purple); font-size: 0.8rem; font-weight: 600; margin: 0 0 2px 0; }
@@ -358,7 +359,7 @@
 
           <div class="form-header">
             <h3 id="form-subtitle">Welcome back</h3>
-            <h2>Let's continue <span>caring</span> <i data-lucide="heart" style="color: var(--teal); width: 18px; display: inline-block; vertical-align: middle;"></i></h2>
+            <h2>Health-Intel Portal</h2>
           </div>
 
           <!-- ============================================== -->
@@ -466,13 +467,13 @@
               <div class="input-wrapper">
                 <select id="reg_barangay" style="padding-left: 10px;">
                   <option value="" disabled selected>Assign Barangay...</option>
-                  <option value="Alegria">Brgy. Alegria</option>
                   <option value="Blumentritt">Brgy. Blumentritt</option>
-                  <option value="Poblacion">Brgy. Poblacion</option>
-                  <option value="San Jose">Brgy. San Jose</option>
-                  <option value="Santa Cruz">Brgy. Santa Cruz</option>
-                  <option value="Talabas">Brgy. Talabas</option>
-                  <option value="Zone 1">Brgy. Zone 1</option>
+                  <option value="Salvacion">Brgy. Salvacion</option>
+                  <option value="Minoyan">Brgy. Minoyan</option>
+                  <option value="Caliban">Brgy. Caliban</option>
+                  <option value="Cansilayan">Brgy. Cansilayan</option>
+                  <option value="Alegria">Brgy. Alegria</option>
+                  <option value="Sta. Rosa">Brgy. Sta. Rosa</option>
                 </select>
               </div>
             </div>
@@ -552,9 +553,32 @@
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         
-        auth.signInWithPopup(provider).then((result) => {
+        auth.signInWithPopup(provider).then(async (result) => {
             const user = result.user;
             userEmail = user.email;
+
+            // CHECK IF EMAIL IS ALREADY REGISTERED
+            try {
+              const checkRes = await fetch("http://localhost:3000/api/check-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: userEmail })
+              });
+              const checkData = await checkRes.json();
+              if (checkData.exists) {
+                Swal.fire({
+                  icon: "warning",
+                  title: "Email Already Registered",
+                  html: `<p>The email <strong>${userEmail}</strong> is already linked to System ID: <strong>${checkData.system_id}</strong>.</p><p>Please use your System ID and password to log in.</p>`,
+                  confirmButtonColor: "#0ea5e9"
+                });
+                toggleForms("login");
+                return;
+              }
+            } catch (err) {
+              console.error("Email check failed:", err);
+            }
+
             document.getElementById("verified-email-text").innerText = userEmail;
             if (user.displayName) {
               const names = user.displayName.split(" ");
@@ -635,7 +659,7 @@
             system_id: generatedId,
             first_name: document.getElementById("reg_first").value.trim(),
             last_name: document.getElementById("reg_last").value.trim(),
-            employee_hr_id: document.getElementById("reg_emp_id").value.trim(),
+            employee_id: document.getElementById("reg_emp_id").value.trim(),
             role: document.getElementById("reg_role").value,
             password: document.getElementById("reg_password").value,
             email: userEmail,
@@ -657,6 +681,9 @@
                 text: "Please wait for HR Approval.",
                 confirmButtonColor: "var(--teal)",
               }).then(() => {
+                document.getElementById("profile-screen").reset();
+                document.getElementById("verified-email-text").innerText = "Waiting...";
+                userEmail = "";
                 toggleForms("login");
               });
             } else {
