@@ -1,0 +1,27 @@
+# Superadmin Operations & Responsibilities
+
+In a real-world SaaS (Software as a Service) architecture, the **LGU Admin** manages the *people* (the doctors and health workers), but the **Superadmin** (which is you, the developers) manages the *infrastructure*. 
+
+Here is exactly what your actions and responsibilities are for each of those modules:
+
+### 1. Security Audit Trail
+The Superadmin Audit Trail is **"God-Mode"**. 
+* **What it is:** A global ledger of every single action taken on the system.
+* **What you should see:** Yes, you should see when a BHW registers, but you should also see when an LGU Admin approves them, when an MHO downloads a PDF, and when someone attempts to log in with the wrong password.
+* **Why you need it:** In the real world, medical data is highly sensitive and protected by the Data Privacy Act. If a malicious user deletes patient records or leaks data, the LGU will call *you*. You will use this Audit Trail to find the exact IP address, timestamp, and account that caused the breach.
+
+### 2. Database Control (Your Emergency Toolkit)
+Since you are the developers, you own the MySQL server. The LGU Admins cannot touch the database architecture, only you can.
+* **What it is:** This is your maintenance and disaster recovery center.
+* **What actions you take here:**
+  * **Database Backups (SQL Dump):** You will click a button here to securely download a backup of the entire MySQL database. If the server ever crashes or gets hacked, you use this backup to restore the municipality's data.
+  * **Factory Reset (Danger Zone):** When you finish your thesis defense and want to deploy this for a real municipality, you will use this panel to wipe all the "dummy" testing data with one click, giving them a clean slate.
+  * **Storage Management:** Monitoring if the database is getting too large and needs archiving.
+
+### 3. System Health / Server Telemetry (Your IT Monitor)
+In the real world, servers crash, APIs fail, and memory leaks happen. You need to know the system is failing *before* the client calls you to complain.
+* **What it is:** A live heartbeat monitor of your Node.js backend and MySQL connection.
+* **What actions you take here:**
+  * **Monitor Uptime:** You check if the Node.js server has been running continuously or if it crashed and restarted overnight.
+  * **Database Size (MB):** You monitor this to ensure you aren't running out of hard drive space on your cloud hosting provider (like AWS or Hostinger).
+  * **Live API Traffic:** If the system is suddenly running very slowly, you check the traffic visualizer. Is it slow because all 7 barangays are uploading reports at the exact same time on a Friday afternoon? Or is a malicious bot spamming your login page? This tells you if you need to upgrade your server's RAM/CPU.

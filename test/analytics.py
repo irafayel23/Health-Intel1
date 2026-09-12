@@ -1,83 +1,139 @@
-import sys
-import json
 import pandas as pd
-import warnings
+import numpy as np
+import mysql.connector
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+import warnings
+import json
+import sys
 
-warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore") # Ignore convergence warnings for small datasets
 
-def generate_predictions():
+# ==========================================
+# STEP 1: CONNECT TO DATABASE & FETCH DATA
+# ==========================================
+def fetch_disease_data(disease_name):
+    """
+    Fetches monthly aggregated case counts for the entire municipality.
+    We fetch MUNICIPALITY-WIDE data to solve the "Sparse Data" problem.
+    """
     try:
-        # 1. Read the anonymized data from Node.js via Standard Input (stdin)
-        # Expected format: [{"Date": "2023-01", "Barangay": "Blumentritt", "Disease": "Dengue", "Cases": 5}, ...]
-        input_data = sys.stdin.read()
-        if not input_data:
-            print(json.dumps({"error": "No data provided"}))
-            return
-
-        data = json.loads(input_data)
-        if not data:
-            print(json.dumps({"error": "Empty dataset"}))
-            return
-
-        # 2. Convert to Pandas DataFrame
-        df = pd.DataFrame(data)
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="",
+            database="health_intel"
+        )
+        cursor = db.cursor(dictionary=True)
         
-        # Convert 'Date' to datetime and set as index
-        df['Date'] = pd.to_datetime(df['Date'])
-        df.set_index('Date', inplace=True)
+        # Group cases by Month and Year
+        query = """
+            SELECT 
+                DATE_FORMAT(date_recorded, '%Y-%m-01') as month_date, 
+                COUNT(id) as total_cases 
+            FROM health_cases 
+            WHERE disease = %s AND status != 'Archived'
+            GROUP BY month_date 
+            ORDER BY month_date ASC
+        """
+        cursor.execute(query, (disease_name,))
+        rows = cursor.fetchall()
+        db.close()
         
-        results = []
-        diseases = df['Disease'].unique()
-        barangays = df['Barangay'].unique()
+        if len(rows) < 12:
+            return None # Not enough data for seasonality (need at least 1 year)
 
-        # 3. Run SARIMA for each Disease and Barangay combination
-        for disease in diseases:
-            for barangay in barangays:
-                # Filter data for specific disease and barangay
-                subset = df[(df['Disease'] == disease) & (df['Barangay'] == barangay)].copy()
-                
-                # Resample monthly just to ensure strict timeline
-                time_data = subset['Cases'].resample('MS').sum()
-                
-                # If we don't have enough data points, skip forecasting
-                if len(time_data) < 12:
-                    continue
-                
-                # 4. Train the SARIMA Model
-                # s_param = 12 for monthly data (yearly seasonality)
-                model = SARIMAX(time_data,
-                                order=(1, 1, 1),
-                                seasonal_order=(1, 0, 0, 12),
-                                enforce_stationarity=False,
-                                enforce_invertibility=False)
-                
-                trained_model = model.fit(disp=False)
-                
-                # Predict the next 1 month
-                forecast = trained_model.forecast(steps=1)
-                predicted_cases = int(round(forecast.iloc[0]))
-                if predicted_cases < 0: predicted_cases = 0
-
-                # Determine Risk Level
-                risk_level = "Low"
-                if predicted_cases > 30:
-                    risk_level = "High/Outbreak"
-                elif predicted_cases > 15:
-                    risk_level = "Medium"
-
-                results.append({
-                    "barangay": barangay,
-                    "disease": disease,
-                    "predicted_cases": predicted_cases,
-                    "risk_level": risk_level
-                })
-
-        # 5. Output the results as JSON for Node.js to read
-        print(json.dumps({"success": True, "predictions": results}))
-
+        # Convert to Pandas DataFrame
+        df = pd.DataFrame(rows)
+        df['month_date'] = pd.to_datetime(df['month_date'])
+        df.set_index('month_date', inplace=True)
+        
+        # Ensure missing months are filled with 0 cases
+        df = df.resample('MS').sum().fillna(0)
+        return df
     except Exception as e:
-        print(json.dumps({"success": False, "error": f"Model failed: {str(e)}"}))
+        print(json.dumps({"error": str(e)}))
+        sys.exit(1)
 
+# ==========================================
+# STEP 2: THE SARIMA MATHEMATICAL MODEL
+# ==========================================
+def run_sarima_prediction(df):
+    """
+    SARIMA Math Breakdown: (p, d, q) x (P, D, Q, s)
+    """
+    # We use typical parameters for monthly disease data:
+    model = SARIMAX(df['total_cases'], 
+                    order=(1, 1, 1), 
+                    seasonal_order=(1, 1, 1, 12),
+                    enforce_stationarity=False,
+                    enforce_invertibility=False)
+    
+    # Train the model 
+    fitted_model = model.fit(disp=False)
+    
+    # Predict the next 3 months
+    forecast = fitted_model.get_forecast(steps=3)
+    prediction_values = forecast.predicted_mean
+    
+    # Ensure no negative predictions
+    prediction_values = np.maximum(prediction_values, 0)
+    
+    return prediction_values
+
+# ==========================================
+# STEP 3: SOLVING THE "SPARSE DATA" PROBLEM 
+# ==========================================
+def calculate_barangay_forecast(municipal_predictions, barangay_name, disease_name):
+    """
+    Hierarchical Downscaling for Barangays with Sparse Data.
+    """
+    db = mysql.connector.connect(host="localhost", user="root", password="", database="health_intel")
+    cursor = db.cursor(dictionary=True)
+    
+    # Total historical cases in municipality
+    cursor.execute("SELECT COUNT(id) as total FROM health_cases WHERE disease = %s", (disease_name,))
+    total_mun = cursor.fetchone()['total']
+    
+    # Total historical cases in this specific barangay
+    cursor.execute("""
+        SELECT COUNT(h.id) as total 
+        FROM health_cases h 
+        JOIN barangays b ON h.barangay_id = b.id 
+        WHERE h.disease = %s AND b.name = %s
+    """, (disease_name, barangay_name))
+    total_brgy = cursor.fetchone()['total']
+    db.close()
+    
+    # What percentage of cases does this barangay usually get?
+    barangay_weight = total_brgy / total_mun if total_mun > 0 else 0
+    
+    # Downscale the forecast!
+    brgy_predictions = municipal_predictions * barangay_weight
+    return brgy_predictions.round(0).tolist()
+
+# ==========================================
+# MAIN EXECUTION (Callable via Node.js)
+# ==========================================
 if __name__ == "__main__":
-    generate_predictions()
+    # If arguments are passed from Node.js (e.g. node calls python analytics.py Dengue Blumentritt)
+    if len(sys.argv) >= 3:
+        target_disease = sys.argv[1]
+        target_barangay = sys.argv[2]
+        
+        df_municipal = fetch_disease_data(target_disease)
+        
+        if df_municipal is not None:
+            mun_preds = run_sarima_prediction(df_municipal)
+            brgy_preds = calculate_barangay_forecast(mun_preds, target_barangay, target_disease)
+            
+            # Print JSON so Node.js can parse it easily
+            print(json.dumps({
+                "success": True,
+                "disease": target_disease,
+                "barangay": target_barangay,
+                "predictions_next_3_months": brgy_preds
+            }))
+        else:
+            print(json.dumps({"success": False, "error": "Not enough historical data to run SARIMA."}))
+    else:
+        print("Usage: python analytics.py <Disease> <Barangay>")

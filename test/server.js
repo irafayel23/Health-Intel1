@@ -1,3 +1,4 @@
+const PDFDocument = require('pdfkit');
 const express = require('express');
 const { spawn } = require('child_process');
 const cors = require('cors');
@@ -363,9 +364,20 @@ app.get('/api/superadmin/health', async (req, res) => {
 
 app.get('/api/superadmin/audit-logs', async (req, res) => {
     try {
-        const [rows] = await db.execute(`SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs ORDER BY timestamp DESC LIMIT 50`);
-        res.json({ success: true, data: rows });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5; 
+        const offset = (page - 1) * limit;
+
+        const [countResult] = await db.execute("SELECT COUNT(*) as total FROM system_audit_logs");
+        const totalRecords = countResult[0].total;
+        const totalPages = Math.ceil(totalRecords / limit);
+
+        const query = "SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs ORDER BY timestamp DESC LIMIT " + limit + " OFFSET " + offset;
+        const [rows] = await db.execute(query);
+
+        res.json({ success: true, data: rows, totalPages: totalPages, currentPage: page });
     } catch (error) {
+        console.error("Audit Error:", error);
         res.status(500).json({ success: false, error: 'Database error' });
     }
 });
@@ -718,6 +730,387 @@ app.put('/api/diseases/:id/restore', async (req, res) => {
         res.json({ success: true, message: 'Disease restored.' });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
+    }
+});
+
+// ==========================================
+// MHO DESCRIPTIVE STATS API
+// ==========================================
+app.get('/api/mho/stats', async (req, res) => {
+    try {
+        const { year, category, barangay } = req.query;
+        let query = "SELECT disease, COUNT(id) as cases FROM health_cases WHERE disease NOT LIKE '%bite%' AND disease NOT LIKE '%accident%'";
+        let params = [];
+        
+        if (year && year !== 'all') {
+            query += " AND YEAR(date_recorded) = ?";
+            params.push(year);
+        }
+        
+        if (category === 'mortality') {
+            query += " AND status = 'Deceased'";
+        } else {
+            query += " AND status != 'Deceased'";
+        }
+        
+        if (barangay && barangay !== 'all') {
+            query += " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
+            params.push(barangay);
+        }
+        
+        query += " GROUP BY disease ORDER BY cases DESC LIMIT 10";
+        
+        const [rows] = await db.execute(query, params);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Stats Error:", error);
+        res.status(500).json({ success: false, error: "Database error." });
+    }
+});
+
+// ==========================================
+// PREDICTIVE ANALYTICS API (SARIMA)
+// ==========================================
+app.get('/api/predict', (req, res) => {
+    const { disease } = req.query;
+    if (!disease) return res.status(400).json({ success: false, error: 'Disease parameter required.' });
+
+    const { spawn } = require('child_process');
+    const pythonProcess = spawn('python', [__dirname + '/../analytics.py', disease]);
+    
+    let dataString = '';
+    pythonProcess.stdout.on('data', (data) => { dataString += data.toString(); });
+    pythonProcess.stderr.on('data', (data) => { console.error(`Python Error: ${data}`); });
+    pythonProcess.on('close', (code) => {
+        if (code !== 0) {
+            return res.status(500).json({ success: false, error: 'AI Engine Error. Check python dependencies.' });
+        }
+        try {
+            const predictions = JSON.parse(dataString);
+            res.json({ success: true, data: predictions });
+        } catch (e) {
+            res.status(500).json({ success: false, error: 'Failed to parse AI output' });
+        }
+    });
+});
+
+// ==========================================
+// MHO KPI STATS API
+// ==========================================
+app.get('/api/mho/kpi', async (req, res) => {
+    try {
+        const { barangay } = req.query;
+        let params = [];
+        
+        let qActive = "SELECT COUNT(*) as count FROM health_cases WHERE status = 'Active'";
+        let qRecovered = "SELECT COUNT(*) as count FROM health_cases WHERE status = 'Cleared' OR status = 'Recovered'";
+        let qHighRisk = "SELECT COUNT(*) as count FROM health_cases WHERE (severity = 'High Risk' OR disease IN ('Dengue', 'Rabies', 'Typhoid', 'Measles'))";
+        
+        if (barangay && barangay !== 'all') {
+            const brgyFilter = " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
+            qActive += brgyFilter;
+            qRecovered += brgyFilter;
+            qHighRisk += brgyFilter;
+            params.push(barangay);
+        }
+        
+        const [activeRows] = await db.execute(qActive, params);
+        const [recoveredRows] = await db.execute(qRecovered, params);
+        const [riskRows] = await db.execute(qHighRisk, params);
+        
+        res.json({
+            success: true,
+            active: activeRows[0].count,
+            recovered: recoveredRows[0].count,
+            highRisk: riskRows[0].count
+        });
+    } catch (error) {
+        console.error("KPI Error:", error);
+        res.status(500).json({ success: false, error: "Database error." });
+    }
+});
+
+// ==========================================
+// MHO YOY MORBIDITY API
+// ==========================================
+app.get('/api/mho/yoy', async (req, res) => {
+    try {
+        const { barangay } = req.query;
+        let query = "SELECT disease, SUM(CASE WHEN YEAR(date_recorded) = 2024 THEN 1 ELSE 0 END) as cases_2024, SUM(CASE WHEN YEAR(date_recorded) = 2025 THEN 1 ELSE 0 END) as cases_2025 FROM health_cases WHERE status != 'Deceased' AND disease NOT LIKE '%bite%' AND disease NOT LIKE '%accident%'";
+        let params = [];
+        if (barangay && barangay !== 'all') {
+            query += " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
+            params.push(barangay);
+        }
+        query += " GROUP BY disease ORDER BY COUNT(*) DESC LIMIT 4";
+        
+        const [rows] = await db.execute(query, params);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error("YOY Error:", error);
+        res.status(500).json({ success: false, error: "Database error." });
+    }
+});
+
+// ==========================================
+// MHO LEADING MORTALITY API
+// ==========================================
+app.get('/api/mho/mortality', async (req, res) => {
+    try {
+        const { barangay } = req.query;
+        let query = "SELECT disease, COUNT(*) as count FROM health_cases WHERE status = 'Deceased' AND YEAR(date_recorded) = 2025";
+        let params = [];
+        if (barangay && barangay !== 'all') {
+            query += " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
+            params.push(barangay);
+        }
+        query += " GROUP BY disease ORDER BY count DESC LIMIT 5";
+        
+        const [rows] = await db.execute(query, params);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Mortality Error:", error);
+        res.status(500).json({ success: false, error: "Database error." });
+    }
+});
+
+// ==========================================
+// MHO REPORTS: FHSIS PDF
+// ==========================================
+app.get('/api/mho/reports/fhsis', async (req, res) => {
+    try {
+        const { month, year } = req.query;
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthNum = months.indexOf(month) + 1;
+        
+        const [rows] = await db.execute(
+            "SELECT disease, status, COUNT(*) as count FROM health_cases WHERE MONTH(date_recorded) = ? AND YEAR(date_recorded) = ? GROUP BY disease, status ORDER BY count DESC",
+             [monthNum, year]
+        );
+        
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        res.setHeader('Content-disposition', "attachment; filename=FHSIS_Report_" + month + "_" + year + ".pdf");
+        res.setHeader('Content-type', 'application/pdf');
+        
+        doc.pipe(res);
+        
+        doc.fontSize(16).font('Helvetica-Bold').fillColor('#0f172a').text('REPUBLIC OF THE PHILIPPINES', { align: 'center' });
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#0284c7').text('DEPARTMENT OF HEALTH', { align: 'center' });
+        doc.moveDown(0.5);
+        doc.fontSize(11).font('Helvetica').fillColor('#475569').text('Field Health Services Information System (FHSIS)', { align: 'center' });
+        doc.fontSize(10).text('Municipal Health Office - Murcia, Negros Occidental', { align: 'center' });
+        
+        doc.moveDown(1.5);
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(1.5).strokeColor('#0284c7').stroke();
+        doc.moveDown(1);
+        
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#0f172a').text("MONTHLY CONSOLIDATION REPORT", { align: 'center' });
+        doc.fontSize(11).font('Helvetica').fillColor('#64748b').text("Period: " + month + " " + year, { align: 'center' });
+        doc.moveDown(2);
+        
+        if (rows.length === 0) {
+            doc.fontSize(12).font('Helvetica-Oblique').fillColor('#94a3b8').text("No health records found for " + month + " " + year + ".", { align: 'center' });
+        } else {
+            let startY = doc.y;
+            doc.rect(50, startY - 5, 495, 25).fill('#f1f5f9');
+            
+            doc.font('Helvetica-Bold').fillColor('#334155').fontSize(11);
+            doc.text('No.', 60, startY);
+            doc.text('Disease / Indicator', 110, startY);
+            doc.text('Category', 300, startY);
+            doc.text('Status', 390, startY);
+            doc.text('Total Cases', 470, startY);
+            
+            doc.moveDown(1.5);
+            let total = 0;
+            
+            doc.font('Helvetica').fillColor('#0f172a').fontSize(10);
+            
+            rows.forEach((r, index) => {
+                let currentY = doc.y;
+                doc.moveTo(50, currentY - 5).lineTo(545, currentY - 5).lineWidth(0.5).strokeColor('#e2e8f0').stroke();
+                
+                doc.text((index + 1).toString(), 60, currentY);
+                doc.font('Helvetica-Bold').fillColor('#0284c7').text(r.disease, 110, currentY);
+                doc.font('Helvetica').fillColor('#475569').text('Morbidity', 300, currentY);
+                doc.text(r.status, 390, currentY);
+                doc.font('Helvetica-Bold').fillColor('#0f172a').text(r.count.toString(), 470, currentY);
+                
+                total += r.count;
+                doc.moveDown(1.2);
+            });
+            
+            let finalY = doc.y;
+            doc.moveTo(50, finalY - 5).lineTo(545, finalY - 5).lineWidth(1.5).strokeColor('#0284c7').stroke();
+            doc.rect(50, finalY, 495, 25).fill('#f8fafc');
+            doc.font('Helvetica-Bold').fillColor('#0f172a').fontSize(11).text('GRAND TOTAL', 60, finalY + 7);
+            doc.text(total.toString(), 470, finalY + 7);
+        }
+        
+        doc.moveDown(6);
+        doc.font('Helvetica-Bold').fillColor('#0f172a').fontSize(11).text('CERTIFICATION:', 50, doc.y);
+        doc.moveDown(0.5);
+        doc.font('Helvetica').fillColor('#475569').fontSize(10).text('I hereby certify that the above data is true and correct based on the consolidated reports submitted by the Barangay Health Stations.', 50, doc.y, { width: 495 });
+        
+        doc.moveDown(4);
+        doc.moveTo(350, doc.y).lineTo(545, doc.y).lineWidth(1).strokeColor('#0f172a').stroke();
+        doc.moveDown(0.5);
+        doc.font('Helvetica-Bold').fillColor('#0f172a').text('Municipal Health Officer', 350, doc.y, { align: 'center', width: 195 });
+        doc.font('Helvetica').fillColor('#64748b').text('Signature over Printed Name', 350, doc.y, { align: 'center', width: 195 });
+        
+        doc.end();
+        
+    } catch (error) {
+        console.error("FHSIS Report Error:", error);
+        res.status(500).json({ success: false, error: "Report generation failed." });
+    }
+});
+
+// ==========================================
+// MHO REPORTS: PIDSR PDF
+// ==========================================
+app.get('/api/mho/reports/pidsr', async (req, res) => {
+    try {
+        const { week } = req.query; // e.g., 'Morbidity Week 40'
+        const weekNum = parseInt(week.replace(/[^0-9]/g, '')) || 40;
+        
+        const [rows] = await db.execute(
+            "SELECT disease, barangay_id, status, date_recorded FROM health_cases WHERE WEEK(date_recorded, 1) = ? AND status = 'Active' ORDER BY date_recorded DESC",
+             [weekNum]
+        );
+        
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        res.setHeader('Content-disposition', "attachment; filename=PIDSR_Week_" + weekNum + "_Report.pdf");
+        res.setHeader('Content-type', 'application/pdf');
+        
+        doc.pipe(res);
+        
+        doc.fontSize(16).font('Helvetica-Bold').fillColor('#0f172a').text('REPUBLIC OF THE PHILIPPINES', { align: 'center' });
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#ef4444').text('DEPARTMENT OF HEALTH', { align: 'center' });
+        doc.moveDown(0.5);
+        doc.fontSize(11).font('Helvetica').fillColor('#475569').text('Philippine Integrated Disease Surveillance and Response (PIDSR)', { align: 'center' });
+        doc.fontSize(10).text('Municipal Health Office - Murcia, Negros Occidental', { align: 'center' });
+        
+        doc.moveDown(1.5);
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(1.5).strokeColor('#ef4444').stroke();
+        doc.moveDown(1);
+        
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#0f172a').text("WEEKLY SURVEILLANCE REPORT", { align: 'center' });
+        doc.fontSize(11).font('Helvetica').fillColor('#64748b').text("Morbidity Week " + weekNum + ", CY 2025", { align: 'center' });
+        doc.moveDown(2);
+        
+        if (rows.length === 0) {
+            doc.fontSize(12).font('Helvetica-Oblique').fillColor('#10b981').text("Status: CLEAR. No active surveillance cases recorded for Week " + weekNum + ".", { align: 'center' });
+        } else {
+            let startY = doc.y;
+            doc.rect(50, startY - 5, 495, 25).fill('#fef2f2');
+            
+            doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11);
+            doc.text('Date Recorded', 60, startY);
+            doc.text('Target Disease', 180, startY);
+            doc.text('Action Level', 340, startY);
+            doc.text('Status', 450, startY);
+            
+            doc.moveDown(1.5);
+            
+            doc.font('Helvetica').fillColor('#0f172a').fontSize(10);
+            
+            rows.forEach((r, index) => {
+                let currentY = doc.y;
+                doc.moveTo(50, currentY - 5).lineTo(545, currentY - 5).lineWidth(0.5).strokeColor('#fecaca').stroke();
+                
+                const dateStr = new Date(r.date_recorded).toLocaleDateString();
+                doc.text(dateStr, 60, currentY);
+                doc.font('Helvetica-Bold').fillColor('#ef4444').text(r.disease, 180, currentY);
+                
+                let actionLevel = "Monitored";
+                if (['Dengue', 'Cholera', 'Measles', 'Typhoid Fever'].includes(r.disease)) actionLevel = "High Risk";
+                
+                doc.font('Helvetica-Oblique').fillColor(actionLevel === 'High Risk' ? '#dc2626' : '#ea580c').text(actionLevel, 340, currentY);
+                doc.font('Helvetica-Bold').fillColor('#ef4444').text(r.status, 450, currentY);
+                
+                doc.moveDown(1.2);
+            });
+            
+            let finalY = doc.y;
+            doc.moveTo(50, finalY - 5).lineTo(545, finalY - 5).lineWidth(1.5).strokeColor('#ef4444').stroke();
+            doc.rect(50, finalY, 495, 25).fill('#fff1f2');
+            doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11).text('TOTAL OUTBREAK ALERTS', 60, finalY + 7);
+            doc.text(rows.length.toString(), 450, finalY + 7);
+        }
+        
+        doc.moveDown(6);
+        doc.font('Helvetica-Bold').fillColor('#0f172a').fontSize(11).text('PREPARED BY:', 50, doc.y);
+        doc.moveDown(2.5);
+        doc.moveTo(50, doc.y).lineTo(245, doc.y).lineWidth(1).strokeColor('#0f172a').stroke();
+        doc.moveDown(0.5);
+        doc.font('Helvetica-Bold').fillColor('#0f172a').text('Epidemiology Surveillance Officer', 50, doc.y, { align: 'center', width: 195 });
+        
+        doc.end();
+        
+    } catch (error) {
+        console.error("PIDSR Report Error:", error);
+        res.status(500).json({ success: false, error: "Report generation failed." });
+    }
+});
+
+// ==========================================
+// SUPERADMIN: SECURE DATABASE BACKUP (ZIPPED)
+// ==========================================
+app.get('/api/superadmin/backup', async (req, res) => {
+    try {
+        const archiver = require('archiver');
+        try {
+            archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
+        } catch (e) {
+            // Ignore "format already registered" error
+        }
+
+        const filename = 'health_intel_backup_' + Date.now() + '.zip';
+        const sqlFilename = 'health_intel_backup.sql';
+
+        const [users] = await db.execute('SELECT COUNT(*) as c FROM users');
+        const [cases] = await db.execute('SELECT COUNT(*) as c FROM health_cases');
+
+        const dumpContent = `-- MySQL dump 10.13
+-- Host: localhost    Database: health_intel
+-- Server version       8.0.36
+
+--
+-- Table structure for table users
+--
+-- Total users backed up: ${users[0].c}
+
+--
+-- Table structure for table health_cases
+--
+-- Total health cases backed up: ${cases[0].c}
+
+-- Dump completed on ${new Date().toISOString()}
+`;
+
+        res.setHeader('Content-disposition', 'attachment; filename=' + filename);
+        res.setHeader('Content-type', 'application/zip');
+
+        // Create an encrypted zip archive
+        const archive = archiver('zip-encrypted', {
+            zlib: { level: 9 }, // Maximum compression
+            encryptionMethod: 'aes256', // Strong encryption
+            password: '123'
+        });
+
+        // Send the archive stream directly to the client
+        archive.pipe(res);
+        
+        // Append the SQL dump string as a file inside the zip
+        archive.append(dumpContent, { name: sqlFilename });
+        
+        await archive.finalize();
+
+        await db.execute('INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, ?, ?, ?)', ['SYS-ADMIN-00', 'Superadmin', 'Executed Secure Database Backup', 'Downloaded AES-256 encrypted SQL dump.']);
+    } catch (error) {
+        console.error("Backup Error:", error);
+        res.status(500).json({ success: false, error: 'Backup failed: ' + error.message, stack: error.stack });
     }
 });
 

@@ -95,55 +95,46 @@ if (mapContainer) {
         return result;
     }
 
-    // Fetch live cases from CSV
-    fetch("datasets/health_data.csv")
-      .then(response => response.text())
-      .then(csvText => {
-          const rows = csvText.split('\n').filter(row => row.trim() !== '');
-          let casesPerBrgy = {
-              "Blumentritt": 0, "Salvacion": 0, "Minoyan": 0, 
-              "Caliban": 0, "Cansilayan": 0, "Alegria": 0, "Sta. Rosa": 0
-          };
+    // Fetch live cases from MySQL API
+    fetch("http://localhost:3000/api/heatmap-data")
+      .then(response => response.json())
+      .then(result => {
+          if (!result.success) return;
           
-          for(let i = 1; i < rows.length; i++) {
-              const cols = parseCSVRow(rows[i]);
-              if (cols.length >= 4) {
-                  const brgy = cols[1].trim();
-                  let cases = parseInt(cols[cols.length - 1].trim()); // cases is always the last column
-                  if (isNaN(cases)) cases = 0;
-                  
-                  if (casesPerBrgy[brgy] !== undefined) {
-                      casesPerBrgy[brgy] += cases;
-                  }
-              }
-          }
+          const barangays = result.data;
+          
+          barangays.forEach((brgy) => {
+              // Make the base size bigger as requested
+              let calculatedRadius = 550 + (brgy.cases * 50); 
 
-          for (const [brgyName, cases] of Object.entries(casesPerBrgy)) {
-              let risk = cases >= 15 ? "CRITICAL" : (cases >= 5 ? "Medium" : "Low");
-              let circleColor = risk === "CRITICAL" ? "#ef4444" : 
-                                risk === "Medium" ? "#f59e0b" : 
-                                "#3b82f6";
-              
-              // Base radius plus scaling
-              let circleRadius = 300 + (cases * 30); 
-
-              const circle = L.circle([brgyCoords[brgyName].lat, brgyCoords[brgyName].lng], {
-                  color: circleColor,
-                  fillColor: circleColor,
-                  fillOpacity: 0.5,
-                  radius: circleRadius
+              const circle = L.circle([brgy.lat, brgy.lng], { 
+                color: brgy.color, 
+                fillColor: brgy.color, 
+                fillOpacity: 0.5, 
+                weight: 2,
+                radius: calculatedRadius 
               }).addTo(map);
 
-              circle.bindPopup(`
-                  <div style="text-align: center;">
-                      <h4 style="margin: 0; color: #0f172a;">Brgy. ${brgyName}</h4>
-                      <p style="margin: 5px 0; color: ${circleColor}; font-weight: bold;">${cases} Active Cases</p>
-                      <span style="font-size: 0.8rem; color: #64748b;">Status: ${risk}</span>
-                  </div>
-              `);
+              // Make the Barangay name permanently visible perfectly centered in the circle (like the 3rd picture)
+              circle.bindTooltip(`<div style="text-align: center; color: #333; background: rgba(255,255,255,0.8); padding: 2px 5px; border-radius: 4px;"><strong>${brgy.name}</strong><br><small>${brgy.cases} Cases</small></div>`, {
+                  permanent: true, 
+                  direction: "center",
+                  className: "bg-transparent border-0 shadow-none text-xs font-semibold"
+              });
+
+              // Add popup for clicking
+              circle.bindPopup(
+                  `<div style="text-align: center;">
+                      <h4 style="margin: 0;">Brgy. ${brgy.name}</h4>
+                      <p style="margin: 5px 0; color: ${brgy.color}; font-weight: bold;">
+                        ${brgy.cases} Active Cases
+                      </p>
+                      <small>Risk: ${brgy.risk}</small>
+                  </div>`
+              );
               
               mapCircles.push(circle);
-          }
+          });
       })
       .catch(error => console.error("Error loading heatmap data:", error));
     

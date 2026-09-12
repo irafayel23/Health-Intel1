@@ -488,13 +488,16 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-bottom: 15px;">
                 <div>
                     <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Purok / Zone *</label>
-                    <select id="swal-purok" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;">
-                        <option value="" disabled selected>Select Purok</option>
-                        <option value="Purok 1">Purok 1</option>
-                        <option value="Purok 2">Purok 2</option>
-                        <option value="Purok 3">Purok 3</option>
-                        <option value="Blumentritt">Blumentritt</option>
-                    </select>
+                    <input list="barangay-list" id="swal-purok" class="swal2-input" placeholder="Type or select Barangay..." style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;">
+                    <datalist id="barangay-list">
+                        <option value="Alegria">
+                        <option value="Blumentritt">
+                        <option value="Caliban">
+                        <option value="Damsite">
+                        <option value="Minoyan">
+                        <option value="Salvacion">
+                        <option value="San Miguel">
+                    </datalist>
                 </div>
                 <div>
                     <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Diagnosed Disease / Case *</label>

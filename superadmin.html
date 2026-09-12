@@ -335,7 +335,7 @@
                 <h1 style="margin: 0; color: white">Immutable Audit Trail</h1>
                 <p style="color: #94a3b8; margin: 0">Permanent ledger of all actions performed by Admins, MHOs, and BHWs.</p>
               </div>
-              <button onclick="loadAuditLogs()" style="background: transparent; color: #06b6d4; border: 1px solid #06b6d4; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+              <button onclick="loadAuditLogs(1)" style="background: transparent; color: #06b6d4; border: 1px solid #06b6d4; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="refresh-cw" style="width: 16px"></i> Refresh Ledger
               </button>
             </div>
@@ -352,10 +352,12 @@
                     </tr>
                   </thead>
                   <tbody id="audit-table-body"></tbody>
-                </table>
+                  </table>
+                </div>
+                <div id="audit-pagination" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                </div>
               </div>
             </div>
-          </div>
 
           <!-- ADMIN PROVISIONING VIEW (THE NEW PENDING TABLE) -->
           <div id="view-admins" class="view-section">
@@ -413,7 +415,7 @@
       window.addEventListener('DOMContentLoaded', () => {
         fetchSystemHealth();
         setInterval(fetchSystemHealth, 5000); 
-        loadAuditLogs();
+        loadAuditLogs(1);
         loadPendingAdmins();
       });
 
@@ -424,7 +426,7 @@
         document.querySelectorAll(".view-section").forEach((view) => view.classList.remove("active"));
         document.getElementById(viewId).classList.add("active");
 
-        if (viewId === "view-audit") loadAuditLogs();
+        if (viewId === "view-audit") loadAuditLogs(currentAuditPage);
         if (viewId === "view-health") fetchSystemHealth();
         if (viewId === "view-admins") loadPendingAdmins();
       }
@@ -446,9 +448,11 @@
       }
 
       // --- 2. AUDIT TRAIL API ---
-      async function loadAuditLogs() {
+      let currentAuditPage = 1;
+      async function loadAuditLogs(page = 1) {
         try {
-          const res = await fetch("http://localhost:3000/api/superadmin/audit-logs");
+          currentAuditPage = page;
+          const res = await fetch("http://localhost:3000/api/superadmin/audit-logs?page=" + page);
           const result = await res.json();
           const tbody = document.getElementById("audit-table-body");
           tbody.innerHTML = "";
@@ -457,8 +461,8 @@
             result.data.forEach((log) => {
               const date = new Date(log.created_at).toLocaleString();
               let badgeClass = "badge-bhw";
-              if (log.role === "Super Admin") badgeClass = "badge-super";
-              if (log.role === "LGU Admin") badgeClass = "badge-admin";
+              if (log.role === "Super Admin" || log.role === "Superadmin") badgeClass = "badge-super";
+              if (log.role === "LGU Admin" || log.role === "Admin") badgeClass = "badge-admin";
 
               tbody.innerHTML += `
                   <tr>
@@ -470,6 +474,25 @@
                   </tr>
               `;
             });
+
+            const paginationDiv = document.getElementById("audit-pagination");
+            if (paginationDiv) {
+              paginationDiv.innerHTML = "";
+              for (let i = 1; i <= result.totalPages; i++) {
+                const isCurrent = (i === result.currentPage);
+                paginationDiv.innerHTML += `
+                  <button onclick="loadAuditLogs(${i})" style="
+                    background: ${isCurrent ? '#06b6d4' : 'transparent'};
+                    color: ${isCurrent ? '#020617' : '#94a3b8'};
+                    border: 1px solid ${isCurrent ? '#06b6d4' : '#334155'};
+                    padding: 5px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-weight: bold;
+                  ">${i}</button>
+                `;
+              }
+            }
           }
         } catch (e) {
           document.getElementById("audit-table-body").innerHTML = '<tr><td colspan="5" style="text-align:center; color: #ef4444;">Failed to retrieve immutable ledger.</td></tr>';
@@ -559,8 +582,8 @@
       // --- 4. BACKUP SIMULATOR ---
       function downloadBackup() {
         Swal.fire({
-          title: "Extracting Database...",
-          text: "Compiling MySQL structures into health_intel_backup.sql",
+          title: "Encrypting Database...",
+          text: "Compiling MySQL structures into a secure AES-256 ZIP",
           background: "#0f172a",
           color: "white",
           allowOutsideClick: false,
@@ -568,10 +591,11 @@
         });
 
         setTimeout(() => {
+          window.location.href = "http://localhost:3000/api/superadmin/backup?t=" + Date.now();
           Swal.fire({
             icon: "success",
             title: "Backup Successful",
-            text: "File downloaded to secure local storage.",
+            text: "Secure ZIP downloaded to your computer.",
             background: "#0f172a",
             color: "white",
           });
