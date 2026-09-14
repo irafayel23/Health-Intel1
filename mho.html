@@ -22,18 +22,18 @@
         gap: 15px;
         display: none;
         animation: slideDown 0.4s ease-out forwards;
-        border: 1px solid #e2e8f0;
+        
       }
       .dss-urgent {
-        background: #fee2e2;
+        
         border-left: 5px solid #ef4444;
       }
       .dss-alert-box {
-        background: #fef3c7;
+        
         border-left: 5px solid #f59e0b;
       }
       .dss-recommend {
-        background: #e0f2fe;
+        
         border-left: 5px solid #0ea5e9;
       }
 
@@ -48,41 +48,107 @@
         }
       }
     </style>
+  
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              card: "hsl(var(--card))",
+              "card-foreground": "hsl(var(--card-foreground))",
+              muted: "hsl(var(--muted))",
+              "muted-foreground": "hsl(var(--muted-foreground))"
+            }
+          }
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
-  <body>
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <i data-lucide="shield-plus" style="width: 28px; height: 28px"></i>
-        <h2>HEALTH-INTEL</h2>
+  <body class="h-screen flex overflow-hidden antialiased selection:bg-emerald-500/30">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] flex flex-col transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-30 relative">
+      <!-- Logo Area -->
+      <div class="h-16 flex items-center px-6 border-b border-[hsl(var(--border))] group cursor-default">
+        <img src="assets/img/Logo-Health-Intel.png" alt="Logo" class="w-8 h-8 mr-3 object-contain hover:scale-110 transition-transform duration-300">
+        <h2 id="sidebar-text" class="font-bold text-lg tracking-tight whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent group-hover:tracking-wider">HEALTH-INTEL</h2>
       </div>
-      <nav class="nav-menu">
-        <button class="nav-item active" data-target="view-analytics">
-          <i data-lucide="bar-chart-2" style="width: 20px"></i> Mun. Analytics
+
+      <!-- Navigation Menu -->
+      <nav class="nav-menu flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <button class="nav-item active group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-analytics">
+          <i data-lucide="bar-chart-2" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Mun. Analytics</span>
         </button>
-        <button class="nav-item" data-target="view-heatmap">
-          <i data-lucide="map" style="width: 20px"></i> Heatmap Cases
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-heatmap">
+          <i data-lucide="map" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
         </button>
-        <button class="nav-item" data-target="view-predictive">
-          <i data-lucide="brain-circuit" style="width: 20px"></i> Predictions
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-predictive">
+          <i data-lucide="brain-circuit" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Predictions</span>
         </button>
-        <button class="nav-item" data-target="view-reports">
-          <i data-lucide="file-text" style="width: 20px"></i> Export Reports
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-reports">
+          <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Export Reports</span>
         </button>
-        <a href="index.html" class="nav-item sign-out">
-          <i data-lucide="log-out" style="width: 20px"></i> Sign Out
-        </a>
       </nav>
+
+      <!-- Bottom Log Out -->
+      <div class="p-4 border-t border-[hsl(var(--border))]">
+        <a href="index.html" class="nav-item sign-out group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:translate-x-1 transition-all duration-300">
+          <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:-translate-x-1"></i>
+          <span class="sidebar-label whitespace-nowrap">Log Out</span>
+        </a>
+        <div class="mt-4 text-center flex justify-center">
+          <a href="#" onclick="showTerms(event)" class="sidebar-label text-[10px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors whitespace-nowrap">&copy; 2026 Health-Intel &bull; Terms &amp; Privacy</a>
+        </div>
+      </div>
     </aside>
 
-    <main class="main-wrapper">
-      <div class="top-bar">Municipal Health Office Portal</div>
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full bg-[hsl(var(--background))] overflow-hidden relative">
+      
+      <!-- Top Header Bar -->
+      <header class="h-16 border-b border-[hsl(var(--border))] bg-[hsl(var(--card))] flex items-center justify-between px-6 z-20 shadow-[0_1px_10px_rgba(0,0,0,0.03)]">
+        <div class="flex items-center gap-4">
+          <!-- Sidebar Toggle -->
+          <button id="sidebar-toggle" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-emerald-500 transition-colors">
+            <i data-lucide="panel-left-close" id="sidebar-icon" class="w-5 h-5"></i>
+          </button>
+          <div id="dynamic-portal-title" class="text-sm font-semibold text-slate-900 dark:text-slate-300">
+            Municipal Health Office Portal
+          </div>
+        </div>
 
-      <div class="dashboard-content">
+        <div class="flex items-center gap-4">
+          <!-- Dark Mode Toggle -->
+          <button onclick="toggleDarkMode()" class="p-2 rounded-full border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] hover:rotate-12 transition-all duration-300 text-[hsl(var(--foreground))] hover:shadow-sm">
+            <i data-lucide="moon" id="theme-icon" class="w-4 h-4"></i>
+          </button>
+          
+          <div class="flex items-center gap-3 border-l border-[hsl(var(--border))] pl-4">
+            <span id="dropdown-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-300">MHO-001</span>
+            <div id="dropdown-user-initial" onclick="showAccountSettings()" class="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 text-white shadow-sm ring-2 ring-transparent font-bold text-lg">
+              M
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Scrollable Content Area -->
+      <div class="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
         <div id="view-analytics" class="view-section">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
             <div>
-              <h1 class="page-title" style="margin-bottom: 5px;">Municipal Analytics</h1>
-              <p class="page-subtitle" style="margin-bottom: 0;">
+              <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Municipal Analytics</h1>
+              <p class="text-[hsl(var(--muted-foreground))] mt-1">
                 Interactive filtering and automated insights of historical FHSIS health data.
               </p>
             </div>
@@ -93,10 +159,10 @@
                 style="
                   padding: 12px 16px;
                   border-radius: 8px;
-                  border: 2px solid #0284c7;
+                  
                   font-weight: bold;
-                  color: #0f172a;
-                  background: #f0f9ff;
+                  
+                  
                   outline: none;
                   cursor: pointer;
                   min-width: 220px;
@@ -115,304 +181,97 @@
             </div>
           </div>
 
-          <div class="grid-4">
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-title">Total Pop.</span>
-                <div
-                  class="stat-icon"
-                  style="color: #0284c7; background: #e0f2fe"
-                >
-                  <i data-lucide="users" style="width: 18px"></i>
-                </div>
-              </div>
-              <div class="stat-value" id="stat-pop">92,241</div>
-            </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5 flex flex-col justify-center items-center text-center hover:scale-[1.02] transition-all shadow-sm">
+        <div id="stat-pop" class="text-3xl font-bold text-slate-800 dark:text-slate-100">92,241</div>
+        <div class="text-sm font-semibold mt-2 text-slate-600 dark:text-slate-400">Total Population</div>
+       </div>
 
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-title">Active Cases</span>
-                <div
-                  class="stat-icon"
-                  style="color: #ea580c; background: #ffedd5"
-                >
-                  <i data-lucide="activity" style="width: 18px"></i>
-                </div>
-              </div>
-              <div class="stat-value" id="stat-active">...</div>
-            </div>
+            <div class="rounded-xl border border-rose-500/20 bg-rose-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-rose-500/10 hover:scale-[1.02] transition-all shadow-sm">
+        <div id="stat-active" class="text-3xl font-bold text-rose-600 dark:text-rose-400">...</div>
+        <div class="text-sm font-semibold mt-2 text-rose-600 dark:text-rose-400">Active Cases</div>
+       </div>
 
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-title">Total Recovered</span>
-                <div
-                  class="stat-icon"
-                  style="color: #10b981; background: #d1fae5"
-                >
-                  <i data-lucide="shield-check" style="width: 18px"></i>
-                </div>
-              </div>
-              <div
-                class="stat-value"
-                style="color: #10b981"
-                id="stat-recovered"
-              >
-                ...
-              </div>
-            </div>
+            <div class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-emerald-500/10 hover:scale-[1.02] transition-all shadow-sm">
+        <div id="stat-recovered" class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">...</div>
+        <div class="text-sm font-semibold mt-2 text-emerald-600 dark:text-emerald-400">Total Recovered</div>
+       </div>
 
-            <div class="stat-card">
-              <div class="stat-header">
-                <span class="stat-title">High Risk Cases</span>
-                <div
-                  class="stat-icon"
-                  style="color: #ef4444; background: #fee2e2"
-                >
-                  <i data-lucide="alert-circle" style="width: 18px"></i>
-                </div>
-              </div>
-              <div class="stat-value" id="stat-risk">...</div>
-            </div>
+            <div class="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-orange-500/10 hover:scale-[1.02] transition-all shadow-sm">
+        <div id="stat-risk" class="text-3xl font-bold text-orange-600 dark:text-orange-400">...</div>
+        <div class="text-sm font-semibold mt-2 text-orange-600 dark:text-orange-400">High Risk Cases</div>
+       </div>
           </div>
 
-          <div class="white-panel" style="margin-bottom: 2rem">
-            <div style="margin-bottom: 15px">
-              <h3
-                class="panel-title"
-                style="
-                  margin: 0;
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                  font-size: 1.25rem;
-                "
-              >
-                <i
-                  data-lucide="activity"
-                  style="width: 22px; color: #0284c7"
-                ></i>
-                Epidemiological Health Profile
-              </h3>
-              <p
-                style="
-                  font-size: 0.85rem;
-                  color: #64748b;
-                  margin-top: 5px;
-                  margin-bottom: 0;
-                "
-              >
-                Cross-reference demographic parameters to generate automated
-                descriptive summaries of past health events.
-              </p>
+          
+          <!-- Epidemiological Health Profile Restored -->
+          <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-6">
+            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+              <i data-lucide="activity" class="text-blue-500 mr-2" style="width: 24px; height: 24px;"></i>
+              <h3 class="text-xl font-bold tracking-tight text-[hsl(var(--foreground))]">Epidemiological Health Profile</h3>
             </div>
+            <p class="text-[hsl(var(--muted-foreground))] text-sm mb-6">Cross-reference demographic parameters to generate automated descriptive summaries of past health events.</p>
 
-            <div
-              style="
-                display: flex;
-                gap: 12px;
-                flex-wrap: wrap;
-                background: #f8fafc;
-                padding: 15px;
-                border-radius: 10px;
-                margin-bottom: 20px;
-                border: 1px solid #e2e8f0;
-                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
-              "
-            >
-              <select
-                id="filter-year"
-                onchange="updateDynamicChart()"
-                style="
-                  padding: 10px 12px;
-                  border-radius: 8px;
-                  border: 1px solid #cbd5e1;
-                  font-weight: bold;
-                  color: #0f172a;
-                  background: white;
-                  outline: none;
-                  cursor: pointer;
-                  flex: 1;
-                  min-width: 120px;
-                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-                  transition: border-color 0.2s;
-                "
-              >
+            <div class="flex flex-wrap gap-4 mb-6 bg-[hsl(var(--muted))] p-4 rounded-xl border border-[hsl(var(--border))]">
+              <select id="filter-year" onchange="updateDynamicChart()" class="flex-1 min-w-[200px] p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-medium outline-none">
                 <option value="2026">CY 2026</option>
                 <option value="2025">CY 2025</option>
-                <option value="2024" selected>CY 2024</option>
-                <option value="2023">CY 2023</option>
               </select>
-
-
-
-              <select
-                id="filter-category"
-                onchange="updateDynamicChart()"
-                style="
-                  padding: 10px 12px;
-                  border-radius: 8px;
-                  border: 1px solid #cbd5e1;
-                  font-weight: 600;
-                  color: #334155;
-                  background: white;
-                  outline: none;
-                  cursor: pointer;
-                  flex: 1.5;
-                  min-width: 140px;
-                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-                "
-              >
+              
+              <select id="filter-category" onchange="updateDynamicChart()" class="flex-1 min-w-[200px] p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-medium outline-none">
                 <option value="morbidity">Cases (Morbidity)</option>
                 <option value="mortality">Deaths (Mortality)</option>
               </select>
-
-              <select
-                id="filter-age"
-                onchange="updateDynamicChart()"
-                style="
-                  padding: 10px 12px;
-                  border-radius: 8px;
-                  border: 1px solid #cbd5e1;
-                  font-weight: 600;
-                  color: #334155;
-                  background: white;
-                  outline: none;
-                  cursor: pointer;
-                  flex: 1.5;
-                  min-width: 140px;
-                  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-                "
-              >
+              
+              <select id="filter-age" onchange="updateDynamicChart()" class="flex-1 min-w-[200px] p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-medium outline-none">
                 <option value="all">All Ages</option>
-                <option value="under5">Under 5 Years</option>
-                <option value="infant">Infant (0-11 Months)</option>
+                <option value="0-5">0-5 Years</option>
+                <option value="6-12">6-12 Years</option>
+                <option value="13-17">13-17 Years</option>
+                <option value="18-59">18-59 Years</option>
+                <option value="60+">60+ Years</option>
               </select>
-
             </div>
 
-            <div
-              style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px"
-            >
-              <div
-                style="
-                  position: relative;
-                  height: 420px;
-                  width: 100%;
-                  background: white;
-                  border: 1px solid #f1f5f9;
-                  border-radius: 10px;
-                  padding: 10px;
-                "
-              >
-                <canvas id="dynamicChart"></canvas>
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div class="xl:col-span-2 border border-[hsl(var(--border))] rounded-xl p-4">
+                <div style="position: relative; height: 350px; width: 100%">
+                  <canvas id="dynamicChart"></canvas>
+                </div>
               </div>
-
-              <div
-                style="
-                  background: linear-gradient(
-                    to bottom right,
-                    #ffffff,
-                    #f8fafc
-                  );
-                  border: 1px solid #e2e8f0;
-                  border-radius: 12px;
-                  padding: 25px;
-                  display: flex;
-                  flex-direction: column;
-                  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-                "
-              >
-                <h4
-                  style="
-                    margin-top: 0;
-                    margin-bottom: 20px;
-                    color: #0f172a;
-                    font-size: 1.15rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    border-bottom: 2px solid #f1f5f9;
-                    padding-bottom: 10px;
-                  "
-                >
-                  <span
-                    style="
-                      background: #e0f2fe;
-                      padding: 6px;
-                      border-radius: 6px;
-                      display: flex;
-                    "
-                    ><i
-                      data-lucide="microscope"
-                      style="width: 20px; color: #0284c7"
-                    ></i
-                  ></span>
-                  Automated Descriptive Analysis
-                </h4>
-
-                <div
-                  id="dynamic-insights"
-                  style="
-                    font-size: 0.95rem;
-                    color: #334155;
-                    line-height: 1.7;
-                    flex-grow: 1;
-                  "
-                ></div>
-
-                <div
-                  style="
-                    margin-top: 20px;
-                    padding-top: 15px;
-                    border-top: 1px dashed #cbd5e1;
-                    background: #f0fdf4;
-                    border-radius: 8px;
-                    padding: 15px;
-                  "
-                >
-                  <span
-                    style="
-                      font-weight: bold;
-                      color: #166534;
-                      display: flex;
-                      align-items: center;
-                      gap: 6px;
-                      font-size: 0.9rem;
-                    "
-                  >
-                    <i data-lucide="shield-check" style="width: 16px"></i>
-                    Suggested MHO Action:
-                  </span>
-                  <p
-                    id="dynamic-recommendation"
-                    style="
-                      margin: 8px 0 0 0;
-                      font-size: 0.85rem;
-                      color: #15803d;
-                      line-height: 1.5;
-                    "
-                  ></p>
+              <div class="xl:col-span-1 border border-[hsl(var(--border))] rounded-xl p-6 flex flex-col">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <i data-lucide="microscope" class="w-5 h-5"></i>
+                  </div>
+                  <h4 class="font-bold text-lg text-[hsl(var(--foreground))]">Automated<br>Descriptive Analysis</h4>
+                </div>
+                <div class="flex-1 border-t border-[hsl(var(--border))] pt-4">
+                  <p id="insight-text" class="text-[hsl(var(--muted-foreground))] text-sm leading-relaxed mb-6">
+                    No data available for these specific demographic parameters.
+                  </p>
+                </div>
+                <div class="mt-auto bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 rounded-lg p-4">
+                  <h5 class="text-emerald-700 dark:text-emerald-400 font-semibold text-sm flex items-center gap-2 mb-2">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Suggested MHO Action:
+                  </h5>
+                  <p id="action-text" class="text-emerald-600 dark:text-emerald-500/80 text-xs">
+                    Awaiting data input.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
-          <div
-            style="
-              display: grid;
-              grid-template-columns: 2fr 1fr;
-              gap: 1.5rem;
-              margin-bottom: 1.5rem;
-            "
-          >
-            <div class="white-panel" style="margin-bottom: 0">
-              <h3 class="panel-title">
-                <i
-                  data-lucide="trending-up"
-                  style="width: 18px; margin-right: 8px"
-                ></i>
-                Year-Over-Year Morbidity (2024 vs 2025)
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+<div class="xl:col-span-2 min-w-0 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-8" style="margin-bottom: 0">
+                <h3 class="panel-title">
+                  <i
+                    data-lucide="trending-up"
+                    style="width: 18px; margin-right: 8px"
+                  ></i>
+                  Year-Over-Year Morbidity (2025 vs 2026)
               </h3>
-              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 15px">
+              <p style="font-size: 0.8rem;  margin-bottom: 15px">
                 Comparative analysis of leading health burdens across all
                 barangays.
               </p>
@@ -421,27 +280,27 @@
               </div>
             </div>
 
-            <div class="white-panel" style="margin-bottom: 0">
-              <h3 class="panel-title">
-                <i
-                  data-lucide="pie-chart"
-                  style="width: 18px; margin-right: 8px"
-                ></i>
-                Leading Mortality (2025)
+            <div class="xl:col-span-1 min-w-0 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-8" style="margin-bottom: 0">
+                <h3 class="panel-title">
+                  <i
+                    data-lucide="pie-chart"
+                    style="width: 18px; margin-right: 8px"
+                  ></i>
+                  Leading Mortality (2026)
               </h3>
-              <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 15px">
+              <p style="font-size: 0.8rem;  margin-bottom: 15px">
                 Top causes of death requiring system intervention.
               </p>
               <div style="position: relative; height: 300px; width: 100%">
                 <canvas id="mortalityChart"></canvas>
               </div>
             </div>
-          </div>
+</div>
         </div>
 
         <div id="view-heatmap" class="view-section hidden white-panel">
-          <h1 class="page-title">Municipality Heatmap (Active Cases)</h1>
-          <p class="page-subtitle">
+          <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Municipality Heatmap (Active Cases)</h1>
+          <p class="text-[hsl(var(--muted-foreground))] mt-1">
             Live GIS mapping of outbreak clusters across Murcia using
             OpenStreetMap.
           </p>
@@ -451,7 +310,7 @@
               height: 450px;
               width: 100%;
               border-radius: 8px;
-              border: 1px solid #e2e8f0;
+              
               z-index: 1;
             "
           ></div>
@@ -460,21 +319,21 @@
         <div id="view-predictive" class="view-section hidden white-panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
             <div>
-              <h1 class="page-title" style="margin-bottom: 0">Predictive Analytics</h1>
-              <p class="page-subtitle" style="margin-bottom: 0">SARIMA Time-Series forecasting for early outbreak detection across 7 pilot barangays.</p>
+              <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Predictive Analytics</h1>
+              <p class="text-[hsl(var(--muted-foreground))] mt-1">SARIMA Time-Series forecasting for early outbreak detection across 7 pilot barangays.</p>
             </div>
             <input type="hidden" id="predictive-disease-select" value="Dengue">
           </div>
 
-          <div class="white-panel" style="margin-bottom: 1.5rem; border: 1px solid #e2e8f0; box-shadow: none;">
+          <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-8" style="margin-bottom: 1.5rem;  box-shadow: none;">
             <div style="position: relative; height: 450px; width: 100%; margin-bottom: 20px;">
               <canvas id="predictionChart"></canvas>
             </div>
-            <div style="background: #f8fafc; border-left: 4px solid #0ea5e9; padding: 15px; border-radius: 0 8px 8px 0;">
-              <h4 style="margin: 0 0 5px 0; color: #0284c7; font-size: 1rem; display: flex; align-items: center; gap: 5px;">
+            <div style=" border-left: 4px solid #0ea5e9; padding: 15px; border-radius: 0 8px 8px 0;">
+              <h4 style="margin: 0 0 5px 0;  font-size: 1rem; display: flex; align-items: center; gap: 5px;">
                 <i data-lucide="lightbulb" style="width: 16px"></i> Automated Insight
               </h4>
-              <p style="margin: 0; color: #334155; font-size: 0.95rem; line-height: 1.5;" id="predictive-insight-text">
+              <p style="margin: 0;  font-size: 0.95rem; line-height: 1.5;" id="predictive-insight-text">
                 Waiting for AI model...
               </p>
             </div>
@@ -482,55 +341,55 @@
         </div>
 
         <div id="view-reports" class="view-section hidden">
-          <h1 class="page-title">Official DOH Report Generation</h1>
-          <p class="page-subtitle">
+          <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Official DOH Report Generation</h1>
+          <p class="text-[hsl(var(--muted-foreground))] mt-1">
             Generate immutable, print-ready PDF documents formatted for regional Department of Health submission.
           </p>
           
-          <div class="grid-4" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             <!-- FHSIS Report Card -->
-            <div class="white-panel" style="margin-bottom: 0; border-top: 4px solid #10b981;">
-              <h3 style="margin-top: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
-                <i data-lucide="file-check-2" style="color: #10b981;"></i> FHSIS Consolidation
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-8" style="margin-bottom: 0; ">
+              <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
+                <i data-lucide="file-check-2" style=""></i> FHSIS Consolidation
               </h3>
-              <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">
+              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-6 leading-relaxed">
                 Field Health Services Information System. Monthly summary of morbidity and mortality across all barangays.
               </p>
               <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <select id="fhsis-month" class="login-input" style="background: white; border: 1px solid #cbd5e1; color: #334155;">
+                <select id="fhsis-month" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-emerald-500/50 hover:border-emerald-500/50 transition-colors" style="background: hsl(var(--card)); color: hsl(var(--foreground));  ">
                   <option value="January">January</option>
                   <option value="February">February</option>
                   <option value="March">March</option>
                 </select>
-                <select id="fhsis-year" class="login-input" style="background: white; border: 1px solid #cbd5e1; color: #334155;">
+                <select id="fhsis-year" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-emerald-500/50 hover:border-emerald-500/50 transition-colors" style="background: hsl(var(--card)); color: hsl(var(--foreground));  ">
                   <option value="2026">2026</option>
                   <option value="2025">2025</option>
                   <option value="2024">2024</option>
                   <option value="2023">2023</option>
                 </select>
               </div>
-              <button onclick="generateOfficialPDF('FHSIS')" style="width: 100%; padding: 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;">
+              <button onclick="generateOfficialPDF('FHSIS')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
                 <i data-lucide="download" style="width: 18px;"></i> Download Certified PDF
               </button>
             </div>
 
             <!-- PIDSR Report Card -->
-            <div class="white-panel" style="margin-bottom: 0; border-top: 4px solid #ef4444;">
-              <h3 style="margin-top: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
-                <i data-lucide="activity" style="color: #ef4444;"></i> PIDSR Surveillance
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-8" style="margin-bottom: 0; ">
+              <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
+                <i data-lucide="activity" style=""></i> PIDSR Surveillance
               </h3>
-              <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">
+              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-6 leading-relaxed">
                 Philippine Integrated Disease Surveillance and Response. Weekly tracking of outbreak-prone cases.
               </p>
               <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <select id="pidsr-week" class="login-input" style="background: white; border: 1px solid #cbd5e1; color: #334155;">
+                <select id="pidsr-week" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-emerald-500/50 hover:border-emerald-500/50 transition-colors" style="background: hsl(var(--card)); color: hsl(var(--foreground));  ">
                   <option value="Morbidity Week 40">Morbidity Week 40</option>
                   <option value="Morbidity Week 41">Morbidity Week 41</option>
                   <option value="Morbidity Week 42">Morbidity Week 42</option>
                 </select>
               </div>
-              <button onclick="generateOfficialPDF('PIDSR')" style="width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s;">
+              <button onclick="generateOfficialPDF('PIDSR')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
                 <i data-lucide="download" style="width: 18px;"></i> Download Certified PDF
               </button>
             </div>
@@ -539,8 +398,8 @@
         </div>
 
         <div id="view-history" class="view-section hidden white-panel">
-          <h1 class="page-title">Data Management</h1>
-          <p class="page-subtitle">
+          <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Data Management</h1>
+          <p class="text-[hsl(var(--muted-foreground))] mt-1">
             Add / edit / delete system database records.
           </p>
           <table class="data-table">
@@ -555,7 +414,7 @@
               <td>Luz Villanueva</td>
               <td>San Jose</td>
               <td>
-                <a href="#" style="color: #10b981; font-weight: bold">Manage</a>
+                <a href="#" style=" font-weight: bold">Manage</a>
               </td>
             </tr>
           </table>
@@ -772,195 +631,6 @@
         },
       };
 
-      // Initialize the Dynamic Chart
-      const ctxDynamic = document
-        .getElementById("dynamicChart")
-        .getContext("2d");
-
-      let blueGradient = ctxDynamic.createLinearGradient(0, 0, 800, 0);
-      blueGradient.addColorStop(0, "rgba(59, 130, 246, 0.6)");
-      blueGradient.addColorStop(1, "rgba(37, 99, 235, 0.9)");
-
-      let redGradient = ctxDynamic.createLinearGradient(0, 0, 800, 0);
-      redGradient.addColorStop(0, "rgba(239, 68, 68, 0.6)");
-      redGradient.addColorStop(1, "rgba(185, 28, 28, 0.9)");
-
-      let dynamicChart = new Chart(ctxDynamic, {
-        type: "bar",
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: "Cases Recorded",
-              data: [],
-              backgroundColor: blueGradient,
-              borderRadius: 6,
-            },
-          ],
-        },
-        options: {
-          indexAxis: "y",
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: "rgba(15, 23, 42, 0.9)",
-              titleFont: { size: 14 },
-              bodyFont: { size: 13, weight: "bold" },
-              padding: 12,
-            },
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              grid: { borderDash: [4, 4], color: "#e2e8f0" },
-            },
-            y: { grid: { display: false } },
-          },
-        },
-      });
-
-      // ==========================================
-      // AUTOMATED INSIGHTS GENERATOR
-      // ==========================================
-      function generateInsights(data, category, age, year) {
-        const insightBox = document.getElementById("dynamic-insights");
-        const recBox = document.getElementById("dynamic-recommendation");
-
-        if (data.length === 0) {
-          insightBox.innerHTML =
-            "No data available for these specific demographic parameters.";
-          recBox.innerHTML = "N/A";
-          return;
-        }
-
-        // Sort data to find top concerns
-        let sortedData = [...data].sort((a, b) => b.cases - a.cases);
-        let topDisease = sortedData[0];
-        let totalCases = sortedData.reduce((sum, item) => sum + item.cases, 0);
-        let percentage = ((topDisease.cases / totalCases) * 100).toFixed(1);
-
-        let insightHTML = "";
-        let recommendation = "";
-
-        if (category === "morbidity") {
-          insightHTML += `<ul style="padding-left: 18px; margin-top: 0; list-style-type: none;">`;
-          insightHTML += `<li style="margin-bottom: 15px; position: relative;">
-                  <span style="position: absolute; left: -18px; color: #3b82f6; font-weight: bold;">•</span>
-                  <strong>Dominant Category:</strong> The leading morbidity factor for this demographic subset is <span style="color:#0284c7; font-weight:700;">${topDisease.disease}</span>, which accounts for approximately <strong>${percentage}%</strong> of the mapped records.</li>`;
-
-          insightHTML += `<li style="margin-bottom: 15px; position: relative;">
-                  <span style="position: absolute; left: -18px; color: #3b82f6; font-weight: bold;">•</span>
-                  <strong>Volume Overview:</strong> A total of ${topDisease.cases.toLocaleString()} instances were recorded. High concentration in a single category typically indicates strong environmental or transmissible factors.</li>`;
-
-          if (
-            topDisease.disease.includes("Bite") ||
-            topDisease.disease.includes("Wound")
-          ) {
-            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #3b82f6; font-weight: bold;">•</span><strong>Contextual Note:</strong> Wounds and animal bites represent a persistent external/environmental threat rather than a contagious community outbreak.</li>`;
-            recommendation =
-              "Allocate resources towards localized Rabies Awareness drives and ensure optimal stocking of post-exposure prophylaxis (PEP) at Rural Health Units.";
-          } else if (
-            topDisease.disease.includes("Resp") ||
-            topDisease.disease.includes("Cough") ||
-            topDisease.disease.includes("Influenza")
-          ) {
-            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #3b82f6; font-weight: bold;">•</span><strong>Contextual Note:</strong> Respiratory tract infections demonstrate rapid community transmission, likely aggravated by seasonal weather changes or poor ventilation.</li>`;
-            recommendation =
-              "Activate community-level respiratory protocols. Maximize BHW deployment for symptom screening and distribute immune-boosting supplements to vulnerable sectors.";
-          } else {
-            recommendation =
-              "Conduct immediate cluster mapping via the GIS Heatmap to trace the specific environmental or behavioral root causes of this disease spike.";
-          }
-          insightHTML += `</ul>`;
-        } else {
-          // Mortality Insights
-          insightHTML += `<ul style="padding-left: 18px; margin-top: 0; list-style-type: none;">`;
-          insightHTML += `<li style="margin-bottom: 15px; position: relative;">
-                  <span style="position: absolute; left: -18px; color: #ef4444; font-weight: bold;">•</span>
-                  <strong>Primary Mortality Driver:</strong> <span style="color:#ef4444; font-weight:700;">${topDisease.disease}</span> ranks as the highest cause of mortality, with ${topDisease.cases} recorded fatalities in this subset.</li>`;
-
-          if (topDisease.disease.includes("Undetermined")) {
-            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #ef4444; font-weight: bold;">•</span><strong>Data Discrepancy:</strong> The prevalence of "Undetermined Causes" indicates a significant gap in post-mortem diagnostics or late medical intervention.</li>`;
-            recommendation =
-              "Enforce stricter guidelines for grassroots health tracking. Early intervention by BHWs is required to minimize deaths occurring outside official medical facilities.";
-          } else if (
-            topDisease.disease.includes("Hypertension") ||
-            topDisease.disease.includes("Heart") ||
-            topDisease.disease.includes("Cardio")
-          ) {
-            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #ef4444; font-weight: bold;">•</span><strong>Contextual Note:</strong> Non-communicable diseases (NCDs) linked to diet and lifestyle remain the most fatal threat to this demographic.</li>`;
-            recommendation =
-              "Implement municipal-wide 'Healthy Lifestyle' programs and mandate routine blood pressure and glucose screenings at all barangay health centers.";
-          } else if (
-            topDisease.disease.includes("Fetal") ||
-            topDisease.disease.includes("Prematurity")
-          ) {
-            insightHTML += `<li style="position: relative;"><span style="position: absolute; left: -18px; color: #ef4444; font-weight: bold;">•</span><strong>Contextual Note:</strong> High rates of neonatal and fetal complications highlight critical risks in local maternal health management.</li>`;
-            recommendation =
-              "Intensify maternal care monitoring. Require weekly check-ins for high-risk pregnancies and improve rapid transport to Lying-in clinics.";
-          } else {
-            recommendation =
-              "Review current clinical intervention strategies, medicine stockpiles, and RHU response times for this specific critical condition.";
-          }
-          insightHTML += `</ul>`;
-        }
-
-        insightBox.innerHTML = insightHTML;
-        recBox.innerHTML = recommendation;
-      }
-
-      function parseCSVRow(row) {
-          let result = [];
-          let cur = '';
-          let inQuotes = false;
-          for(let i=0; i<row.length; i++) {
-              if(row[i] === '"') inQuotes = !inQuotes;
-              else if(row[i] === ',' && !inQuotes) {
-                  result.push(cur);
-                  cur = '';
-              } else {
-                  cur += row[i];
-              }
-          }
-          result.push(cur);
-          return result;
-      }
-
-      // Function that runs when any dropdown is changed
-      async function updateDynamicChart() {
-        const year = document.getElementById("filter-year").value;
-        const barangay = document.getElementById("filter-barangay").value;
-        const category = document.getElementById("filter-category").value;
-        
-        try {
-            const url = `http://localhost:3000/api/mho/stats?year=${year}&barangay=${barangay}&category=${category}`;
-            const response = await fetch(url);
-            const result = await response.json();
-            
-            if(!result.success) {
-                console.error("Failed to fetch stats");
-                return;
-            }
-            
-            let processedData = result.data;
-
-            dynamicChart.data.labels = processedData.map((d) => d.disease);
-            dynamicChart.data.datasets[0].data = processedData.map((d) => d.cases);
-            dynamicChart.data.datasets[0].backgroundColor =
-              category === "morbidity" ? blueGradient : redGradient;
-            dynamicChart.update();
-
-            generateInsights(processedData, category, "all", year);
-        } catch (error) {
-            console.error("Failed to update chart from CSV", error);
-        }
-      }
-
-      // Run it once when the page loads
-      updateDynamicChart();
-
       let myChart;
 
       // ==========================================
@@ -984,8 +654,8 @@
                 data: {
                   labels: labels,
                   datasets: [
-                    { label: 'CY 2024', data: data2024, backgroundColor: 'rgba(148, 163, 184, 0.7)', borderRadius: 4 },
-                    { label: 'CY 2025', data: data2025, backgroundColor: 'rgba(16, 185, 129, 0.9)', borderRadius: 4 }
+                    { label: 'CY 2026', data: data2024, backgroundColor: 'rgba(148, 163, 184, 0.7)', borderRadius: 4 },
+                    { label: 'CY 2026', data: data2025, backgroundColor: 'rgba(16, 185, 129, 0.9)', borderRadius: 4 }
                   ]
                 },
                 options: { responsive: true, maintainAspectRatio: false }
@@ -1071,7 +741,7 @@
                     }
                 });
                 
-                loader.innerHTML = `Based on 50/50 augmented training data, <strong>${disease}</strong> cases show a strong seasonal spike approaching in the rainy months (June-Sept). <br><br><span style="color:#ef4444; font-weight:bold;">Intervention:</span> The MHO should allocate maximum resources to the barangays with the steepest predicted inclines.`;
+                loader.innerHTML = `Based on 50/50 augmented training data, <strong>${disease}</strong> cases show a strong seasonal spike approaching in the rainy months (June-Sept). <br><br><span style=" font-weight:bold;">Intervention:</span> The MHO should allocate maximum resources to the barangays with the steepest predicted inclines.`;
             }
         } catch(e) {
             console.error(e);
@@ -1102,14 +772,76 @@
         }
       }
 
-      fetchLiveMHOStats();
+      
+      // ==========================================
+      // EPIDEMIOLOGICAL HEALTH PROFILE (DYNAMIC CHART)
+      // ==========================================
+      const canvasEl = document.getElementById("dynamicChart");
+      const ctxDynamic = canvasEl ? canvasEl.getContext("2d") : null;
+      let dynamicChart = null;
+      let blueGradient, redGradient;
+      if (ctxDynamic) {
+          blueGradient = ctxDynamic.createLinearGradient(0, 0, 800, 0);
+          blueGradient.addColorStop(0, "rgba(59, 130, 246, 0.6)");
+          blueGradient.addColorStop(1, "rgba(37, 99, 235, 0.9)");
+          redGradient = ctxDynamic.createLinearGradient(0, 0, 800, 0);
+          redGradient.addColorStop(0, "rgba(239, 68, 68, 0.6)");
+          redGradient.addColorStop(1, "rgba(185, 28, 28, 0.9)");
+
+          dynamicChart = new Chart(ctxDynamic, {
+            type: "bar",
+            data: { labels: [], datasets: [{ label: "Cases Recorded", data: [], backgroundColor: blueGradient, borderRadius: 6 }] },
+            options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+          });
+      }
+
+      function generateInsights(data, category, age, year) {
+        const insightText = document.getElementById("insight-text");
+        const actionText = document.getElementById("action-text");
+        if (!insightText) return;
+        if (!data || data.length === 0) {
+          insightText.innerHTML = "No data available for these specific demographic parameters.";
+          actionText.innerHTML = "Awaiting data input.";
+          return;
+        }
+        const topDisease = data[0];
+        insightText.innerHTML = `In <strong>CY ${year}</strong>, the leading cause of ${category} is <strong>${topDisease.disease}</strong> with <strong>${topDisease.cases}</strong> recorded cases.`;
+        if (category === "morbidity") {
+            actionText.innerHTML = `Deploy preventive measures and allocate resources for <strong>${topDisease.disease}</strong>.`;
+        } else {
+            actionText.innerHTML = `Immediate systemic review and mortality prevention protocol required for <strong>${topDisease.disease}</strong>.`;
+        }
+      }
+
+      async function updateDynamicChart() {
+        const year = document.getElementById("filter-year")?.value || "2026";
+        const barangay = document.getElementById("filter-barangay")?.value || "all";
+        const category = document.getElementById("filter-category")?.value || "morbidity";
+        
+        try {
+            const url = `http://localhost:3000/api/mho/stats?year=${year}&barangay=${barangay}&category=${category}`;
+            const response = await fetch(url);
+            const result = await response.json();
+            
+            if(result.success && dynamicChart) {
+                let processedData = result.data;
+                dynamicChart.data.labels = processedData.map((d) => d.disease);
+                dynamicChart.data.datasets[0].data = processedData.map((d) => d.cases);
+                dynamicChart.data.datasets[0].backgroundColor = category === "morbidity" ? blueGradient : redGradient;
+                dynamicChart.update();
+                generateInsights(processedData, category, "all", year);
+            }
+        } catch (error) { console.error(error); }
+        
+        // Trigger the other panels to update too!
+        if (typeof fetchLiveMHOStats === 'function') fetchLiveMHOStats();
+        if (typeof fetchYoyAndMortality === 'function') fetchYoyAndMortality();
+      }
+      setTimeout(updateDynamicChart, 300);
+fetchLiveMHOStats();
           fetchYoyAndMortality();
       // Re-fetch when barangay filter changes (add event listener to the existing updateDynamicChart function)
-      const oldUpdate = updateDynamicChart;
-      updateDynamicChart = function() {
-          oldUpdate();
-          fetchLiveMHOStats();
-      };
+      fetchLiveMHOStats();
 
       // --- PRESCRIPTIVE DSS ENGINE ---
       function generateDSS() {
@@ -1123,9 +855,9 @@
         // Simulate AI Processing time (1.5 seconds)
         setTimeout(() => {
           // Change button to success state
-          btn.innerHTML = `<i data-lucide="check-circle" style="width: 18px; color: #10b981;"></i> Analysis Complete`;
-          btn.style.background = "#f8fafc";
-          btn.style.color = "#0f172a";
+          btn.innerHTML = `<i data-lucide="check-circle" style="width: 18px; "></i> Analysis Complete`;
+          btn.style.background = "hsl(var(--muted))";
+          btn.style.color = "hsl(var(--foreground))";
           btn.style.border = "1px solid #cbd5e1";
           lucide.createIcons();
 
@@ -1156,6 +888,108 @@
           confirmButtonColor: reportType === 'FHSIS' ? '#10b981' : '#ef4444'
         });
       }
+    
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const icon = document.getElementById("sidebar-icon");
+    const text = document.getElementById("sidebar-text");
+    const labels = document.querySelectorAll(".sidebar-label");
+
+    if (sidebar.classList.contains("w-64")) {
+        sidebar.classList.replace("w-64", "w-20");
+        text.classList.add("hidden");
+        labels.forEach(l => l.classList.add("hidden"));
+        icon.setAttribute("data-lucide", "panel-left-open");
+    } else {
+        sidebar.classList.replace("w-20", "w-64");
+        text.classList.remove("hidden");
+        labels.forEach(l => l.classList.remove("hidden"));
+        icon.setAttribute("data-lucide", "panel-left-close");
+    }
+    lucide.createIcons();
+}
+
+function toggleDarkMode() {
+    document.documentElement.classList.toggle('dark');
+}
+
+    </script>
+  <script>
+      function showAccountSettings() {
+        const userId = localStorage.getItem('active_user_id') || 'Unknown';
+        Swal.fire({
+          title: 'Account Info & Security',
+          html: `
+            <div style="text-align: left; font-size: 0.9rem; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+              <p style="margin: 0 0 5px 0;"><strong>System ID:</strong> ${userId}</p>
+              <p style="margin: 0;"><strong>Role:</strong> ${userId.startsWith('MHO') ? 'Municipal Health Officer' : 'Barangay Health Worker'}</p>
+            </div>
+            <div style="text-align: left; font-size: 0.9rem;">
+              <h4 style="margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Change Password</h4>
+              <label style="font-weight: bold; margin-bottom: 5px; display: block;">Current Password</label>
+              <input type="password" id="current-pass" class="swal2-input" style="width: 100%; max-width: 100%; margin: 0 0 15px 0;" placeholder="Enter current password">
+              <label style="font-weight: bold; margin-bottom: 5px; display: block;">New Password</label>
+              <input type="password" id="new-pass" class="swal2-input" style="width: 100%; max-width: 100%; margin: 0;" placeholder="Enter new password">
+            </div>
+          `,
+          width: '450px',
+          showCancelButton: true,
+          confirmButtonText: 'Update Password',
+          confirmButtonColor: '#0f172a',
+          preConfirm: async () => {
+            const current_password = document.getElementById('current-pass').value;
+            const new_password = document.getElementById('new-pass').value;
+            const system_id = localStorage.getItem('active_user_id');
+            
+            if(!current_password || !new_password) {
+              Swal.showValidationMessage('Please fill in both password fields to update, or cancel to close.');
+              return false;
+            }
+            
+            try {
+              const res = await fetch('http://localhost:3000/api/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ system_id, current_password, new_password })
+              });
+              const data = await res.json();
+              if (!data.success) {
+                Swal.showValidationMessage(data.message || 'Update failed');
+              }
+              return data;
+            } catch (err) {
+              Swal.showValidationMessage('Server error. Try again later.');
+            }
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'Password updated successfully!'
+            });
+          }
+        });
+      }
+
+      function showTerms(event) {
+        event.preventDefault();
+        Swal.fire({
+          title: 'Terms & Privacy',
+          html: `<p style="text-align: left; font-size: 0.9rem;">Health-Intel is a capstone project for academic purposes. All data is handled in compliance with the Data Privacy Act of 2012 (RA 10173). By using this system, you agree to the responsible use of health information.</p>`,
+          confirmButtonColor: '#0f172a'
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const userId = localStorage.getItem('active_user_id');
+        if (userId) {
+          const initialEl = document.getElementById('dropdown-user-initial');
+          if (initialEl) initialEl.innerText = userId.charAt(0).toUpperCase();
+          const nameEl = document.getElementById('dropdown-user-name');
+          if (nameEl) nameEl.innerText = userId;
+        }
+      });
     </script>
   </body>
 </html>

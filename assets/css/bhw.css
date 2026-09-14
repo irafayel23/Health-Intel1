@@ -1,3 +1,25 @@
+/* Shadcn Theme Variables */
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --muted: 210 40% 93%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+  }
+}
 /* assets/css/bhw.css */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
@@ -8,8 +30,8 @@
   font-family: "Inter", sans-serif;
 }
 body {
-  background-color: #f3f4f6;
-  color: #1e293b;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
   display: flex;
   height: 100vh;
   overflow: hidden;
@@ -79,27 +101,9 @@ body {
 
 /* Fix for the Sign Out Button */
 /* Fix for the Sign Out Button - Pushed to bottom */
-.sign-out {
-  margin-top: auto; /* <--- THIS PUSHES IT DOWN */
-  background-color: white;
-  color: #dc2626;
-  font-weight: 700;
-  justify-content: flex-start;
-  border: 1px solid #fee2e2;
-  border-radius: 8px;
-  padding: 0.875rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s;
-}
+.sign-out { margin-top: auto; }
 
-.sign-out:hover {
-  background-color: #fef2f2;
-  color: #b91c1c;
-}
+
 
 /* Status Sticker - Margin top removed so Sign Out stays at bottom */
 .sidebar-sticker {
@@ -156,7 +160,7 @@ body {
 .page-title {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #0f172a;
+  color: hsl(var(--foreground));
   margin-bottom: 0.25rem;
 }
 .page-subtitle {
@@ -173,7 +177,7 @@ body {
   margin-bottom: 2rem;
 }
 .stat-card {
-  background: white;
+  background: hsl(var(--card));
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -204,13 +208,13 @@ body {
 .stat-value {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #1e293b;
+  color: hsl(var(--foreground));
   line-height: 1;
 }
 
 /* Panels and Pastel Cards */
 .white-panel {
-  background: white;
+  background: hsl(var(--card));
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -280,7 +284,7 @@ body {
 }
 .data-table th {
   padding: 1rem;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid hsl(var(--border));
   color: #64748b;
   font-size: 0.85rem;
   text-transform: uppercase;
@@ -288,9 +292,9 @@ body {
 }
 .data-table td {
   padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid hsl(var(--border));
   font-size: 0.95rem;
-  color: #1e293b;
+  color: hsl(var(--foreground));
 }
 
 /* --- AI LOADING SPINNER STYLES --- */
@@ -325,7 +329,7 @@ body {
 .loading-text {
   font-weight: bold;
   font-size: 1.1rem;
-  color: #0f172a;
+  color: hsl(var(--foreground));
 }
 .loading-subtext {
   font-size: 0.9rem;
@@ -333,7 +337,7 @@ body {
 }
 /* --- LAYOUT FIXES & SWEETALERT OVERRIDES --- */
 body {
-  display: block !important;
+  display: flex !important;
 }
 
 .app-layout {
@@ -353,4 +357,36 @@ div.swal2-container {
 
 body.swal2-height-auto {
   height: 100vh !important;
+}
+
+/* Dark Mode Fixes */
+.dark .stat-card {
+  background: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+.dark .data-table th {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-bottom-color: hsl(var(--border)) !important;
+}
+.dark .data-table td {
+  border-bottom-color: hsl(var(--border)) !important;
+}
+.dark .modal-content {
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+.dark input, .dark select, .dark textarea {
+  background: #1e293b !important;
+  color: white !important;
+  border-color: #334155 !important;
+}
+.dark .white-panel {
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+}
+.dark .login-input {
+  background: #1e293b !important;
+  color: white !important;
+  border-color: #334155 !important;
 }

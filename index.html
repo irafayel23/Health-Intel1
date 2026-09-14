@@ -379,12 +379,12 @@
               <div class="input-wrapper">
                 <div class="input-icon-box" style="color: var(--purple);"><i data-lucide="lock" style="width: 18px;"></i></div>
                 <input type="password" id="login_password" placeholder="••••••••" required />
-                <i data-lucide="eye" style="color: #cbd5e1; width: 18px; margin-right: 10px; cursor: pointer;"></i>
+                <i data-lucide="eye" id="togglePassword" onclick="togglePasswordVisibility()" style="color: #cbd5e1; width: 18px; margin-right: 10px; cursor: pointer;"></i>
               </div>
             </div>
 
             <div class="options-row">
-              <label><input type="checkbox" checked /> Remember me</label>
+              <label><input type="checkbox" id="remember_me" checked /> Remember me</label>
             </div>
 
             <button type="submit" class="btn-primary">
@@ -408,11 +408,11 @@
           <!-- ============================================== -->
           <div id="gateway-screen" class="hidden">
             <p style="font-size: 0.8rem; color: var(--gray); margin-bottom: 15px;">
-              By accessing this government system, you agreea to the Data Privacy Act.
+              By accessing this government system, you agree to the Data Privacy Act.
             </p>
             <label style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: var(--dark); margin-bottom: 25px;">
               <input type="checkbox" id="privacy-checkbox" style="width: 14px; height: 14px" />
-              I acknowledge and agree to the terms.
+              <span>I acknowledge and agree to the <a href="#" onclick="showTerms(event)" style="color: var(--primary); text-decoration: underline;">terms and privacy policy</a>.</span>
             </label>
 
             <button id="btn-google-login" class="btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
@@ -513,6 +513,32 @@
       };
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
+
+      // --- SHOW/HIDE PASSWORD ---
+      function togglePasswordVisibility() {
+        const pwdInput = document.getElementById('login_password');
+        const eyeIcon = document.getElementById('togglePassword');
+        
+        if (pwdInput.type === 'password') {
+          pwdInput.type = 'text';
+          eyeIcon.setAttribute('data-lucide', 'eye-off');
+        } else {
+          pwdInput.type = 'password';
+          eyeIcon.setAttribute('data-lucide', 'eye');
+        }
+        lucide.createIcons(); // Re-render the icon
+      }
+
+      // --- REMEMBER ME LOGIC (On Load) ---
+      document.addEventListener('DOMContentLoaded', () => {
+        const savedId = localStorage.getItem('remembered_system_id');
+        if (savedId) {
+          document.getElementById('login_id').value = savedId;
+          document.getElementById('remember_me').checked = true;
+        } else {
+          document.getElementById('remember_me').checked = false;
+        }
+      });
 
       function toggleForms(target) {
         document.getElementById("login-form").classList.add("hidden");
@@ -632,6 +658,13 @@
               localStorage.setItem("health_intel_token", result.token);
               localStorage.setItem("active_user_id", result.system_id);
               
+              // REMEMBER ME LOGIC (On Login)
+              if (document.getElementById('remember_me').checked) {
+                  localStorage.setItem('remembered_system_id', systemId);
+              } else {
+                  localStorage.removeItem('remembered_system_id');
+              }
+              
               Swal.fire({ icon: "success", title: "Login Successful", text: "Routing to dashboard...", timer: 1500, showConfirmButton: false })
               .then(() => { window.location.href = result.redirect; });
             } else {
@@ -701,6 +734,30 @@
             });
           }
         });
+
+      function showTerms(e) {
+        e.preventDefault();
+        Swal.fire({
+          title: "Terms & Recognitions",
+          html: `
+            <div style="text-align: left; font-size: 0.9rem; line-height: 1.6; color: #334155;">
+              <h4 style="color: #0ea5e9; font-weight: bold; margin-bottom: 8px;">Data Privacy Policy</h4>
+              <p style="margin-bottom: 15px;">In compliance with the <strong>Data Privacy Act of 2012 (R.A. 10173)</strong>, all patient information and health records collected by this system are strictly confidential. Data is utilized exclusively by authorized Barangay Health Workers (BHW) and the Municipal Health Office (MHO) for legitimate medical profiling, clustering, and disease surveillance purposes. Unauthorized sharing, extraction, or public disclosure of patient dossiers is strictly prohibited and subject to legal sanctions.</p>
+              
+              <h4 style="color: #0ea5e9; font-weight: bold; margin-bottom: 8px;">System Credits & Recognitions</h4>
+              <p style="margin-bottom: 15px;">This system is built as a Capstone Project to digitalize and enhance community health monitoring. We recognize and extend our gratitude to our LGU partners, Capstone Advisers, and the local Barangay Health Centers for their cooperation.</p>
+              <p style="margin-bottom: 0;">Powered by open-source technologies: <strong>Tailwind CSS, Leaflet.js, Chart.js, and SweetAlert2</strong>.</p>
+            </div>
+          `,
+          width: '600px',
+          confirmButtonText: "I Understand",
+          confirmButtonColor: "#0ea5e9",
+          customClass: {
+            popup: 'rounded-xl shadow-2xl',
+            title: 'text-xl font-bold border-b pb-3 mb-3'
+          }
+        });
+      }
     </script>
   </body>
 </html>
