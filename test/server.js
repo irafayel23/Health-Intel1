@@ -114,6 +114,32 @@ app.post('/api/register', async (req, res) => {
 });
 
 // ==========================================
+// CHANGE PASSWORD
+// ==========================================
+app.post('/api/change-password', async (req, res) => {
+    const { system_id, current_password, new_password } = req.body;
+    try {
+        const [rows] = await db.execute('SELECT * FROM users WHERE system_id = ?', [system_id]);
+        if (rows.length === 0) return res.status(404).json({ success: false, error: "User not found." });
+
+        const user = rows[0];
+        const isPasswordValid = await bcrypt.compare(current_password, user.password_hash);
+        
+        if (!isPasswordValid) {
+            return res.status(401).json({ success: false, error: "Incorrect current password." });
+        }
+
+        const hashedNewPassword = await bcrypt.hash(new_password, 10);
+        await db.execute('UPDATE users SET password_hash = ? WHERE system_id = ?', [hashedNewPassword, system_id]);
+        
+        res.json({ success: true, message: "Password updated successfully." });
+    } catch (error) {
+        console.error("Change Password Error:", error);
+        res.status(500).json({ success: false, error: "Database error." });
+    }
+});
+
+// ==========================================
 // 4. SECURE LOGIN
 // ==========================================
 app.post('/api/login', async (req, res) => {
@@ -137,6 +163,9 @@ app.post('/api/login', async (req, res) => {
         }
         if (user.status === 'denied') {
             return res.status(403).json({ success: false, error: "Account access denied by HR." });
+        }
+        if (user.status === 'suspended') {
+            return res.status(403).json({ success: false, error: "Account suspended. Please contact MHO HR." });
         }
 
         const token = jwt.sign(
@@ -362,20 +391,35 @@ app.get('/api/superadmin/health', async (req, res) => {
     }
 });
 
+
+// Get ALL users for Superadmin
+app.get('/api/superadmin/users', async (req, res) => {
+    try {
+        const query = `SELECT system_id, email, first_name, last_name, employee_id, role, status, created_at FROM users WHERE role != 'superadmin' ORDER BY created_at DESC`;
+        const [rows] = await db.execute(query);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        res.status(500).json({ success: false, error: "Failed to fetch all users." });
+    }
+});
+
+app.get('/api/admin/audit-logs', async (req, res) => {
+    try {
+        const query = "SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs WHERE role != 'SUPERADMIN' AND role != 'Superadmin' AND role != 'Super Admin' ORDER BY timestamp DESC";
+        const [rows] = await db.execute(query);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Audit Error:", error);
+        res.status(500).json({ success: false, error: "Database error" });
+    }
+});
+
 app.get('/api/superadmin/audit-logs', async (req, res) => {
     try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = 5; 
-        const offset = (page - 1) * limit;
-
-        const [countResult] = await db.execute("SELECT COUNT(*) as total FROM system_audit_logs");
-        const totalRecords = countResult[0].total;
-        const totalPages = Math.ceil(totalRecords / limit);
-
-        const query = "SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs ORDER BY timestamp DESC LIMIT " + limit + " OFFSET " + offset;
+        const query = "SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs ORDER BY timestamp DESC";
         const [rows] = await db.execute(query);
 
-        res.json({ success: true, data: rows, totalPages: totalPages, currentPage: page });
+        res.json({ success: true, data: rows });
     } catch (error) {
         console.error("Audit Error:", error);
         res.status(500).json({ success: false, error: 'Database error' });
@@ -836,7 +880,7 @@ app.get('/api/mho/kpi', async (req, res) => {
 app.get('/api/mho/yoy', async (req, res) => {
     try {
         const { barangay } = req.query;
-        let query = "SELECT disease, SUM(CASE WHEN YEAR(date_recorded) = 2024 THEN 1 ELSE 0 END) as cases_2024, SUM(CASE WHEN YEAR(date_recorded) = 2025 THEN 1 ELSE 0 END) as cases_2025 FROM health_cases WHERE status != 'Deceased' AND disease NOT LIKE '%bite%' AND disease NOT LIKE '%accident%'";
+        let query = "SELECT disease, SUM(CASE WHEN YEAR(date_recorded) = 2026 THEN 1 ELSE 0 END) as cases_2024, SUM(CASE WHEN YEAR(date_recorded) = 2026 THEN 1 ELSE 0 END) as cases_2025 FROM health_cases WHERE status != 'Deceased' AND disease NOT LIKE '%bite%' AND disease NOT LIKE '%accident%'";
         let params = [];
         if (barangay && barangay !== 'all') {
             query += " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
@@ -858,7 +902,7 @@ app.get('/api/mho/yoy', async (req, res) => {
 app.get('/api/mho/mortality', async (req, res) => {
     try {
         const { barangay } = req.query;
-        let query = "SELECT disease, COUNT(*) as count FROM health_cases WHERE status = 'Deceased' AND YEAR(date_recorded) = 2025";
+        let query = "SELECT disease, COUNT(*) as count FROM health_cases WHERE status = 'Deceased' AND YEAR(date_recorded) = 2026";
         let params = [];
         if (barangay && barangay !== 'all') {
             query += " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
