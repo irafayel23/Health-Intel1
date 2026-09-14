@@ -2,330 +2,434 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Portal | HEALTH-INTEL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BHW Portal | HEALTH-INTEL</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              card: "hsl(var(--card))",
+              "card-foreground": "hsl(var(--card-foreground))",
+              muted: "hsl(var(--muted))",
+              "muted-foreground": "hsl(var(--muted-foreground))",
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Separated CSS -->
     <link rel="stylesheet" href="assets/css/bhw.css" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
+
+    <!-- Map Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- jsPDF Libraries for Report Generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <style>
-      /* Mobile Responsiveness for Original Layout */
-      @media (max-width: 768px) {
-        .app-layout { flex-direction: column; overflow: auto; }
-        .sidebar { width: 100%; height: auto; min-height: fit-content; padding: 10px; }
-        .sidebar-brand { justify-content: center; margin-bottom: 15px; }
-        .nav-menu { display: flex; flex-wrap: wrap; gap: 5px; }
-        .nav-item { flex: 1 1 45%; justify-content: center; font-size: 0.85rem; padding: 10px; }
-        .main-wrapper { margin-left: 0 !important; width: 100%; padding: 15px; }
-        .grid-4 { grid-template-columns: 1fr 1fr; }
-        .top-bar { font-size: 1rem; text-align: center; }
-      }
-      @media (max-width: 480px) {
-        .grid-4 { grid-template-columns: 1fr; }
-        .nav-item { flex: 1 1 100%; }
-        #bhwMap { height: 300px !important; }
-        .top-bar { font-size: 0.9rem; padding: 10px; }
-      }
-    </style>
   </head>
-  <body>
-    <div class="app-layout">
-      <aside class="sidebar">
-        <div class="sidebar-brand">
-          <i data-lucide="shield-plus" style="width: 28px; height: 28px"></i>
-          <h2>HEALTH-INTEL</h2>
+  <body class="h-screen flex overflow-hidden antialiased selection:bg-blue-500/30">
+    
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] flex flex-col transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-30 relative">
+      <!-- Logo Area -->
+      <div class="h-16 flex items-center px-6 border-b border-[hsl(var(--border))] group cursor-default">
+        <img src="assets/img/Logo-Health-Intel.png" alt="Logo" class="w-8 h-8 mr-3 object-contain hover:scale-110 transition-transform duration-300">
+        <h2 id="sidebar-text" class="font-bold text-lg tracking-tight whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent group-hover:tracking-wider">HEALTH-INTEL</h2>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="nav-menu flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <button class="nav-item active group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-dashboard">
+          <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Dashboard</span>
+        </button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-patients">
+          <i data-lucide="users" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Patient Records</span>
+        </button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-resident-profiles">
+          <i data-lucide="contact" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Resident Profiles</span>
+        </button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-heatmap">
+          <i data-lucide="map" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
+        </button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-reports">
+          <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Brgy Reports</span>
+        </button>
+      </nav>
+
+      <!-- Bottom Sign Out -->
+      <div class="p-4 border-t border-[hsl(var(--border))]">
+        <a href="index.html" class="nav-item sign-out group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:translate-x-1 transition-all duration-300">
+          <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:-translate-x-1"></i>
+          <span class="sidebar-label whitespace-nowrap">Log Out</span></a><div class="mt-4 text-center flex justify-center"><a href="#" onclick="showTerms(event)" class="sidebar-label text-[10px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors whitespace-nowrap">&copy; 2026 Health-Intel &bull; Terms &amp; Privacy</a></div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full bg-[hsl(var(--background))] overflow-hidden relative">
+      
+      <!-- Top Header Bar -->
+      <header class="h-16 border-b border-[hsl(var(--border))] bg-[hsl(var(--card))] flex items-center justify-between px-6 z-20 shadow-[0_1px_10px_rgba(0,0,0,0.03)]">
+        <div class="flex items-center gap-4">
+          <!-- Sidebar Toggle -->
+          <button id="sidebar-toggle" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-blue-500 transition-colors">
+            <i data-lucide="panel-left-close" id="sidebar-icon" class="w-5 h-5"></i>
+          </button>
+          <div id="dynamic-portal-title" class="text-sm font-semibold text-slate-800 dark:text-slate-300">
+            Barangay Health Worker Portal - Loading...
+          </div>
         </div>
 
-        <nav class="nav-menu">
-          <button class="nav-item active" data-target="view-dashboard">
-            <i data-lucide="layout-dashboard" style="width: 20px"></i> Dashboard
-          </button>
-          <button class="nav-item" data-target="view-patients">
-            <i data-lucide="users" style="width: 20px"></i> Patient Records
+        <div class="flex items-center gap-4">
+          <!-- Dark Mode Toggle -->
+          <button onclick="toggleDarkMode()" class="p-2 rounded-full border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] hover:rotate-12 transition-all duration-300 text-[hsl(var(--foreground))] hover:shadow-sm">
+            <i data-lucide="moon" id="theme-icon" class="w-4 h-4"></i>
           </button>
           
-          <button class="nav-item" data-target="view-resident-profiles">
-            <i data-lucide="contact" style="width: 20px"></i> Resident Profiles
-          </button>
-
-          <button class="nav-item" data-target="view-heatmap">
-            <i data-lucide="map" style="width: 20px"></i> Heatmap Cases
-          </button>
-
-          <button class="nav-item" data-target="view-reports">
-            <i data-lucide="file-text" style="width: 20px"></i> Brgy Reports
-          </button>
-
-          <a href="index.html" class="nav-item sign-out">
-            <i data-lucide="log-out" style="width: 20px"></i> Sign Out
-          </a>
-        </nav>
-      </aside>
-
-      <main class="main-wrapper">
-        <div class="top-bar" id="dynamic-portal-title">
-          Barangay Health Worker Portal - Loading...
+          <!-- Profile Avatar -->
+          <div class="flex items-center gap-3">
+            <span id="dropdown-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-300">BHW-001</span>
+            <div id="dropdown-user-initial" onclick="showAccountSettings()" class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center overflow-hidden cursor-pointer hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300 text-white shadow-sm ring-2 ring-transparent hover:ring-blue-500/50 font-bold text-lg">
+              <i data-lucide="user" class="w-5 h-5"></i>
+            </div>
+          </div>
         </div>
+      </header>
 
-        <div class="dashboard-content">
-          <!-- DASHBOARD VIEW -->
-          <div id="view-dashboard" class="view-section">
-            <div style="margin-bottom: 24px;">
-              <h1 class="page-title">Dashboard Overview</h1>
-              <p class="page-subtitle" id="dynamic-dashboard-subtitle">Real-time insights for your Barangay.</p>
+      <!-- Scrollable Content Area -->
+      <div class="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view-section block animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div class="mb-8 group">
+            <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))] transition-transform origin-left group-hover:scale-[1.01]">Dashboard Overview</h1>
+            <p id="dynamic-dashboard-subtitle" class="text-[hsl(var(--muted-foreground))] mt-1">Real-time insights for your Barangay.</p>
+          </div>
+          
+          <!-- Top 4 Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300 cursor-default group">
+              <div class="flex items-center justify-between pb-3">
+                <span class="text-sm font-medium text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--foreground))] transition-colors">Total Patients</span>
+                <div class="p-2 rounded-lg bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 group-hover:scale-110">
+                  <i data-lucide="users" class="w-5 h-5"></i>
+                </div>
+              </div>
+              <div id="stat-total" class="text-3xl font-bold text-[hsl(var(--foreground))] group-hover:text-blue-500 transition-colors">Loading...</div>
             </div>
-            <div class="grid-4">
-              <div class="stat-card">
-                <div class="stat-header">
-                  <span class="stat-title">Total Patients</span>
-                  <div class="stat-icon" style="color: #0284c7; background: #e0f2fe">
-                    <i data-lucide="users" style="width: 18px"></i>
-                  </div>
+            
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300 cursor-default group">
+              <div class="flex items-center justify-between pb-3">
+                <span class="text-sm font-medium text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--foreground))] transition-colors">Active Cases</span>
+                <div class="p-2 rounded-lg bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-all duration-300 group-hover:scale-110">
+                  <i data-lucide="activity" class="w-5 h-5"></i>
                 </div>
-                <div class="stat-value" id="stat-total">Loading...</div>
               </div>
-
-              <div class="stat-card">
-                <div class="stat-header">
-                  <span class="stat-title">Active Cases</span>
-                  <div class="stat-icon" style="color: #9333ea; background: #f3e8ff">
-                    <i data-lucide="activity" style="width: 18px"></i>
-                  </div>
-                </div>
-                <div class="stat-value" id="stat-active">...</div>
-              </div>
-
-              <div class="stat-card">
-                <div class="stat-header">
-                  <span class="stat-title">Cleared Cases</span>
-                  <div class="stat-icon" style="color: #16a34a; background: #dcfce7">
-                    <i data-lucide="shield-check" style="width: 18px"></i>
-                  </div>
-                </div>
-                <div class="stat-value" id="stat-cleared">...</div>
-              </div>
-
-              <div class="stat-card">
-                <div class="stat-header">
-                  <span class="stat-title">High Risk</span>
-                  <div class="stat-icon" style="color: #ea580c; background: #ffedd5">
-                    <i data-lucide="alert-triangle" style="width: 18px"></i>
-                  </div>
-                </div>
-                <div class="stat-value" id="stat-high-risk">...</div>
-              </div>
+              <div id="stat-active" class="text-3xl font-bold text-[hsl(var(--foreground))] group-hover:text-purple-500 transition-colors">...</div>
             </div>
+            
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300 cursor-default group">
+              <div class="flex items-center justify-between pb-3">
+                <span class="text-sm font-medium text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--foreground))] transition-colors">Cleared Cases</span>
+                <div class="p-2 rounded-lg bg-green-500/10 text-green-500 group-hover:bg-green-500 group-hover:text-white transition-all duration-300 group-hover:scale-110">
+                  <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
+              </div>
+              <div id="stat-cleared" class="text-3xl font-bold text-[hsl(var(--foreground))] group-hover:text-green-500 transition-colors">...</div>
+            </div>
+            
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1.5 hover:border-red-500/30 transition-all duration-300 cursor-default group">
+              <div class="flex items-center justify-between pb-3">
+                <span class="text-sm font-medium text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--foreground))] transition-colors">High Risk</span>
+                <div class="p-2 rounded-lg bg-red-500/10 text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-300 group-hover:scale-110 group-hover:animate-pulse">
+                  <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+              </div>
+              <div id="stat-high-risk" class="text-3xl font-bold text-[hsl(var(--foreground))] group-hover:text-red-500 transition-colors">...</div>
+            </div>
+          </div>
 
-            <div class="white-panel">
-              <h3 class="panel-title">
-                <i data-lucide="activity" style="width: 16px"></i> Disease Status Breakdown
+          <!-- Bottom Grid: Breakdown + Chart -->
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+              <h3 class="font-semibold mb-6 text-[hsl(var(--foreground))] flex items-center gap-2 text-lg">
+                <i data-lucide="pie-chart" class="w-5 h-5 text-blue-500"></i> Disease Status Breakdown
               </h3>
-              <div class="breakdown-grid">
-                <div class="pastel-card bg-gray">
-                  <div class="b-val" id="bd-cleared">...</div>
-                  <div class="b-label">Cleared</div>
-                  <div class="b-sub">Recovered patients</div>
+              <div class="grid grid-cols-2 gap-4 flex-1">
+                <div class="rounded-xl border border-[hsl(var(--border))] p-5 flex flex-col justify-center items-center text-center hover:bg-[hsl(var(--muted))] hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md">
+                  <div id="bd-cleared" class="text-3xl font-bold text-[hsl(var(--foreground))]">...</div>
+                  <div class="text-sm font-semibold mt-2 text-[hsl(var(--foreground))]">Cleared</div>
+                  <div class="text-xs text-[hsl(var(--muted-foreground))] mt-1">Recovered entirely</div>
                 </div>
-                <div class="pastel-card bg-green">
-                  <div class="b-val" id="bd-mild">...</div>
-                  <div class="b-label">Mild Cases</div>
-                  <div class="b-sub">Recovering</div>
+                <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-green-500/10 hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md hover:shadow-green-500/10">
+                  <div id="bd-mild" class="text-3xl font-bold text-green-600 dark:text-green-400">...</div>
+                  <div class="text-sm font-semibold mt-2 text-green-600 dark:text-green-400">Mild Cases</div>
+                  <div class="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Currently recovering</div>
                 </div>
-                <div class="pastel-card bg-blue">
-                  <div class="b-val" id="bd-monitored">...</div>
-                  <div class="b-label">Monitored</div>
-                  <div class="b-sub">Weekly checkup</div>
+                <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-blue-500/10 hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md hover:shadow-blue-500/10">
+                  <div id="bd-monitored" class="text-3xl font-bold text-blue-600 dark:text-blue-400">...</div>
+                  <div class="text-sm font-semibold mt-2 text-blue-600 dark:text-blue-400">Monitored</div>
+                  <div class="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Weekly checkup needed</div>
                 </div>
-                <div class="pastel-card bg-orange">
-                  <div class="b-val" id="bd-high">...</div>
-                  <div class="b-label">High Risk</div>
-                  <div class="b-sub">Requires attention</div>
+                <div class="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-orange-500/10 hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md hover:shadow-orange-500/10">
+                  <div id="bd-high" class="text-3xl font-bold text-orange-600 dark:text-orange-400">...</div>
+                  <div class="text-sm font-semibold mt-2 text-orange-600 dark:text-orange-400">High Risk</div>
+                  <div class="text-xs text-orange-600/70 dark:text-orange-400/70 mt-1">Requires urgent attention</div>
                 </div>
               </div>
             </div>
 
-            <div class="white-panel">
-              <h3 class="panel-title">Disease Trend</h3>
-              <div style="position: relative; height: 250px; width: 100%">
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow group">
+              <h3 class="font-semibold mb-6 text-[hsl(var(--foreground))] flex items-center gap-2 text-lg">
+                 <i data-lucide="trending-up" class="w-5 h-5 text-cyan-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></i> Disease Trend
+              </h3>
+              <div class="relative h-[250px] w-full">
                 <canvas id="bhwChart"></canvas>
               </div>
             </div>
-          </div>
-
-          <!-- PATIENT RECORDS VIEW -->
-          <div id="view-patients" class="view-section hidden white-panel">
-            <h1 id="patients-page-title" class="page-title">Patient Records Profiling</h1>
-            <p class="page-subtitle" style="margin-bottom: 1.5rem">Basic information and health records collection.</p>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-              <div style="display: flex; gap: 10px">
-                <button onclick="openAddPatientModal()" style="padding: 0.75rem 1.5rem; background: #007bff; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                  + Add New Record
-                </button>
-                <button id="toggle-archive-btn" onclick="toggleArchiveView()" style="padding: 0.75rem 1.5rem; background: #64748b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                  🗑️ View Archived Records
-                </button>
-              </div>
-
-              <div style="position: relative; width: 300px">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 12px">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input type="text" id="patient-search-input" placeholder="Search patient name..." onkeyup="filterTable()" style="width: 100%; padding: 10px 10px 10px 40px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; background: #f8fafc;" />
-              </div>
-            </div>
-
-            <table class="data-table" id="main-patient-table">
-              <thead>
-                <tr>
-                  <th style="text-align: left; padding: 12px; background: #f8fafc">Name</th>
-                  <th style="text-align: left; padding: 12px; background: #f8fafc">Purok</th>
-                  <th style="text-align: left; padding: 12px; background: #f8fafc">Condition</th>
-                  <th style="text-align: left; padding: 12px; background: #f8fafc">Status</th>
-                  <th style="text-align: left; padding: 12px; background: #f8fafc">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="patients-table-body"></tbody>
-            </table>
-          </div>
-
-          <!-- RESIDENT PROFILES DIRECTORY VIEW -->
-          <div id="view-resident-profiles" class="view-section hidden white-panel">
-            <h1 class="page-title">Master Resident Directory</h1>
-            <p class="page-subtitle">Complete medical dossiers and historical records for all registered residents.</p>
             
-            <div style="margin-bottom: 20px; position: relative;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 12px">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              <input type="text" id="directory-search" placeholder="Search resident name..." style="width: 100%; max-width: 400px; padding: 10px 10px 10px 40px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none;" onkeyup="filterDirectory()">
-            </div>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;" id="resident-grid">
-               <!-- JS Generates Cards Here -->
-            </div>
           </div>
-
-          <!-- HEATMAP VIEW -->
-          <div id="view-heatmap" class="view-section hidden white-panel">
-            <h1 class="page-title">Barangay Heatmap (Active Cases)</h1>
-            <p class="page-subtitle" id="heatmap-subtitle">Live GIS mapping of outbreak clusters across the Municipality of Murcia.</p>
-            <div id="bhwMap" style="height: 450px; width: 100%; border-radius: 8px; border: 1px solid #e2e8f0; z-index: 1;"></div>
-          </div>
-
-          <!-- REPORTS VIEW -->
-          <div id="view-reports" class="view-section hidden">
-            <h1 class="page-title">Barangay Health Station Report Generation</h1>
-            <p class="page-subtitle">Generate immutable, print-ready certified health summaries for submission to the Rural Health Unit (RHU/MHO).</p>
-          
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
-              <div class="white-panel" style="margin-bottom: 0; border-top: 4px solid #0066cc;">
-                <h3 style="margin-top: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
-                  <i data-lucide="file-spreadsheet" style="color: #0066cc;"></i> BHS-M1: Monthly Health Summary
-                </h3>
-                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Standardized monthly consolidation of barangay consultations, common morbidity cases, and vital health services.</p>
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                  <select id="bhw-report-month" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    <option value="January">January</option>
-                    <option value="February">February</option>
-                    <option value="March">March</option>
-                  </select>
-                  <select id="bhw-report-year" style="flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
-                  </select>
-                </div>
-                <button onclick="generateBHWReport('MONTHLY')" style="width: 100%; padding: 12px; background: #0066cc; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;">
-                  <i data-lucide="download" style="width: 18px;"></i> Generate BHS Monthly Summary (PDF)
-                </button>
-              </div>
-          
-              <div class="white-panel" style="margin-bottom: 0; border-top: 4px solid #ea580c;">
-                <h3 style="margin-top: 0; color: #0f172a; display: flex; align-items: center; gap: 10px;">
-                  <i data-lucide="shield-alert" style="color: #ea580c;"></i> Household Surveillance Registry
-                </h3>
-                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 20px;">Event-based surveillance registry of monitored household clusters, fever alerts, and active high-risk patients.</p>
-                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                  <select id="bhw-purok-filter" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                    <option value="All Puroks">All Puroks / Zones</option>
-                    <option value="Purok 1">Purok 1</option>
-                    <option value="Purok 2">Purok 2</option>
-                    <option value="Purok 3">Purok 3</option>
-                  </select>
-                </div>
-                <button onclick="generateBHWReport('SURVEILLANCE')" style="width: 100%; padding: 12px; background: #ea580c; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px;">
-                  <i data-lucide="download" style="width: 18px;"></i> Generate Surveillance Log (PDF)
-                </button>
-              </div>
-            </div>
-          </div>
-          
         </div>
-      </main>
-    </div>
 
-    <!-- ============================================== -->
-    <!-- PATIENT MASTER PROFILE MODAL -->
-    <!-- ============================================== -->
-    <div id="patientProfileModal" class="modal-overlay hidden" style="z-index: 9999; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); display: none; justify-content: center; align-items: center;">
-      <div class="modal-box" style="background: white; padding: 0; border-radius: 12px; width: 700px; max-width: 95%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden;">
+        <!-- PATIENT RECORDS VIEW -->
+        <div id="view-patients" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div class="mb-8">
+            <h1 id="patients-page-title" class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Patient Records Profiling</h1>
+            <p class="text-[hsl(var(--muted-foreground))] mt-1">Basic information and health records collection.</p>
+          </div>
+
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div class="flex gap-3">
+              <button onclick="openAddPatientModal()" class="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i> New Record
+              </button>
+              <button id="toggle-archive-btn" onclick="toggleArchiveView()" class="px-5 py-2.5 border border-[hsl(var(--border))] text-[hsl(var(--foreground))] bg-[hsl(var(--card))] font-medium rounded-lg shadow-sm hover:bg-[hsl(var(--muted))] hover:shadow-md transition-all text-sm flex items-center gap-2">
+                <i data-lucide="archive" class="w-4 h-4"></i> View Archived
+              </button>
+            </div>
+            
+            <div class="relative w-full md:w-80 group">
+              <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-[hsl(var(--muted-foreground))] group-focus-within:text-blue-500 transition-colors"></i>
+              <input type="text" id="patient-search-input" onkeyup="filterTable()" placeholder="Search patient name..." class="w-full pl-9 pr-4 py-2.5 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
+            </div>
+          </div>
+
+          <div class="border border-[hsl(var(--border))] rounded-2xl overflow-hidden bg-[hsl(var(--card))] shadow-sm hover:shadow-md transition-shadow">
+            <div class="overflow-x-auto">
+              <table id="main-patient-table" class="w-full text-sm text-left">
+                <thead class="bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]">
+                  <tr>
+                    <th class="px-6 py-4 font-semibold">Name</th>
+                    <th class="px-6 py-4 font-semibold">Purok</th>
+                    <th class="px-6 py-4 font-semibold">Condition</th>
+                    <th class="px-6 py-4 font-semibold">Status</th>
+                    <th class="px-6 py-4 font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="patients-table-body" class="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
+                  <!-- JS Injected -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Pagination injected here -->
+          <div id="patients-pagination" class="mt-4 flex justify-end gap-2"></div>
+        </div>
+
+        <!-- RESIDENT PROFILES DIRECTORY VIEW -->
+        <div id="view-resident-profiles" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div class="mb-8">
+            <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Master Resident Directory</h1>
+            <p class="text-[hsl(var(--muted-foreground))] mt-1">Complete medical dossiers and historical records for all registered residents.</p>
+          </div>
+          
+          <div class="relative w-full max-w-md mb-8 group">
+            <i data-lucide="search" class="absolute left-3 top-3.5 w-5 h-5 text-[hsl(var(--muted-foreground))] group-focus-within:text-blue-500 transition-colors"></i>
+            <input type="text" id="directory-search" onkeyup="filterDirectory()" placeholder="Search resident name..." class="w-full pl-10 pr-4 py-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
+          </div>
+
+          <div id="resident-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- JS Injected -->
+          </div>
+        </div>
+
+        <!-- HEATMAP VIEW -->
+        <div id="view-heatmap" class="view-section hidden flex-col h-[calc(100vh-10rem)] animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div class="mb-6 flex-shrink-0">
+            <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Barangay Heatmap</h1>
+            <p id="heatmap-subtitle" class="text-[hsl(var(--muted-foreground))] mt-1">Live GIS mapping of outbreak clusters.</p>
+          </div>
+          <div id="bhwMap" class="w-full border border-[hsl(var(--border))] rounded-2xl overflow-hidden z-10 shadow-md hover:shadow-lg transition-shadow relative" style="height: 500px; min-height: 500px;"></div>
+        </div>
+
+        <!-- REPORTS VIEW -->
+        <div id="view-reports" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div class="mb-8">
+            <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Report Generation</h1>
+            <p class="text-[hsl(var(--muted-foreground))] mt-1">Generate print-ready certified health summaries.</p>
+          </div>
+          
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-8 shadow-sm border-t-4 border-t-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all group">
+              <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
+                <div class="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-colors"><i data-lucide="file-spreadsheet" class="w-6 h-6 text-blue-500 group-hover:text-white"></i></div>
+                BHS-M1: Monthly Summary
+              </h3>
+              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Standardized monthly consolidation of barangay consultations, common morbidity cases, and vital health services.</p>
+              
+              <div class="flex gap-4 mb-6">
+                <select id="bhw-report-month" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-blue-500/50 hover:border-blue-500/50 transition-colors">
+                  <option value="January">January</option>
+                  <option value="February">February</option>
+                  <option value="March">March</option>
+                </select>
+                <select id="bhw-report-year" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-blue-500/50 hover:border-blue-500/50 transition-colors">
+                  <option value="2026">2026</option>
+                  <option value="2025">2025</option>
+                </select>
+              </div>
+              <button onclick="generateBHWReport('MONTHLY')" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-blue-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
+                <i data-lucide="download" class="w-5 h-5"></i> Generate BHS Monthly PDF
+              </button>
+            </div>
+            
+            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-8 shadow-sm border-t-4 border-t-orange-500 hover:shadow-xl hover:-translate-y-1 transition-all group">
+              <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
+                <div class="p-2 bg-orange-500/10 rounded-lg group-hover:bg-orange-500 group-hover:text-white transition-colors"><i data-lucide="shield-alert" class="w-6 h-6 text-orange-500 group-hover:text-white"></i></div>
+                Surveillance Registry
+              </h3>
+              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Event-based surveillance registry of monitored household clusters, fever alerts, and active high-risk patients.</p>
+              
+              <div class="mb-6">
+                <select id="bhw-purok-filter" class="w-full bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-orange-500/50 hover:border-orange-500/50 transition-colors">
+                  <option value="All Puroks">All Puroks / Zones</option>
+                  <option value="Purok 1">Purok 1</option>
+                  <option value="Purok 2">Purok 2</option>
+                  <option value="Purok 3">Purok 3</option>
+                </select>
+              </div>
+              <button onclick="generateBHWReport('SURVEILLANCE')" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-orange-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
+                <i data-lucide="download" class="w-5 h-5"></i> Generate Surveillance Log PDF
+              </button>
+            </div>
+
+          </div>
+        </div>
         
-        <div style="background: #0f172a; padding: 25px; color: white; display: flex; align-items: center; gap: 20px;">
-          <div style="width: 80px; height: 80px; background: #38bdf8; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2rem; font-weight: bold; color: #0f172a;" id="profile-initials">
-            JD
+      </div>
+    </main>
+
+    <!-- PATIENT PROFILE MODAL -->
+    <div id="patientProfileModal" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center items-center p-4 animate-in fade-in duration-200">
+      <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+        
+        <div class="p-6 border-b border-[hsl(var(--border))] flex items-center justify-between bg-[hsl(var(--muted))]">
+          <div class="flex items-center gap-5">
+            <div id="profile-initials" class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 text-white flex justify-center items-center text-2xl font-bold shadow-md border-2 border-white/20">
+              JD
+            </div>
+            <div>
+              <h2 id="profile-name" class="text-2xl font-bold text-[hsl(var(--foreground))]">Juan Dela Cruz</h2>
+              <p class="text-sm text-[hsl(var(--muted-foreground))] flex items-center gap-1.5 mt-1 font-medium">
+                <i data-lucide="map-pin" class="w-4 h-4 text-blue-500"></i> <span id="profile-purok">Purok 1</span> <span class="mx-1 text-[hsl(var(--border))]">|</span> <span id="profile-age">45</span> yrs old
+              </p>
+            </div>
           </div>
-          <div style="flex-grow: 1;">
-            <h2 id="profile-name" style="margin: 0; font-size: 1.5rem; letter-spacing: 1px;">Juan Dela Cruz</h2>
-            <p style="margin: 5px 0 0 0; color: #94a3b8; font-size: 0.9rem;">
-              <i data-lucide="map-pin" style="width: 14px; display: inline-block; vertical-align: middle;"></i> <span id="profile-purok">Purok 1</span> | 
-              <span id="profile-age">45</span> yrs old
-            </p>
-          </div>
-          <button onclick="closeProfileModal()" style="background: transparent; border: none; color: #94a3b8; cursor: pointer;">
-            <i data-lucide="x-circle" style="width: 28px; height: 28px;"></i>
+          <button onclick="closeProfileModal()" class="w-10 h-10 rounded-full flex items-center justify-center bg-[hsl(var(--background))] border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/10 transition-all hover:rotate-90">
+            <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
 
-        <div style="padding: 25px;">
-          <h3 style="margin-top: 0; color: #0f172a; font-size: 1.1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">Medical History & Cases</h3>
-          <div style="max-height: 300px; overflow-y: auto;">
-            <table style="width: 100%; border-collapse: collapse; text-align: left;">
-              <thead>
+        <div class="p-6 overflow-y-auto">
+          <h3 class="font-bold text-[hsl(var(--foreground))] mb-4 text-lg">Medical History & Cases</h3>
+          <div class="border border-[hsl(var(--border))] rounded-xl overflow-hidden shadow-sm">
+            <table class="w-full text-sm text-left">
+              <thead class="bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]">
                 <tr>
-                  <th style="padding: 10px; background: #f8fafc; color: #64748b; font-size: 0.8rem; border-bottom: 2px solid #e2e8f0;">System ID</th>
-                  <th style="padding: 10px; background: #f8fafc; color: #64748b; font-size: 0.8rem; border-bottom: 2px solid #e2e8f0;">Diagnosed Disease</th>
-                  <th style="padding: 10px; background: #f8fafc; color: #64748b; font-size: 0.8rem; border-bottom: 2px solid #e2e8f0;">Remarks</th>
-                  <th style="padding: 10px; background: #f8fafc; color: #64748b; font-size: 0.8rem; border-bottom: 2px solid #e2e8f0;">Status</th>
+                  <th class="px-5 py-3 font-semibold">System ID</th>
+                  <th class="px-5 py-3 font-semibold">Diagnosed Disease</th>
+                  <th class="px-5 py-3 font-semibold">Remarks</th>
+                  <th class="px-5 py-3 font-semibold">Status</th>
                 </tr>
               </thead>
-              <tbody id="profile-history-body">
-                <!-- Javascript will inject history here -->
+              <tbody id="profile-history-body" class="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
+                <!-- JS Injected -->
               </tbody>
             </table>
           </div>
         </div>
-
       </div>
     </div>
 
+    <!-- UI Interaction Scripts -->
+    <script>
+      let isDarkMode = false; 
+      function toggleDarkMode() {
+        isDarkMode = !isDarkMode;
+        if(isDarkMode) {
+          document.documentElement.classList.add('dark');
+          document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
+        } else {
+          document.documentElement.classList.remove('dark');
+          document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
+        }
+        lucide.createIcons();
+      }
+      
+      let sidebarOpen = true;
+      function toggleSidebar() {
+        sidebarOpen = !sidebarOpen;
+        const sidebar = document.getElementById('sidebar');
+        const icon = document.getElementById('sidebar-icon');
+        const labels = document.querySelectorAll('.sidebar-label');
+        const text = document.getElementById('sidebar-text');
+        
+        if (sidebarOpen) {
+          sidebar.classList.remove('w-20');
+          sidebar.classList.add('w-64');
+          labels.forEach(l => { l.classList.remove('opacity-0', 'hidden'); l.classList.add('opacity-100'); });
+          text.classList.remove('opacity-0', 'hidden'); text.classList.add('opacity-100');
+          icon.setAttribute('data-lucide', 'panel-left-close');
+        } else {
+          sidebar.classList.remove('w-64');
+          sidebar.classList.add('w-20');
+          labels.forEach(l => { l.classList.remove('opacity-100'); l.classList.add('opacity-0', 'hidden'); });
+          text.classList.remove('opacity-100'); text.classList.add('opacity-0', 'hidden');
+          icon.setAttribute('data-lucide', 'panel-left-open');
+        }
+        lucide.createIcons();
+        if(typeof map !== 'undefined') {
+          setTimeout(() => map.invalidateSize(), 300);
+        }
+      }
+    </script>
+
     <script>
       lucide.createIcons();
-
-      // GLOBAL STATE
+      
       let allPatients = [];
       let isViewingArchive = false;
+      let currentPage = 1;
+      const rowsPerPage = 10;
 
-      // 1. SIDEBAR TAB SWITCHING LOGIC
+      // 1. SIDEBAR TAB SWITCHING
       const navButtons = document.querySelectorAll(".nav-menu .nav-item");
       const viewSections = document.querySelectorAll(".view-section");
 
@@ -336,172 +440,469 @@
           navButtons.forEach((btn) => btn.classList.remove("active"));
           button.classList.add("active");
 
-          viewSections.forEach((section) => {
-            section.classList.add("hidden");
-            section.style.display = "none";
-          });
-
           const targetId = button.getAttribute("data-target");
-          const targetSection = document.getElementById(targetId);
-          targetSection.classList.remove("hidden");
-          targetSection.style.display = "block";
+          viewSections.forEach((view) => {
+            view.classList.add("hidden"); view.classList.remove("block"); view.classList.remove("flex");
+          });
           
-          if(targetId === 'view-heatmap' && typeof map !== 'undefined') {
-              setTimeout(() => map.invalidateSize(), 100);
+          const view = document.getElementById(targetId);
+          if (view) {
+              view.classList.remove("hidden"); if(view.classList.contains("flex-col")){ view.classList.add("flex"); } else { view.classList.add("block"); }
+              if (targetId === 'view-heatmap' && typeof map !== 'undefined') { 
+                  setTimeout(() => map.invalidateSize(), 300); 
+              }
           }
         });
       });
 
-      // 2. CRUD LOGIC FOR PATIENT RECORDS
-      function filterTable() {
-        const input = document.getElementById("patient-search-input").value.toLowerCase();
-        const trs = document.getElementById("main-patient-table").getElementsByTagName("tr");
-        for (let i = 1; i < trs.length; i++) {
-          const tdName = trs[i].getElementsByTagName("td")[0];
-          if (tdName) {
-            trs[i].style.display = (tdName.textContent || tdName.innerText).toLowerCase().indexOf(input) > -1 ? "" : "none";
-          }
-        }
-      }
-
-      function toggleArchiveView() {
-        isViewingArchive = !isViewingArchive;
-        const btn = document.getElementById("toggle-archive-btn");
-        const pageTitle = document.getElementById("patients-page-title");
-        document.getElementById("patient-search-input").value = "";
-
-        if (isViewingArchive) {
-          btn.innerHTML = "🔙 Back to Active Records";
-          btn.style.background = "#0f172a";
-          pageTitle.innerText = "Archived Patient Records";
-          loadArchivedPatients();
-        } else {
-          btn.innerHTML = "🗑️ View Archived Records";
-          btn.style.background = "#64748b";
-          pageTitle.innerText = "Patient Records Profiling";
-          loadPatients();
-        }
-      }
-
+      // 2. DATA FETCHING (FIXED TO MATCH BACKEND)
       async function loadPatients() {
         try {
-          const url = window.currentBrgyId ? `http://localhost:3000/api/patients?barangay_id=${window.currentBrgyId}` : "http://localhost:3000/api/patients";
+          const url = window.currentBrgyId ? `http://localhost:3000/api/patients?barangay_id=${window.currentBrgyId}` : 'http://localhost:3000/api/patients';
           const response = await fetch(url);
           const result = await response.json();
-          const tbody = document.getElementById("patients-table-body");
-          tbody.innerHTML = "";
-
           if (result.success) {
-            allPatients = result.data; 
-            
-            if (allPatients.length === 0) {
-              tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">No active records found.</td></tr>`;
-            } else {
-              allPatients.forEach((patient) => {
-                let statusColor = patient.status === "Cleared" ? "#16a34a" : "#ea580c";
-                let fullName = patient.patient_name || patient.first_name + " " + patient.last_name;
-                
-                // Composite Key for Profile Button
-                let identifier = patient.birthdate || patient.age || "Unknown";
-                let compositeKey = fullName.toLowerCase() + "_" + identifier;
-                
-                tbody.innerHTML += `
-                  <tr style="border-bottom: 1px solid #e2e8f0;">
-                    <td style="padding: 12px; color: #0f172a;"><strong>${fullName}</strong></td>
-                    <td style="padding: 12px;">${patient.purok}</td>
-                    <td style="padding: 12px;">${patient.disease}</td>
-                    <td style="padding: 12px; color: ${statusColor}; font-weight: bold;">${patient.status}</td>
-                    <td style="padding: 12px; display: flex; gap: 8px;">
-                      <button onclick="openProfileModal('${compositeKey}')" style="background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size: 0.85rem; font-weight: bold;">Profile</button>
-                      <button onclick="updateStatus(${patient.id})" style="background:#f59e0b; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size: 0.85rem; font-weight: bold;">Update Status</button>
-                      <button onclick="archivePatient(${patient.id})" style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size: 0.85rem; font-weight: bold;">Archive</button>
-                    </td>
-                  </tr>
-                `;
-              });
-            }
-            loadResidentDirectory();
+            allPatients = result.data;
+            filterTable();
           }
-        } catch (error) {
-          console.error("Failed to load patients", error);
+        } catch (e) {
+          console.error("Error loading patients:", e);
         }
       }
 
       async function loadArchivedPatients() {
         try {
-          const url = window.currentBrgyId ? `http://localhost:3000/api/patients/archived?barangay_id=${window.currentBrgyId}` : "http://localhost:3000/api/patients/archived";
+          const url = window.currentBrgyId ? `http://localhost:3000/api/patients/archived?barangay_id=${window.currentBrgyId}` : 'http://localhost:3000/api/patients/archived';
           const response = await fetch(url);
           const result = await response.json();
-          const tbody = document.getElementById("patients-table-body");
-          tbody.innerHTML = "";
-
           if (result.success) {
-            if (result.data.length === 0) {
-              tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">Trash is empty.</td></tr>`;
-              return;
-            }
-            result.data.forEach((patient) => {
-              let fullName = patient.patient_name || patient.first_name + " " + patient.last_name;
-              tbody.innerHTML += `
-                <tr style="border-bottom: 1px solid #e2e8f0; background: #fef2f2;">
-                  <td style="padding: 12px; color: #94a3b8;"><strong>${fullName}</strong></td>
-                  <td style="padding: 12px; color: #94a3b8;">${patient.purok}</td>
-                  <td style="padding: 12px; color: #94a3b8;">${patient.disease}</td>
-                  <td style="padding: 12px; color: #ef4444; font-weight: bold;">Archived</td>
-                  <td style="padding: 12px;">
-                    <button onclick="restorePatient(${patient.id})" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size: 0.85rem; font-weight: bold;">♻️ Restore Record</button>
-                  </td>
-                </tr>
-              `;
-            });
+            allPatients = result.data;
+            filterTable();
           }
         } catch (error) {
           console.error("Failed to load archived", error);
         }
       }
 
+      async function loadDashboardStats() {
+          try {
+            const url = window.currentBrgyId ? `http://localhost:3000/api/bhw-stats?barangay_id=${window.currentBrgyId}` : 'http://localhost:3000/api/bhw-stats';
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.success) {
+              document.getElementById("stat-total").innerText = data.total;
+              document.getElementById("stat-active").innerText = data.active;
+              document.getElementById("stat-cleared").innerText = data.cleared;
+              document.getElementById("stat-high-risk").innerText = data.high_risk;
+  
+              document.getElementById("bd-cleared").innerText = data.cleared;
+              document.getElementById("bd-mild").innerText = data.mild;
+              document.getElementById("bd-monitored").innerText = data.monitored;
+              document.getElementById("bd-high").innerText = data.high_risk;
+            }
+          } catch (e) { console.error("Error loading stats:", e); }
+      }
+
+      // 3. RENDER PATIENTS TABLE & PAGINATION
+      function filterTable() {
+          if (typeof event !== 'undefined' && event && event.type === 'keyup') currentPage = 1;
+          const searchInput = document.getElementById("patient-search-input");
+          const query = searchInput ? searchInput.value.toLowerCase() : "";
+          
+          let filtered = allPatients.filter(p => {
+              const patientName = p.patient_name || p.first_name + " " + p.last_name || p.name || "";
+              const nameMatch = patientName.toLowerCase().includes(query);
+              const diseaseMatch = p.disease ? p.disease.toLowerCase().includes(query) : false;
+              return nameMatch || diseaseMatch;
+          });
+          renderPatientsTable(filtered);
+      }
+
+      function toggleArchiveView() {
+          isViewingArchive = !isViewingArchive;
+          const btn = document.getElementById("toggle-archive-btn");
+          const title = document.getElementById("patients-page-title");
+          
+          if (isViewingArchive) {
+              btn.innerHTML = "<i data-lucide='arrow-left' class='w-4 h-4'></i> Back to Active Records";
+              btn.classList.remove("bg-[hsl(var(--card))]", "text-[hsl(var(--foreground))]"); 
+              btn.classList.add("bg-orange-500", "text-white", "border-orange-500", "hover:bg-orange-600");
+              title.innerText = "Archived Patient Records";
+              loadArchivedPatients();
+          } else {
+              btn.innerHTML = "<i data-lucide='archive' class='w-4 h-4'></i> View Archived";
+              btn.classList.add("bg-[hsl(var(--card))]", "text-[hsl(var(--foreground))]"); 
+              btn.classList.remove("bg-orange-500", "text-white", "border-orange-500", "hover:bg-orange-600");
+              title.innerText = "Patient Records Profiling";
+              loadPatients();
+          }
+          lucide.createIcons();
+      }
+
+      function renderPatientsTable(data) {
+        const tbody = document.getElementById("patients-table-body");
+        tbody.innerHTML = "";
+        
+        const totalPages = Math.ceil(data.length / rowsPerPage);
+        const startIndex = (currentPage - 1) * rowsPerPage;
+        const endIndex = startIndex + rowsPerPage;
+        const pageData = data.slice(startIndex, endIndex);
+
+        if (pageData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-[hsl(var(--muted-foreground))]">No records found.</td></tr>';
+        } else {
+            pageData.forEach((record) => {
+                let statusColor = record.status === "Cleared" ? "text-green-600 dark:text-green-400" : (record.status === "Deceased" ? "text-slate-500 dark:text-slate-400" : "text-orange-600 dark:text-orange-400");
+                let fullName = record.patient_name || record.first_name + " " + record.last_name || record.name;
+                
+                // Construct composite key for viewPatientProfile from the old logic
+                let identifier = record.birthdate || record.age || "Unknown";
+                let compositeKey = fullName.toLowerCase() + "_" + identifier;
+
+                tbody.innerHTML += `
+                  <tr class="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] transition-colors">
+                    <td class="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">${fullName}</td>
+                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${record.purok}</td>
+                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${record.disease}</td>
+                    <td class="px-6 py-4 font-semibold ${statusColor}">${record.status || (isViewingArchive ? "Archived" : "")}</td>
+                    <td class="px-6 py-4 flex gap-2">
+                        <button onclick="viewPatientProfile('${compositeKey}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-xs shadow-sm transition-colors">Profile</button>
+                        ${!isViewingArchive ? `<button onclick="updatePatientStatus(${record.id})" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md font-medium text-xs shadow-sm transition-colors">Update Status</button>` : ""}
+                        <button onclick="toggleArchiveStatus(${record.id})" class="px-3 py-1.5 ${isViewingArchive ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white rounded-md font-medium text-xs shadow-sm transition-colors">${isViewingArchive ? "Restore" : "Archive"}</button>
+                    </td>
+                  </tr>
+                `;
+            });
+        }
+        renderPaginationControls(totalPages);
+      }
+
+      function renderPaginationControls(totalPages) {
+        const container = document.getElementById("patients-pagination");
+        if (!container) return;
+        container.innerHTML = "";
+        
+        if (totalPages <= 1) return;
+        
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement("button");
+            btn.innerText = i;
+            if (i === currentPage) {
+                btn.className = "w-8 h-8 rounded-md bg-blue-600 text-white font-medium flex items-center justify-center text-sm shadow-sm";
+            } else {
+                btn.className = "w-8 h-8 rounded-md bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] font-medium flex items-center justify-center text-sm transition-colors";
+                btn.onclick = () => {
+                    currentPage = i;
+                    filterTable();
+                };
+            }
+            container.appendChild(btn);
+        }
+      }
+
+      // 4. DIRECTORY & PROFILES
+      async function loadResidentDirectory() {
+          try {
+              const url = window.currentBrgyId ? `http://localhost:3000/api/residents?barangay_id=${window.currentBrgyId}` : "http://localhost:3000/api/residents";
+              const response = await fetch(url);
+              const result = await response.json();
+              if (result.success) {
+                  window.allResidents = result.data;
+                  filterDirectory();
+              }
+          } catch(e) {
+              console.error("Error loading directory", e);
+          }
+      }
+
+      function filterDirectory() {
+          const query = document.getElementById("directory-search").value.toLowerCase();
+          const filtered = window.allResidents ? window.allResidents.filter(p => {
+             const name = p.patient_name || p.first_name + " " + p.last_name || "";
+             return name.toLowerCase().includes(query);
+          }) : [];
+          renderDirectory(filtered);
+      }
+
+      function renderDirectory(data) {
+        const grid = document.getElementById("resident-grid");
+        if(!grid) return;
+        grid.innerHTML = "";
+        
+        if (data.length === 0) {
+            grid.innerHTML = '<div class="col-span-full py-8 text-center text-[hsl(var(--muted-foreground))]">No residents found.</div>';
+            return;
+        }
+
+        data.forEach(res => {
+            const patientName = res.patient_name || res.first_name + " " + res.last_name || "Unknown";
+            const nameParts = patientName.split(" ");
+            const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
+            
+            const ageNum = parseInt(res.age);
+            const isSenior = !isNaN(ageNum) && ageNum >= 60;
+            
+            grid.innerHTML += `
+              <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center group">
+                <div class="w-16 h-16 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex justify-center items-center text-2xl font-bold mb-4 group-hover:scale-110 transition-transform">
+                  ${initials.toUpperCase()}
+                </div>
+                <h3 class="font-bold text-lg mb-1 text-[hsl(var(--foreground))]">${patientName}</h3>
+                ${isSenior ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 rounded text-xs font-bold mb-2 inline-block">Senior Citizen</span>' : ''}
+                <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${res.purok} | ${res.age} yrs</p>
+                
+                <button onclick="viewPatientProfile('${res.id}')" class="w-full mt-auto py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors">
+                  View Medical Dossier<br>
+                  <small class="opacity-80">(${res.case_count || 0} Records)</small>
+                </button>
+              </div>
+            `;
+        });
+      }
+
+      async function viewPatientProfile(residentId) {
+          try {
+              // Now we call the real backend endpoint for dossiers
+              const res = await fetch(`http://localhost:3000/api/residents/${residentId}/dossier`);
+              const result = await res.json();
+              if(result.success) {
+                  const data = result.resident;
+                  const history = result.history;
+
+                  let patientName = data.patient_name || data.first_name + " " + data.last_name || "Unknown";
+                  const nameParts = patientName.split(" ");
+                  const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
+                  
+                  document.getElementById("profile-initials").innerText = initials.toUpperCase();
+                  document.getElementById("profile-name").innerText = patientName;
+                  document.getElementById("profile-purok").innerText = data.purok || "Unknown";
+                  document.getElementById("profile-age").innerText = data.age || "N/A";
+
+                  const tbody = document.getElementById("profile-history-body");
+                  tbody.innerHTML = "";
+                  
+                  if(history.length === 0) {
+                      tbody.innerHTML = '<tr><td colspan="4" class="px-5 py-4 text-center text-slate-500">No records found</td></tr>';
+                  } else {
+                      history.forEach(record => {
+                          let statusColor = record.status === "Cleared" ? "text-green-600 dark:text-green-400" : (record.status === "Deceased" ? "text-slate-500 dark:text-slate-400" : "text-orange-600 dark:text-orange-400");
+                          let dateStr = new Date(record.date_recorded).toLocaleDateString();
+                          let severityBadge = record.severity === "High Risk" ? `<span class="bg-red-500/10 text-red-500 rounded px-1 text-xs">High Risk</span>` : "";
+
+                          tbody.innerHTML += `
+                            <tr class="border-b border-[hsl(var(--border))]">
+                              <td class="px-5 py-4 font-mono text-xs text-[hsl(var(--muted-foreground))]">
+                                #REC-${record.id}<br>${dateStr}
+                              </td>
+                              <td class="px-5 py-4 font-semibold text-[hsl(var(--foreground))]">
+                                ${record.disease} <br>${severityBadge}
+                              </td>
+                              <td class="px-5 py-4 text-[hsl(var(--muted-foreground))] text-sm">${record.remarks || "No remarks"}</td>
+                              <td class="px-5 py-4 ${statusColor} font-bold text-sm">
+                                 ${record.status}
+                              </td>
+                            </tr>
+                          `;
+                      });
+                  }
+                  const modal = document.getElementById("patientProfileModal");
+                  modal.classList.remove("hidden"); 
+                  modal.style.display = "flex";
+              }
+          } catch(e) { console.error("Error opening dossier", e); }
+      }
+
+      function closeProfileModal() {
+        const modal = document.getElementById("patientProfileModal");
+        modal.classList.add("hidden");
+        modal.style.display = "none";
+      }
+
+      async function updatePatientStatus(id) {
+          const { value: formValues } = await Swal.fire({
+            title: "Update Patient Status",
+            html:
+              '<select id="swal-input1" class="swal2-input">' +
+              '<option value="Active">Active</option>' +
+              '<option value="Cleared">Cleared</option>' +
+              '<option value="Deceased">Deceased</option>' +
+              '</select>' +
+              '<input id="swal-input2" class="swal2-input" placeholder="Remarks / Doctor Notes">',
+            focusConfirm: false,
+            preConfirm: () => {
+              return [
+                document.getElementById("swal-input1").value,
+                document.getElementById("swal-input2").value
+              ]
+            }
+          });
+          if (formValues) {
+            await fetch(`http://localhost:3000/api/patients/${id}/status`, {
+              method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ new_status: formValues[0], remarks: formValues[1] }),
+            });
+            Swal.fire("Updated!", "Patient status has been updated.", "success");
+            loadPatients();
+            loadDashboardStats();
+          }
+      }
+
+      function toggleArchiveStatus(id) {
+          Swal.fire({
+            title: isViewingArchive ? "Restore Patient?" : "Archive Patient?",
+            text: isViewingArchive ? "This will return the patient to active records." : "This will hide the patient from active views.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, proceed!"
+          }).then(async (result) => {
+            if (result.isConfirmed) {
+              const endpoint = isViewingArchive ? "restore" : "archive";
+              await fetch(`http://localhost:3000/api/patients/${id}/${endpoint}`, { method: "PUT" });
+              Swal.fire(isViewingArchive ? "Restored!" : "Archived!", "", "success");
+              if(isViewingArchive) {
+                  loadArchivedPatients();
+              } else {
+                  loadPatients();
+              }
+              loadDashboardStats();
+            }
+          })
+      }
+
+      // 5. CHART & MAP LOGIC
+      const ctx = document.getElementById("bhwChart").getContext("2d");
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: ["Jan", "Feb", "Mar", "Apr", "May"],
+          datasets: [{ label: "Cases", data: [15, 28, 22, 35, 45], borderColor: "#0ea5e9", backgroundColor: "rgba(14, 165, 233, 0.1)", fill: true, tension: 0.4 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
+      });
+
+      let map;
+      const mapContainer = document.getElementById("bhwMap");
+      if (mapContainer) {
+        map = L.map("bhwMap").setView([10.609090, 123.026559], 13);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+        
+        async function loadHeatmap() {
+          try {
+            const response = await fetch("http://localhost:3000/api/heatmap-data");
+            const result = await response.json();
+            if (result.success) {
+              const barangays = result.data;
+              let targetLat = null;
+              let targetLng = null;
+
+              barangays.forEach((brgy) => {
+                if (window.currentBrgyName && brgy.name === window.currentBrgyName) {
+                    targetLat = brgy.lat;
+                    targetLng = brgy.lng;
+                }
+
+                let calculatedRadius = 550 + (brgy.cases * 50); 
+                const circle = L.circle([brgy.lat, brgy.lng], { 
+                  color: brgy.color, 
+                  fillColor: brgy.color, 
+                  fillOpacity: 0.5, 
+                  weight: 2,
+                  radius: calculatedRadius 
+                }).addTo(map);
+
+                circle.bindTooltip(`<div style="text-align: center; color: #333;"><strong>${brgy.name}</strong><br><small>${brgy.cases} Cases</small></div>`, {
+                    permanent: true, 
+                    direction: "center",
+                    className: "bg-transparent border-0 shadow-none text-xs font-semibold"
+                });
+
+                circle.bindPopup(
+                    `<div style="text-align: center;">
+                        <h4 style="margin: 0;">Brgy. ${brgy.name}</h4>
+                        <p style="margin: 5px 0; color: ${brgy.color}; font-weight: bold;">
+                          ${brgy.cases} Active Cases
+                        </p>
+                        <small>Risk: ${brgy.risk}</small>
+                    </div>`
+                );
+              });
+
+              if (targetLat && targetLng) {
+                  map.setView([targetLat, targetLng], 14);
+              } else {
+                  map.setView([10.609090, 123.026559], 12);
+              }
+            }
+          } catch(e) { console.error("Map load error", e); }
+        }
+        
+        setTimeout(loadHeatmap, 1000);
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        const userId = localStorage.getItem("active_user_id");
+        if (userId) {
+          try {
+            const res = await fetch(`http://localhost:3000/api/bhw/context?system_id=${userId}`);
+            const result = await res.json();
+            if (result.success) {
+              window.currentBrgyId = result.data.barangay_id;
+              window.currentBrgyName = result.data.barangay_name;
+              
+              const brgyDisplay = window.currentBrgyName || "Unknown Barangay";
+              document.getElementById("dynamic-portal-title").innerText = `Barangay Health Worker Portal — ${brgyDisplay}`;
+              const subtitle = document.getElementById("dynamic-dashboard-subtitle");
+              if (subtitle) subtitle.innerText = `Real-time insights for ${brgyDisplay}.`;
+            }
+          } catch(e) { console.error("Error fetching context:", e); }
+        }
+
+        loadDashboardStats();
+        loadPatients();
+        loadResidentDirectory();
+      });
+    </script>
+  <script>
       function openAddPatientModal() {
         Swal.fire({
           title: "New Resident Health Record",
           width: "600px",
           html: `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-bottom: 15px;">
-                <div>
-                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">First Name *</label>
-                    <input id="swal-fname" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">First Name *</label>
+                    <input id="swal-fname" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="e.g. Juan">
                 </div>
-                <div>
-                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Last Name *</label>
-                    <input id="swal-lname" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;">
-                </div>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-bottom: 15px;">
-                <div>
-                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Birthdate *</label>
-                    <input id="swal-birthdate" type="date" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;">
-                </div>
-                <div>
-                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Age (Auto-Computed)</label>
-                    <input id="swal-age" type="number" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem; background-color: #f1f5f9;" readonly>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Last Name *</label>
+                    <input id="swal-lname" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="e.g. Dela Cruz">
                 </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-bottom: 15px;">
-                <div>
-                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Purok / Zone *</label>
-                    <input list="barangay-list" id="swal-purok" class="swal2-input" placeholder="Type or select Barangay..." style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;">
-                    <datalist id="barangay-list">
-                        <option value="Alegria">
-                        <option value="Blumentritt">
-                        <option value="Caliban">
-                        <option value="Damsite">
-                        <option value="Minoyan">
-                        <option value="Salvacion">
-                        <option value="San Miguel">
-                    </datalist>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Birthdate *</label>
+                    <input id="swal-birthdate" type="date" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all [color-scheme:light] dark:[color-scheme:dark]">
                 </div>
-                <div>
-                    <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Diagnosed Disease / Case *</label>
-                    <input list="disease-options" id="swal-disease" class="swal2-input" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem;" placeholder="Select or type...">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Age (Auto-Computed)</label>
+                    <input id="swal-age" type="number" class="w-full px-4 py-2.5 bg-[hsl(var(--muted))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] opacity-70 cursor-not-allowed outline-none" readonly placeholder="--">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Purok / Zone *</label>
+                    <select id="swal-purok" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-[position:right_1rem_center] bg-no-repeat [&>option]:text-slate-900">
+                        <option value="" disabled selected>Select Purok</option>
+                        <option value="Purok 1">Purok 1</option>
+                        <option value="Purok 2">Purok 2</option>
+                        <option value="Purok 3">Purok 3</option>
+                        <option value="Blumentritt">Blumentritt</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Diagnosed Disease / Case *</label>
+                    <input list="disease-options" id="swal-disease" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="Select or type...">
                     <datalist id="disease-options">
                         <option value="Acute Respiratory Infection (ARI)">
                         <option value="Animal Bite / Wound">
@@ -511,11 +912,12 @@
                     </datalist>
                 </div>
             </div>
-            <div style="text-align: left;">
-                <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">Symptoms / Remarks</label>
-                <textarea id="swal-remarks" class="swal2-textarea" style="width: 100%; margin: 5px 0 0 0; font-size: 0.95rem; height: 80px;"></textarea>
+            <div class="flex flex-col gap-1.5 text-left">
+                <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Symptoms / Remarks</label>
+                <textarea id="swal-remarks" class="w-full px-4 py-3 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all min-h-[80px] resize-y" placeholder="Any additional notes..."></textarea>
             </div>
-          `,
+`,
+          customClass: { popup: "bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl", title: "text-[hsl(var(--foreground))] font-bold text-2xl" },
           confirmButtonText: "Save Record",
           confirmButtonColor: "#007bff",
           showCancelButton: true,
@@ -541,7 +943,6 @@
             const p = document.getElementById("swal-purok").value;
             const d = document.getElementById("swal-disease").value;
             const r = document.getElementById("swal-remarks").value;
-
             if (!f || !l || !b || !p || !d) {
               Swal.showValidationMessage("Please fill out all required fields (*)");
               return false; 
@@ -575,311 +976,127 @@
         });
       }
 
-      async function updateStatus(id) {
+      async function generateBHWReport(type) {
         Swal.fire({
-          title: "Update Patient Status", text: "Mark them as Cleared?", icon: "question",
-          showCancelButton: true, confirmButtonColor: "#16a34a", confirmButtonText: "Yes, Cleared!",
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            await fetch(`http://localhost:3000/api/patients/${id}/status`, {
-              method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ new_status: "Cleared" }),
-            });
-            Swal.fire("Updated!", "Patient status changed to Cleared.", "success");
-            loadPatients(); loadDashboardStats();
-          }
+          title: 'Generating PDF...',
+          html: 'Please wait while we connect to the database and generate the certified report.',
+          allowOutsideClick: false,
+          didOpen: () => { Swal.showLoading(); }
         });
-      }
-
-      async function archivePatient(id) {
-        Swal.fire({
-          title: "Archive Record?", icon: "warning", showCancelButton: true,
-          confirmButtonColor: "#ef4444", confirmButtonText: "Yes, archive it!",
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            await fetch(`http://localhost:3000/api/patients/${id}/archive`, { method: "PUT" });
-            Swal.fire("Archived!", "Record moved to trash.", "success");
-            loadPatients(); loadDashboardStats();
-          }
-        });
-      }
-
-      async function restorePatient(id) {
-        Swal.fire({
-          title: "Restore Record?", icon: "info", showCancelButton: true,
-          confirmButtonColor: "#10b981", confirmButtonText: "Yes, restore!",
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            await fetch(`http://localhost:3000/api/patients/${id}/restore`, { method: "PUT" });
-            Swal.fire("Restored!", "Record is active again.", "success");
-            loadArchivedPatients(); loadDashboardStats();
-          }
-        });
-      }
-
-      async function loadDashboardStats() {
+        
         try {
-          const url = window.currentBrgyId ? `http://localhost:3000/api/bhw-stats?barangay_id=${window.currentBrgyId}` : "http://localhost:3000/api/bhw-stats";
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data.success) {
-            // Top 4 Stat Cards
-            document.getElementById("stat-total").innerText = data.total;
-            document.getElementById("stat-active").innerText = data.active;
-            document.getElementById("stat-cleared").innerText = data.cleared;
-            document.getElementById("stat-high-risk").innerText = data.high_risk;
-
-            // 4 Disease Status Breakdown Boxes
-            document.getElementById("bd-cleared").innerText = data.cleared;
-            document.getElementById("bd-mild").innerText = data.mild;
-            document.getElementById("bd-monitored").innerText = data.monitored;
-            document.getElementById("bd-high").innerText = data.high_risk;
-          }
-        } catch (e) { console.error("Error loading stats:", e); }
-      }
-
-      // ==========================================
-      // 3. RESIDENT PROFILES DIRECTORY LOGIC
-      // ==========================================
-      async function loadResidentDirectory() {
-          const grid = document.getElementById("resident-grid");
-          grid.innerHTML = "<div style='grid-column: 1 / -1; text-align: center; color: #64748b;'>Loading directory...</div>";
-
-          try {
-              const response = await fetch(`http://localhost:3000/api/residents?barangay_id=${window.currentBrgyId}`);
-              const result = await response.json();
-
-              if (!result.success || result.data.length === 0) {
-                  grid.innerHTML = `<div style="padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; color: #64748b; grid-column: 1 / -1;">No residents registered yet.</div>`;
-                  return;
-              }
-
-              grid.innerHTML = "";
-              result.data.forEach(res => {
-                  let patientName = res.patient_name || res.first_name + " " + res.last_name;
-                  if (!patientName || patientName.trim() === "null") patientName = "Unknown";
-                  
-                  const nameParts = patientName.split(" ");
-                  const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
-
-                  // Add some vulnerability badges automatically based on age!
-                  let badges = "";
-                  if (res.age >= 60) badges += `<span style="background: #fef08a; color: #854d0e; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 5px;">Senior Citizen</span>`;
-                  if (res.age <= 12) badges += `<span style="background: #bbf7d0; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 5px;">Child</span>`;
-
-                  grid.innerHTML += `
-                      <div class="resident-card" data-name="${patientName.toLowerCase()}" style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; background: #f8fafc; display: flex; flex-direction: column; align-items: center; text-align: center;">
-                          <div style="width: 60px; height: 60px; background: #bae6fd; color: #0284c7; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 10px;">
-                              ${initials.toUpperCase()}
-                          </div>
-                          <h3 style="margin: 0 0 5px 0; color: #0f172a; font-size: 1.1rem;">${patientName}</h3>
-                          <div style="margin-bottom: 10px;">${badges}</div>
-                          <p style="margin: 0 0 15px 0; color: #64748b; font-size: 0.85rem;">${res.purok} | ${res.age || '?'} yrs</p>
-                          <button onclick="openProfileModal('${res.id}')" style="width: 100%; padding: 8px; background: #0ea5e9; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
-                              View Medical Dossier (${res.case_count} Records)
-                          </button>
-                      </div>
-                  `;
-              });
-          } catch(e) {
-              console.error("Error loading directory", e);
-              grid.innerHTML = `<div style="grid-column: 1 / -1; color: red;">Failed to load directory.</div>`;
-          }
-      }
-
-      function filterDirectory() {
-          const input = document.getElementById("directory-search").value.toLowerCase();
-          document.querySelectorAll(".resident-card").forEach(card => {
-              card.style.display = card.getAttribute("data-name").includes(input) ? "flex" : "none";
+          const brgy_id = window.currentBrgyId || 'all';
+          const res = await fetch(`http://localhost:3000/api/patients?barangay_id=${brgy_id}`);
+          const result = await res.json();
+          
+          if(!result.success) throw new Error("DB Error");
+          
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          
+          const brgyName = window.currentBrgyName || 'Blumentritt';
+          const month = document.getElementById('bhw-report-month') ? document.getElementById('bhw-report-month').value : 'Current';
+          const year = document.getElementById('bhw-report-year') ? document.getElementById('bhw-report-year').value : '2026';
+          
+          doc.setFontSize(16);
+          doc.text(`Barangay Health Station - ${brgyName}`, 14, 20);
+          doc.setFontSize(12);
+          doc.text(type === 'MONTHLY' ? `BHS-M1: Monthly Summary (${month} ${year})` : `PIDSR Surveillance Log (${month} ${year})`, 14, 30);
+          
+          const data = result.data.map(p => [
+            p.patient_name || 'N/A', 
+            p.age || 'N/A', 
+            p.purok || 'N/A', 
+            p.disease || 'N/A', 
+            p.status || 'Active', 
+            new Date(p.created_at).toLocaleDateString()
+          ]);
+          
+          doc.autoTable({
+            startY: 40,
+            head: [['Patient Name', 'Age', 'Purok', 'Diagnosis', 'Status', 'Date']],
+            body: data,
+            theme: 'striped',
+            headStyles: { fillColor: type === 'MONTHLY' ? [2, 132, 199] : [234, 88, 12] }
           });
+          
+          await new Promise(r => setTimeout(r, 1200));
+          doc.save(`BHW_Report_${brgyName}_${type}_${month}.pdf`);
+          Swal.fire('Success', 'Report successfully generated and downloaded.', 'success');
+        } catch (e) {
+          console.error(e);
+          Swal.fire('Error', 'Failed to generate report. Make sure the database is running.', 'error');
+        }
       }
 
-      // ==========================================
-      // MASTER PATIENT PROFILE MODAL LOGIC
-      // ==========================================
-      async function openProfileModal(residentId) {
-          try {
-              const response = await fetch(`http://localhost:3000/api/residents/${residentId}/dossier`);
-              const result = await response.json();
-              if(!result.success) return;
-
-              const res = result.resident;
-              const history = result.history;
-
-              let patientName = res.patient_name || res.first_name + " " + res.last_name;
-              if (!patientName || patientName.trim() === "null") patientName = "Unknown";
-              
-              const nameParts = patientName.split(" ");
-              const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
-
-              document.getElementById('profile-initials').innerText = initials.toUpperCase();
-              document.getElementById('profile-name').innerText = patientName;
-              document.getElementById('profile-purok').innerText = res.purok || "Unknown";
-              document.getElementById('profile-age').innerText = res.age || "N/A";
-
-              const tbody = document.getElementById('profile-history-body');
-              tbody.innerHTML = ""; 
-              
-              if (history.length === 0) {
-                  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">No records found.</td></tr>`;
-              } else {
-                  history.forEach(record => {
-                      let statusColor = record.status === "Cleared" ? "#16a34a" : (record.status === "Deceased" ? "#64748b" : "#ea580c");
-                      let severityBadge = record.severity === "High Risk" ? `<span style="background:#fef2f2; color:#ef4444; border-radius:4px; padding: 2px 5px; font-size:0.7rem;">High Risk</span>` : "";
-                      let dateStr = new Date(record.date_recorded).toLocaleDateString();
-                      
-                      tbody.innerHTML += `
-                        <tr style="border-bottom: 1px solid #e2e8f0;">
-                          <td style="padding: 12px; color: #94a3b8; font-family: monospace;">
-                            #REC-${record.id}<br><small style="color:#64748b">${dateStr}</small>
-                          </td>
-                          <td style="padding: 12px; font-weight: bold; color: #0f172a;">
-                            ${record.disease} <br>${severityBadge}
-                          </td>
-                          <td style="padding: 12px; color: #64748b; font-size: 0.85rem;">${record.remarks || "No remarks"}</td>
-                          <td style="padding: 12px;">
-                             <span style="color: ${statusColor}; font-weight: bold; font-size: 0.85rem;">${record.status}</span>
-                          </td>
-                        </tr>
-                      `;
-                  });
-              }
-
-              const modal = document.getElementById('patientProfileModal');
-              modal.classList.remove('hidden'); 
-              modal.style.display = 'flex';
-
-          } catch(e) { console.error("Error opening dossier", e); }
-      }
-
-      function closeProfileModal() {
-        const modal = document.getElementById('patientProfileModal');
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
-      }
-
-      // ==========================================
-      // 4. CHART & MAP & REPORTS LOGIC
-      // ==========================================
-      const ctx = document.getElementById("bhwChart").getContext("2d");
-      new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: ["Jan", "Feb", "Mar", "Apr", "May"],
-          datasets: [{ label: "Cases", data: [15, 28, 22, 35, 45], borderColor: "#0ea5e9", backgroundColor: "rgba(14, 165, 233, 0.1)", fill: true, tension: 0.4 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
-      });
-
-      let map;
-      const mapContainer = document.getElementById("bhwMap");
-      if (mapContainer) {
-        // Default center to Murcia, Negros Occidental. We will pan it dynamically.
-        map = L.map("bhwMap").setView([10.609090, 123.026559], 13);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-        
-        async function loadHeatmap() {
-          try {
-            const response = await fetch("http://localhost:3000/api/heatmap-data");
-            const result = await response.json();
-            if (result.success) {
-              const barangays = result.data;
-              let targetLat = null;
-              let targetLng = null;
-
-              barangays.forEach((brgy) => {
-                // If this is the BHW's own barangay, save coords to zoom later
-                if (window.currentBrgyName && brgy.name === window.currentBrgyName) {
-                    targetLat = brgy.lat;
-                    targetLng = brgy.lng;
-                }
-
-                // Make the base size bigger as requested
-                // Multiply cases by 50 for scaling, cap minimum size
-                let calculatedRadius = 550 + (brgy.cases * 50); 
-
-                const circle = L.circle([brgy.lat, brgy.lng], { 
-                  color: brgy.color, 
-                  fillColor: brgy.color, 
-                  fillOpacity: 0.5, 
-                  weight: 2,
-                  radius: calculatedRadius 
-                }).addTo(map);
-
-                // Make the Barangay name permanently visible perfectly centered in the circle (like the 3rd picture)
-                circle.bindTooltip(`<div style="text-align: center; color: #333;"><strong>${brgy.name}</strong><br><small>${brgy.cases} Cases</small></div>`, {
-                    permanent: true, 
-                    direction: "center",
-                    className: "bg-transparent border-0 shadow-none text-xs font-semibold"
-                });
-
-                // Add popup for clicking
-                circle.bindPopup(
-                    `<div style="text-align: center;">
-                        <h4 style="margin: 0;">Brgy. ${brgy.name}</h4>
-                        <p style="margin: 5px 0; color: ${brgy.color}; font-weight: bold;">
-                          ${brgy.cases} Active Cases
-                        </p>
-                        <small>Risk: ${brgy.risk}</small>
-                    </div>`
-                );
+      function showAccountSettings() {
+        const userId = localStorage.getItem('active_user_id') || 'Unknown';
+        Swal.fire({
+          title: 'Account Info & Security',
+          html: `
+            <div style="text-align: left; font-size: 0.9rem; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.03); border-radius: 8px;">
+              <p style="margin: 0 0 5px 0;"><strong>System ID:</strong> ${userId}</p>
+              <p style="margin: 0;"><strong>Role:</strong> ${userId.startsWith('MHO') ? 'Municipal Health Officer' : 'Barangay Health Worker'}</p>
+            </div>
+            <div style="text-align: left; font-size: 0.9rem;">
+              <h4 style="margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Change Password</h4>
+              <label style="font-weight: bold; margin-bottom: 5px; display: block;">Current Password</label>
+              <input type="password" id="current-pass" class="swal2-input" style="width: 100%; max-width: 100%; margin: 0 0 15px 0;" placeholder="Enter current password">
+              <label style="font-weight: bold; margin-bottom: 5px; display: block;">New Password</label>
+              <input type="password" id="new-pass" class="swal2-input" style="width: 100%; max-width: 100%; margin: 0;" placeholder="Enter new password">
+            </div>
+          `,
+          width: '450px',
+          showCancelButton: true,
+          confirmButtonText: 'Update Password',
+          confirmButtonColor: '#0f172a',
+          preConfirm: async () => {
+            const current_password = document.getElementById('current-pass').value;
+            const new_password = document.getElementById('new-pass').value;
+            const system_id = localStorage.getItem('active_user_id');
+            
+            if(!current_password || !new_password) {
+              Swal.showValidationMessage('Please fill in both password fields to update, or cancel to close.');
+              return false;
+            }
+            
+            try {
+              const res = await fetch('http://localhost:3000/api/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ system_id, current_password, new_password })
               });
-
-              // Smart Zooming: Zoom perfectly to their Barangay, or show the whole town
-              if (targetLat && targetLng) {
-                  map.setView([targetLat, targetLng], 14);
-              } else {
-                  // Fallback to center of Murcia
-                  map.setView([10.609090, 123.026559], 12);
+              const data = await res.json();
+              if (!data.success) {
+                Swal.showValidationMessage(data.message || 'Update failed');
               }
+              return data;
+            } catch (err) {
+              Swal.showValidationMessage('Server error. Try again later.');
             }
-          } catch(e) { console.error("Map load error", e); }
-        }
-        
-        // Wait 1 second to ensure currentBrgyName is loaded from DOMContentLoaded
-        setTimeout(loadHeatmap, 1000);
+          }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: 'Password updated successfully!'
+            });
+          }
+        });
       }
 
-      function generateBHWReport(type) {
-        const doc = new window.jspdf.jsPDF();
-        doc.setFontSize(13); doc.setFont("helvetica", "bold");
-        doc.text("REPUBLIC OF THE PHILIPPINES", 105, 18, { align: "center" });
-        doc.text("DEPARTMENT OF HEALTH - FIELD HEALTH SERVICE", 105, 25, { align: "center" });
-        doc.setFontSize(10); doc.setFont("helvetica", "normal");
-        doc.text(`Barangay Health Station — Brgy. Poblacion`, 105, 32, { align: "center" });
-        doc.line(20, 37, 190, 37);
+      function showTerms(event) { event.preventDefault(); Swal.fire({ title: 'Terms & Privacy', html: '<p style="text-align: left; font-size: 0.9rem;">Health-Intel is a capstone project for academic purposes. All data is handled in compliance with the Data Privacy Act of 2012 (RA 10173). By using this system, you agree to the responsible use of health information.</p>', confirmButtonColor: '#0f172a' }); }
 
-        let title = type === "MONTHLY" ? "BARANGAY HEALTH CONSOLIDATION REPORT (BHS-M1)" : "COMMUNITY SURVEILLANCE & CLUSTER LOG";
-        let hCol = type === "MONTHLY" ? [0, 102, 204] : [234, 88, 12];
-        let headers = type === "MONTHLY" ? [["No.", "Indicator", "Sector", "Cases", "Status"]] : [["Entry #", "Location", "Symptoms", "Patients", "Action Taken"]];
-        let rows = type === "MONTHLY" ? [["1", "ARI", "Pediatric", "14", "Managed"], ["2", "Animal Bites", "General Pop.", "8", "Referred"]] : [["SR-101", "Purok 2", "Suspected Dengue", "3", "Field Visit"]];
-
-        doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.text(title, 20, 46);
-        doc.autoTable({ startY: 55, head: headers, body: rows, theme: "grid", headStyles: { fillColor: hCol } });
-        doc.save(`BHS_${type}_REPORT.pdf`);
-      }
-
-      document.addEventListener("DOMContentLoaded", async () => {
-        const userId = localStorage.getItem("active_user_id");
+      document.addEventListener('DOMContentLoaded', () => {
+        const userId = localStorage.getItem('active_user_id');
         if (userId) {
-          try {
-            const res = await fetch(`http://localhost:3000/api/bhw/context?system_id=${userId}`);
-            const result = await res.json();
-            if (result.success) {
-              window.currentBrgyId = result.data.barangay_id;
-              window.currentBrgyName = result.data.barangay_name;
-              
-              // Update DOM Text
-              const brgyDisplay = window.currentBrgyName || "Unknown Barangay";
-              document.getElementById("dynamic-portal-title").innerText = `Barangay Health Worker Portal — ${brgyDisplay}`;
-              const subtitle = document.getElementById("dynamic-dashboard-subtitle");
-              if (subtitle) subtitle.innerText = `Real-time insights for ${brgyDisplay}.`;
-            }
-          } catch(e) { console.error("Error fetching context:", e); }
+          const initialEl = document.getElementById('dropdown-user-initial');
+          if (initialEl) initialEl.innerText = userId.charAt(0).toUpperCase();
+          const nameEl = document.getElementById('dropdown-user-name');
+          if (nameEl) nameEl.innerText = userId;
         }
-
-        loadPatients();
-        loadDashboardStats();
       });
-    </script>
+</script>
   </body>
 </html>
