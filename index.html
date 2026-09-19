@@ -379,12 +379,14 @@
               <div class="input-wrapper">
                 <div class="input-icon-box" style="color: var(--purple);"><i data-lucide="lock" style="width: 18px;"></i></div>
                 <input type="password" id="login_password" placeholder="••••••••" required />
+          
                 <i data-lucide="eye" id="togglePassword" onclick="togglePasswordVisibility()" style="color: #cbd5e1; width: 18px; margin-right: 10px; cursor: pointer;"></i>
               </div>
             </div>
 
-            <div class="options-row">
+            <div class="options-row" style="display: flex; justify-content: space-between; align-items: center;">
               <label><input type="checkbox" id="remember_me" checked /> Remember me</label>
+              <a href="#" id="forgot-pass-btn" style="color: var(--gray); font-size: 0.75rem; text-decoration: none; padding-right: 5px;">Forgot Password?</a>
             </div>
 
             <button type="submit" class="btn-primary">
@@ -490,6 +492,44 @@
             <a onclick="toggleForms('login')" style="color: var(--gray); font-size: 0.75rem; cursor: pointer;">Cancel</a>
           </form>
 
+          <!-- ============================================== -->
+          <!-- SCREEN 4: PASSWORD RESET -->
+          <!-- ============================================== -->
+          <form id="reset-screen" class="hidden">
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.8rem; color: #166534; text-align: center;">
+                We sent a 6-digit code to your email.
+            </div>
+            
+            <div class="input-group">
+              <label>6-Digit Verification Code</label>
+              <div class="input-wrapper">
+                <div class="input-icon-box"><i data-lucide="key" style="width: 18px;"></i></div>
+                <input type="text" id="reset_otp" placeholder="e.g. 123456" maxlength="6" required autocomplete="off" style="letter-spacing: 2px; font-weight: bold;"/>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>New Password</label>
+              <div class="input-wrapper">
+                <div class="input-icon-box"><i data-lucide="lock" style="width: 18px;"></i></div>
+                <input type="password" id="reset_new_password" placeholder="********" required autocomplete="off" />
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Confirm Password</label>
+              <div class="input-wrapper">
+                <div class="input-icon-box"><i data-lucide="shield-check" style="width: 18px;"></i></div>
+                <input type="password" id="reset_confirm_password" placeholder="********" required autocomplete="off" />
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top: 15px;">
+              Reset Password
+              <div class="btn-icon"><i data-lucide="save" style="width: 16px;"></i></div>
+            </button>
+            <div class="text-center mt-4">
+              <a href="#" onclick="toggleForms('login')" style="font-size: 0.85rem; color: var(--gray); text-decoration: none;">Back to Login</a>
+            </div>
+          </form>
+
           <div class="security-badge">
             <i data-lucide="shield" style="width: 14px;"></i> Protected by Health-Intel Security
           </div>
@@ -514,6 +554,43 @@
       firebase.initializeApp(firebaseConfig);
       const auth = firebase.auth();
 
+      
+      // --- OTP PASSWORD RESET LOGIC ---
+      if(document.getElementById("reset-screen")) {
+          document.getElementById("reset-screen").addEventListener("submit", async function (e) {
+              e.preventDefault();
+              const otp_code = document.getElementById('reset_otp').value;
+              const new_pass = document.getElementById('reset_new_password').value;
+              const confirm_pass = document.getElementById('reset_confirm_password').value;
+              const resetEmail = window.resetEmailCache;
+
+              if(new_pass !== confirm_pass) {
+                  return Swal.fire({icon: 'error', title: 'Error', text: 'Passwords do not match!'});
+              }
+
+              Swal.fire({title: 'Verifying Code...', allowOutsideClick: false});
+              Swal.showLoading();
+
+              try {
+                  const res = await fetch("http://localhost:3000/api/reset-password", {
+                      method: 'POST',
+                      headers: {'Content-Type': 'application/json'},
+                      body: JSON.stringify({ email: resetEmail, token: otp_code, new_password: new_pass })
+                  });
+                  const data = await res.json();
+                  if(data.success) {
+                      Swal.fire({icon: 'success', title: 'Success', text: 'Password reset successfully! You can now log in.'}).then(() => { 
+                          document.getElementById("reset-screen").reset();
+                          toggleForms('login'); 
+                      });
+                  } else {
+                      Swal.fire({icon: 'error', title: 'Error', text: data.error});
+                  }
+              } catch(err) {
+                  Swal.fire({icon: 'error', title: 'Error', text: 'Server connection failed.'});
+              }
+          });
+      }
       // --- SHOW/HIDE PASSWORD ---
       function togglePasswordVisibility() {
         const pwdInput = document.getElementById('login_password');
@@ -544,6 +621,7 @@
         document.getElementById("login-form").classList.add("hidden");
         document.getElementById("gateway-screen").classList.add("hidden");
         document.getElementById("profile-screen").classList.add("hidden");
+        if(document.getElementById("reset-screen")) document.getElementById("reset-screen").classList.add("hidden");
         const subtitle = document.getElementById("form-subtitle");
 
         if (target === "gateway") {
@@ -552,6 +630,9 @@
         } else if (target === "profile") {
           document.getElementById("profile-screen").classList.remove("hidden");
           subtitle.innerText = "Step 2: Profile";
+        } else if (target === "reset") {
+          if(document.getElementById("reset-screen")) document.getElementById("reset-screen").classList.remove("hidden");
+          subtitle.innerText = "Secure Password Reset";
         } else {
           document.getElementById("login-form").classList.remove("hidden");
           subtitle.innerText = "Welcome back";
@@ -642,6 +723,39 @@
               else systemIdInput.value = "Error";
           } catch (error) { systemIdInput.value = "Server offline"; }
       });
+
+      
+      document.getElementById("forgot-pass-btn").addEventListener("click", async (e) => {
+          e.preventDefault();
+          const { value: email } = await Swal.fire({
+              title: "Reset Password",
+              input: "email",
+              inputLabel: "Enter your registered email address",
+              inputPlaceholder: "example@gmail.com",
+              showCancelButton: true
+          });
+          if (email) {
+              window.resetEmailCache = email; // store for later
+              Swal.fire({title: 'Sending Code...', allowOutsideClick: false});
+              Swal.showLoading();
+              try {
+                  const res = await fetch("http://localhost:3000/api/forgot-password", {
+                      method: "POST", headers: {"Content-Type": "application/json"},
+                      body: JSON.stringify({ email })
+                  });
+                  const data = await res.json();
+                  if(data.success) {
+                      Swal.close();
+                      toggleForms("reset");
+                  }
+                  else Swal.fire("Error", data.error, "error");
+              } catch(e) {
+                  Swal.fire("Error", "Could not connect to server", "error");
+              }
+          }
+      });
+
+      
 
       document.getElementById("login-form").addEventListener("submit", async function (e) {
           e.preventDefault();

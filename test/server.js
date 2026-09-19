@@ -2,8 +2,18 @@ const PDFDocument = require('pdfkit');
 const express = require('express');
 const { spawn } = require('child_process');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 10,
+    message: { success: false, error: "Too many login attempts. Please wait 60 seconds." }
+});
+
 const mysql = require('mysql2/promise'); 
-const bcrypt = require('bcrypt');        
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+        
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer'); 
 const app = express();
@@ -139,10 +149,76 @@ app.post('/api/change-password', async (req, res) => {
     }
 });
 
+
+// ==========================================
+// PASSWORD RESET SYSTEM
+// ==========================================
+app.post('/api/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
+        if(users.length === 0) return res.status(404).json({ success: false, error: 'Email not found in system.' });
+
+        // Generate 32-byte token
+        // Generate a 6-digit OTP code
+        const token = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Expiration 15 mins from now
+        const expires_at = new Date(Date.now() + 15 * 60000);
+        
+        await db.execute('INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)', [email, token, expires_at]);
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user: 'yapjohnrichard@gmail.com', pass: 'cjrfnlxzljuvhfkq' }
+        });
+
+        await transporter.sendMail({
+            from: 'HEALTH-INTEL Security <yapjohnrichard@gmail.com>',
+            to: email,
+            subject: 'Your 6-Digit Password Reset Code',
+            html: `
+            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <h2 style="color: #0ea5e9;">Password Reset</h2>
+                <p>You requested a password reset. Please enter the 6-digit verification code below into the system:</p>
+                <div style="background: #f1f5f9; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #1e293b; border-radius: 8px;">${token}</div>
+                <p style="font-size: 12px; color: #64748b; margin-top: 15px;">This code will expire in 15 minutes.</p>
+            </div>`
+        });
+
+        res.json({ success: true, message: 'Password reset link sent to your email.' });
+    } catch (e) {
+        res.status(500).json({ success: false, error: 'Database error' });
+    }
+});
+
+app.post('/api/reset-password', async (req, res) => {
+    const { email, token, new_password } = req.body;
+    try {
+        const [resets] = await db.execute('SELECT * FROM password_resets WHERE email = ? AND token = ?', [email, token]);
+        if(resets.length === 0) return res.status(400).json({ success: false, error: 'Invalid or expired token.' });
+        
+        const resetRecord = resets[resets.length - 1]; // get latest
+        if(new Date() > new Date(resetRecord.expires_at)) {
+            return res.status(400).json({ success: false, error: 'Token has expired.' });
+        }
+
+        const hashed = await bcrypt.hash(new_password, 10);
+        await db.execute('UPDATE users SET password_hash = ? WHERE email = ?', [hashed, email]);
+        
+        // Delete used tokens
+        await db.execute('DELETE FROM password_resets WHERE email = ?', [email]);
+
+        res.json({ success: true, message: 'Password updated successfully!' });
+    } catch(e) {
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+});
+
 // ==========================================
 // 4. SECURE LOGIN
 // ==========================================
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', loginLimiter, async (req, res) => {
     const { system_id, password } = req.body;
 
     try {
@@ -584,6 +660,12 @@ app.put('/api/patients/:id/status', async (req, res) => {
     const { new_status } = req.body;
     try {
         await db.execute(`UPDATE health_cases SET status = ? WHERE id = ?`, [new_status, req.params.id]);
+        
+        const user_id = req.body.user_id || 'System';
+        await db.execute(
+            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'BHW', 'Status Updated', ?)`,
+            [user_id, `Updated patient ID #REC-${req.params.id} to ${new_status}`]
+        );
         res.json({ success: true, message: 'Patient status updated!' });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
