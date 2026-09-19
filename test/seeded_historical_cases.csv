@@ -1,0 +1,2521 @@
+Date,Barangay,Disease,Cases
+2022-01-01,Blumentritt,Cough,11
+2022-01-01,Blumentritt,URTI,14
+2022-01-01,Blumentritt,Infection all types,9
+2022-01-01,Blumentritt,ARI,13
+2022-01-01,Blumentritt,Fever unknown origin,1
+2022-01-01,Blumentritt,Hypertension,29
+2022-01-01,Blumentritt,Influenza,17
+2022-01-01,Blumentritt,Acute Gastroenteritis,6
+2022-01-01,Blumentritt,Vertigo,15
+2022-01-01,Blumentritt,All types of skin disease,15
+2022-01-01,Salvacion,Cough,16
+2022-01-01,Salvacion,URTI,20
+2022-01-01,Salvacion,Infection all types,5
+2022-01-01,Salvacion,ARI,10
+2022-01-01,Salvacion,Fever unknown origin,2
+2022-01-01,Salvacion,Hypertension,16
+2022-01-01,Salvacion,Influenza,11
+2022-01-01,Salvacion,Acute Gastroenteritis,0
+2022-01-01,Salvacion,Vertigo,15
+2022-01-01,Salvacion,All types of skin disease,3
+2022-01-01,Minoyan,Cough,19
+2022-01-01,Minoyan,URTI,14
+2022-01-01,Minoyan,Infection all types,7
+2022-01-01,Minoyan,ARI,9
+2022-01-01,Minoyan,Fever unknown origin,12
+2022-01-01,Minoyan,Hypertension,21
+2022-01-01,Minoyan,Influenza,11
+2022-01-01,Minoyan,Acute Gastroenteritis,5
+2022-01-01,Minoyan,Vertigo,6
+2022-01-01,Minoyan,All types of skin disease,8
+2022-01-01,Caliban,Cough,17
+2022-01-01,Caliban,URTI,9
+2022-01-01,Caliban,Infection all types,2
+2022-01-01,Caliban,ARI,9
+2022-01-01,Caliban,Fever unknown origin,5
+2022-01-01,Caliban,Hypertension,21
+2022-01-01,Caliban,Influenza,14
+2022-01-01,Caliban,Acute Gastroenteritis,1
+2022-01-01,Caliban,Vertigo,5
+2022-01-01,Caliban,All types of skin disease,15
+2022-01-01,Cansilayan,Cough,13
+2022-01-01,Cansilayan,URTI,9
+2022-01-01,Cansilayan,Infection all types,10
+2022-01-01,Cansilayan,ARI,9
+2022-01-01,Cansilayan,Fever unknown origin,12
+2022-01-01,Cansilayan,Hypertension,16
+2022-01-01,Cansilayan,Influenza,10
+2022-01-01,Cansilayan,Acute Gastroenteritis,6
+2022-01-01,Cansilayan,Vertigo,4
+2022-01-01,Cansilayan,All types of skin disease,8
+2022-01-01,Alegria,Cough,19
+2022-01-01,Alegria,URTI,14
+2022-01-01,Alegria,Infection all types,7
+2022-01-01,Alegria,ARI,15
+2022-01-01,Alegria,Fever unknown origin,13
+2022-01-01,Alegria,Hypertension,17
+2022-01-01,Alegria,Influenza,11
+2022-01-01,Alegria,Acute Gastroenteritis,6
+2022-01-01,Alegria,Vertigo,9
+2022-01-01,Alegria,All types of skin disease,6
+2022-01-01,Sta. Rosa,Cough,11
+2022-01-01,Sta. Rosa,URTI,10
+2022-01-01,Sta. Rosa,Infection all types,11
+2022-01-01,Sta. Rosa,ARI,14
+2022-01-01,Sta. Rosa,Fever unknown origin,6
+2022-01-01,Sta. Rosa,Hypertension,21
+2022-01-01,Sta. Rosa,Influenza,6
+2022-01-01,Sta. Rosa,Acute Gastroenteritis,2
+2022-01-01,Sta. Rosa,Vertigo,8
+2022-01-01,Sta. Rosa,All types of skin disease,14
+2022-02-01,Blumentritt,Cough,5
+2022-02-01,Blumentritt,URTI,14
+2022-02-01,Blumentritt,Infection all types,3
+2022-02-01,Blumentritt,ARI,10
+2022-02-01,Blumentritt,Fever unknown origin,7
+2022-02-01,Blumentritt,Hypertension,28
+2022-02-01,Blumentritt,Influenza,6
+2022-02-01,Blumentritt,Acute Gastroenteritis,6
+2022-02-01,Blumentritt,Vertigo,14
+2022-02-01,Blumentritt,All types of skin disease,6
+2022-02-01,Salvacion,Cough,16
+2022-02-01,Salvacion,URTI,15
+2022-02-01,Salvacion,Infection all types,15
+2022-02-01,Salvacion,ARI,10
+2022-02-01,Salvacion,Fever unknown origin,11
+2022-02-01,Salvacion,Hypertension,23
+2022-02-01,Salvacion,Influenza,8
+2022-02-01,Salvacion,Acute Gastroenteritis,7
+2022-02-01,Salvacion,Vertigo,9
+2022-02-01,Salvacion,All types of skin disease,13
+2022-02-01,Minoyan,Cough,13
+2022-02-01,Minoyan,URTI,12
+2022-02-01,Minoyan,Infection all types,5
+2022-02-01,Minoyan,ARI,6
+2022-02-01,Minoyan,Fever unknown origin,1
+2022-02-01,Minoyan,Hypertension,23
+2022-02-01,Minoyan,Influenza,12
+2022-02-01,Minoyan,Acute Gastroenteritis,9
+2022-02-01,Minoyan,Vertigo,14
+2022-02-01,Minoyan,All types of skin disease,5
+2022-02-01,Caliban,Cough,12
+2022-02-01,Caliban,URTI,8
+2022-02-01,Caliban,Infection all types,7
+2022-02-01,Caliban,ARI,20
+2022-02-01,Caliban,Fever unknown origin,6
+2022-02-01,Caliban,Hypertension,22
+2022-02-01,Caliban,Influenza,10
+2022-02-01,Caliban,Acute Gastroenteritis,8
+2022-02-01,Caliban,Vertigo,7
+2022-02-01,Caliban,All types of skin disease,9
+2022-02-01,Cansilayan,Cough,14
+2022-02-01,Cansilayan,URTI,7
+2022-02-01,Cansilayan,Infection all types,5
+2022-02-01,Cansilayan,ARI,9
+2022-02-01,Cansilayan,Fever unknown origin,13
+2022-02-01,Cansilayan,Hypertension,30
+2022-02-01,Cansilayan,Influenza,10
+2022-02-01,Cansilayan,Acute Gastroenteritis,0
+2022-02-01,Cansilayan,Vertigo,4
+2022-02-01,Cansilayan,All types of skin disease,7
+2022-02-01,Alegria,Cough,7
+2022-02-01,Alegria,URTI,10
+2022-02-01,Alegria,Infection all types,9
+2022-02-01,Alegria,ARI,16
+2022-02-01,Alegria,Fever unknown origin,1
+2022-02-01,Alegria,Hypertension,30
+2022-02-01,Alegria,Influenza,6
+2022-02-01,Alegria,Acute Gastroenteritis,3
+2022-02-01,Alegria,Vertigo,10
+2022-02-01,Alegria,All types of skin disease,4
+2022-02-01,Sta. Rosa,Cough,11
+2022-02-01,Sta. Rosa,URTI,20
+2022-02-01,Sta. Rosa,Infection all types,14
+2022-02-01,Sta. Rosa,ARI,20
+2022-02-01,Sta. Rosa,Fever unknown origin,2
+2022-02-01,Sta. Rosa,Hypertension,26
+2022-02-01,Sta. Rosa,Influenza,15
+2022-02-01,Sta. Rosa,Acute Gastroenteritis,5
+2022-02-01,Sta. Rosa,Vertigo,13
+2022-02-01,Sta. Rosa,All types of skin disease,13
+2022-03-01,Blumentritt,Cough,16
+2022-03-01,Blumentritt,URTI,9
+2022-03-01,Blumentritt,Infection all types,8
+2022-03-01,Blumentritt,ARI,19
+2022-03-01,Blumentritt,Fever unknown origin,7
+2022-03-01,Blumentritt,Hypertension,15
+2022-03-01,Blumentritt,Influenza,17
+2022-03-01,Blumentritt,Acute Gastroenteritis,3
+2022-03-01,Blumentritt,Vertigo,4
+2022-03-01,Blumentritt,All types of skin disease,12
+2022-03-01,Salvacion,Cough,13
+2022-03-01,Salvacion,URTI,19
+2022-03-01,Salvacion,Infection all types,7
+2022-03-01,Salvacion,ARI,14
+2022-03-01,Salvacion,Fever unknown origin,7
+2022-03-01,Salvacion,Hypertension,17
+2022-03-01,Salvacion,Influenza,20
+2022-03-01,Salvacion,Acute Gastroenteritis,0
+2022-03-01,Salvacion,Vertigo,15
+2022-03-01,Salvacion,All types of skin disease,13
+2022-03-01,Minoyan,Cough,14
+2022-03-01,Minoyan,URTI,6
+2022-03-01,Minoyan,Infection all types,6
+2022-03-01,Minoyan,ARI,12
+2022-03-01,Minoyan,Fever unknown origin,3
+2022-03-01,Minoyan,Hypertension,19
+2022-03-01,Minoyan,Influenza,16
+2022-03-01,Minoyan,Acute Gastroenteritis,4
+2022-03-01,Minoyan,Vertigo,7
+2022-03-01,Minoyan,All types of skin disease,9
+2022-03-01,Caliban,Cough,10
+2022-03-01,Caliban,URTI,20
+2022-03-01,Caliban,Infection all types,12
+2022-03-01,Caliban,ARI,8
+2022-03-01,Caliban,Fever unknown origin,12
+2022-03-01,Caliban,Hypertension,29
+2022-03-01,Caliban,Influenza,19
+2022-03-01,Caliban,Acute Gastroenteritis,2
+2022-03-01,Caliban,Vertigo,4
+2022-03-01,Caliban,All types of skin disease,10
+2022-03-01,Cansilayan,Cough,10
+2022-03-01,Cansilayan,URTI,6
+2022-03-01,Cansilayan,Infection all types,15
+2022-03-01,Cansilayan,ARI,8
+2022-03-01,Cansilayan,Fever unknown origin,10
+2022-03-01,Cansilayan,Hypertension,25
+2022-03-01,Cansilayan,Influenza,14
+2022-03-01,Cansilayan,Acute Gastroenteritis,4
+2022-03-01,Cansilayan,Vertigo,8
+2022-03-01,Cansilayan,All types of skin disease,14
+2022-03-01,Alegria,Cough,20
+2022-03-01,Alegria,URTI,6
+2022-03-01,Alegria,Infection all types,14
+2022-03-01,Alegria,ARI,12
+2022-03-01,Alegria,Fever unknown origin,1
+2022-03-01,Alegria,Hypertension,23
+2022-03-01,Alegria,Influenza,7
+2022-03-01,Alegria,Acute Gastroenteritis,3
+2022-03-01,Alegria,Vertigo,6
+2022-03-01,Alegria,All types of skin disease,3
+2022-03-01,Sta. Rosa,Cough,20
+2022-03-01,Sta. Rosa,URTI,14
+2022-03-01,Sta. Rosa,Infection all types,13
+2022-03-01,Sta. Rosa,ARI,17
+2022-03-01,Sta. Rosa,Fever unknown origin,14
+2022-03-01,Sta. Rosa,Hypertension,25
+2022-03-01,Sta. Rosa,Influenza,20
+2022-03-01,Sta. Rosa,Acute Gastroenteritis,1
+2022-03-01,Sta. Rosa,Vertigo,3
+2022-03-01,Sta. Rosa,All types of skin disease,3
+2022-04-01,Blumentritt,Cough,16
+2022-04-01,Blumentritt,URTI,15
+2022-04-01,Blumentritt,Infection all types,12
+2022-04-01,Blumentritt,ARI,15
+2022-04-01,Blumentritt,Fever unknown origin,7
+2022-04-01,Blumentritt,Hypertension,28
+2022-04-01,Blumentritt,Influenza,20
+2022-04-01,Blumentritt,Acute Gastroenteritis,7
+2022-04-01,Blumentritt,Vertigo,2
+2022-04-01,Blumentritt,All types of skin disease,7
+2022-04-01,Salvacion,Cough,18
+2022-04-01,Salvacion,URTI,9
+2022-04-01,Salvacion,Infection all types,13
+2022-04-01,Salvacion,ARI,20
+2022-04-01,Salvacion,Fever unknown origin,8
+2022-04-01,Salvacion,Hypertension,16
+2022-04-01,Salvacion,Influenza,15
+2022-04-01,Salvacion,Acute Gastroenteritis,3
+2022-04-01,Salvacion,Vertigo,6
+2022-04-01,Salvacion,All types of skin disease,11
+2022-04-01,Minoyan,Cough,17
+2022-04-01,Minoyan,URTI,16
+2022-04-01,Minoyan,Infection all types,14
+2022-04-01,Minoyan,ARI,20
+2022-04-01,Minoyan,Fever unknown origin,12
+2022-04-01,Minoyan,Hypertension,15
+2022-04-01,Minoyan,Influenza,13
+2022-04-01,Minoyan,Acute Gastroenteritis,9
+2022-04-01,Minoyan,Vertigo,5
+2022-04-01,Minoyan,All types of skin disease,8
+2022-04-01,Caliban,Cough,12
+2022-04-01,Caliban,URTI,10
+2022-04-01,Caliban,Infection all types,2
+2022-04-01,Caliban,ARI,8
+2022-04-01,Caliban,Fever unknown origin,15
+2022-04-01,Caliban,Hypertension,26
+2022-04-01,Caliban,Influenza,20
+2022-04-01,Caliban,Acute Gastroenteritis,9
+2022-04-01,Caliban,Vertigo,11
+2022-04-01,Caliban,All types of skin disease,14
+2022-04-01,Cansilayan,Cough,11
+2022-04-01,Cansilayan,URTI,11
+2022-04-01,Cansilayan,Infection all types,13
+2022-04-01,Cansilayan,ARI,15
+2022-04-01,Cansilayan,Fever unknown origin,12
+2022-04-01,Cansilayan,Hypertension,29
+2022-04-01,Cansilayan,Influenza,11
+2022-04-01,Cansilayan,Acute Gastroenteritis,7
+2022-04-01,Cansilayan,Vertigo,2
+2022-04-01,Cansilayan,All types of skin disease,1
+2022-04-01,Alegria,Cough,18
+2022-04-01,Alegria,URTI,17
+2022-04-01,Alegria,Infection all types,4
+2022-04-01,Alegria,ARI,18
+2022-04-01,Alegria,Fever unknown origin,3
+2022-04-01,Alegria,Hypertension,24
+2022-04-01,Alegria,Influenza,18
+2022-04-01,Alegria,Acute Gastroenteritis,1
+2022-04-01,Alegria,Vertigo,14
+2022-04-01,Alegria,All types of skin disease,15
+2022-04-01,Sta. Rosa,Cough,6
+2022-04-01,Sta. Rosa,URTI,11
+2022-04-01,Sta. Rosa,Infection all types,7
+2022-04-01,Sta. Rosa,ARI,18
+2022-04-01,Sta. Rosa,Fever unknown origin,14
+2022-04-01,Sta. Rosa,Hypertension,27
+2022-04-01,Sta. Rosa,Influenza,12
+2022-04-01,Sta. Rosa,Acute Gastroenteritis,5
+2022-04-01,Sta. Rosa,Vertigo,9
+2022-04-01,Sta. Rosa,All types of skin disease,9
+2022-05-01,Blumentritt,Cough,14
+2022-05-01,Blumentritt,URTI,6
+2022-05-01,Blumentritt,Infection all types,4
+2022-05-01,Blumentritt,ARI,12
+2022-05-01,Blumentritt,Fever unknown origin,9
+2022-05-01,Blumentritt,Hypertension,18
+2022-05-01,Blumentritt,Influenza,13
+2022-05-01,Blumentritt,Acute Gastroenteritis,10
+2022-05-01,Blumentritt,Vertigo,3
+2022-05-01,Blumentritt,All types of skin disease,14
+2022-05-01,Salvacion,Cough,8
+2022-05-01,Salvacion,URTI,8
+2022-05-01,Salvacion,Infection all types,11
+2022-05-01,Salvacion,ARI,5
+2022-05-01,Salvacion,Fever unknown origin,13
+2022-05-01,Salvacion,Hypertension,30
+2022-05-01,Salvacion,Influenza,16
+2022-05-01,Salvacion,Acute Gastroenteritis,7
+2022-05-01,Salvacion,Vertigo,10
+2022-05-01,Salvacion,All types of skin disease,8
+2022-05-01,Minoyan,Cough,7
+2022-05-01,Minoyan,URTI,15
+2022-05-01,Minoyan,Infection all types,3
+2022-05-01,Minoyan,ARI,6
+2022-05-01,Minoyan,Fever unknown origin,14
+2022-05-01,Minoyan,Hypertension,25
+2022-05-01,Minoyan,Influenza,11
+2022-05-01,Minoyan,Acute Gastroenteritis,10
+2022-05-01,Minoyan,Vertigo,4
+2022-05-01,Minoyan,All types of skin disease,7
+2022-05-01,Caliban,Cough,8
+2022-05-01,Caliban,URTI,5
+2022-05-01,Caliban,Infection all types,12
+2022-05-01,Caliban,ARI,12
+2022-05-01,Caliban,Fever unknown origin,8
+2022-05-01,Caliban,Hypertension,19
+2022-05-01,Caliban,Influenza,16
+2022-05-01,Caliban,Acute Gastroenteritis,7
+2022-05-01,Caliban,Vertigo,2
+2022-05-01,Caliban,All types of skin disease,2
+2022-05-01,Cansilayan,Cough,19
+2022-05-01,Cansilayan,URTI,5
+2022-05-01,Cansilayan,Infection all types,11
+2022-05-01,Cansilayan,ARI,20
+2022-05-01,Cansilayan,Fever unknown origin,11
+2022-05-01,Cansilayan,Hypertension,15
+2022-05-01,Cansilayan,Influenza,15
+2022-05-01,Cansilayan,Acute Gastroenteritis,9
+2022-05-01,Cansilayan,Vertigo,14
+2022-05-01,Cansilayan,All types of skin disease,9
+2022-05-01,Alegria,Cough,5
+2022-05-01,Alegria,URTI,10
+2022-05-01,Alegria,Infection all types,5
+2022-05-01,Alegria,ARI,8
+2022-05-01,Alegria,Fever unknown origin,1
+2022-05-01,Alegria,Hypertension,17
+2022-05-01,Alegria,Influenza,18
+2022-05-01,Alegria,Acute Gastroenteritis,9
+2022-05-01,Alegria,Vertigo,7
+2022-05-01,Alegria,All types of skin disease,1
+2022-05-01,Sta. Rosa,Cough,13
+2022-05-01,Sta. Rosa,URTI,20
+2022-05-01,Sta. Rosa,Infection all types,14
+2022-05-01,Sta. Rosa,ARI,10
+2022-05-01,Sta. Rosa,Fever unknown origin,1
+2022-05-01,Sta. Rosa,Hypertension,29
+2022-05-01,Sta. Rosa,Influenza,8
+2022-05-01,Sta. Rosa,Acute Gastroenteritis,9
+2022-05-01,Sta. Rosa,Vertigo,4
+2022-05-01,Sta. Rosa,All types of skin disease,10
+2022-06-01,Blumentritt,Cough,44
+2022-06-01,Blumentritt,URTI,33
+2022-06-01,Blumentritt,Infection all types,15
+2022-06-01,Blumentritt,ARI,28
+2022-06-01,Blumentritt,Fever unknown origin,3
+2022-06-01,Blumentritt,Hypertension,24
+2022-06-01,Blumentritt,Influenza,34
+2022-06-01,Blumentritt,Acute Gastroenteritis,15
+2022-06-01,Blumentritt,Vertigo,2
+2022-06-01,Blumentritt,All types of skin disease,15
+2022-06-01,Salvacion,Cough,39
+2022-06-01,Salvacion,URTI,23
+2022-06-01,Salvacion,Infection all types,7
+2022-06-01,Salvacion,ARI,21
+2022-06-01,Salvacion,Fever unknown origin,14
+2022-06-01,Salvacion,Hypertension,25
+2022-06-01,Salvacion,Influenza,42
+2022-06-01,Salvacion,Acute Gastroenteritis,11
+2022-06-01,Salvacion,Vertigo,9
+2022-06-01,Salvacion,All types of skin disease,12
+2022-06-01,Minoyan,Cough,37
+2022-06-01,Minoyan,URTI,41
+2022-06-01,Minoyan,Infection all types,6
+2022-06-01,Minoyan,ARI,31
+2022-06-01,Minoyan,Fever unknown origin,1
+2022-06-01,Minoyan,Hypertension,23
+2022-06-01,Minoyan,Influenza,33
+2022-06-01,Minoyan,Acute Gastroenteritis,13
+2022-06-01,Minoyan,Vertigo,2
+2022-06-01,Minoyan,All types of skin disease,8
+2022-06-01,Caliban,Cough,31
+2022-06-01,Caliban,URTI,40
+2022-06-01,Caliban,Infection all types,1
+2022-06-01,Caliban,ARI,35
+2022-06-01,Caliban,Fever unknown origin,5
+2022-06-01,Caliban,Hypertension,17
+2022-06-01,Caliban,Influenza,37
+2022-06-01,Caliban,Acute Gastroenteritis,14
+2022-06-01,Caliban,Vertigo,13
+2022-06-01,Caliban,All types of skin disease,3
+2022-06-01,Cansilayan,Cough,24
+2022-06-01,Cansilayan,URTI,36
+2022-06-01,Cansilayan,Infection all types,9
+2022-06-01,Cansilayan,ARI,30
+2022-06-01,Cansilayan,Fever unknown origin,1
+2022-06-01,Cansilayan,Hypertension,30
+2022-06-01,Cansilayan,Influenza,22
+2022-06-01,Cansilayan,Acute Gastroenteritis,21
+2022-06-01,Cansilayan,Vertigo,14
+2022-06-01,Cansilayan,All types of skin disease,6
+2022-06-01,Alegria,Cough,37
+2022-06-01,Alegria,URTI,23
+2022-06-01,Alegria,Infection all types,7
+2022-06-01,Alegria,ARI,39
+2022-06-01,Alegria,Fever unknown origin,3
+2022-06-01,Alegria,Hypertension,17
+2022-06-01,Alegria,Influenza,20
+2022-06-01,Alegria,Acute Gastroenteritis,20
+2022-06-01,Alegria,Vertigo,8
+2022-06-01,Alegria,All types of skin disease,6
+2022-06-01,Sta. Rosa,Cough,20
+2022-06-01,Sta. Rosa,URTI,45
+2022-06-01,Sta. Rosa,Infection all types,5
+2022-06-01,Sta. Rosa,ARI,29
+2022-06-01,Sta. Rosa,Fever unknown origin,11
+2022-06-01,Sta. Rosa,Hypertension,15
+2022-06-01,Sta. Rosa,Influenza,38
+2022-06-01,Sta. Rosa,Acute Gastroenteritis,21
+2022-06-01,Sta. Rosa,Vertigo,8
+2022-06-01,Sta. Rosa,All types of skin disease,1
+2022-07-01,Blumentritt,Cough,29
+2022-07-01,Blumentritt,URTI,29
+2022-07-01,Blumentritt,Infection all types,13
+2022-07-01,Blumentritt,ARI,30
+2022-07-01,Blumentritt,Fever unknown origin,12
+2022-07-01,Blumentritt,Hypertension,27
+2022-07-01,Blumentritt,Influenza,31
+2022-07-01,Blumentritt,Acute Gastroenteritis,15
+2022-07-01,Blumentritt,Vertigo,13
+2022-07-01,Blumentritt,All types of skin disease,5
+2022-07-01,Salvacion,Cough,36
+2022-07-01,Salvacion,URTI,46
+2022-07-01,Salvacion,Infection all types,12
+2022-07-01,Salvacion,ARI,35
+2022-07-01,Salvacion,Fever unknown origin,4
+2022-07-01,Salvacion,Hypertension,18
+2022-07-01,Salvacion,Influenza,25
+2022-07-01,Salvacion,Acute Gastroenteritis,15
+2022-07-01,Salvacion,Vertigo,15
+2022-07-01,Salvacion,All types of skin disease,14
+2022-07-01,Minoyan,Cough,46
+2022-07-01,Minoyan,URTI,39
+2022-07-01,Minoyan,Infection all types,10
+2022-07-01,Minoyan,ARI,25
+2022-07-01,Minoyan,Fever unknown origin,10
+2022-07-01,Minoyan,Hypertension,18
+2022-07-01,Minoyan,Influenza,38
+2022-07-01,Minoyan,Acute Gastroenteritis,29
+2022-07-01,Minoyan,Vertigo,5
+2022-07-01,Minoyan,All types of skin disease,9
+2022-07-01,Caliban,Cough,30
+2022-07-01,Caliban,URTI,47
+2022-07-01,Caliban,Infection all types,13
+2022-07-01,Caliban,ARI,44
+2022-07-01,Caliban,Fever unknown origin,14
+2022-07-01,Caliban,Hypertension,18
+2022-07-01,Caliban,Influenza,21
+2022-07-01,Caliban,Acute Gastroenteritis,12
+2022-07-01,Caliban,Vertigo,15
+2022-07-01,Caliban,All types of skin disease,8
+2022-07-01,Cansilayan,Cough,36
+2022-07-01,Cansilayan,URTI,37
+2022-07-01,Cansilayan,Infection all types,8
+2022-07-01,Cansilayan,ARI,47
+2022-07-01,Cansilayan,Fever unknown origin,2
+2022-07-01,Cansilayan,Hypertension,19
+2022-07-01,Cansilayan,Influenza,37
+2022-07-01,Cansilayan,Acute Gastroenteritis,13
+2022-07-01,Cansilayan,Vertigo,6
+2022-07-01,Cansilayan,All types of skin disease,12
+2022-07-01,Alegria,Cough,24
+2022-07-01,Alegria,URTI,27
+2022-07-01,Alegria,Infection all types,11
+2022-07-01,Alegria,ARI,31
+2022-07-01,Alegria,Fever unknown origin,6
+2022-07-01,Alegria,Hypertension,17
+2022-07-01,Alegria,Influenza,50
+2022-07-01,Alegria,Acute Gastroenteritis,18
+2022-07-01,Alegria,Vertigo,12
+2022-07-01,Alegria,All types of skin disease,5
+2022-07-01,Sta. Rosa,Cough,42
+2022-07-01,Sta. Rosa,URTI,43
+2022-07-01,Sta. Rosa,Infection all types,14
+2022-07-01,Sta. Rosa,ARI,42
+2022-07-01,Sta. Rosa,Fever unknown origin,9
+2022-07-01,Sta. Rosa,Hypertension,16
+2022-07-01,Sta. Rosa,Influenza,50
+2022-07-01,Sta. Rosa,Acute Gastroenteritis,24
+2022-07-01,Sta. Rosa,Vertigo,8
+2022-07-01,Sta. Rosa,All types of skin disease,5
+2022-08-01,Blumentritt,Cough,38
+2022-08-01,Blumentritt,URTI,24
+2022-08-01,Blumentritt,Infection all types,13
+2022-08-01,Blumentritt,ARI,25
+2022-08-01,Blumentritt,Fever unknown origin,9
+2022-08-01,Blumentritt,Hypertension,25
+2022-08-01,Blumentritt,Influenza,38
+2022-08-01,Blumentritt,Acute Gastroenteritis,14
+2022-08-01,Blumentritt,Vertigo,5
+2022-08-01,Blumentritt,All types of skin disease,15
+2022-08-01,Salvacion,Cough,27
+2022-08-01,Salvacion,URTI,32
+2022-08-01,Salvacion,Infection all types,4
+2022-08-01,Salvacion,ARI,26
+2022-08-01,Salvacion,Fever unknown origin,9
+2022-08-01,Salvacion,Hypertension,21
+2022-08-01,Salvacion,Influenza,41
+2022-08-01,Salvacion,Acute Gastroenteritis,24
+2022-08-01,Salvacion,Vertigo,15
+2022-08-01,Salvacion,All types of skin disease,12
+2022-08-01,Minoyan,Cough,50
+2022-08-01,Minoyan,URTI,31
+2022-08-01,Minoyan,Infection all types,7
+2022-08-01,Minoyan,ARI,36
+2022-08-01,Minoyan,Fever unknown origin,9
+2022-08-01,Minoyan,Hypertension,21
+2022-08-01,Minoyan,Influenza,28
+2022-08-01,Minoyan,Acute Gastroenteritis,15
+2022-08-01,Minoyan,Vertigo,5
+2022-08-01,Minoyan,All types of skin disease,15
+2022-08-01,Caliban,Cough,26
+2022-08-01,Caliban,URTI,26
+2022-08-01,Caliban,Infection all types,5
+2022-08-01,Caliban,ARI,43
+2022-08-01,Caliban,Fever unknown origin,1
+2022-08-01,Caliban,Hypertension,17
+2022-08-01,Caliban,Influenza,46
+2022-08-01,Caliban,Acute Gastroenteritis,29
+2022-08-01,Caliban,Vertigo,3
+2022-08-01,Caliban,All types of skin disease,7
+2022-08-01,Cansilayan,Cough,20
+2022-08-01,Cansilayan,URTI,36
+2022-08-01,Cansilayan,Infection all types,11
+2022-08-01,Cansilayan,ARI,24
+2022-08-01,Cansilayan,Fever unknown origin,3
+2022-08-01,Cansilayan,Hypertension,30
+2022-08-01,Cansilayan,Influenza,50
+2022-08-01,Cansilayan,Acute Gastroenteritis,19
+2022-08-01,Cansilayan,Vertigo,4
+2022-08-01,Cansilayan,All types of skin disease,6
+2022-08-01,Alegria,Cough,38
+2022-08-01,Alegria,URTI,38
+2022-08-01,Alegria,Infection all types,3
+2022-08-01,Alegria,ARI,45
+2022-08-01,Alegria,Fever unknown origin,2
+2022-08-01,Alegria,Hypertension,22
+2022-08-01,Alegria,Influenza,40
+2022-08-01,Alegria,Acute Gastroenteritis,19
+2022-08-01,Alegria,Vertigo,10
+2022-08-01,Alegria,All types of skin disease,6
+2022-08-01,Sta. Rosa,Cough,43
+2022-08-01,Sta. Rosa,URTI,48
+2022-08-01,Sta. Rosa,Infection all types,1
+2022-08-01,Sta. Rosa,ARI,31
+2022-08-01,Sta. Rosa,Fever unknown origin,5
+2022-08-01,Sta. Rosa,Hypertension,17
+2022-08-01,Sta. Rosa,Influenza,25
+2022-08-01,Sta. Rosa,Acute Gastroenteritis,15
+2022-08-01,Sta. Rosa,Vertigo,9
+2022-08-01,Sta. Rosa,All types of skin disease,14
+2022-09-01,Blumentritt,Cough,39
+2022-09-01,Blumentritt,URTI,31
+2022-09-01,Blumentritt,Infection all types,15
+2022-09-01,Blumentritt,ARI,45
+2022-09-01,Blumentritt,Fever unknown origin,9
+2022-09-01,Blumentritt,Hypertension,18
+2022-09-01,Blumentritt,Influenza,31
+2022-09-01,Blumentritt,Acute Gastroenteritis,15
+2022-09-01,Blumentritt,Vertigo,2
+2022-09-01,Blumentritt,All types of skin disease,12
+2022-09-01,Salvacion,Cough,21
+2022-09-01,Salvacion,URTI,40
+2022-09-01,Salvacion,Infection all types,10
+2022-09-01,Salvacion,ARI,25
+2022-09-01,Salvacion,Fever unknown origin,11
+2022-09-01,Salvacion,Hypertension,29
+2022-09-01,Salvacion,Influenza,31
+2022-09-01,Salvacion,Acute Gastroenteritis,14
+2022-09-01,Salvacion,Vertigo,13
+2022-09-01,Salvacion,All types of skin disease,3
+2022-09-01,Minoyan,Cough,22
+2022-09-01,Minoyan,URTI,49
+2022-09-01,Minoyan,Infection all types,4
+2022-09-01,Minoyan,ARI,37
+2022-09-01,Minoyan,Fever unknown origin,13
+2022-09-01,Minoyan,Hypertension,20
+2022-09-01,Minoyan,Influenza,25
+2022-09-01,Minoyan,Acute Gastroenteritis,27
+2022-09-01,Minoyan,Vertigo,8
+2022-09-01,Minoyan,All types of skin disease,15
+2022-09-01,Caliban,Cough,46
+2022-09-01,Caliban,URTI,40
+2022-09-01,Caliban,Infection all types,11
+2022-09-01,Caliban,ARI,33
+2022-09-01,Caliban,Fever unknown origin,9
+2022-09-01,Caliban,Hypertension,25
+2022-09-01,Caliban,Influenza,39
+2022-09-01,Caliban,Acute Gastroenteritis,24
+2022-09-01,Caliban,Vertigo,4
+2022-09-01,Caliban,All types of skin disease,14
+2022-09-01,Cansilayan,Cough,49
+2022-09-01,Cansilayan,URTI,42
+2022-09-01,Cansilayan,Infection all types,13
+2022-09-01,Cansilayan,ARI,41
+2022-09-01,Cansilayan,Fever unknown origin,15
+2022-09-01,Cansilayan,Hypertension,30
+2022-09-01,Cansilayan,Influenza,23
+2022-09-01,Cansilayan,Acute Gastroenteritis,16
+2022-09-01,Cansilayan,Vertigo,8
+2022-09-01,Cansilayan,All types of skin disease,14
+2022-09-01,Alegria,Cough,40
+2022-09-01,Alegria,URTI,46
+2022-09-01,Alegria,Infection all types,7
+2022-09-01,Alegria,ARI,48
+2022-09-01,Alegria,Fever unknown origin,15
+2022-09-01,Alegria,Hypertension,16
+2022-09-01,Alegria,Influenza,25
+2022-09-01,Alegria,Acute Gastroenteritis,30
+2022-09-01,Alegria,Vertigo,3
+2022-09-01,Alegria,All types of skin disease,1
+2022-09-01,Sta. Rosa,Cough,29
+2022-09-01,Sta. Rosa,URTI,49
+2022-09-01,Sta. Rosa,Infection all types,12
+2022-09-01,Sta. Rosa,ARI,28
+2022-09-01,Sta. Rosa,Fever unknown origin,1
+2022-09-01,Sta. Rosa,Hypertension,21
+2022-09-01,Sta. Rosa,Influenza,39
+2022-09-01,Sta. Rosa,Acute Gastroenteritis,20
+2022-09-01,Sta. Rosa,Vertigo,2
+2022-09-01,Sta. Rosa,All types of skin disease,5
+2022-10-01,Blumentritt,Cough,29
+2022-10-01,Blumentritt,URTI,34
+2022-10-01,Blumentritt,Infection all types,9
+2022-10-01,Blumentritt,ARI,39
+2022-10-01,Blumentritt,Fever unknown origin,4
+2022-10-01,Blumentritt,Hypertension,18
+2022-10-01,Blumentritt,Influenza,23
+2022-10-01,Blumentritt,Acute Gastroenteritis,6
+2022-10-01,Blumentritt,Vertigo,5
+2022-10-01,Blumentritt,All types of skin disease,4
+2022-10-01,Salvacion,Cough,28
+2022-10-01,Salvacion,URTI,32
+2022-10-01,Salvacion,Infection all types,11
+2022-10-01,Salvacion,ARI,30
+2022-10-01,Salvacion,Fever unknown origin,5
+2022-10-01,Salvacion,Hypertension,24
+2022-10-01,Salvacion,Influenza,41
+2022-10-01,Salvacion,Acute Gastroenteritis,8
+2022-10-01,Salvacion,Vertigo,9
+2022-10-01,Salvacion,All types of skin disease,14
+2022-10-01,Minoyan,Cough,39
+2022-10-01,Minoyan,URTI,45
+2022-10-01,Minoyan,Infection all types,4
+2022-10-01,Minoyan,ARI,29
+2022-10-01,Minoyan,Fever unknown origin,9
+2022-10-01,Minoyan,Hypertension,30
+2022-10-01,Minoyan,Influenza,48
+2022-10-01,Minoyan,Acute Gastroenteritis,0
+2022-10-01,Minoyan,Vertigo,6
+2022-10-01,Minoyan,All types of skin disease,1
+2022-10-01,Caliban,Cough,38
+2022-10-01,Caliban,URTI,44
+2022-10-01,Caliban,Infection all types,12
+2022-10-01,Caliban,ARI,32
+2022-10-01,Caliban,Fever unknown origin,11
+2022-10-01,Caliban,Hypertension,22
+2022-10-01,Caliban,Influenza,28
+2022-10-01,Caliban,Acute Gastroenteritis,10
+2022-10-01,Caliban,Vertigo,6
+2022-10-01,Caliban,All types of skin disease,12
+2022-10-01,Cansilayan,Cough,40
+2022-10-01,Cansilayan,URTI,40
+2022-10-01,Cansilayan,Infection all types,13
+2022-10-01,Cansilayan,ARI,40
+2022-10-01,Cansilayan,Fever unknown origin,7
+2022-10-01,Cansilayan,Hypertension,27
+2022-10-01,Cansilayan,Influenza,34
+2022-10-01,Cansilayan,Acute Gastroenteritis,5
+2022-10-01,Cansilayan,Vertigo,3
+2022-10-01,Cansilayan,All types of skin disease,11
+2022-10-01,Alegria,Cough,31
+2022-10-01,Alegria,URTI,47
+2022-10-01,Alegria,Infection all types,8
+2022-10-01,Alegria,ARI,25
+2022-10-01,Alegria,Fever unknown origin,1
+2022-10-01,Alegria,Hypertension,17
+2022-10-01,Alegria,Influenza,44
+2022-10-01,Alegria,Acute Gastroenteritis,9
+2022-10-01,Alegria,Vertigo,3
+2022-10-01,Alegria,All types of skin disease,13
+2022-10-01,Sta. Rosa,Cough,47
+2022-10-01,Sta. Rosa,URTI,50
+2022-10-01,Sta. Rosa,Infection all types,12
+2022-10-01,Sta. Rosa,ARI,46
+2022-10-01,Sta. Rosa,Fever unknown origin,3
+2022-10-01,Sta. Rosa,Hypertension,27
+2022-10-01,Sta. Rosa,Influenza,44
+2022-10-01,Sta. Rosa,Acute Gastroenteritis,10
+2022-10-01,Sta. Rosa,Vertigo,15
+2022-10-01,Sta. Rosa,All types of skin disease,15
+2022-11-01,Blumentritt,Cough,18
+2022-11-01,Blumentritt,URTI,17
+2022-11-01,Blumentritt,Infection all types,11
+2022-11-01,Blumentritt,ARI,6
+2022-11-01,Blumentritt,Fever unknown origin,10
+2022-11-01,Blumentritt,Hypertension,26
+2022-11-01,Blumentritt,Influenza,18
+2022-11-01,Blumentritt,Acute Gastroenteritis,8
+2022-11-01,Blumentritt,Vertigo,11
+2022-11-01,Blumentritt,All types of skin disease,12
+2022-11-01,Salvacion,Cough,15
+2022-11-01,Salvacion,URTI,16
+2022-11-01,Salvacion,Infection all types,4
+2022-11-01,Salvacion,ARI,15
+2022-11-01,Salvacion,Fever unknown origin,1
+2022-11-01,Salvacion,Hypertension,23
+2022-11-01,Salvacion,Influenza,17
+2022-11-01,Salvacion,Acute Gastroenteritis,10
+2022-11-01,Salvacion,Vertigo,3
+2022-11-01,Salvacion,All types of skin disease,5
+2022-11-01,Minoyan,Cough,10
+2022-11-01,Minoyan,URTI,15
+2022-11-01,Minoyan,Infection all types,13
+2022-11-01,Minoyan,ARI,13
+2022-11-01,Minoyan,Fever unknown origin,9
+2022-11-01,Minoyan,Hypertension,21
+2022-11-01,Minoyan,Influenza,15
+2022-11-01,Minoyan,Acute Gastroenteritis,3
+2022-11-01,Minoyan,Vertigo,7
+2022-11-01,Minoyan,All types of skin disease,12
+2022-11-01,Caliban,Cough,20
+2022-11-01,Caliban,URTI,7
+2022-11-01,Caliban,Infection all types,12
+2022-11-01,Caliban,ARI,12
+2022-11-01,Caliban,Fever unknown origin,10
+2022-11-01,Caliban,Hypertension,23
+2022-11-01,Caliban,Influenza,13
+2022-11-01,Caliban,Acute Gastroenteritis,4
+2022-11-01,Caliban,Vertigo,7
+2022-11-01,Caliban,All types of skin disease,15
+2022-11-01,Cansilayan,Cough,16
+2022-11-01,Cansilayan,URTI,7
+2022-11-01,Cansilayan,Infection all types,13
+2022-11-01,Cansilayan,ARI,19
+2022-11-01,Cansilayan,Fever unknown origin,4
+2022-11-01,Cansilayan,Hypertension,19
+2022-11-01,Cansilayan,Influenza,14
+2022-11-01,Cansilayan,Acute Gastroenteritis,5
+2022-11-01,Cansilayan,Vertigo,4
+2022-11-01,Cansilayan,All types of skin disease,7
+2022-11-01,Alegria,Cough,15
+2022-11-01,Alegria,URTI,13
+2022-11-01,Alegria,Infection all types,5
+2022-11-01,Alegria,ARI,18
+2022-11-01,Alegria,Fever unknown origin,5
+2022-11-01,Alegria,Hypertension,18
+2022-11-01,Alegria,Influenza,14
+2022-11-01,Alegria,Acute Gastroenteritis,1
+2022-11-01,Alegria,Vertigo,14
+2022-11-01,Alegria,All types of skin disease,9
+2022-11-01,Sta. Rosa,Cough,6
+2022-11-01,Sta. Rosa,URTI,13
+2022-11-01,Sta. Rosa,Infection all types,7
+2022-11-01,Sta. Rosa,ARI,5
+2022-11-01,Sta. Rosa,Fever unknown origin,12
+2022-11-01,Sta. Rosa,Hypertension,17
+2022-11-01,Sta. Rosa,Influenza,16
+2022-11-01,Sta. Rosa,Acute Gastroenteritis,4
+2022-11-01,Sta. Rosa,Vertigo,11
+2022-11-01,Sta. Rosa,All types of skin disease,3
+2022-12-01,Blumentritt,Cough,10
+2022-12-01,Blumentritt,URTI,17
+2022-12-01,Blumentritt,Infection all types,4
+2022-12-01,Blumentritt,ARI,13
+2022-12-01,Blumentritt,Fever unknown origin,6
+2022-12-01,Blumentritt,Hypertension,17
+2022-12-01,Blumentritt,Influenza,11
+2022-12-01,Blumentritt,Acute Gastroenteritis,7
+2022-12-01,Blumentritt,Vertigo,13
+2022-12-01,Blumentritt,All types of skin disease,9
+2022-12-01,Salvacion,Cough,6
+2022-12-01,Salvacion,URTI,14
+2022-12-01,Salvacion,Infection all types,4
+2022-12-01,Salvacion,ARI,18
+2022-12-01,Salvacion,Fever unknown origin,13
+2022-12-01,Salvacion,Hypertension,15
+2022-12-01,Salvacion,Influenza,18
+2022-12-01,Salvacion,Acute Gastroenteritis,3
+2022-12-01,Salvacion,Vertigo,7
+2022-12-01,Salvacion,All types of skin disease,3
+2022-12-01,Minoyan,Cough,15
+2022-12-01,Minoyan,URTI,16
+2022-12-01,Minoyan,Infection all types,12
+2022-12-01,Minoyan,ARI,18
+2022-12-01,Minoyan,Fever unknown origin,6
+2022-12-01,Minoyan,Hypertension,15
+2022-12-01,Minoyan,Influenza,14
+2022-12-01,Minoyan,Acute Gastroenteritis,5
+2022-12-01,Minoyan,Vertigo,11
+2022-12-01,Minoyan,All types of skin disease,11
+2022-12-01,Caliban,Cough,19
+2022-12-01,Caliban,URTI,7
+2022-12-01,Caliban,Infection all types,13
+2022-12-01,Caliban,ARI,8
+2022-12-01,Caliban,Fever unknown origin,6
+2022-12-01,Caliban,Hypertension,24
+2022-12-01,Caliban,Influenza,14
+2022-12-01,Caliban,Acute Gastroenteritis,2
+2022-12-01,Caliban,Vertigo,9
+2022-12-01,Caliban,All types of skin disease,1
+2022-12-01,Cansilayan,Cough,6
+2022-12-01,Cansilayan,URTI,7
+2022-12-01,Cansilayan,Infection all types,6
+2022-12-01,Cansilayan,ARI,19
+2022-12-01,Cansilayan,Fever unknown origin,15
+2022-12-01,Cansilayan,Hypertension,25
+2022-12-01,Cansilayan,Influenza,10
+2022-12-01,Cansilayan,Acute Gastroenteritis,5
+2022-12-01,Cansilayan,Vertigo,13
+2022-12-01,Cansilayan,All types of skin disease,8
+2022-12-01,Alegria,Cough,8
+2022-12-01,Alegria,URTI,18
+2022-12-01,Alegria,Infection all types,10
+2022-12-01,Alegria,ARI,13
+2022-12-01,Alegria,Fever unknown origin,7
+2022-12-01,Alegria,Hypertension,27
+2022-12-01,Alegria,Influenza,16
+2022-12-01,Alegria,Acute Gastroenteritis,9
+2022-12-01,Alegria,Vertigo,10
+2022-12-01,Alegria,All types of skin disease,5
+2022-12-01,Sta. Rosa,Cough,18
+2022-12-01,Sta. Rosa,URTI,19
+2022-12-01,Sta. Rosa,Infection all types,2
+2022-12-01,Sta. Rosa,ARI,8
+2022-12-01,Sta. Rosa,Fever unknown origin,10
+2022-12-01,Sta. Rosa,Hypertension,27
+2022-12-01,Sta. Rosa,Influenza,17
+2022-12-01,Sta. Rosa,Acute Gastroenteritis,5
+2022-12-01,Sta. Rosa,Vertigo,15
+2022-12-01,Sta. Rosa,All types of skin disease,2
+2023-01-01,Blumentritt,Cough,20
+2023-01-01,Blumentritt,URTI,17
+2023-01-01,Blumentritt,Infection all types,15
+2023-01-01,Blumentritt,ARI,16
+2023-01-01,Blumentritt,Fever unknown origin,13
+2023-01-01,Blumentritt,Hypertension,22
+2023-01-01,Blumentritt,Influenza,15
+2023-01-01,Blumentritt,Acute Gastroenteritis,6
+2023-01-01,Blumentritt,Vertigo,8
+2023-01-01,Blumentritt,All types of skin disease,1
+2023-01-01,Salvacion,Cough,12
+2023-01-01,Salvacion,URTI,8
+2023-01-01,Salvacion,Infection all types,8
+2023-01-01,Salvacion,ARI,20
+2023-01-01,Salvacion,Fever unknown origin,3
+2023-01-01,Salvacion,Hypertension,19
+2023-01-01,Salvacion,Influenza,10
+2023-01-01,Salvacion,Acute Gastroenteritis,0
+2023-01-01,Salvacion,Vertigo,5
+2023-01-01,Salvacion,All types of skin disease,12
+2023-01-01,Minoyan,Cough,8
+2023-01-01,Minoyan,URTI,10
+2023-01-01,Minoyan,Infection all types,4
+2023-01-01,Minoyan,ARI,16
+2023-01-01,Minoyan,Fever unknown origin,10
+2023-01-01,Minoyan,Hypertension,24
+2023-01-01,Minoyan,Influenza,6
+2023-01-01,Minoyan,Acute Gastroenteritis,8
+2023-01-01,Minoyan,Vertigo,8
+2023-01-01,Minoyan,All types of skin disease,8
+2023-01-01,Caliban,Cough,7
+2023-01-01,Caliban,URTI,11
+2023-01-01,Caliban,Infection all types,15
+2023-01-01,Caliban,ARI,10
+2023-01-01,Caliban,Fever unknown origin,2
+2023-01-01,Caliban,Hypertension,25
+2023-01-01,Caliban,Influenza,17
+2023-01-01,Caliban,Acute Gastroenteritis,8
+2023-01-01,Caliban,Vertigo,12
+2023-01-01,Caliban,All types of skin disease,7
+2023-01-01,Cansilayan,Cough,6
+2023-01-01,Cansilayan,URTI,17
+2023-01-01,Cansilayan,Infection all types,11
+2023-01-01,Cansilayan,ARI,5
+2023-01-01,Cansilayan,Fever unknown origin,3
+2023-01-01,Cansilayan,Hypertension,25
+2023-01-01,Cansilayan,Influenza,5
+2023-01-01,Cansilayan,Acute Gastroenteritis,0
+2023-01-01,Cansilayan,Vertigo,5
+2023-01-01,Cansilayan,All types of skin disease,3
+2023-01-01,Alegria,Cough,15
+2023-01-01,Alegria,URTI,18
+2023-01-01,Alegria,Infection all types,10
+2023-01-01,Alegria,ARI,7
+2023-01-01,Alegria,Fever unknown origin,15
+2023-01-01,Alegria,Hypertension,23
+2023-01-01,Alegria,Influenza,10
+2023-01-01,Alegria,Acute Gastroenteritis,9
+2023-01-01,Alegria,Vertigo,2
+2023-01-01,Alegria,All types of skin disease,15
+2023-01-01,Sta. Rosa,Cough,15
+2023-01-01,Sta. Rosa,URTI,8
+2023-01-01,Sta. Rosa,Infection all types,2
+2023-01-01,Sta. Rosa,ARI,14
+2023-01-01,Sta. Rosa,Fever unknown origin,15
+2023-01-01,Sta. Rosa,Hypertension,30
+2023-01-01,Sta. Rosa,Influenza,15
+2023-01-01,Sta. Rosa,Acute Gastroenteritis,7
+2023-01-01,Sta. Rosa,Vertigo,14
+2023-01-01,Sta. Rosa,All types of skin disease,9
+2023-02-01,Blumentritt,Cough,20
+2023-02-01,Blumentritt,URTI,17
+2023-02-01,Blumentritt,Infection all types,12
+2023-02-01,Blumentritt,ARI,11
+2023-02-01,Blumentritt,Fever unknown origin,14
+2023-02-01,Blumentritt,Hypertension,25
+2023-02-01,Blumentritt,Influenza,5
+2023-02-01,Blumentritt,Acute Gastroenteritis,2
+2023-02-01,Blumentritt,Vertigo,8
+2023-02-01,Blumentritt,All types of skin disease,10
+2023-02-01,Salvacion,Cough,5
+2023-02-01,Salvacion,URTI,10
+2023-02-01,Salvacion,Infection all types,7
+2023-02-01,Salvacion,ARI,12
+2023-02-01,Salvacion,Fever unknown origin,14
+2023-02-01,Salvacion,Hypertension,24
+2023-02-01,Salvacion,Influenza,13
+2023-02-01,Salvacion,Acute Gastroenteritis,1
+2023-02-01,Salvacion,Vertigo,13
+2023-02-01,Salvacion,All types of skin disease,7
+2023-02-01,Minoyan,Cough,6
+2023-02-01,Minoyan,URTI,9
+2023-02-01,Minoyan,Infection all types,8
+2023-02-01,Minoyan,ARI,5
+2023-02-01,Minoyan,Fever unknown origin,11
+2023-02-01,Minoyan,Hypertension,25
+2023-02-01,Minoyan,Influenza,8
+2023-02-01,Minoyan,Acute Gastroenteritis,9
+2023-02-01,Minoyan,Vertigo,3
+2023-02-01,Minoyan,All types of skin disease,15
+2023-02-01,Caliban,Cough,16
+2023-02-01,Caliban,URTI,6
+2023-02-01,Caliban,Infection all types,4
+2023-02-01,Caliban,ARI,5
+2023-02-01,Caliban,Fever unknown origin,2
+2023-02-01,Caliban,Hypertension,28
+2023-02-01,Caliban,Influenza,17
+2023-02-01,Caliban,Acute Gastroenteritis,2
+2023-02-01,Caliban,Vertigo,9
+2023-02-01,Caliban,All types of skin disease,14
+2023-02-01,Cansilayan,Cough,16
+2023-02-01,Cansilayan,URTI,10
+2023-02-01,Cansilayan,Infection all types,11
+2023-02-01,Cansilayan,ARI,14
+2023-02-01,Cansilayan,Fever unknown origin,3
+2023-02-01,Cansilayan,Hypertension,30
+2023-02-01,Cansilayan,Influenza,7
+2023-02-01,Cansilayan,Acute Gastroenteritis,1
+2023-02-01,Cansilayan,Vertigo,13
+2023-02-01,Cansilayan,All types of skin disease,2
+2023-02-01,Alegria,Cough,6
+2023-02-01,Alegria,URTI,20
+2023-02-01,Alegria,Infection all types,10
+2023-02-01,Alegria,ARI,9
+2023-02-01,Alegria,Fever unknown origin,7
+2023-02-01,Alegria,Hypertension,29
+2023-02-01,Alegria,Influenza,15
+2023-02-01,Alegria,Acute Gastroenteritis,8
+2023-02-01,Alegria,Vertigo,6
+2023-02-01,Alegria,All types of skin disease,13
+2023-02-01,Sta. Rosa,Cough,5
+2023-02-01,Sta. Rosa,URTI,6
+2023-02-01,Sta. Rosa,Infection all types,13
+2023-02-01,Sta. Rosa,ARI,9
+2023-02-01,Sta. Rosa,Fever unknown origin,9
+2023-02-01,Sta. Rosa,Hypertension,25
+2023-02-01,Sta. Rosa,Influenza,7
+2023-02-01,Sta. Rosa,Acute Gastroenteritis,6
+2023-02-01,Sta. Rosa,Vertigo,14
+2023-02-01,Sta. Rosa,All types of skin disease,4
+2023-03-01,Blumentritt,Cough,8
+2023-03-01,Blumentritt,URTI,17
+2023-03-01,Blumentritt,Infection all types,11
+2023-03-01,Blumentritt,ARI,15
+2023-03-01,Blumentritt,Fever unknown origin,6
+2023-03-01,Blumentritt,Hypertension,28
+2023-03-01,Blumentritt,Influenza,16
+2023-03-01,Blumentritt,Acute Gastroenteritis,0
+2023-03-01,Blumentritt,Vertigo,2
+2023-03-01,Blumentritt,All types of skin disease,1
+2023-03-01,Salvacion,Cough,16
+2023-03-01,Salvacion,URTI,7
+2023-03-01,Salvacion,Infection all types,7
+2023-03-01,Salvacion,ARI,9
+2023-03-01,Salvacion,Fever unknown origin,11
+2023-03-01,Salvacion,Hypertension,27
+2023-03-01,Salvacion,Influenza,16
+2023-03-01,Salvacion,Acute Gastroenteritis,6
+2023-03-01,Salvacion,Vertigo,3
+2023-03-01,Salvacion,All types of skin disease,7
+2023-03-01,Minoyan,Cough,10
+2023-03-01,Minoyan,URTI,8
+2023-03-01,Minoyan,Infection all types,11
+2023-03-01,Minoyan,ARI,18
+2023-03-01,Minoyan,Fever unknown origin,10
+2023-03-01,Minoyan,Hypertension,15
+2023-03-01,Minoyan,Influenza,5
+2023-03-01,Minoyan,Acute Gastroenteritis,3
+2023-03-01,Minoyan,Vertigo,8
+2023-03-01,Minoyan,All types of skin disease,6
+2023-03-01,Caliban,Cough,17
+2023-03-01,Caliban,URTI,9
+2023-03-01,Caliban,Infection all types,15
+2023-03-01,Caliban,ARI,12
+2023-03-01,Caliban,Fever unknown origin,1
+2023-03-01,Caliban,Hypertension,18
+2023-03-01,Caliban,Influenza,13
+2023-03-01,Caliban,Acute Gastroenteritis,0
+2023-03-01,Caliban,Vertigo,13
+2023-03-01,Caliban,All types of skin disease,8
+2023-03-01,Cansilayan,Cough,17
+2023-03-01,Cansilayan,URTI,10
+2023-03-01,Cansilayan,Infection all types,14
+2023-03-01,Cansilayan,ARI,16
+2023-03-01,Cansilayan,Fever unknown origin,1
+2023-03-01,Cansilayan,Hypertension,27
+2023-03-01,Cansilayan,Influenza,9
+2023-03-01,Cansilayan,Acute Gastroenteritis,2
+2023-03-01,Cansilayan,Vertigo,9
+2023-03-01,Cansilayan,All types of skin disease,4
+2023-03-01,Alegria,Cough,15
+2023-03-01,Alegria,URTI,11
+2023-03-01,Alegria,Infection all types,11
+2023-03-01,Alegria,ARI,7
+2023-03-01,Alegria,Fever unknown origin,5
+2023-03-01,Alegria,Hypertension,28
+2023-03-01,Alegria,Influenza,10
+2023-03-01,Alegria,Acute Gastroenteritis,4
+2023-03-01,Alegria,Vertigo,8
+2023-03-01,Alegria,All types of skin disease,14
+2023-03-01,Sta. Rosa,Cough,15
+2023-03-01,Sta. Rosa,URTI,15
+2023-03-01,Sta. Rosa,Infection all types,6
+2023-03-01,Sta. Rosa,ARI,16
+2023-03-01,Sta. Rosa,Fever unknown origin,8
+2023-03-01,Sta. Rosa,Hypertension,22
+2023-03-01,Sta. Rosa,Influenza,14
+2023-03-01,Sta. Rosa,Acute Gastroenteritis,0
+2023-03-01,Sta. Rosa,Vertigo,2
+2023-03-01,Sta. Rosa,All types of skin disease,4
+2023-04-01,Blumentritt,Cough,20
+2023-04-01,Blumentritt,URTI,8
+2023-04-01,Blumentritt,Infection all types,1
+2023-04-01,Blumentritt,ARI,11
+2023-04-01,Blumentritt,Fever unknown origin,9
+2023-04-01,Blumentritt,Hypertension,18
+2023-04-01,Blumentritt,Influenza,7
+2023-04-01,Blumentritt,Acute Gastroenteritis,1
+2023-04-01,Blumentritt,Vertigo,15
+2023-04-01,Blumentritt,All types of skin disease,14
+2023-04-01,Salvacion,Cough,20
+2023-04-01,Salvacion,URTI,16
+2023-04-01,Salvacion,Infection all types,13
+2023-04-01,Salvacion,ARI,8
+2023-04-01,Salvacion,Fever unknown origin,6
+2023-04-01,Salvacion,Hypertension,24
+2023-04-01,Salvacion,Influenza,7
+2023-04-01,Salvacion,Acute Gastroenteritis,6
+2023-04-01,Salvacion,Vertigo,11
+2023-04-01,Salvacion,All types of skin disease,6
+2023-04-01,Minoyan,Cough,19
+2023-04-01,Minoyan,URTI,14
+2023-04-01,Minoyan,Infection all types,8
+2023-04-01,Minoyan,ARI,8
+2023-04-01,Minoyan,Fever unknown origin,2
+2023-04-01,Minoyan,Hypertension,22
+2023-04-01,Minoyan,Influenza,16
+2023-04-01,Minoyan,Acute Gastroenteritis,7
+2023-04-01,Minoyan,Vertigo,5
+2023-04-01,Minoyan,All types of skin disease,14
+2023-04-01,Caliban,Cough,6
+2023-04-01,Caliban,URTI,12
+2023-04-01,Caliban,Infection all types,7
+2023-04-01,Caliban,ARI,13
+2023-04-01,Caliban,Fever unknown origin,13
+2023-04-01,Caliban,Hypertension,25
+2023-04-01,Caliban,Influenza,6
+2023-04-01,Caliban,Acute Gastroenteritis,10
+2023-04-01,Caliban,Vertigo,8
+2023-04-01,Caliban,All types of skin disease,13
+2023-04-01,Cansilayan,Cough,19
+2023-04-01,Cansilayan,URTI,12
+2023-04-01,Cansilayan,Infection all types,8
+2023-04-01,Cansilayan,ARI,15
+2023-04-01,Cansilayan,Fever unknown origin,8
+2023-04-01,Cansilayan,Hypertension,29
+2023-04-01,Cansilayan,Influenza,5
+2023-04-01,Cansilayan,Acute Gastroenteritis,4
+2023-04-01,Cansilayan,Vertigo,13
+2023-04-01,Cansilayan,All types of skin disease,6
+2023-04-01,Alegria,Cough,12
+2023-04-01,Alegria,URTI,14
+2023-04-01,Alegria,Infection all types,2
+2023-04-01,Alegria,ARI,10
+2023-04-01,Alegria,Fever unknown origin,1
+2023-04-01,Alegria,Hypertension,22
+2023-04-01,Alegria,Influenza,10
+2023-04-01,Alegria,Acute Gastroenteritis,3
+2023-04-01,Alegria,Vertigo,12
+2023-04-01,Alegria,All types of skin disease,7
+2023-04-01,Sta. Rosa,Cough,8
+2023-04-01,Sta. Rosa,URTI,17
+2023-04-01,Sta. Rosa,Infection all types,5
+2023-04-01,Sta. Rosa,ARI,7
+2023-04-01,Sta. Rosa,Fever unknown origin,1
+2023-04-01,Sta. Rosa,Hypertension,21
+2023-04-01,Sta. Rosa,Influenza,11
+2023-04-01,Sta. Rosa,Acute Gastroenteritis,9
+2023-04-01,Sta. Rosa,Vertigo,1
+2023-04-01,Sta. Rosa,All types of skin disease,1
+2023-05-01,Blumentritt,Cough,6
+2023-05-01,Blumentritt,URTI,12
+2023-05-01,Blumentritt,Infection all types,2
+2023-05-01,Blumentritt,ARI,17
+2023-05-01,Blumentritt,Fever unknown origin,1
+2023-05-01,Blumentritt,Hypertension,23
+2023-05-01,Blumentritt,Influenza,18
+2023-05-01,Blumentritt,Acute Gastroenteritis,4
+2023-05-01,Blumentritt,Vertigo,15
+2023-05-01,Blumentritt,All types of skin disease,14
+2023-05-01,Salvacion,Cough,12
+2023-05-01,Salvacion,URTI,9
+2023-05-01,Salvacion,Infection all types,3
+2023-05-01,Salvacion,ARI,9
+2023-05-01,Salvacion,Fever unknown origin,3
+2023-05-01,Salvacion,Hypertension,27
+2023-05-01,Salvacion,Influenza,8
+2023-05-01,Salvacion,Acute Gastroenteritis,8
+2023-05-01,Salvacion,Vertigo,3
+2023-05-01,Salvacion,All types of skin disease,5
+2023-05-01,Minoyan,Cough,5
+2023-05-01,Minoyan,URTI,12
+2023-05-01,Minoyan,Infection all types,10
+2023-05-01,Minoyan,ARI,7
+2023-05-01,Minoyan,Fever unknown origin,8
+2023-05-01,Minoyan,Hypertension,28
+2023-05-01,Minoyan,Influenza,11
+2023-05-01,Minoyan,Acute Gastroenteritis,5
+2023-05-01,Minoyan,Vertigo,5
+2023-05-01,Minoyan,All types of skin disease,5
+2023-05-01,Caliban,Cough,18
+2023-05-01,Caliban,URTI,8
+2023-05-01,Caliban,Infection all types,13
+2023-05-01,Caliban,ARI,19
+2023-05-01,Caliban,Fever unknown origin,14
+2023-05-01,Caliban,Hypertension,30
+2023-05-01,Caliban,Influenza,14
+2023-05-01,Caliban,Acute Gastroenteritis,1
+2023-05-01,Caliban,Vertigo,3
+2023-05-01,Caliban,All types of skin disease,15
+2023-05-01,Cansilayan,Cough,8
+2023-05-01,Cansilayan,URTI,5
+2023-05-01,Cansilayan,Infection all types,10
+2023-05-01,Cansilayan,ARI,7
+2023-05-01,Cansilayan,Fever unknown origin,9
+2023-05-01,Cansilayan,Hypertension,22
+2023-05-01,Cansilayan,Influenza,9
+2023-05-01,Cansilayan,Acute Gastroenteritis,10
+2023-05-01,Cansilayan,Vertigo,1
+2023-05-01,Cansilayan,All types of skin disease,12
+2023-05-01,Alegria,Cough,18
+2023-05-01,Alegria,URTI,9
+2023-05-01,Alegria,Infection all types,8
+2023-05-01,Alegria,ARI,13
+2023-05-01,Alegria,Fever unknown origin,1
+2023-05-01,Alegria,Hypertension,23
+2023-05-01,Alegria,Influenza,12
+2023-05-01,Alegria,Acute Gastroenteritis,7
+2023-05-01,Alegria,Vertigo,3
+2023-05-01,Alegria,All types of skin disease,6
+2023-05-01,Sta. Rosa,Cough,6
+2023-05-01,Sta. Rosa,URTI,12
+2023-05-01,Sta. Rosa,Infection all types,12
+2023-05-01,Sta. Rosa,ARI,9
+2023-05-01,Sta. Rosa,Fever unknown origin,15
+2023-05-01,Sta. Rosa,Hypertension,23
+2023-05-01,Sta. Rosa,Influenza,15
+2023-05-01,Sta. Rosa,Acute Gastroenteritis,1
+2023-05-01,Sta. Rosa,Vertigo,3
+2023-05-01,Sta. Rosa,All types of skin disease,12
+2023-06-01,Blumentritt,Cough,20
+2023-06-01,Blumentritt,URTI,29
+2023-06-01,Blumentritt,Infection all types,5
+2023-06-01,Blumentritt,ARI,44
+2023-06-01,Blumentritt,Fever unknown origin,6
+2023-06-01,Blumentritt,Hypertension,25
+2023-06-01,Blumentritt,Influenza,27
+2023-06-01,Blumentritt,Acute Gastroenteritis,25
+2023-06-01,Blumentritt,Vertigo,10
+2023-06-01,Blumentritt,All types of skin disease,10
+2023-06-01,Salvacion,Cough,45
+2023-06-01,Salvacion,URTI,39
+2023-06-01,Salvacion,Infection all types,11
+2023-06-01,Salvacion,ARI,47
+2023-06-01,Salvacion,Fever unknown origin,1
+2023-06-01,Salvacion,Hypertension,27
+2023-06-01,Salvacion,Influenza,27
+2023-06-01,Salvacion,Acute Gastroenteritis,19
+2023-06-01,Salvacion,Vertigo,7
+2023-06-01,Salvacion,All types of skin disease,12
+2023-06-01,Minoyan,Cough,44
+2023-06-01,Minoyan,URTI,38
+2023-06-01,Minoyan,Infection all types,7
+2023-06-01,Minoyan,ARI,49
+2023-06-01,Minoyan,Fever unknown origin,12
+2023-06-01,Minoyan,Hypertension,15
+2023-06-01,Minoyan,Influenza,38
+2023-06-01,Minoyan,Acute Gastroenteritis,26
+2023-06-01,Minoyan,Vertigo,15
+2023-06-01,Minoyan,All types of skin disease,7
+2023-06-01,Caliban,Cough,23
+2023-06-01,Caliban,URTI,25
+2023-06-01,Caliban,Infection all types,9
+2023-06-01,Caliban,ARI,41
+2023-06-01,Caliban,Fever unknown origin,5
+2023-06-01,Caliban,Hypertension,29
+2023-06-01,Caliban,Influenza,25
+2023-06-01,Caliban,Acute Gastroenteritis,29
+2023-06-01,Caliban,Vertigo,15
+2023-06-01,Caliban,All types of skin disease,13
+2023-06-01,Cansilayan,Cough,48
+2023-06-01,Cansilayan,URTI,24
+2023-06-01,Cansilayan,Infection all types,14
+2023-06-01,Cansilayan,ARI,32
+2023-06-01,Cansilayan,Fever unknown origin,8
+2023-06-01,Cansilayan,Hypertension,18
+2023-06-01,Cansilayan,Influenza,24
+2023-06-01,Cansilayan,Acute Gastroenteritis,11
+2023-06-01,Cansilayan,Vertigo,2
+2023-06-01,Cansilayan,All types of skin disease,13
+2023-06-01,Alegria,Cough,24
+2023-06-01,Alegria,URTI,33
+2023-06-01,Alegria,Infection all types,11
+2023-06-01,Alegria,ARI,29
+2023-06-01,Alegria,Fever unknown origin,14
+2023-06-01,Alegria,Hypertension,29
+2023-06-01,Alegria,Influenza,27
+2023-06-01,Alegria,Acute Gastroenteritis,16
+2023-06-01,Alegria,Vertigo,2
+2023-06-01,Alegria,All types of skin disease,3
+2023-06-01,Sta. Rosa,Cough,48
+2023-06-01,Sta. Rosa,URTI,38
+2023-06-01,Sta. Rosa,Infection all types,6
+2023-06-01,Sta. Rosa,ARI,37
+2023-06-01,Sta. Rosa,Fever unknown origin,11
+2023-06-01,Sta. Rosa,Hypertension,15
+2023-06-01,Sta. Rosa,Influenza,27
+2023-06-01,Sta. Rosa,Acute Gastroenteritis,29
+2023-06-01,Sta. Rosa,Vertigo,9
+2023-06-01,Sta. Rosa,All types of skin disease,12
+2023-07-01,Blumentritt,Cough,27
+2023-07-01,Blumentritt,URTI,36
+2023-07-01,Blumentritt,Infection all types,12
+2023-07-01,Blumentritt,ARI,22
+2023-07-01,Blumentritt,Fever unknown origin,5
+2023-07-01,Blumentritt,Hypertension,26
+2023-07-01,Blumentritt,Influenza,38
+2023-07-01,Blumentritt,Acute Gastroenteritis,14
+2023-07-01,Blumentritt,Vertigo,12
+2023-07-01,Blumentritt,All types of skin disease,4
+2023-07-01,Salvacion,Cough,34
+2023-07-01,Salvacion,URTI,22
+2023-07-01,Salvacion,Infection all types,4
+2023-07-01,Salvacion,ARI,33
+2023-07-01,Salvacion,Fever unknown origin,1
+2023-07-01,Salvacion,Hypertension,17
+2023-07-01,Salvacion,Influenza,34
+2023-07-01,Salvacion,Acute Gastroenteritis,28
+2023-07-01,Salvacion,Vertigo,15
+2023-07-01,Salvacion,All types of skin disease,10
+2023-07-01,Minoyan,Cough,32
+2023-07-01,Minoyan,URTI,29
+2023-07-01,Minoyan,Infection all types,2
+2023-07-01,Minoyan,ARI,23
+2023-07-01,Minoyan,Fever unknown origin,1
+2023-07-01,Minoyan,Hypertension,19
+2023-07-01,Minoyan,Influenza,32
+2023-07-01,Minoyan,Acute Gastroenteritis,16
+2023-07-01,Minoyan,Vertigo,14
+2023-07-01,Minoyan,All types of skin disease,8
+2023-07-01,Caliban,Cough,33
+2023-07-01,Caliban,URTI,32
+2023-07-01,Caliban,Infection all types,12
+2023-07-01,Caliban,ARI,49
+2023-07-01,Caliban,Fever unknown origin,8
+2023-07-01,Caliban,Hypertension,17
+2023-07-01,Caliban,Influenza,33
+2023-07-01,Caliban,Acute Gastroenteritis,22
+2023-07-01,Caliban,Vertigo,12
+2023-07-01,Caliban,All types of skin disease,13
+2023-07-01,Cansilayan,Cough,39
+2023-07-01,Cansilayan,URTI,49
+2023-07-01,Cansilayan,Infection all types,8
+2023-07-01,Cansilayan,ARI,24
+2023-07-01,Cansilayan,Fever unknown origin,12
+2023-07-01,Cansilayan,Hypertension,16
+2023-07-01,Cansilayan,Influenza,32
+2023-07-01,Cansilayan,Acute Gastroenteritis,28
+2023-07-01,Cansilayan,Vertigo,6
+2023-07-01,Cansilayan,All types of skin disease,14
+2023-07-01,Alegria,Cough,43
+2023-07-01,Alegria,URTI,37
+2023-07-01,Alegria,Infection all types,9
+2023-07-01,Alegria,ARI,45
+2023-07-01,Alegria,Fever unknown origin,11
+2023-07-01,Alegria,Hypertension,20
+2023-07-01,Alegria,Influenza,50
+2023-07-01,Alegria,Acute Gastroenteritis,23
+2023-07-01,Alegria,Vertigo,9
+2023-07-01,Alegria,All types of skin disease,12
+2023-07-01,Sta. Rosa,Cough,39
+2023-07-01,Sta. Rosa,URTI,36
+2023-07-01,Sta. Rosa,Infection all types,4
+2023-07-01,Sta. Rosa,ARI,29
+2023-07-01,Sta. Rosa,Fever unknown origin,10
+2023-07-01,Sta. Rosa,Hypertension,27
+2023-07-01,Sta. Rosa,Influenza,47
+2023-07-01,Sta. Rosa,Acute Gastroenteritis,17
+2023-07-01,Sta. Rosa,Vertigo,14
+2023-07-01,Sta. Rosa,All types of skin disease,12
+2023-08-01,Blumentritt,Cough,24
+2023-08-01,Blumentritt,URTI,47
+2023-08-01,Blumentritt,Infection all types,3
+2023-08-01,Blumentritt,ARI,36
+2023-08-01,Blumentritt,Fever unknown origin,7
+2023-08-01,Blumentritt,Hypertension,30
+2023-08-01,Blumentritt,Influenza,34
+2023-08-01,Blumentritt,Acute Gastroenteritis,20
+2023-08-01,Blumentritt,Vertigo,8
+2023-08-01,Blumentritt,All types of skin disease,15
+2023-08-01,Salvacion,Cough,28
+2023-08-01,Salvacion,URTI,34
+2023-08-01,Salvacion,Infection all types,10
+2023-08-01,Salvacion,ARI,31
+2023-08-01,Salvacion,Fever unknown origin,6
+2023-08-01,Salvacion,Hypertension,23
+2023-08-01,Salvacion,Influenza,38
+2023-08-01,Salvacion,Acute Gastroenteritis,23
+2023-08-01,Salvacion,Vertigo,2
+2023-08-01,Salvacion,All types of skin disease,13
+2023-08-01,Minoyan,Cough,37
+2023-08-01,Minoyan,URTI,28
+2023-08-01,Minoyan,Infection all types,1
+2023-08-01,Minoyan,ARI,30
+2023-08-01,Minoyan,Fever unknown origin,14
+2023-08-01,Minoyan,Hypertension,17
+2023-08-01,Minoyan,Influenza,42
+2023-08-01,Minoyan,Acute Gastroenteritis,23
+2023-08-01,Minoyan,Vertigo,9
+2023-08-01,Minoyan,All types of skin disease,7
+2023-08-01,Caliban,Cough,30
+2023-08-01,Caliban,URTI,21
+2023-08-01,Caliban,Infection all types,1
+2023-08-01,Caliban,ARI,47
+2023-08-01,Caliban,Fever unknown origin,15
+2023-08-01,Caliban,Hypertension,16
+2023-08-01,Caliban,Influenza,43
+2023-08-01,Caliban,Acute Gastroenteritis,25
+2023-08-01,Caliban,Vertigo,5
+2023-08-01,Caliban,All types of skin disease,12
+2023-08-01,Cansilayan,Cough,27
+2023-08-01,Cansilayan,URTI,39
+2023-08-01,Cansilayan,Infection all types,4
+2023-08-01,Cansilayan,ARI,39
+2023-08-01,Cansilayan,Fever unknown origin,12
+2023-08-01,Cansilayan,Hypertension,29
+2023-08-01,Cansilayan,Influenza,23
+2023-08-01,Cansilayan,Acute Gastroenteritis,18
+2023-08-01,Cansilayan,Vertigo,4
+2023-08-01,Cansilayan,All types of skin disease,1
+2023-08-01,Alegria,Cough,38
+2023-08-01,Alegria,URTI,36
+2023-08-01,Alegria,Infection all types,1
+2023-08-01,Alegria,ARI,43
+2023-08-01,Alegria,Fever unknown origin,13
+2023-08-01,Alegria,Hypertension,19
+2023-08-01,Alegria,Influenza,33
+2023-08-01,Alegria,Acute Gastroenteritis,29
+2023-08-01,Alegria,Vertigo,2
+2023-08-01,Alegria,All types of skin disease,1
+2023-08-01,Sta. Rosa,Cough,28
+2023-08-01,Sta. Rosa,URTI,25
+2023-08-01,Sta. Rosa,Infection all types,1
+2023-08-01,Sta. Rosa,ARI,43
+2023-08-01,Sta. Rosa,Fever unknown origin,2
+2023-08-01,Sta. Rosa,Hypertension,30
+2023-08-01,Sta. Rosa,Influenza,50
+2023-08-01,Sta. Rosa,Acute Gastroenteritis,20
+2023-08-01,Sta. Rosa,Vertigo,3
+2023-08-01,Sta. Rosa,All types of skin disease,6
+2023-09-01,Blumentritt,Cough,48
+2023-09-01,Blumentritt,URTI,36
+2023-09-01,Blumentritt,Infection all types,11
+2023-09-01,Blumentritt,ARI,25
+2023-09-01,Blumentritt,Fever unknown origin,9
+2023-09-01,Blumentritt,Hypertension,27
+2023-09-01,Blumentritt,Influenza,40
+2023-09-01,Blumentritt,Acute Gastroenteritis,10
+2023-09-01,Blumentritt,Vertigo,5
+2023-09-01,Blumentritt,All types of skin disease,5
+2023-09-01,Salvacion,Cough,41
+2023-09-01,Salvacion,URTI,23
+2023-09-01,Salvacion,Infection all types,11
+2023-09-01,Salvacion,ARI,30
+2023-09-01,Salvacion,Fever unknown origin,5
+2023-09-01,Salvacion,Hypertension,15
+2023-09-01,Salvacion,Influenza,46
+2023-09-01,Salvacion,Acute Gastroenteritis,28
+2023-09-01,Salvacion,Vertigo,15
+2023-09-01,Salvacion,All types of skin disease,3
+2023-09-01,Minoyan,Cough,36
+2023-09-01,Minoyan,URTI,46
+2023-09-01,Minoyan,Infection all types,10
+2023-09-01,Minoyan,ARI,45
+2023-09-01,Minoyan,Fever unknown origin,4
+2023-09-01,Minoyan,Hypertension,28
+2023-09-01,Minoyan,Influenza,43
+2023-09-01,Minoyan,Acute Gastroenteritis,13
+2023-09-01,Minoyan,Vertigo,9
+2023-09-01,Minoyan,All types of skin disease,5
+2023-09-01,Caliban,Cough,29
+2023-09-01,Caliban,URTI,26
+2023-09-01,Caliban,Infection all types,9
+2023-09-01,Caliban,ARI,45
+2023-09-01,Caliban,Fever unknown origin,13
+2023-09-01,Caliban,Hypertension,24
+2023-09-01,Caliban,Influenza,44
+2023-09-01,Caliban,Acute Gastroenteritis,24
+2023-09-01,Caliban,Vertigo,4
+2023-09-01,Caliban,All types of skin disease,6
+2023-09-01,Cansilayan,Cough,44
+2023-09-01,Cansilayan,URTI,48
+2023-09-01,Cansilayan,Infection all types,1
+2023-09-01,Cansilayan,ARI,41
+2023-09-01,Cansilayan,Fever unknown origin,15
+2023-09-01,Cansilayan,Hypertension,20
+2023-09-01,Cansilayan,Influenza,37
+2023-09-01,Cansilayan,Acute Gastroenteritis,13
+2023-09-01,Cansilayan,Vertigo,3
+2023-09-01,Cansilayan,All types of skin disease,4
+2023-09-01,Alegria,Cough,45
+2023-09-01,Alegria,URTI,20
+2023-09-01,Alegria,Infection all types,11
+2023-09-01,Alegria,ARI,25
+2023-09-01,Alegria,Fever unknown origin,14
+2023-09-01,Alegria,Hypertension,21
+2023-09-01,Alegria,Influenza,36
+2023-09-01,Alegria,Acute Gastroenteritis,16
+2023-09-01,Alegria,Vertigo,4
+2023-09-01,Alegria,All types of skin disease,14
+2023-09-01,Sta. Rosa,Cough,29
+2023-09-01,Sta. Rosa,URTI,30
+2023-09-01,Sta. Rosa,Infection all types,10
+2023-09-01,Sta. Rosa,ARI,30
+2023-09-01,Sta. Rosa,Fever unknown origin,15
+2023-09-01,Sta. Rosa,Hypertension,18
+2023-09-01,Sta. Rosa,Influenza,34
+2023-09-01,Sta. Rosa,Acute Gastroenteritis,30
+2023-09-01,Sta. Rosa,Vertigo,15
+2023-09-01,Sta. Rosa,All types of skin disease,15
+2023-10-01,Blumentritt,Cough,44
+2023-10-01,Blumentritt,URTI,34
+2023-10-01,Blumentritt,Infection all types,14
+2023-10-01,Blumentritt,ARI,27
+2023-10-01,Blumentritt,Fever unknown origin,5
+2023-10-01,Blumentritt,Hypertension,24
+2023-10-01,Blumentritt,Influenza,34
+2023-10-01,Blumentritt,Acute Gastroenteritis,3
+2023-10-01,Blumentritt,Vertigo,11
+2023-10-01,Blumentritt,All types of skin disease,12
+2023-10-01,Salvacion,Cough,47
+2023-10-01,Salvacion,URTI,29
+2023-10-01,Salvacion,Infection all types,12
+2023-10-01,Salvacion,ARI,21
+2023-10-01,Salvacion,Fever unknown origin,14
+2023-10-01,Salvacion,Hypertension,30
+2023-10-01,Salvacion,Influenza,24
+2023-10-01,Salvacion,Acute Gastroenteritis,7
+2023-10-01,Salvacion,Vertigo,7
+2023-10-01,Salvacion,All types of skin disease,6
+2023-10-01,Minoyan,Cough,39
+2023-10-01,Minoyan,URTI,44
+2023-10-01,Minoyan,Infection all types,8
+2023-10-01,Minoyan,ARI,35
+2023-10-01,Minoyan,Fever unknown origin,8
+2023-10-01,Minoyan,Hypertension,30
+2023-10-01,Minoyan,Influenza,25
+2023-10-01,Minoyan,Acute Gastroenteritis,7
+2023-10-01,Minoyan,Vertigo,15
+2023-10-01,Minoyan,All types of skin disease,13
+2023-10-01,Caliban,Cough,48
+2023-10-01,Caliban,URTI,45
+2023-10-01,Caliban,Infection all types,15
+2023-10-01,Caliban,ARI,34
+2023-10-01,Caliban,Fever unknown origin,3
+2023-10-01,Caliban,Hypertension,25
+2023-10-01,Caliban,Influenza,21
+2023-10-01,Caliban,Acute Gastroenteritis,3
+2023-10-01,Caliban,Vertigo,1
+2023-10-01,Caliban,All types of skin disease,2
+2023-10-01,Cansilayan,Cough,33
+2023-10-01,Cansilayan,URTI,40
+2023-10-01,Cansilayan,Infection all types,9
+2023-10-01,Cansilayan,ARI,47
+2023-10-01,Cansilayan,Fever unknown origin,8
+2023-10-01,Cansilayan,Hypertension,18
+2023-10-01,Cansilayan,Influenza,46
+2023-10-01,Cansilayan,Acute Gastroenteritis,9
+2023-10-01,Cansilayan,Vertigo,14
+2023-10-01,Cansilayan,All types of skin disease,1
+2023-10-01,Alegria,Cough,41
+2023-10-01,Alegria,URTI,43
+2023-10-01,Alegria,Infection all types,12
+2023-10-01,Alegria,ARI,37
+2023-10-01,Alegria,Fever unknown origin,8
+2023-10-01,Alegria,Hypertension,25
+2023-10-01,Alegria,Influenza,31
+2023-10-01,Alegria,Acute Gastroenteritis,3
+2023-10-01,Alegria,Vertigo,3
+2023-10-01,Alegria,All types of skin disease,12
+2023-10-01,Sta. Rosa,Cough,39
+2023-10-01,Sta. Rosa,URTI,34
+2023-10-01,Sta. Rosa,Infection all types,6
+2023-10-01,Sta. Rosa,ARI,47
+2023-10-01,Sta. Rosa,Fever unknown origin,13
+2023-10-01,Sta. Rosa,Hypertension,18
+2023-10-01,Sta. Rosa,Influenza,41
+2023-10-01,Sta. Rosa,Acute Gastroenteritis,1
+2023-10-01,Sta. Rosa,Vertigo,15
+2023-10-01,Sta. Rosa,All types of skin disease,1
+2023-11-01,Blumentritt,Cough,16
+2023-11-01,Blumentritt,URTI,8
+2023-11-01,Blumentritt,Infection all types,6
+2023-11-01,Blumentritt,ARI,8
+2023-11-01,Blumentritt,Fever unknown origin,2
+2023-11-01,Blumentritt,Hypertension,20
+2023-11-01,Blumentritt,Influenza,7
+2023-11-01,Blumentritt,Acute Gastroenteritis,0
+2023-11-01,Blumentritt,Vertigo,9
+2023-11-01,Blumentritt,All types of skin disease,3
+2023-11-01,Salvacion,Cough,8
+2023-11-01,Salvacion,URTI,14
+2023-11-01,Salvacion,Infection all types,15
+2023-11-01,Salvacion,ARI,12
+2023-11-01,Salvacion,Fever unknown origin,11
+2023-11-01,Salvacion,Hypertension,24
+2023-11-01,Salvacion,Influenza,18
+2023-11-01,Salvacion,Acute Gastroenteritis,3
+2023-11-01,Salvacion,Vertigo,4
+2023-11-01,Salvacion,All types of skin disease,4
+2023-11-01,Minoyan,Cough,11
+2023-11-01,Minoyan,URTI,9
+2023-11-01,Minoyan,Infection all types,7
+2023-11-01,Minoyan,ARI,11
+2023-11-01,Minoyan,Fever unknown origin,9
+2023-11-01,Minoyan,Hypertension,25
+2023-11-01,Minoyan,Influenza,8
+2023-11-01,Minoyan,Acute Gastroenteritis,2
+2023-11-01,Minoyan,Vertigo,3
+2023-11-01,Minoyan,All types of skin disease,10
+2023-11-01,Caliban,Cough,6
+2023-11-01,Caliban,URTI,20
+2023-11-01,Caliban,Infection all types,1
+2023-11-01,Caliban,ARI,18
+2023-11-01,Caliban,Fever unknown origin,11
+2023-11-01,Caliban,Hypertension,15
+2023-11-01,Caliban,Influenza,12
+2023-11-01,Caliban,Acute Gastroenteritis,0
+2023-11-01,Caliban,Vertigo,11
+2023-11-01,Caliban,All types of skin disease,7
+2023-11-01,Cansilayan,Cough,20
+2023-11-01,Cansilayan,URTI,18
+2023-11-01,Cansilayan,Infection all types,5
+2023-11-01,Cansilayan,ARI,11
+2023-11-01,Cansilayan,Fever unknown origin,4
+2023-11-01,Cansilayan,Hypertension,26
+2023-11-01,Cansilayan,Influenza,18
+2023-11-01,Cansilayan,Acute Gastroenteritis,4
+2023-11-01,Cansilayan,Vertigo,4
+2023-11-01,Cansilayan,All types of skin disease,3
+2023-11-01,Alegria,Cough,14
+2023-11-01,Alegria,URTI,17
+2023-11-01,Alegria,Infection all types,14
+2023-11-01,Alegria,ARI,13
+2023-11-01,Alegria,Fever unknown origin,6
+2023-11-01,Alegria,Hypertension,15
+2023-11-01,Alegria,Influenza,13
+2023-11-01,Alegria,Acute Gastroenteritis,8
+2023-11-01,Alegria,Vertigo,8
+2023-11-01,Alegria,All types of skin disease,10
+2023-11-01,Sta. Rosa,Cough,9
+2023-11-01,Sta. Rosa,URTI,9
+2023-11-01,Sta. Rosa,Infection all types,3
+2023-11-01,Sta. Rosa,ARI,8
+2023-11-01,Sta. Rosa,Fever unknown origin,12
+2023-11-01,Sta. Rosa,Hypertension,24
+2023-11-01,Sta. Rosa,Influenza,12
+2023-11-01,Sta. Rosa,Acute Gastroenteritis,10
+2023-11-01,Sta. Rosa,Vertigo,14
+2023-11-01,Sta. Rosa,All types of skin disease,8
+2023-12-01,Blumentritt,Cough,15
+2023-12-01,Blumentritt,URTI,16
+2023-12-01,Blumentritt,Infection all types,12
+2023-12-01,Blumentritt,ARI,18
+2023-12-01,Blumentritt,Fever unknown origin,2
+2023-12-01,Blumentritt,Hypertension,22
+2023-12-01,Blumentritt,Influenza,17
+2023-12-01,Blumentritt,Acute Gastroenteritis,7
+2023-12-01,Blumentritt,Vertigo,3
+2023-12-01,Blumentritt,All types of skin disease,4
+2023-12-01,Salvacion,Cough,5
+2023-12-01,Salvacion,URTI,13
+2023-12-01,Salvacion,Infection all types,3
+2023-12-01,Salvacion,ARI,20
+2023-12-01,Salvacion,Fever unknown origin,2
+2023-12-01,Salvacion,Hypertension,29
+2023-12-01,Salvacion,Influenza,16
+2023-12-01,Salvacion,Acute Gastroenteritis,3
+2023-12-01,Salvacion,Vertigo,14
+2023-12-01,Salvacion,All types of skin disease,9
+2023-12-01,Minoyan,Cough,12
+2023-12-01,Minoyan,URTI,20
+2023-12-01,Minoyan,Infection all types,12
+2023-12-01,Minoyan,ARI,8
+2023-12-01,Minoyan,Fever unknown origin,13
+2023-12-01,Minoyan,Hypertension,22
+2023-12-01,Minoyan,Influenza,15
+2023-12-01,Minoyan,Acute Gastroenteritis,2
+2023-12-01,Minoyan,Vertigo,1
+2023-12-01,Minoyan,All types of skin disease,15
+2023-12-01,Caliban,Cough,20
+2023-12-01,Caliban,URTI,17
+2023-12-01,Caliban,Infection all types,6
+2023-12-01,Caliban,ARI,20
+2023-12-01,Caliban,Fever unknown origin,1
+2023-12-01,Caliban,Hypertension,30
+2023-12-01,Caliban,Influenza,11
+2023-12-01,Caliban,Acute Gastroenteritis,9
+2023-12-01,Caliban,Vertigo,2
+2023-12-01,Caliban,All types of skin disease,1
+2023-12-01,Cansilayan,Cough,6
+2023-12-01,Cansilayan,URTI,7
+2023-12-01,Cansilayan,Infection all types,4
+2023-12-01,Cansilayan,ARI,5
+2023-12-01,Cansilayan,Fever unknown origin,5
+2023-12-01,Cansilayan,Hypertension,17
+2023-12-01,Cansilayan,Influenza,17
+2023-12-01,Cansilayan,Acute Gastroenteritis,2
+2023-12-01,Cansilayan,Vertigo,13
+2023-12-01,Cansilayan,All types of skin disease,6
+2023-12-01,Alegria,Cough,18
+2023-12-01,Alegria,URTI,20
+2023-12-01,Alegria,Infection all types,7
+2023-12-01,Alegria,ARI,13
+2023-12-01,Alegria,Fever unknown origin,12
+2023-12-01,Alegria,Hypertension,23
+2023-12-01,Alegria,Influenza,17
+2023-12-01,Alegria,Acute Gastroenteritis,5
+2023-12-01,Alegria,Vertigo,15
+2023-12-01,Alegria,All types of skin disease,15
+2023-12-01,Sta. Rosa,Cough,5
+2023-12-01,Sta. Rosa,URTI,11
+2023-12-01,Sta. Rosa,Infection all types,2
+2023-12-01,Sta. Rosa,ARI,5
+2023-12-01,Sta. Rosa,Fever unknown origin,9
+2023-12-01,Sta. Rosa,Hypertension,25
+2023-12-01,Sta. Rosa,Influenza,19
+2023-12-01,Sta. Rosa,Acute Gastroenteritis,8
+2023-12-01,Sta. Rosa,Vertigo,5
+2023-12-01,Sta. Rosa,All types of skin disease,2
+2024-01-01,Blumentritt,Cough,13
+2024-01-01,Blumentritt,URTI,8
+2024-01-01,Blumentritt,Infection all types,13
+2024-01-01,Blumentritt,ARI,10
+2024-01-01,Blumentritt,Fever unknown origin,3
+2024-01-01,Blumentritt,Hypertension,25
+2024-01-01,Blumentritt,Influenza,10
+2024-01-01,Blumentritt,Acute Gastroenteritis,2
+2024-01-01,Blumentritt,Vertigo,7
+2024-01-01,Blumentritt,All types of skin disease,12
+2024-01-01,Salvacion,Cough,5
+2024-01-01,Salvacion,URTI,13
+2024-01-01,Salvacion,Infection all types,6
+2024-01-01,Salvacion,ARI,9
+2024-01-01,Salvacion,Fever unknown origin,1
+2024-01-01,Salvacion,Hypertension,30
+2024-01-01,Salvacion,Influenza,7
+2024-01-01,Salvacion,Acute Gastroenteritis,0
+2024-01-01,Salvacion,Vertigo,14
+2024-01-01,Salvacion,All types of skin disease,10
+2024-01-01,Minoyan,Cough,8
+2024-01-01,Minoyan,URTI,18
+2024-01-01,Minoyan,Infection all types,1
+2024-01-01,Minoyan,ARI,16
+2024-01-01,Minoyan,Fever unknown origin,14
+2024-01-01,Minoyan,Hypertension,20
+2024-01-01,Minoyan,Influenza,19
+2024-01-01,Minoyan,Acute Gastroenteritis,10
+2024-01-01,Minoyan,Vertigo,15
+2024-01-01,Minoyan,All types of skin disease,14
+2024-01-01,Caliban,Cough,6
+2024-01-01,Caliban,URTI,9
+2024-01-01,Caliban,Infection all types,7
+2024-01-01,Caliban,ARI,20
+2024-01-01,Caliban,Fever unknown origin,9
+2024-01-01,Caliban,Hypertension,26
+2024-01-01,Caliban,Influenza,15
+2024-01-01,Caliban,Acute Gastroenteritis,5
+2024-01-01,Caliban,Vertigo,4
+2024-01-01,Caliban,All types of skin disease,8
+2024-01-01,Cansilayan,Cough,18
+2024-01-01,Cansilayan,URTI,8
+2024-01-01,Cansilayan,Infection all types,9
+2024-01-01,Cansilayan,ARI,12
+2024-01-01,Cansilayan,Fever unknown origin,10
+2024-01-01,Cansilayan,Hypertension,26
+2024-01-01,Cansilayan,Influenza,7
+2024-01-01,Cansilayan,Acute Gastroenteritis,4
+2024-01-01,Cansilayan,Vertigo,12
+2024-01-01,Cansilayan,All types of skin disease,13
+2024-01-01,Alegria,Cough,16
+2024-01-01,Alegria,URTI,6
+2024-01-01,Alegria,Infection all types,10
+2024-01-01,Alegria,ARI,11
+2024-01-01,Alegria,Fever unknown origin,8
+2024-01-01,Alegria,Hypertension,26
+2024-01-01,Alegria,Influenza,20
+2024-01-01,Alegria,Acute Gastroenteritis,2
+2024-01-01,Alegria,Vertigo,6
+2024-01-01,Alegria,All types of skin disease,11
+2024-01-01,Sta. Rosa,Cough,9
+2024-01-01,Sta. Rosa,URTI,5
+2024-01-01,Sta. Rosa,Infection all types,8
+2024-01-01,Sta. Rosa,ARI,5
+2024-01-01,Sta. Rosa,Fever unknown origin,6
+2024-01-01,Sta. Rosa,Hypertension,15
+2024-01-01,Sta. Rosa,Influenza,13
+2024-01-01,Sta. Rosa,Acute Gastroenteritis,2
+2024-01-01,Sta. Rosa,Vertigo,1
+2024-01-01,Sta. Rosa,All types of skin disease,6
+2024-02-01,Blumentritt,Cough,15
+2024-02-01,Blumentritt,URTI,8
+2024-02-01,Blumentritt,Infection all types,9
+2024-02-01,Blumentritt,ARI,17
+2024-02-01,Blumentritt,Fever unknown origin,5
+2024-02-01,Blumentritt,Hypertension,16
+2024-02-01,Blumentritt,Influenza,16
+2024-02-01,Blumentritt,Acute Gastroenteritis,5
+2024-02-01,Blumentritt,Vertigo,3
+2024-02-01,Blumentritt,All types of skin disease,1
+2024-02-01,Salvacion,Cough,11
+2024-02-01,Salvacion,URTI,12
+2024-02-01,Salvacion,Infection all types,15
+2024-02-01,Salvacion,ARI,14
+2024-02-01,Salvacion,Fever unknown origin,4
+2024-02-01,Salvacion,Hypertension,21
+2024-02-01,Salvacion,Influenza,18
+2024-02-01,Salvacion,Acute Gastroenteritis,10
+2024-02-01,Salvacion,Vertigo,13
+2024-02-01,Salvacion,All types of skin disease,13
+2024-02-01,Minoyan,Cough,14
+2024-02-01,Minoyan,URTI,19
+2024-02-01,Minoyan,Infection all types,1
+2024-02-01,Minoyan,ARI,11
+2024-02-01,Minoyan,Fever unknown origin,13
+2024-02-01,Minoyan,Hypertension,25
+2024-02-01,Minoyan,Influenza,15
+2024-02-01,Minoyan,Acute Gastroenteritis,7
+2024-02-01,Minoyan,Vertigo,15
+2024-02-01,Minoyan,All types of skin disease,11
+2024-02-01,Caliban,Cough,17
+2024-02-01,Caliban,URTI,13
+2024-02-01,Caliban,Infection all types,4
+2024-02-01,Caliban,ARI,19
+2024-02-01,Caliban,Fever unknown origin,8
+2024-02-01,Caliban,Hypertension,29
+2024-02-01,Caliban,Influenza,20
+2024-02-01,Caliban,Acute Gastroenteritis,2
+2024-02-01,Caliban,Vertigo,14
+2024-02-01,Caliban,All types of skin disease,8
+2024-02-01,Cansilayan,Cough,19
+2024-02-01,Cansilayan,URTI,16
+2024-02-01,Cansilayan,Infection all types,5
+2024-02-01,Cansilayan,ARI,7
+2024-02-01,Cansilayan,Fever unknown origin,12
+2024-02-01,Cansilayan,Hypertension,21
+2024-02-01,Cansilayan,Influenza,7
+2024-02-01,Cansilayan,Acute Gastroenteritis,6
+2024-02-01,Cansilayan,Vertigo,14
+2024-02-01,Cansilayan,All types of skin disease,10
+2024-02-01,Alegria,Cough,19
+2024-02-01,Alegria,URTI,7
+2024-02-01,Alegria,Infection all types,3
+2024-02-01,Alegria,ARI,12
+2024-02-01,Alegria,Fever unknown origin,4
+2024-02-01,Alegria,Hypertension,18
+2024-02-01,Alegria,Influenza,10
+2024-02-01,Alegria,Acute Gastroenteritis,7
+2024-02-01,Alegria,Vertigo,1
+2024-02-01,Alegria,All types of skin disease,1
+2024-02-01,Sta. Rosa,Cough,16
+2024-02-01,Sta. Rosa,URTI,16
+2024-02-01,Sta. Rosa,Infection all types,7
+2024-02-01,Sta. Rosa,ARI,8
+2024-02-01,Sta. Rosa,Fever unknown origin,10
+2024-02-01,Sta. Rosa,Hypertension,24
+2024-02-01,Sta. Rosa,Influenza,19
+2024-02-01,Sta. Rosa,Acute Gastroenteritis,2
+2024-02-01,Sta. Rosa,Vertigo,1
+2024-02-01,Sta. Rosa,All types of skin disease,13
+2024-03-01,Blumentritt,Cough,6
+2024-03-01,Blumentritt,URTI,6
+2024-03-01,Blumentritt,Infection all types,11
+2024-03-01,Blumentritt,ARI,5
+2024-03-01,Blumentritt,Fever unknown origin,1
+2024-03-01,Blumentritt,Hypertension,22
+2024-03-01,Blumentritt,Influenza,19
+2024-03-01,Blumentritt,Acute Gastroenteritis,8
+2024-03-01,Blumentritt,Vertigo,11
+2024-03-01,Blumentritt,All types of skin disease,12
+2024-03-01,Salvacion,Cough,11
+2024-03-01,Salvacion,URTI,20
+2024-03-01,Salvacion,Infection all types,6
+2024-03-01,Salvacion,ARI,18
+2024-03-01,Salvacion,Fever unknown origin,13
+2024-03-01,Salvacion,Hypertension,21
+2024-03-01,Salvacion,Influenza,18
+2024-03-01,Salvacion,Acute Gastroenteritis,1
+2024-03-01,Salvacion,Vertigo,15
+2024-03-01,Salvacion,All types of skin disease,8
+2024-03-01,Minoyan,Cough,7
+2024-03-01,Minoyan,URTI,18
+2024-03-01,Minoyan,Infection all types,7
+2024-03-01,Minoyan,ARI,19
+2024-03-01,Minoyan,Fever unknown origin,3
+2024-03-01,Minoyan,Hypertension,24
+2024-03-01,Minoyan,Influenza,15
+2024-03-01,Minoyan,Acute Gastroenteritis,5
+2024-03-01,Minoyan,Vertigo,12
+2024-03-01,Minoyan,All types of skin disease,10
+2024-03-01,Caliban,Cough,13
+2024-03-01,Caliban,URTI,7
+2024-03-01,Caliban,Infection all types,15
+2024-03-01,Caliban,ARI,19
+2024-03-01,Caliban,Fever unknown origin,10
+2024-03-01,Caliban,Hypertension,24
+2024-03-01,Caliban,Influenza,8
+2024-03-01,Caliban,Acute Gastroenteritis,6
+2024-03-01,Caliban,Vertigo,11
+2024-03-01,Caliban,All types of skin disease,14
+2024-03-01,Cansilayan,Cough,14
+2024-03-01,Cansilayan,URTI,19
+2024-03-01,Cansilayan,Infection all types,2
+2024-03-01,Cansilayan,ARI,12
+2024-03-01,Cansilayan,Fever unknown origin,13
+2024-03-01,Cansilayan,Hypertension,25
+2024-03-01,Cansilayan,Influenza,19
+2024-03-01,Cansilayan,Acute Gastroenteritis,3
+2024-03-01,Cansilayan,Vertigo,9
+2024-03-01,Cansilayan,All types of skin disease,11
+2024-03-01,Alegria,Cough,20
+2024-03-01,Alegria,URTI,5
+2024-03-01,Alegria,Infection all types,10
+2024-03-01,Alegria,ARI,16
+2024-03-01,Alegria,Fever unknown origin,1
+2024-03-01,Alegria,Hypertension,15
+2024-03-01,Alegria,Influenza,14
+2024-03-01,Alegria,Acute Gastroenteritis,8
+2024-03-01,Alegria,Vertigo,4
+2024-03-01,Alegria,All types of skin disease,12
+2024-03-01,Sta. Rosa,Cough,12
+2024-03-01,Sta. Rosa,URTI,9
+2024-03-01,Sta. Rosa,Infection all types,3
+2024-03-01,Sta. Rosa,ARI,15
+2024-03-01,Sta. Rosa,Fever unknown origin,15
+2024-03-01,Sta. Rosa,Hypertension,29
+2024-03-01,Sta. Rosa,Influenza,5
+2024-03-01,Sta. Rosa,Acute Gastroenteritis,8
+2024-03-01,Sta. Rosa,Vertigo,15
+2024-03-01,Sta. Rosa,All types of skin disease,4
+2024-04-01,Blumentritt,Cough,6
+2024-04-01,Blumentritt,URTI,19
+2024-04-01,Blumentritt,Infection all types,12
+2024-04-01,Blumentritt,ARI,11
+2024-04-01,Blumentritt,Fever unknown origin,8
+2024-04-01,Blumentritt,Hypertension,20
+2024-04-01,Blumentritt,Influenza,14
+2024-04-01,Blumentritt,Acute Gastroenteritis,1
+2024-04-01,Blumentritt,Vertigo,9
+2024-04-01,Blumentritt,All types of skin disease,14
+2024-04-01,Salvacion,Cough,17
+2024-04-01,Salvacion,URTI,6
+2024-04-01,Salvacion,Infection all types,11
+2024-04-01,Salvacion,ARI,14
+2024-04-01,Salvacion,Fever unknown origin,13
+2024-04-01,Salvacion,Hypertension,22
+2024-04-01,Salvacion,Influenza,15
+2024-04-01,Salvacion,Acute Gastroenteritis,0
+2024-04-01,Salvacion,Vertigo,6
+2024-04-01,Salvacion,All types of skin disease,9
+2024-04-01,Minoyan,Cough,8
+2024-04-01,Minoyan,URTI,7
+2024-04-01,Minoyan,Infection all types,3
+2024-04-01,Minoyan,ARI,18
+2024-04-01,Minoyan,Fever unknown origin,13
+2024-04-01,Minoyan,Hypertension,19
+2024-04-01,Minoyan,Influenza,12
+2024-04-01,Minoyan,Acute Gastroenteritis,3
+2024-04-01,Minoyan,Vertigo,2
+2024-04-01,Minoyan,All types of skin disease,4
+2024-04-01,Caliban,Cough,13
+2024-04-01,Caliban,URTI,10
+2024-04-01,Caliban,Infection all types,14
+2024-04-01,Caliban,ARI,5
+2024-04-01,Caliban,Fever unknown origin,10
+2024-04-01,Caliban,Hypertension,15
+2024-04-01,Caliban,Influenza,9
+2024-04-01,Caliban,Acute Gastroenteritis,4
+2024-04-01,Caliban,Vertigo,1
+2024-04-01,Caliban,All types of skin disease,15
+2024-04-01,Cansilayan,Cough,5
+2024-04-01,Cansilayan,URTI,10
+2024-04-01,Cansilayan,Infection all types,14
+2024-04-01,Cansilayan,ARI,14
+2024-04-01,Cansilayan,Fever unknown origin,5
+2024-04-01,Cansilayan,Hypertension,20
+2024-04-01,Cansilayan,Influenza,5
+2024-04-01,Cansilayan,Acute Gastroenteritis,10
+2024-04-01,Cansilayan,Vertigo,13
+2024-04-01,Cansilayan,All types of skin disease,15
+2024-04-01,Alegria,Cough,19
+2024-04-01,Alegria,URTI,18
+2024-04-01,Alegria,Infection all types,12
+2024-04-01,Alegria,ARI,6
+2024-04-01,Alegria,Fever unknown origin,10
+2024-04-01,Alegria,Hypertension,23
+2024-04-01,Alegria,Influenza,10
+2024-04-01,Alegria,Acute Gastroenteritis,8
+2024-04-01,Alegria,Vertigo,11
+2024-04-01,Alegria,All types of skin disease,9
+2024-04-01,Sta. Rosa,Cough,7
+2024-04-01,Sta. Rosa,URTI,20
+2024-04-01,Sta. Rosa,Infection all types,6
+2024-04-01,Sta. Rosa,ARI,10
+2024-04-01,Sta. Rosa,Fever unknown origin,15
+2024-04-01,Sta. Rosa,Hypertension,25
+2024-04-01,Sta. Rosa,Influenza,12
+2024-04-01,Sta. Rosa,Acute Gastroenteritis,9
+2024-04-01,Sta. Rosa,Vertigo,14
+2024-04-01,Sta. Rosa,All types of skin disease,10
+2024-05-01,Blumentritt,Cough,12
+2024-05-01,Blumentritt,URTI,10
+2024-05-01,Blumentritt,Infection all types,12
+2024-05-01,Blumentritt,ARI,19
+2024-05-01,Blumentritt,Fever unknown origin,2
+2024-05-01,Blumentritt,Hypertension,23
+2024-05-01,Blumentritt,Influenza,5
+2024-05-01,Blumentritt,Acute Gastroenteritis,8
+2024-05-01,Blumentritt,Vertigo,8
+2024-05-01,Blumentritt,All types of skin disease,5
+2024-05-01,Salvacion,Cough,13
+2024-05-01,Salvacion,URTI,12
+2024-05-01,Salvacion,Infection all types,13
+2024-05-01,Salvacion,ARI,19
+2024-05-01,Salvacion,Fever unknown origin,10
+2024-05-01,Salvacion,Hypertension,18
+2024-05-01,Salvacion,Influenza,19
+2024-05-01,Salvacion,Acute Gastroenteritis,5
+2024-05-01,Salvacion,Vertigo,12
+2024-05-01,Salvacion,All types of skin disease,2
+2024-05-01,Minoyan,Cough,5
+2024-05-01,Minoyan,URTI,19
+2024-05-01,Minoyan,Infection all types,13
+2024-05-01,Minoyan,ARI,15
+2024-05-01,Minoyan,Fever unknown origin,13
+2024-05-01,Minoyan,Hypertension,25
+2024-05-01,Minoyan,Influenza,18
+2024-05-01,Minoyan,Acute Gastroenteritis,4
+2024-05-01,Minoyan,Vertigo,1
+2024-05-01,Minoyan,All types of skin disease,9
+2024-05-01,Caliban,Cough,6
+2024-05-01,Caliban,URTI,20
+2024-05-01,Caliban,Infection all types,15
+2024-05-01,Caliban,ARI,7
+2024-05-01,Caliban,Fever unknown origin,5
+2024-05-01,Caliban,Hypertension,27
+2024-05-01,Caliban,Influenza,7
+2024-05-01,Caliban,Acute Gastroenteritis,7
+2024-05-01,Caliban,Vertigo,11
+2024-05-01,Caliban,All types of skin disease,9
+2024-05-01,Cansilayan,Cough,10
+2024-05-01,Cansilayan,URTI,19
+2024-05-01,Cansilayan,Infection all types,8
+2024-05-01,Cansilayan,ARI,9
+2024-05-01,Cansilayan,Fever unknown origin,5
+2024-05-01,Cansilayan,Hypertension,30
+2024-05-01,Cansilayan,Influenza,20
+2024-05-01,Cansilayan,Acute Gastroenteritis,5
+2024-05-01,Cansilayan,Vertigo,8
+2024-05-01,Cansilayan,All types of skin disease,9
+2024-05-01,Alegria,Cough,8
+2024-05-01,Alegria,URTI,19
+2024-05-01,Alegria,Infection all types,10
+2024-05-01,Alegria,ARI,12
+2024-05-01,Alegria,Fever unknown origin,6
+2024-05-01,Alegria,Hypertension,17
+2024-05-01,Alegria,Influenza,20
+2024-05-01,Alegria,Acute Gastroenteritis,2
+2024-05-01,Alegria,Vertigo,15
+2024-05-01,Alegria,All types of skin disease,5
+2024-05-01,Sta. Rosa,Cough,14
+2024-05-01,Sta. Rosa,URTI,11
+2024-05-01,Sta. Rosa,Infection all types,5
+2024-05-01,Sta. Rosa,ARI,7
+2024-05-01,Sta. Rosa,Fever unknown origin,7
+2024-05-01,Sta. Rosa,Hypertension,28
+2024-05-01,Sta. Rosa,Influenza,14
+2024-05-01,Sta. Rosa,Acute Gastroenteritis,9
+2024-05-01,Sta. Rosa,Vertigo,8
+2024-05-01,Sta. Rosa,All types of skin disease,7
+2024-06-01,Blumentritt,Cough,43
+2024-06-01,Blumentritt,URTI,41
+2024-06-01,Blumentritt,Infection all types,2
+2024-06-01,Blumentritt,ARI,23
+2024-06-01,Blumentritt,Fever unknown origin,13
+2024-06-01,Blumentritt,Hypertension,19
+2024-06-01,Blumentritt,Influenza,25
+2024-06-01,Blumentritt,Acute Gastroenteritis,16
+2024-06-01,Blumentritt,Vertigo,12
+2024-06-01,Blumentritt,All types of skin disease,9
+2024-06-01,Salvacion,Cough,33
+2024-06-01,Salvacion,URTI,50
+2024-06-01,Salvacion,Infection all types,9
+2024-06-01,Salvacion,ARI,20
+2024-06-01,Salvacion,Fever unknown origin,2
+2024-06-01,Salvacion,Hypertension,30
+2024-06-01,Salvacion,Influenza,45
+2024-06-01,Salvacion,Acute Gastroenteritis,15
+2024-06-01,Salvacion,Vertigo,2
+2024-06-01,Salvacion,All types of skin disease,2
+2024-06-01,Minoyan,Cough,30
+2024-06-01,Minoyan,URTI,23
+2024-06-01,Minoyan,Infection all types,15
+2024-06-01,Minoyan,ARI,39
+2024-06-01,Minoyan,Fever unknown origin,8
+2024-06-01,Minoyan,Hypertension,29
+2024-06-01,Minoyan,Influenza,49
+2024-06-01,Minoyan,Acute Gastroenteritis,25
+2024-06-01,Minoyan,Vertigo,13
+2024-06-01,Minoyan,All types of skin disease,2
+2024-06-01,Caliban,Cough,43
+2024-06-01,Caliban,URTI,42
+2024-06-01,Caliban,Infection all types,3
+2024-06-01,Caliban,ARI,41
+2024-06-01,Caliban,Fever unknown origin,13
+2024-06-01,Caliban,Hypertension,21
+2024-06-01,Caliban,Influenza,27
+2024-06-01,Caliban,Acute Gastroenteritis,16
+2024-06-01,Caliban,Vertigo,15
+2024-06-01,Caliban,All types of skin disease,14
+2024-06-01,Cansilayan,Cough,24
+2024-06-01,Cansilayan,URTI,21
+2024-06-01,Cansilayan,Infection all types,10
+2024-06-01,Cansilayan,ARI,39
+2024-06-01,Cansilayan,Fever unknown origin,11
+2024-06-01,Cansilayan,Hypertension,30
+2024-06-01,Cansilayan,Influenza,23
+2024-06-01,Cansilayan,Acute Gastroenteritis,16
+2024-06-01,Cansilayan,Vertigo,13
+2024-06-01,Cansilayan,All types of skin disease,4
+2024-06-01,Alegria,Cough,36
+2024-06-01,Alegria,URTI,50
+2024-06-01,Alegria,Infection all types,7
+2024-06-01,Alegria,ARI,25
+2024-06-01,Alegria,Fever unknown origin,13
+2024-06-01,Alegria,Hypertension,16
+2024-06-01,Alegria,Influenza,46
+2024-06-01,Alegria,Acute Gastroenteritis,24
+2024-06-01,Alegria,Vertigo,8
+2024-06-01,Alegria,All types of skin disease,13
+2024-06-01,Sta. Rosa,Cough,44
+2024-06-01,Sta. Rosa,URTI,22
+2024-06-01,Sta. Rosa,Infection all types,7
+2024-06-01,Sta. Rosa,ARI,27
+2024-06-01,Sta. Rosa,Fever unknown origin,1
+2024-06-01,Sta. Rosa,Hypertension,22
+2024-06-01,Sta. Rosa,Influenza,21
+2024-06-01,Sta. Rosa,Acute Gastroenteritis,30
+2024-06-01,Sta. Rosa,Vertigo,6
+2024-06-01,Sta. Rosa,All types of skin disease,12
+2024-07-01,Blumentritt,Cough,48
+2024-07-01,Blumentritt,URTI,47
+2024-07-01,Blumentritt,Infection all types,3
+2024-07-01,Blumentritt,ARI,30
+2024-07-01,Blumentritt,Fever unknown origin,2
+2024-07-01,Blumentritt,Hypertension,28
+2024-07-01,Blumentritt,Influenza,47
+2024-07-01,Blumentritt,Acute Gastroenteritis,30
+2024-07-01,Blumentritt,Vertigo,12
+2024-07-01,Blumentritt,All types of skin disease,5
+2024-07-01,Salvacion,Cough,44
+2024-07-01,Salvacion,URTI,25
+2024-07-01,Salvacion,Infection all types,8
+2024-07-01,Salvacion,ARI,43
+2024-07-01,Salvacion,Fever unknown origin,2
+2024-07-01,Salvacion,Hypertension,22
+2024-07-01,Salvacion,Influenza,33
+2024-07-01,Salvacion,Acute Gastroenteritis,21
+2024-07-01,Salvacion,Vertigo,15
+2024-07-01,Salvacion,All types of skin disease,4
+2024-07-01,Minoyan,Cough,35
+2024-07-01,Minoyan,URTI,32
+2024-07-01,Minoyan,Infection all types,14
+2024-07-01,Minoyan,ARI,26
+2024-07-01,Minoyan,Fever unknown origin,1
+2024-07-01,Minoyan,Hypertension,29
+2024-07-01,Minoyan,Influenza,46
+2024-07-01,Minoyan,Acute Gastroenteritis,12
+2024-07-01,Minoyan,Vertigo,4
+2024-07-01,Minoyan,All types of skin disease,2
+2024-07-01,Caliban,Cough,31
+2024-07-01,Caliban,URTI,42
+2024-07-01,Caliban,Infection all types,7
+2024-07-01,Caliban,ARI,38
+2024-07-01,Caliban,Fever unknown origin,8
+2024-07-01,Caliban,Hypertension,25
+2024-07-01,Caliban,Influenza,21
+2024-07-01,Caliban,Acute Gastroenteritis,21
+2024-07-01,Caliban,Vertigo,11
+2024-07-01,Caliban,All types of skin disease,5
+2024-07-01,Cansilayan,Cough,40
+2024-07-01,Cansilayan,URTI,24
+2024-07-01,Cansilayan,Infection all types,6
+2024-07-01,Cansilayan,ARI,47
+2024-07-01,Cansilayan,Fever unknown origin,7
+2024-07-01,Cansilayan,Hypertension,15
+2024-07-01,Cansilayan,Influenza,38
+2024-07-01,Cansilayan,Acute Gastroenteritis,23
+2024-07-01,Cansilayan,Vertigo,5
+2024-07-01,Cansilayan,All types of skin disease,8
+2024-07-01,Alegria,Cough,42
+2024-07-01,Alegria,URTI,27
+2024-07-01,Alegria,Infection all types,15
+2024-07-01,Alegria,ARI,20
+2024-07-01,Alegria,Fever unknown origin,15
+2024-07-01,Alegria,Hypertension,16
+2024-07-01,Alegria,Influenza,20
+2024-07-01,Alegria,Acute Gastroenteritis,18
+2024-07-01,Alegria,Vertigo,13
+2024-07-01,Alegria,All types of skin disease,1
+2024-07-01,Sta. Rosa,Cough,31
+2024-07-01,Sta. Rosa,URTI,37
+2024-07-01,Sta. Rosa,Infection all types,2
+2024-07-01,Sta. Rosa,ARI,49
+2024-07-01,Sta. Rosa,Fever unknown origin,13
+2024-07-01,Sta. Rosa,Hypertension,27
+2024-07-01,Sta. Rosa,Influenza,27
+2024-07-01,Sta. Rosa,Acute Gastroenteritis,10
+2024-07-01,Sta. Rosa,Vertigo,3
+2024-07-01,Sta. Rosa,All types of skin disease,12
+2024-08-01,Blumentritt,Cough,42
+2024-08-01,Blumentritt,URTI,43
+2024-08-01,Blumentritt,Infection all types,11
+2024-08-01,Blumentritt,ARI,32
+2024-08-01,Blumentritt,Fever unknown origin,9
+2024-08-01,Blumentritt,Hypertension,16
+2024-08-01,Blumentritt,Influenza,45
+2024-08-01,Blumentritt,Acute Gastroenteritis,11
+2024-08-01,Blumentritt,Vertigo,5
+2024-08-01,Blumentritt,All types of skin disease,8
+2024-08-01,Salvacion,Cough,38
+2024-08-01,Salvacion,URTI,41
+2024-08-01,Salvacion,Infection all types,6
+2024-08-01,Salvacion,ARI,21
+2024-08-01,Salvacion,Fever unknown origin,7
+2024-08-01,Salvacion,Hypertension,21
+2024-08-01,Salvacion,Influenza,36
+2024-08-01,Salvacion,Acute Gastroenteritis,12
+2024-08-01,Salvacion,Vertigo,11
+2024-08-01,Salvacion,All types of skin disease,15
+2024-08-01,Minoyan,Cough,49
+2024-08-01,Minoyan,URTI,36
+2024-08-01,Minoyan,Infection all types,6
+2024-08-01,Minoyan,ARI,36
+2024-08-01,Minoyan,Fever unknown origin,10
+2024-08-01,Minoyan,Hypertension,15
+2024-08-01,Minoyan,Influenza,47
+2024-08-01,Minoyan,Acute Gastroenteritis,13
+2024-08-01,Minoyan,Vertigo,6
+2024-08-01,Minoyan,All types of skin disease,6
+2024-08-01,Caliban,Cough,32
+2024-08-01,Caliban,URTI,39
+2024-08-01,Caliban,Infection all types,4
+2024-08-01,Caliban,ARI,26
+2024-08-01,Caliban,Fever unknown origin,14
+2024-08-01,Caliban,Hypertension,30
+2024-08-01,Caliban,Influenza,35
+2024-08-01,Caliban,Acute Gastroenteritis,17
+2024-08-01,Caliban,Vertigo,4
+2024-08-01,Caliban,All types of skin disease,13
+2024-08-01,Cansilayan,Cough,46
+2024-08-01,Cansilayan,URTI,46
+2024-08-01,Cansilayan,Infection all types,7
+2024-08-01,Cansilayan,ARI,44
+2024-08-01,Cansilayan,Fever unknown origin,6
+2024-08-01,Cansilayan,Hypertension,26
+2024-08-01,Cansilayan,Influenza,34
+2024-08-01,Cansilayan,Acute Gastroenteritis,15
+2024-08-01,Cansilayan,Vertigo,4
+2024-08-01,Cansilayan,All types of skin disease,13
+2024-08-01,Alegria,Cough,35
+2024-08-01,Alegria,URTI,48
+2024-08-01,Alegria,Infection all types,2
+2024-08-01,Alegria,ARI,47
+2024-08-01,Alegria,Fever unknown origin,1
+2024-08-01,Alegria,Hypertension,24
+2024-08-01,Alegria,Influenza,38
+2024-08-01,Alegria,Acute Gastroenteritis,16
+2024-08-01,Alegria,Vertigo,5
+2024-08-01,Alegria,All types of skin disease,5
+2024-08-01,Sta. Rosa,Cough,22
+2024-08-01,Sta. Rosa,URTI,41
+2024-08-01,Sta. Rosa,Infection all types,11
+2024-08-01,Sta. Rosa,ARI,50
+2024-08-01,Sta. Rosa,Fever unknown origin,8
+2024-08-01,Sta. Rosa,Hypertension,28
+2024-08-01,Sta. Rosa,Influenza,30
+2024-08-01,Sta. Rosa,Acute Gastroenteritis,23
+2024-08-01,Sta. Rosa,Vertigo,14
+2024-08-01,Sta. Rosa,All types of skin disease,10
+2024-09-01,Blumentritt,Cough,32
+2024-09-01,Blumentritt,URTI,36
+2024-09-01,Blumentritt,Infection all types,5
+2024-09-01,Blumentritt,ARI,25
+2024-09-01,Blumentritt,Fever unknown origin,11
+2024-09-01,Blumentritt,Hypertension,30
+2024-09-01,Blumentritt,Influenza,37
+2024-09-01,Blumentritt,Acute Gastroenteritis,11
+2024-09-01,Blumentritt,Vertigo,5
+2024-09-01,Blumentritt,All types of skin disease,4
+2024-09-01,Salvacion,Cough,29
+2024-09-01,Salvacion,URTI,44
+2024-09-01,Salvacion,Infection all types,2
+2024-09-01,Salvacion,ARI,34
+2024-09-01,Salvacion,Fever unknown origin,4
+2024-09-01,Salvacion,Hypertension,15
+2024-09-01,Salvacion,Influenza,24
+2024-09-01,Salvacion,Acute Gastroenteritis,17
+2024-09-01,Salvacion,Vertigo,14
+2024-09-01,Salvacion,All types of skin disease,3
+2024-09-01,Minoyan,Cough,49
+2024-09-01,Minoyan,URTI,31
+2024-09-01,Minoyan,Infection all types,2
+2024-09-01,Minoyan,ARI,26
+2024-09-01,Minoyan,Fever unknown origin,15
+2024-09-01,Minoyan,Hypertension,16
+2024-09-01,Minoyan,Influenza,20
+2024-09-01,Minoyan,Acute Gastroenteritis,19
+2024-09-01,Minoyan,Vertigo,13
+2024-09-01,Minoyan,All types of skin disease,3
+2024-09-01,Caliban,Cough,36
+2024-09-01,Caliban,URTI,43
+2024-09-01,Caliban,Infection all types,11
+2024-09-01,Caliban,ARI,24
+2024-09-01,Caliban,Fever unknown origin,15
+2024-09-01,Caliban,Hypertension,23
+2024-09-01,Caliban,Influenza,40
+2024-09-01,Caliban,Acute Gastroenteritis,25
+2024-09-01,Caliban,Vertigo,8
+2024-09-01,Caliban,All types of skin disease,15
+2024-09-01,Cansilayan,Cough,27
+2024-09-01,Cansilayan,URTI,43
+2024-09-01,Cansilayan,Infection all types,4
+2024-09-01,Cansilayan,ARI,28
+2024-09-01,Cansilayan,Fever unknown origin,13
+2024-09-01,Cansilayan,Hypertension,28
+2024-09-01,Cansilayan,Influenza,20
+2024-09-01,Cansilayan,Acute Gastroenteritis,15
+2024-09-01,Cansilayan,Vertigo,6
+2024-09-01,Cansilayan,All types of skin disease,8
+2024-09-01,Alegria,Cough,23
+2024-09-01,Alegria,URTI,34
+2024-09-01,Alegria,Infection all types,13
+2024-09-01,Alegria,ARI,23
+2024-09-01,Alegria,Fever unknown origin,12
+2024-09-01,Alegria,Hypertension,23
+2024-09-01,Alegria,Influenza,31
+2024-09-01,Alegria,Acute Gastroenteritis,15
+2024-09-01,Alegria,Vertigo,5
+2024-09-01,Alegria,All types of skin disease,8
+2024-09-01,Sta. Rosa,Cough,48
+2024-09-01,Sta. Rosa,URTI,29
+2024-09-01,Sta. Rosa,Infection all types,11
+2024-09-01,Sta. Rosa,ARI,37
+2024-09-01,Sta. Rosa,Fever unknown origin,11
+2024-09-01,Sta. Rosa,Hypertension,26
+2024-09-01,Sta. Rosa,Influenza,27
+2024-09-01,Sta. Rosa,Acute Gastroenteritis,30
+2024-09-01,Sta. Rosa,Vertigo,4
+2024-09-01,Sta. Rosa,All types of skin disease,13
+2024-10-01,Blumentritt,Cough,22
+2024-10-01,Blumentritt,URTI,40
+2024-10-01,Blumentritt,Infection all types,3
+2024-10-01,Blumentritt,ARI,38
+2024-10-01,Blumentritt,Fever unknown origin,5
+2024-10-01,Blumentritt,Hypertension,20
+2024-10-01,Blumentritt,Influenza,29
+2024-10-01,Blumentritt,Acute Gastroenteritis,2
+2024-10-01,Blumentritt,Vertigo,9
+2024-10-01,Blumentritt,All types of skin disease,12
+2024-10-01,Salvacion,Cough,48
+2024-10-01,Salvacion,URTI,29
+2024-10-01,Salvacion,Infection all types,1
+2024-10-01,Salvacion,ARI,41
+2024-10-01,Salvacion,Fever unknown origin,5
+2024-10-01,Salvacion,Hypertension,15
+2024-10-01,Salvacion,Influenza,28
+2024-10-01,Salvacion,Acute Gastroenteritis,6
+2024-10-01,Salvacion,Vertigo,9
+2024-10-01,Salvacion,All types of skin disease,14
+2024-10-01,Minoyan,Cough,40
+2024-10-01,Minoyan,URTI,32
+2024-10-01,Minoyan,Infection all types,8
+2024-10-01,Minoyan,ARI,36
+2024-10-01,Minoyan,Fever unknown origin,1
+2024-10-01,Minoyan,Hypertension,22
+2024-10-01,Minoyan,Influenza,48
+2024-10-01,Minoyan,Acute Gastroenteritis,7
+2024-10-01,Minoyan,Vertigo,15
+2024-10-01,Minoyan,All types of skin disease,12
+2024-10-01,Caliban,Cough,43
+2024-10-01,Caliban,URTI,23
+2024-10-01,Caliban,Infection all types,12
+2024-10-01,Caliban,ARI,22
+2024-10-01,Caliban,Fever unknown origin,14
+2024-10-01,Caliban,Hypertension,23
+2024-10-01,Caliban,Influenza,46
+2024-10-01,Caliban,Acute Gastroenteritis,8
+2024-10-01,Caliban,Vertigo,8
+2024-10-01,Caliban,All types of skin disease,8
+2024-10-01,Cansilayan,Cough,33
+2024-10-01,Cansilayan,URTI,27
+2024-10-01,Cansilayan,Infection all types,11
+2024-10-01,Cansilayan,ARI,34
+2024-10-01,Cansilayan,Fever unknown origin,10
+2024-10-01,Cansilayan,Hypertension,30
+2024-10-01,Cansilayan,Influenza,40
+2024-10-01,Cansilayan,Acute Gastroenteritis,2
+2024-10-01,Cansilayan,Vertigo,4
+2024-10-01,Cansilayan,All types of skin disease,15
+2024-10-01,Alegria,Cough,37
+2024-10-01,Alegria,URTI,23
+2024-10-01,Alegria,Infection all types,14
+2024-10-01,Alegria,ARI,45
+2024-10-01,Alegria,Fever unknown origin,12
+2024-10-01,Alegria,Hypertension,17
+2024-10-01,Alegria,Influenza,38
+2024-10-01,Alegria,Acute Gastroenteritis,1
+2024-10-01,Alegria,Vertigo,15
+2024-10-01,Alegria,All types of skin disease,11
+2024-10-01,Sta. Rosa,Cough,27
+2024-10-01,Sta. Rosa,URTI,38
+2024-10-01,Sta. Rosa,Infection all types,5
+2024-10-01,Sta. Rosa,ARI,20
+2024-10-01,Sta. Rosa,Fever unknown origin,14
+2024-10-01,Sta. Rosa,Hypertension,15
+2024-10-01,Sta. Rosa,Influenza,40
+2024-10-01,Sta. Rosa,Acute Gastroenteritis,2
+2024-10-01,Sta. Rosa,Vertigo,12
+2024-10-01,Sta. Rosa,All types of skin disease,7
+2024-11-01,Blumentritt,Cough,17
+2024-11-01,Blumentritt,URTI,20
+2024-11-01,Blumentritt,Infection all types,13
+2024-11-01,Blumentritt,ARI,8
+2024-11-01,Blumentritt,Fever unknown origin,9
+2024-11-01,Blumentritt,Hypertension,30
+2024-11-01,Blumentritt,Influenza,7
+2024-11-01,Blumentritt,Acute Gastroenteritis,0
+2024-11-01,Blumentritt,Vertigo,9
+2024-11-01,Blumentritt,All types of skin disease,14
+2024-11-01,Salvacion,Cough,17
+2024-11-01,Salvacion,URTI,5
+2024-11-01,Salvacion,Infection all types,10
+2024-11-01,Salvacion,ARI,16
+2024-11-01,Salvacion,Fever unknown origin,4
+2024-11-01,Salvacion,Hypertension,17
+2024-11-01,Salvacion,Influenza,19
+2024-11-01,Salvacion,Acute Gastroenteritis,5
+2024-11-01,Salvacion,Vertigo,11
+2024-11-01,Salvacion,All types of skin disease,4
+2024-11-01,Minoyan,Cough,8
+2024-11-01,Minoyan,URTI,7
+2024-11-01,Minoyan,Infection all types,12
+2024-11-01,Minoyan,ARI,6
+2024-11-01,Minoyan,Fever unknown origin,11
+2024-11-01,Minoyan,Hypertension,30
+2024-11-01,Minoyan,Influenza,19
+2024-11-01,Minoyan,Acute Gastroenteritis,5
+2024-11-01,Minoyan,Vertigo,2
+2024-11-01,Minoyan,All types of skin disease,12
+2024-11-01,Caliban,Cough,9
+2024-11-01,Caliban,URTI,20
+2024-11-01,Caliban,Infection all types,5
+2024-11-01,Caliban,ARI,14
+2024-11-01,Caliban,Fever unknown origin,4
+2024-11-01,Caliban,Hypertension,24
+2024-11-01,Caliban,Influenza,12
+2024-11-01,Caliban,Acute Gastroenteritis,7
+2024-11-01,Caliban,Vertigo,8
+2024-11-01,Caliban,All types of skin disease,6
+2024-11-01,Cansilayan,Cough,14
+2024-11-01,Cansilayan,URTI,8
+2024-11-01,Cansilayan,Infection all types,13
+2024-11-01,Cansilayan,ARI,5
+2024-11-01,Cansilayan,Fever unknown origin,1
+2024-11-01,Cansilayan,Hypertension,25
+2024-11-01,Cansilayan,Influenza,13
+2024-11-01,Cansilayan,Acute Gastroenteritis,8
+2024-11-01,Cansilayan,Vertigo,3
+2024-11-01,Cansilayan,All types of skin disease,4
+2024-11-01,Alegria,Cough,16
+2024-11-01,Alegria,URTI,8
+2024-11-01,Alegria,Infection all types,8
+2024-11-01,Alegria,ARI,12
+2024-11-01,Alegria,Fever unknown origin,8
+2024-11-01,Alegria,Hypertension,19
+2024-11-01,Alegria,Influenza,8
+2024-11-01,Alegria,Acute Gastroenteritis,7
+2024-11-01,Alegria,Vertigo,15
+2024-11-01,Alegria,All types of skin disease,1
+2024-11-01,Sta. Rosa,Cough,9
+2024-11-01,Sta. Rosa,URTI,19
+2024-11-01,Sta. Rosa,Infection all types,9
+2024-11-01,Sta. Rosa,ARI,5
+2024-11-01,Sta. Rosa,Fever unknown origin,15
+2024-11-01,Sta. Rosa,Hypertension,20
+2024-11-01,Sta. Rosa,Influenza,12
+2024-11-01,Sta. Rosa,Acute Gastroenteritis,3
+2024-11-01,Sta. Rosa,Vertigo,12
+2024-11-01,Sta. Rosa,All types of skin disease,11
+2024-12-01,Blumentritt,Cough,18
+2024-12-01,Blumentritt,URTI,5
+2024-12-01,Blumentritt,Infection all types,2
+2024-12-01,Blumentritt,ARI,9
+2024-12-01,Blumentritt,Fever unknown origin,13
+2024-12-01,Blumentritt,Hypertension,16
+2024-12-01,Blumentritt,Influenza,19
+2024-12-01,Blumentritt,Acute Gastroenteritis,8
+2024-12-01,Blumentritt,Vertigo,10
+2024-12-01,Blumentritt,All types of skin disease,12
+2024-12-01,Salvacion,Cough,19
+2024-12-01,Salvacion,URTI,19
+2024-12-01,Salvacion,Infection all types,2
+2024-12-01,Salvacion,ARI,9
+2024-12-01,Salvacion,Fever unknown origin,8
+2024-12-01,Salvacion,Hypertension,15
+2024-12-01,Salvacion,Influenza,18
+2024-12-01,Salvacion,Acute Gastroenteritis,0
+2024-12-01,Salvacion,Vertigo,11
+2024-12-01,Salvacion,All types of skin disease,15
+2024-12-01,Minoyan,Cough,10
+2024-12-01,Minoyan,URTI,6
+2024-12-01,Minoyan,Infection all types,3
+2024-12-01,Minoyan,ARI,11
+2024-12-01,Minoyan,Fever unknown origin,13
+2024-12-01,Minoyan,Hypertension,25
+2024-12-01,Minoyan,Influenza,17
+2024-12-01,Minoyan,Acute Gastroenteritis,9
+2024-12-01,Minoyan,Vertigo,4
+2024-12-01,Minoyan,All types of skin disease,12
+2024-12-01,Caliban,Cough,17
+2024-12-01,Caliban,URTI,7
+2024-12-01,Caliban,Infection all types,4
+2024-12-01,Caliban,ARI,8
+2024-12-01,Caliban,Fever unknown origin,2
+2024-12-01,Caliban,Hypertension,22
+2024-12-01,Caliban,Influenza,7
+2024-12-01,Caliban,Acute Gastroenteritis,0
+2024-12-01,Caliban,Vertigo,10
+2024-12-01,Caliban,All types of skin disease,12
+2024-12-01,Cansilayan,Cough,7
+2024-12-01,Cansilayan,URTI,8
+2024-12-01,Cansilayan,Infection all types,3
+2024-12-01,Cansilayan,ARI,9
+2024-12-01,Cansilayan,Fever unknown origin,8
+2024-12-01,Cansilayan,Hypertension,29
+2024-12-01,Cansilayan,Influenza,9
+2024-12-01,Cansilayan,Acute Gastroenteritis,0
+2024-12-01,Cansilayan,Vertigo,5
+2024-12-01,Cansilayan,All types of skin disease,7
+2024-12-01,Alegria,Cough,14
+2024-12-01,Alegria,URTI,5
+2024-12-01,Alegria,Infection all types,14
+2024-12-01,Alegria,ARI,8
+2024-12-01,Alegria,Fever unknown origin,7
+2024-12-01,Alegria,Hypertension,25
+2024-12-01,Alegria,Influenza,5
+2024-12-01,Alegria,Acute Gastroenteritis,3
+2024-12-01,Alegria,Vertigo,4
+2024-12-01,Alegria,All types of skin disease,4
+2024-12-01,Sta. Rosa,Cough,6
+2024-12-01,Sta. Rosa,URTI,16
+2024-12-01,Sta. Rosa,Infection all types,3
+2024-12-01,Sta. Rosa,ARI,7
+2024-12-01,Sta. Rosa,Fever unknown origin,15
+2024-12-01,Sta. Rosa,Hypertension,28
+2024-12-01,Sta. Rosa,Influenza,10
+2024-12-01,Sta. Rosa,Acute Gastroenteritis,10
+2024-12-01,Sta. Rosa,Vertigo,2
+2024-12-01,Sta. Rosa,All types of skin disease,15
