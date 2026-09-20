@@ -39,3 +39,13 @@ Because the university panel strictly requires the use of Orange Data Mining for
 - **Output:** When the MHO clicks "Forecast" on the website, the Python API executes the exact model trained by Orange in real-time.
 
 **Defense Strategy:** This proves to the panel that Orange was utilized for the crucial "Training/Parameter Discovery" phase, while professional software engineering (Python/Node.js) was used to bring that trained model into a functional, live Web Application.
+
+## Phase 4: Manual Terminal Testing (Backend Proof)
+If the panel requests to see the raw mathematical output of the AI without the website UI, you can execute the Python engine directly from the VS Code terminal.
+
+**Step-by-Step Terminal Execution:**
+1. Open your VS Code Terminal.
+2. Navigate into the `test` directory where the engine lives: `cd test`
+3. Execute the SARIMA script by passing a Disease and a Barangay as arguments. 
+   **Command:** `python analytics.py "Influenza" "Blumentritt"`
+4. **Output:** The terminal will instantly output the raw JSON package containing the `accuracy_percentage`, the historical arrays, and the `forecast` array. This proves the backend engine successfully calculates the MAPE independently of the Node.js frontend.

@@ -30,74 +30,89 @@
       @layer utilities {
         .view-section { display: none; }
         .view-section.active { display: block; }
-        
         .table-container { @apply overflow-hidden relative w-full border border-slate-200 rounded-lg bg-white; }
         table { @apply w-full text-left border-collapse text-sm table-auto; }
         th { @apply bg-slate-50 border-b-2 border-slate-200 text-slate-500 font-bold py-3 px-3 uppercase tracking-wider text-[11px] leading-tight; }
-        td { @apply border-b border-slate-100 py-3 px-3 text-slate-700 bg-white transition-colors align-middle break-words; }
+        td { @apply border-b border-slate-100 py-3 px-3 text-slate-900 font-medium bg-white transition-colors align-middle break-words; }
         tr:hover td { @apply bg-slate-50; }
-        
-        /* Sticky Actions Column */
         th:last-child, td:last-child { @apply sticky right-0 z-10 border-l border-slate-200 drop-shadow-[-2px_0_4px_rgba(0,0,0,0.05)]; }
         th:last-child { @apply bg-slate-100; }
-        
         .white-panel { @apply bg-white rounded-xl shadow-sm border border-slate-200 p-6; }
-        
         .sub-tabs { @apply flex gap-2 border-b border-slate-200 mb-6 pb-2; }
         .sub-tab-btn { @apply px-4 py-2 text-sm font-medium text-slate-500 rounded-lg hover:bg-slate-100 hover:text-slate-900 transition-colors; }
         .sub-tab-btn.active { @apply bg-slate-100 text-slate-900 font-bold; }
       }
     </style>
+    <style>
+      /* Raw CSS overrides for Dark Mode to bypass Tailwind CDN @apply limitations */
+      .dark .table-container { background-color: #0f172a !important; border-color: #334155 !important; }
+      .dark th { background-color: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
+      .dark td { background-color: #0f172a !important; border-color: #334155 !important; color: #cbd5e1 !important; }
+      .dark tr:hover td { background-color: #1e293b !important; }
+      .dark th:last-child { background-color: #1e293b !important; }
+      .dark .white-panel { background-color: #0f172a !important; border-color: #1e293b !important; }
+      .dark .sub-tabs { border-color: #1e293b !important; }
+      .dark .sub-tab-btn { color: #94a3b8 !important; }
+      .dark .sub-tab-btn:hover { background-color: #1e293b !important; color: #e2e8f0 !important; }
+      .dark .sub-tab-btn.active { background-color: #1e293b !important; color: #ffffff !important; }
+      
+      /* Darker fonts in light mode fix */
+      td { color: #334155; font-weight: 500; }
+    </style>
 
   </head>
   <body>
-    <div id="dashboard-section" class="flex h-screen w-full bg-contentBg font-sans overflow-hidden">
+    <div id="dashboard-section" class="flex h-screen w-full bg-slate-100 dark:bg-neutral-950 font-sans overflow-hidden">
       
       <!-- SIDEBAR (Always Dark) -->
-      <aside id="main-sidebar" class="w-64 bg-sidebar text-slate-300 flex flex-col flex-shrink-0 transition-all duration-300">
-        <div class="h-16 flex items-center px-6 bg-black/20 border-b border-white/5">
+      <aside id="main-sidebar" class="w-64 bg-transparent text-slate-600 dark:text-slate-300 flex flex-col flex-shrink-0 transition-all duration-300 relative z-10">
+        <div class="h-16 flex items-center px-6 pt-4">
           <img src="assets/img/Logo-Health-Intel.png" alt="Logo" class="w-8 h-8 mr-3 object-contain">
-          <h2 class="text-white font-bold tracking-widest text-lg m-0">ADMIN</h2>
+          <h2 id="sidebar-text" class="text-slate-800 dark:text-white font-bold tracking-widest text-lg m-0 transition-all duration-300">ADMIN</h2>
         </div>
         
         <nav class="flex-1 py-4 flex flex-col gap-1 px-3">
-          <button class="nav-item active w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-white/5 hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-iam" onclick="switchMainView('view-iam', 'nav-iam')">
-            <i data-lucide="users-round" class="w-5 h-5"></i> User Management
+          <button class="nav-item text-slate-600 dark:text-slate-300 active w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-iam" onclick="switchMainView('view-iam', 'nav-iam')">
+            <i data-lucide="users-round" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">User Management</span>
           </button>
-          <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-white/5 hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-data" onclick="switchMainView('view-data', 'nav-data')">
-            <i data-lucide="database" class="w-5 h-5"></i> Master Records
+          <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-data" onclick="switchMainView('view-data', 'nav-data')">
+            <i data-lucide="database" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Master Records</span>
           </button>
-          <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-white/5 hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-diseases" onclick="switchMainView('view-diseases', 'nav-diseases')">
-            <i data-lucide="clipboard-list" class="w-5 h-5"></i> Disease Registry
+          <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-diseases" onclick="switchMainView('view-diseases', 'nav-diseases')">
+            <i data-lucide="clipboard-list" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Disease Registry</span>
           </button>
-          <button class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-white/5 hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-audit" onclick="switchMainView('view-audit', 'nav-audit')">
-            <i data-lucide="history" class="w-5 h-5"></i> Security Audit Trail
+          <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-audit" onclick="switchMainView('view-audit', 'nav-audit')">
+            <i data-lucide="history" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Security Audit Trail</span>
           </button>
         </nav>
         
-        <div class="p-4 border-t border-white/5">
-          <button onclick="window.location.href = 'index.html'" class="w-full bg-white/5 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-transparent hover:border-red-500/50 transition-colors py-2.5 rounded-md font-medium flex justify-center items-center gap-2">
-            <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-          </button>
+        <div class="p-4">
+          <a href="index.html" aria-label="Sign Out" class="nav-item sign-out group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:translate-x-1 transition-all duration-300">
+            <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:-translate-x-1"></i>
+            <span class="sidebar-label whitespace-nowrap">Log Out</span>
+          </a>
         </div>
       </aside>
 
       <!-- MAIN CONTENT -->
-      <main class="flex-1 flex flex-col min-w-0">
+      <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0f172a] overflow-hidden relative z-20 rounded-tl-[2.5rem] shadow-[-10px_0_30px_rgba(0,0,0,0.2)] dark:shadow-[-10px_0_30px_rgba(0,0,0,0.5)] border-l border-t border-slate-300 dark:border-neutral-800">
         
         <!-- HEADER -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0">
+        <header class="h-16 bg-transparent flex items-center justify-between px-6 flex-shrink-0 z-20">
           <div class="flex items-center gap-4">
-            <button class="text-slate-500 hover:text-slate-700" onclick="document.getElementById('main-sidebar').classList.toggle('-ml-64')">
-              <i data-lucide="menu" class="w-5 h-5"></i>
+            <button class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200" onclick="toggleSidebar()">
+              <i data-lucide="panel-left-close" id="sidebar-icon" class="w-5 h-5"></i>
             </button>
             <div class="text-sm text-slate-500 flex gap-2">
-              <span class="hover:text-brandBlue cursor-pointer">Home</span> / <span class="text-slate-800 font-medium">Dashboard</span>
+              <span class="text-slate-800 dark:text-slate-200 font-medium">Dashboard</span>
             </div>
           </div>
           
-          <div class="flex items-center gap-4 text-sm text-slate-500 font-medium">
+          <div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 font-medium">
             <span>Admin Control Center</span>
+            <button id="theme-toggle-btn" onclick="toggleAdminTheme()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors">
+              <i data-lucide="moon" class="w-4 h-4"></i>
+            </button>
           </div>
         </header>
 
@@ -109,7 +124,7 @@
 <!-- 1. USER MANAGEMENT (IAM) -->
           <!-- ============================================== -->
           <div id="view-iam" class="view-section active">
-            <h1 style="margin-top: 0; color: #0f172a">User Management</h1>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">User Management</h1>
             <br />
             <div class="white-panel">
               <div class="sub-tabs">
@@ -184,8 +199,8 @@
           <!-- 2. MASTER RECORD DATABASE (PATIENTS) -->
           <!-- ============================================== -->
           <div id="view-data" class="view-section">
-            <h1 style="margin-top: 0; color: #0f172a">Master Record Database</h1>
-            <p style="color: #64748b; margin-bottom: 25px">Centralized oversight of all patient encodings by BHWs.</p>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Master Record Database</h1>
+            <p class="text-slate-500 dark:text-slate-400 mb-6">Centralized oversight of all patient encodings by BHWs.</p>
 
             <div class="white-panel">
               <div class="sub-tabs">
@@ -200,22 +215,35 @@
               <div id="data-active-view">
                 <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
                   <input type="text" id="search-patient" onkeyup="filterData()" placeholder="Search name or System ID..." style="flex: 2; min-width: 220px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-size: 0.95rem;"/>
-                  <select id="filter-table-brgy" onchange="filterData()" style="flex: 1; min-width: 140px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #334155;">
+                  <select id="filter-table-brgy" onchange="filterData()" class="flex-1 min-w-[140px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
                     <option value="">All Barangays</option>
-                    <option value="Blumentritt">Blumentritt</option>
-                    <option value="Poblacion">Poblacion</option>
-                    <option value="San Jose">San Jose</option>
+                    <option value="1">Blumentritt</option>
+                    <option value="2">Salvacion</option>
+                    <option value="3">Minoyan</option>
+                    <option value="4">Caliban</option>
+                    <option value="5">Cansilayan</option>
+                    <option value="6">Alegria</option>
+                    <option value="7">Sta. Rosa</option>
                   </select>
-                  <select id="filter-table-disease" onchange="filterData()" style="flex: 1; min-width: 140px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #334155;">
+                  <select id="filter-table-disease" onchange="filterData()" class="flex-1 min-w-[140px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
                     <option value="">All Diseases</option>
-                    <option value="animal bite">Animal Bite / Wound</option>
+                    <option value="cough">Cough</option>
+                    <option value="urti">URTI</option>
+                    <option value="infection all types">Infection all types</option>
+                    <option value="ari">ARI</option>
+                    <option value="fever unknown origin">Fever unknown origin</option>
+                    <option value="hypertension">Hypertension</option>
+                    <option value="influenza">Influenza</option>
+                    <option value="acute gastroenteritis">Acute Gastroenteritis</option>
+                    <option value="vertigo">Vertigo</option>
+                    <option value="all types of skin disease">All types of skin disease</option>
                     <option value="dengue">Dengue</option>
-                    <option value="pneumonia">Pneumonia</option>
                   </select>
-                  <select id="filter-table-status" onchange="filterData()" style="flex: 1; min-width: 120px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: bold; color: #334155;">
+                  <select id="filter-table-status" onchange="filtercData()" class="flex-1 min-w-[120px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
                     <option value="">All Statuses</option>
-                    <option value="active">Active Cases</option>
-                    <option value="recovered">Recovered</option>
+                    <option value="active">Active</option>
+                    <option value="cleared">Cleared</option>
+                    <option value="deceased">Deceased</option>
                   </select>
                 </div>
                 
@@ -270,8 +298,8 @@
           <div id="view-diseases" class="view-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
               <div>
-                <h1 style="margin: 0; color: #0f172a">Master Disease Registry</h1>
-                <p style="color: #64748b; margin: 0">Manage the standardized list of diseases stored in the database.</p>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Master Disease Registry</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Manage the standardized list of diseases stored in the database.</p>
               </div>
               <button onclick="openDiseaseModal()" style="background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="plus-circle" style="width: 18px"></i> Add New Disease
@@ -326,10 +354,10 @@
           <div id="view-audit" class="view-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
               <div>
-                <h1 style="margin: 0; color: #0f172a">Immutable Audit Trail</h1>
-                <p style="color: #64748b; margin: 0">Permanent ledger of all system actions and modifications.</p>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Immutable Audit Trail</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Permanent ledger of all system actions and modifications.</p>
               </div>
-              <button onclick="loadAuditLogs()" style="background: white; color: #0f172a; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+              <button onclick="loadAuditLogs()" class="bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 px-4 py-2 rounded-md font-bold flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700">
                 <i data-lucide="refresh-cw" style="width: 16px"></i> Refresh Ledger
               </button>
             </div>
@@ -349,8 +377,8 @@
                   <tbody id="audit-table-body"></tbody>
                 </table>
               </div>
-              <div id="audit-pagination" class="flex justify-between items-center mt-6 pt-4 border-t border-slate-100 hidden">
-                <span class="text-sm text-slate-500" id="audit-page-info">Showing 1 to 10 of 50 entries</span>
+              <div id="audit-pagination" class="flex justify-between items-center mt-6 pt-4 border-t border-slate-100 dark:border-slate-700/50 hidden">
+                <span class="text-sm text-slate-500 dark:text-slate-400" id="audit-page-info">Showing 1 to 10 of 50 entries</span>
                 <div class="flex gap-1" id="audit-page-buttons"></div>
               </div>
             </div>
@@ -379,33 +407,33 @@
     </div>
 
     <div id="diseaseModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200">
-        <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5 text-brandBlue"></i> Add to Registry</h3>
+      <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
+          <h3 class="font-bold text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5 text-brandBlue"></i> Add to Registry</h3>
           <button onclick="closeModal('diseaseModal')" class="text-slate-400 hover:text-slate-600 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
-        <div class="p-6 flex flex-col gap-4">
+        <div class="p-6 flex flex-col gap-4 bg-white dark:bg-slate-900">
           <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Disease Name</label>
-            <input type="text" id="new_disease_name" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700" placeholder="e.g. Typhoid Fever" />
+            <input type="text" id="new_disease_name" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800" placeholder="e.g. Typhoid Fever" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Category</label>
-            <select id="new_disease_cat" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 bg-white">
+            <select id="new_disease_cat" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800">
               <option value="Morbidity">Morbidity (Sickness)</option>
               <option value="Mortality">Mortality (Death)</option>
             </select>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Classification</label>
-            <select id="new_disease_class" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 bg-white">
+            <select id="new_disease_class" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800">
               <option value="Standard">Standard Case</option>
               <option value="High Risk">High Risk / Alert</option>
             </select>
           </div>
         </div>
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-          <button onclick="closeModal('diseaseModal')" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">Cancel</button>
+        <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3">
+          <button onclick="closeModal('diseaseModal')" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">Cancel</button>
           <button onclick="saveNewDisease()" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-brandBlue hover:bg-blue-600 shadow-sm transition-colors flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Save to Database</button>
         </div>
       </div>
@@ -416,6 +444,14 @@
     <!-- ============================================== -->
     <script>
       lucide.createIcons();
+      function toggleAdminTheme() {
+          const html = document.documentElement;
+          html.classList.toggle("dark");
+          const isDark = html.classList.contains("dark");
+          const btn = document.getElementById("theme-toggle-btn");
+          if(btn) btn.innerHTML = isDark ? `<i data-lucide="sun" class="w-4 h-4"></i>` : `<i data-lucide="moon" class="w-4 h-4"></i>`;
+          lucide.createIcons();
+      }
 
       window.addEventListener('DOMContentLoaded', () => {
         loadUsers();
@@ -545,8 +581,8 @@
 
               dTableHtmlBuffer += `
                 <tr>
-                  <td style="color:#64748b;">${u.system_id}</td>
-                  <td style="color:#64748b;">${u.first_name} ${u.last_name}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${u.system_id}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${u.first_name} ${u.last_name}</td>
                   <td>${badgeHTML}</td>
                   <td>${btnHTML}</td>
                 </tr>
@@ -648,9 +684,10 @@
         const tbody = document.getElementById("patient-table-body");
         tbody.innerHTML = "";
         let tbodyHtmlBuffer = "";
-        
-        data.forEach((p) => {
-          let c = (p.disease || "").toLowerCase().includes("bite") ? "#ef4444" : "#334155";
+        const maxResults = 50;
+        const slicedData = data.slice(0, maxResults);
+        slicedData.forEach((p) => {
+          let c = (p.disease || "").toLowerCase().includes("bite") ? "#ef4444" : "inherit";
           let statusText = p.status || "Active";
           let statusColor = statusText.toLowerCase() === "active" ? "#ea580c" : "#10b981";
 
@@ -660,15 +697,15 @@
 
           tbodyHtmlBuffer += `
             <tr>
-              <td style="color:#64748b;">#REC-${p.id}</td>
+              <td class="font-bold">#REC-${p.id}</td>
               <td><strong>${p.patient_name || p.first_name + " " + p.last_name}</strong></td>
               <td>${p.age || "N/A"}</td>
               <td style="color:${c}; font-weight:bold;">${p.disease || "Unknown"}</td>
-              <td>${p.purok}</td>
+              <td>${p.barangay_name || p.purok || "Unknown"}</td>
               <td><span style="color:${statusColor}; font-weight:bold;">${statusText}</span></td>
               
-              <td style="color:#0284c7; font-weight:bold; font-size: 0.9rem;">${encodedBy}</td>
-              <td style="color:#64748b; font-size: 0.85rem;">${timeString}</td>
+              <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${encodedBy}</td>
+              <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${timeString}</td>
               
               <td>
                 <button style="border:1px solid #ef4444; background:transparent; color:#ef4444; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="archivePatient(${p.id})">Archive</button>
@@ -698,7 +735,7 @@
           const sysId = `#rec-${p.id}`.toLowerCase();
 
           const matchesSearch = fullName.includes(searchInput) || sysId.includes(searchInput) || searchInput.replace("#", "") === p.id.toString();
-          const matchesBrgy = brgyQuery === "" || (p.purok || "").toLowerCase().includes(brgyQuery);
+          const matchesBrgy = brgyQuery === "" || (p.barangay_id && p.barangay_id.toString() === brgyQuery);
           const matchesDisease = diseaseQuery === "" || (p.disease || "").toLowerCase().includes(diseaseQuery);
           const matchesStatus = statusQuery === "" || (p.status || "active").toLowerCase() === statusQuery;
 
@@ -716,22 +753,24 @@
           tbody.innerHTML = "";
           let tbodyHtmlBuffer = "";
           if (data.success) {
-            data.data.forEach((p) => {
+            const maxArchived = 50;
+            const slicedArchived = data.data.slice(0, maxArchived);
+            slicedArchived.forEach((p) => {
               let dateObj = p.updated_at ? new Date(p.updated_at) : (p.created_at ? new Date(p.created_at) : new Date());
               let timeString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
               let encodedBy = p.encoded_by || "System";
 
               tbodyHtmlBuffer += `
                 <tr>
-                  <td style="color:#64748b;">#REC-${p.id}</td>
-                  <td style="color:#64748b;">${p.patient_name || p.first_name + " " + p.last_name}</td>
+                  <td class="font-bold">#REC-${p.id}</td>
+                  <td><strong>${p.patient_name || p.first_name + " " + p.last_name}</strong></td>
                   <td>${p.age || "N/A"}</td>
-                  <td style="color:#64748b;">${p.disease || "Unknown"}</td>
-                  <td>${p.purok}</td>
+                  <td class="font-bold">${p.disease || "Unknown"}</td>
+                  <td>${p.barangay_name || p.purok || "Unknown"}</td>
                   <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td>
                   
-                  <td style="color:#0284c7; font-weight:bold; font-size: 0.9rem;">${encodedBy}</td>
-                  <td style="color:#64748b; font-size: 0.85rem;">${timeString}</td>
+                  <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${encodedBy}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${timeString}</td>
 
                   <td><button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="restorePatient(${p.id})">Restore</button></td>
                 </tr>
@@ -803,10 +842,10 @@
               let classColor = d.classification === "High Risk" ? "color: #ef4444; background: #fee2e2;" : "color: #0284c7; background: #e0f2fe;";
               actBodyHtmlBuffer += `
                 <tr>
-                  <td style="font-weight:bold; color:#0f172a;">${d.name}</td>
-                  <td style="color:#64748b;">${d.category}</td>
+                  <td class="font-bold text-slate-900 dark:text-slate-100">${d.name}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${d.category}</td>
                   <td><span style="${classColor} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">${d.classification}</span></td>
-                  <td style="color:#10b981; font-weight:bold;">Active</td>
+                  <td class="text-emerald-500 dark:text-emerald-400 font-bold">Active</td>
                   <td><button onclick="archiveDisease(${d.id})" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">Archive</button></td>
                 </tr>
               `;
@@ -831,9 +870,9 @@
             arcData.data.forEach((d) => {
               arcBodyHtmlBuffer += `
                 <tr>
-                  <td style="color:#64748b;">${d.name}</td>
-                  <td style="color:#64748b;">${d.category}</td>
-                  <td style="color:#64748b;">${d.classification}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${d.name}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${d.category}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${d.classification}</td>
                   <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td>
                   <td><button onclick="restoreDisease(${d.id})" style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">Restore</button></td>
                 </tr>
@@ -960,12 +999,12 @@
           else if (log.role === 'Admin' || log.role === 'LGU Admin') badgeClass = 'background:#e0f2fe; color:#0284c7;';
           
           tbodyHtmlBuffer += `
-            <tr style="border-bottom: 1px solid #f1f5f9;">
-              <td class="whitespace-nowrap" style="color: #64748b; font-size: 0.85rem;">${date}</td>
-              <td class="whitespace-nowrap" style="font-weight: bold; color: #0f172a;">${log.user_id}</td>
+            <tr >
+              <td class="whitespace-nowrap font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${date}</td>
+              <td class="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100">${log.user_id}</td>
               <td class="whitespace-nowrap"><span style="${badgeClass} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; text-transform:uppercase;">${log.role}</span></td>
-              <td class="whitespace-nowrap" style="color: #0ea5e9; font-weight: bold;">${log.action}</td>
-              <td style="color: #475569; font-size: 0.9rem;">${log.details}</td>
+              <td class="whitespace-nowrap text-sky-500 dark:text-sky-400 font-bold">${log.action}</td>
+              <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.9rem]">${log.details}</td>
             </tr>
           `;
         });
@@ -983,16 +1022,16 @@
         if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
 
         if (currentAuditPage > 1) {
-            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage - 1})" class="px-3 py-1 rounded text-sm font-medium border bg-white text-slate-600 border-slate-300 hover:bg-slate-50 transition-colors">Prev</button>`;
+            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage - 1})" class="px-3 py-1 rounded text-sm font-medium border bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Prev</button>`;
         }
         
         for (let i = startPage; i <= endPage; i++) {
-            let activeClass = i === currentAuditPage ? 'bg-brandBlue text-white border-brandBlue' : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50';
+            let activeClass = i === currentAuditPage ? 'bg-brandBlue text-white border-brandBlue' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700';
             buttonsHtml += `<button onclick="goToAuditPage(${i})" class="px-3 py-1 rounded text-sm font-medium border transition-colors ${activeClass}">${i}</button>`;
         }
         
         if (currentAuditPage < totalPages) {
-            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage + 1})" class="px-3 py-1 rounded text-sm font-medium border bg-white text-slate-600 border-slate-300 hover:bg-slate-50 transition-colors">Next</button>`;
+            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage + 1})" class="px-3 py-1 rounded text-sm font-medium border bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Next</button>`;
         }
         
         document.getElementById("audit-page-buttons").innerHTML = buttonsHtml;
@@ -1002,6 +1041,27 @@
           currentAuditPage = page;
           renderAuditTable();
       }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById("main-sidebar");
+            const icon = document.getElementById("sidebar-icon");
+            const text = document.getElementById("sidebar-text");
+            const labels = document.querySelectorAll(".sidebar-label");
+
+            if (sidebar.classList.contains("w-64")) {
+                sidebar.classList.replace("w-64", "w-20");
+                if (text) text.classList.add("hidden");
+                labels.forEach(l => l.classList.add("hidden"));
+                if (icon) icon.setAttribute("data-lucide", "panel-left-open");
+            } else {
+                sidebar.classList.replace("w-20", "w-64");
+                if (text) text.classList.remove("hidden");
+                labels.forEach(l => l.classList.remove("hidden"));
+                if (icon) icon.setAttribute("data-lucide", "panel-left-close");
+            }
+            lucide.createIcons();
+        }
     </script>
   </body>
 </html>
+

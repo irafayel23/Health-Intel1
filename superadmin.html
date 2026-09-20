@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <title>HEALTH-INTEL | Super Admin</title>
@@ -7,13 +7,30 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      function toggleSuperTheme() {
+          const html = document.documentElement;
+          html.classList.toggle("dark");
+          const isDark = html.classList.contains("dark");
+          const btn = document.getElementById("theme-toggle-btn");
+          if(btn) btn.innerHTML = isDark ? `<i data-lucide="sun" class="w-5 h-5"></i>` : `<i data-lucide="moon" class="w-5 h-5"></i>`;
+          lucide.createIcons();
+      }
+
+      tailwind.config = {
+        darkMode: 'class'
+      }
+    </script>
     <style>
-      body { margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; background-color: #0a0a0a; color: #f5f5f5; }
+      body { margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; }
       
-      /* Pure CSS Fallbacks and basic styling (No Tailwind apply to crash) */
-      .nav-item { width: 100%; text-align: left; padding: 0.75rem 1rem; border-radius: 0.75rem; display: flex; align-items: center; gap: 0.75rem; color: #a3a3a3; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; background: transparent; border: none; cursor: pointer; }
-      .nav-item:hover { color: #f5f5f5; background: #171717; }
-      .nav-item.active { color: #ffffff; background: #262626; }
+      /* Pure CSS Fallbacks and basic styling */
+      .nav-item { width: 100%; text-align: left; padding: 0.75rem 1rem; border-radius: 0.75rem; display: flex; align-items: center; gap: 0.75rem; color: #475569; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; background: transparent; border: none; cursor: pointer; }
+      .dark .nav-item { color: #a3a3a3; }
+      .nav-item:hover { color: #0f172a; background: #f1f5f9; }
+      .dark .nav-item:hover { color: #f5f5f5; background: #171717; }
+      .nav-item.active { color: #0f172a; background: #e2e8f0; font-weight: bold; }
+      .dark .nav-item.active { color: #ffffff; background: #262626; }
       
       .view-section { display: none; }
       .view-section.active { display: block; animation: fadeIn 0.3s ease; }
@@ -27,20 +44,20 @@
       .swal2-cancel { background: transparent !important; color: #f5f5f5 !important; border: 1px solid #404040 !important; border-radius: 0.5rem !important; }
     </style>
   </head>
-  <body class="flex h-screen w-full bg-neutral-950 text-neutral-100">
+  <body class="flex h-screen w-full bg-slate-100 dark:bg-neutral-950 text-slate-900 dark:text-neutral-100">
     
     <!-- Sidebar -->
-    <aside class="w-64 bg-neutral-950 flex flex-col shrink-0">
+    <aside class="w-64 bg-slate-100 dark:bg-neutral-950 flex flex-col shrink-0">
       <div class="h-20 flex items-center px-6 gap-3 mt-4">
-        <img src="assets/img/Logo-Health-Intel.png" alt="Logo" class="w-10 h-10 object-contain rounded-md bg-neutral-900 p-1">
+        <img src="assets/img/Logo-Health-Intel.png" alt="Logo" class="w-10 h-10 object-contain rounded-md bg-white dark:bg-neutral-900 p-1">
         <div class="flex flex-col">
-            <span class="font-bold text-sm tracking-tight text-white">HEALTH-INTEL</span>
-            <span class="text-xs text-neutral-500">Superadmin Active</span>
+            <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white">HEALTH-INTEL</span>
+            <span class="text-xs text-slate-700 dark:text-neutral-400 font-medium">Superadmin Active</span>
         </div>
       </div>
       
       <div class="px-4 py-4 flex-grow flex flex-col gap-2">
-        <p class="px-3 text-xs font-semibold text-neutral-500 mb-1">General</p>
+        <p class="px-3 text-xs font-semibold text-slate-500 dark:text-neutral-500 mb-1">General</p>
         <button class="nav-item active" id="nav-dashboard" onclick="switchMainView('view-dashboard', 'nav-dashboard')">
           <i data-lucide="home" class="w-4 h-4"></i> Overview
         </button>
@@ -56,20 +73,21 @@
       </div>
 
       <div class="p-4 mt-auto mb-4">
-        <button onclick="logout()" class="w-full bg-white text-black font-bold py-3 px-4 rounded-xl shadow-lg hover:bg-neutral-200 transition-colors flex justify-center items-center gap-2">
-          Logout <span class="text-neutral-500 font-normal ml-2">
+        <button onclick="logout()" class="w-full bg-slate-200 dark:bg-neutral-800 text-slate-800 dark:text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-300 dark:hover:bg-neutral-700 transition-colors flex justify-center items-center gap-2">
+          Logout <span class="text-slate-500 dark:text-neutral-500 font-normal ml-2">
         </button>
       </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-grow flex flex-col h-screen overflow-y-auto bg-neutral-950 px-8 py-6 rounded-tl-[2.5rem] shadow-[-10px_0_30px_rgba(0,0,0,0.5)] border-l border-t border-neutral-800">
+    <main class="flex-grow flex flex-col h-screen overflow-y-auto bg-slate-100 dark:bg-neutral-950 px-8 py-6 rounded-tl-[2.5rem] shadow-[-10px_0_30px_rgba(0,0,0,0.5)] border-l border-t border-slate-300 dark:border-neutral-800">
       
       <!-- Top Nav -->
       <header class="h-16 flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
-            <h1 class="text-3xl font-bold tracking-tight text-white">Overview</h1>
+            <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Overview</h1>
         </div>
+        <button id="theme-toggle-btn" onclick="toggleSuperTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-600 dark:text-neutral-300 transition-colors"><i data-lucide="sun" class="w-5 h-5"></i></button>
       </header>
 
       <div class="w-full flex-grow">
@@ -79,86 +97,86 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Stat Card 1 -->
-                <div class="bg-neutral-900 rounded-3xl p-6 relative overflow-hidden group">
-                    <div class="absolute top-6 right-6 w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center">
-                        <i data-lucide="activity" class="w-4 h-4 text-neutral-400"></i>
+                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-6 relative overflow-hidden group">
+                    <div class="absolute top-6 right-6 w-8 h-8 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center">
+                        <i data-lucide="activity" class="w-4 h-4 text-slate-600 dark:text-neutral-400"></i>
                     </div>
-                    <h3 class="text-neutral-400 font-medium mb-4 text-sm">Server Uptime</h3>
-                    <div class="text-4xl font-bold text-white mb-2">99.9%</div>
-                    <p class="text-neutral-500 text-xs">No disruptions in 30 days</p>
+                    <h3 class="text-slate-600 dark:text-neutral-400 font-medium mb-4 text-sm">Server Uptime</h3>
+                    <div class="text-4xl font-bold text-slate-900 dark:text-white mb-2">99.9%</div>
+                    <p class="text-slate-500 dark:text-neutral-500 text-xs">No disruptions in 30 days</p>
                 </div>
                 <!-- Stat Card 2 -->
-                <div class="bg-neutral-900 rounded-3xl p-6 relative overflow-hidden">
-                    <div class="absolute top-6 right-6 w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center">
-                        <i data-lucide="file-clock" class="w-4 h-4 text-neutral-400"></i>
+                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-6 relative overflow-hidden">
+                    <div class="absolute top-6 right-6 w-8 h-8 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center">
+                        <i data-lucide="file-clock" class="w-4 h-4 text-slate-600 dark:text-neutral-400"></i>
                     </div>
-                    <h3 class="text-neutral-400 font-medium mb-4 text-sm">Total Logs</h3>
-                    <div class="text-4xl font-bold text-white mb-2" id="stat-total-logs">0</div>
-                    <p class="text-neutral-500 text-xs">Secured in master ledger</p>
+                    <h3 class="text-slate-600 dark:text-neutral-400 font-medium mb-4 text-sm">Total Logs</h3>
+                    <div class="text-4xl font-bold text-slate-900 dark:text-white mb-2" id="stat-total-logs">0</div>
+                    <p class="text-slate-500 dark:text-neutral-500 text-xs">Secured in master ledger</p>
                 </div>
                 <!-- Stat Card 3 -->
-                <div class="bg-neutral-900 rounded-3xl p-6 relative overflow-hidden">
-                    <div class="absolute top-6 right-6 w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center">
-                        <i data-lucide="users" class="w-4 h-4 text-neutral-400"></i>
+                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-6 relative overflow-hidden">
+                    <div class="absolute top-6 right-6 w-8 h-8 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center">
+                        <i data-lucide="users" class="w-4 h-4 text-slate-600 dark:text-neutral-400"></i>
                     </div>
-                    <h3 class="text-neutral-400 font-medium mb-4 text-sm">Registered Admins</h3>
-                    <div class="text-4xl font-bold text-white mb-2" id="stat-active-admins">0</div>
-                    <p class="text-neutral-500 text-xs">Authorized LGU & MHO accounts</p>
+                    <h3 class="text-slate-600 dark:text-neutral-400 font-medium mb-4 text-sm">Registered Admins</h3>
+                    <div class="text-4xl font-bold text-slate-900 dark:text-white mb-2" id="stat-active-admins">0</div>
+                    <p class="text-slate-500 dark:text-neutral-500 text-xs">Authorized LGU & MHO accounts</p>
                 </div>
                 <!-- Stat Card 4 -->
-                <div class="bg-neutral-900 rounded-3xl p-6 relative overflow-hidden">
-                    <div class="absolute top-6 right-6 w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center">
-                        <i data-lucide="hard-drive" class="w-4 h-4 text-neutral-400"></i>
+                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-6 relative overflow-hidden">
+                    <div class="absolute top-6 right-6 w-8 h-8 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center">
+                        <i data-lucide="hard-drive" class="w-4 h-4 text-slate-600 dark:text-neutral-400"></i>
                     </div>
-                    <h3 class="text-neutral-400 font-medium mb-4 text-sm">Storage Used</h3>
-                    <div class="text-4xl font-bold text-white mb-2">42 MB</div>
-                    <p class="text-neutral-500 text-xs">Optimized indexing active</p>
+                    <h3 class="text-slate-600 dark:text-neutral-400 font-medium mb-4 text-sm">Storage Used</h3>
+                    <div class="text-4xl font-bold text-slate-900 dark:text-white mb-2">42 MB</div>
+                    <p class="text-slate-500 dark:text-neutral-500 text-xs">Optimized indexing active</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                 <!-- Large Panel -->
-                <div class="lg:col-span-2 bg-neutral-900 rounded-3xl p-8">
+                <div class="lg:col-span-2 bg-white dark:bg-neutral-900 rounded-3xl p-8">
                     <div class="flex justify-between items-center mb-8">
-                        <h3 class="text-lg font-bold text-white">System Actions</h3>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">System Actions</h3>
                         <div class="flex gap-2">
-                            <button class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                            <button class="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-neutral-400 hover:text-white"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                            <button class="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:text-white"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                            <button class="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:text-white"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                         </div>
                     </div>
                     
                     <div class="space-y-4">
-                        <div class="bg-neutral-950 p-5 rounded-2xl border border-neutral-800/50 flex items-center justify-between">
+                        <div class="bg-slate-100 dark:bg-neutral-950 p-5 rounded-2xl border border-slate-300 dark:border-neutral-800/50 flex items-center justify-between">
                             <div>
-                                <p class="text-neutral-400 font-bold text-xs mb-1">NODE SERVER</p>
-                                <p class="text-white font-medium">Restart Core Services</p>
+                                <p class="text-slate-600 dark:text-neutral-400 font-bold text-xs mb-1">NODE SERVER</p>
+                                <p class="text-slate-900 dark:text-white font-medium">Restart Core Services</p>
                             </div>
-                            <button onclick="restartServices()" class="px-6 py-2 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-full text-sm transition">Execute</button>
+                            <button onclick="restartServices()" class="px-6 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:bg-neutral-700 text-slate-900 dark:text-white font-medium rounded-full text-sm transition">Execute</button>
                         </div>
                         
                     </div>
                 </div>
 
                 <!-- Secondary Panel -->
-                <div class="bg-neutral-900 rounded-3xl p-8">
-                    <h3 class="text-lg font-bold text-white mb-2">System Integrity</h3>
-                    <p class="text-neutral-500 text-sm mb-8">All core modules operational</p>
+                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">System Integrity</h3>
+                    <p class="text-slate-500 dark:text-neutral-500 text-sm mb-8">All core modules operational</p>
                     
-                    <div class="h-2 w-full bg-neutral-800 rounded-full mb-6 flex overflow-hidden">
+                    <div class="h-2 w-full bg-slate-100 dark:bg-neutral-800 rounded-full mb-6 flex overflow-hidden">
                         <div class="h-full bg-emerald-500" style="width: 100%"></div>
                     </div>
                     
                     <div class="space-y-4 mt-6">
-                        <div class="flex justify-between text-sm border-b border-neutral-800 pb-3">
-                            <span class="flex items-center gap-2 text-neutral-400"><i data-lucide="database" class="w-4 h-4"></i> MySQL Database</span>
+                        <div class="flex justify-between text-sm border-b border-slate-300 dark:border-neutral-800 pb-3">
+                            <span class="flex items-center gap-2 text-slate-600 dark:text-neutral-400"><i data-lucide="database" class="w-4 h-4"></i> MySQL Database</span>
                             <span class="text-emerald-500 font-bold">Connected</span>
                         </div>
-                        <div class="flex justify-between text-sm border-b border-neutral-800 pb-3">
-                            <span class="flex items-center gap-2 text-neutral-400"><i data-lucide="server" class="w-4 h-4"></i> Node.js API</span>
+                        <div class="flex justify-between text-sm border-b border-slate-300 dark:border-neutral-800 pb-3">
+                            <span class="flex items-center gap-2 text-slate-600 dark:text-neutral-400"><i data-lucide="server" class="w-4 h-4"></i> Node.js API</span>
                             <span class="text-emerald-500 font-bold">Connected</span>
                         </div>
                         <div class="flex justify-between text-sm pb-1">
-                            <span class="flex items-center gap-2 text-neutral-400"><i data-lucide="lock" class="w-4 h-4"></i> AES-256 Auth</span>
+                            <span class="flex items-center gap-2 text-slate-600 dark:text-neutral-400"><i data-lucide="lock" class="w-4 h-4"></i> AES-256 Auth</span>
                             <span class="text-emerald-500 font-bold">Secured</span>
                         </div>
                     </div>
@@ -168,17 +186,17 @@
 
         <!-- USERS VIEW -->
         <div id="view-users" class="view-section space-y-6">
-            <div class="bg-neutral-900 rounded-3xl p-8">
+            <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8">
                 <div class="flex justify-between items-center mb-8">
                     <div>
-                        <h2 class="text-2xl font-bold text-white">Access Control</h2>
-                        <p class="text-neutral-500 text-sm mt-1">Manage LGU Admin & MHO privileges</p>
+                        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Access Control</h2>
+                        <p class="text-slate-500 dark:text-neutral-500 text-sm mt-1">Manage LGU Admin & MHO privileges</p>
                     </div>
                 </div>
 
-                <div class="w-full overflow-hidden rounded-2xl border border-neutral-800">
+                <div class="w-full overflow-hidden rounded-2xl border border-slate-300 dark:border-neutral-800">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-neutral-950 border-b border-neutral-800 text-neutral-400 font-medium">
+                        <thead class="bg-slate-100 dark:bg-neutral-950 border-b border-slate-300 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 font-medium">
                             <tr>
                                 <th class="p-4">Identity ID</th>
                                 <th class="p-4">Clearance Role</th>
@@ -195,20 +213,20 @@
 
         <!-- AUDIT VIEW -->
         <div id="view-audit" class="view-section space-y-6">
-            <div class="bg-neutral-900 rounded-3xl p-8 flex flex-col h-full">
+            <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8 flex flex-col h-full">
                 <div class="flex justify-between items-center mb-8">
                     <div>
-                        <h2 class="text-2xl font-bold text-white">Master Ledger</h2>
-                        <p class="text-neutral-500 text-sm mt-1">Immutable global audit trail</p>
+                        <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Master Ledger</h2>
+                        <p class="text-slate-500 dark:text-neutral-500 text-sm mt-1">Immutable global audit trail</p>
                     </div>
-                    <button onclick="loadAuditLogs()" class="px-5 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-full text-sm font-medium transition flex items-center gap-2">
+                    <button onclick="loadAuditLogs()" class="px-5 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:bg-neutral-700 text-slate-900 dark:text-white rounded-full text-sm font-medium transition flex items-center gap-2">
                         <i data-lucide="refresh-ccw" class="w-4 h-4"></i> Sync
                     </button>
                 </div>
 
-                <div class="w-full overflow-hidden rounded-2xl border border-neutral-800 flex-grow">
+                <div class="w-full overflow-hidden rounded-2xl border border-slate-300 dark:border-neutral-800 flex-grow">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-neutral-950 border-b border-neutral-800 text-neutral-400 font-medium">
+                        <thead class="bg-slate-100 dark:bg-neutral-950 border-b border-slate-300 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 font-medium">
                             <tr>
                                 <th class="p-4 w-40">Timestamp</th>
                                 <th class="p-4 w-32">Actor</th>
@@ -223,7 +241,7 @@
                 
                 <!-- Pagination -->
                 <div id="audit-pagination" class="hidden flex justify-between items-center mt-6">
-                    <span class="text-sm text-neutral-500" id="audit-page-info"></span>
+                    <span class="text-sm text-slate-500 dark:text-neutral-500" id="audit-page-info"></span>
                     <div class="flex gap-2" id="audit-page-buttons"></div>
                 </div>
             </div>
@@ -231,21 +249,21 @@
 
         <!-- DB BACKUP VIEW -->
         <div id="view-db" class="view-section space-y-6">
-            <div class="bg-neutral-900 rounded-3xl p-8 max-w-3xl">
-                <h2 class="text-2xl font-bold text-white mb-2">Database Extraction</h2>
-                <p class="text-neutral-500 text-sm mb-8">Pull a fully encrypted snapshot of the production database.</p>
+            <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8 max-w-3xl">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Database Extraction</h2>
+                <p class="text-slate-500 dark:text-neutral-500 text-sm mb-8">Pull a fully encrypted snapshot of the production database.</p>
                 
-                <div class="bg-neutral-950 rounded-2xl border border-neutral-800 p-6 flex items-center justify-between mb-6">
+                <div class="bg-slate-100 dark:bg-neutral-950 rounded-2xl border border-slate-300 dark:border-neutral-800 p-6 flex items-center justify-between mb-6">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-neutral-900 rounded-xl flex items-center justify-center border border-neutral-800">
-                            <i data-lucide="database" class="w-6 h-6 text-white"></i>
+                        <div class="w-12 h-12 bg-white dark:bg-neutral-900 rounded-xl flex items-center justify-center border border-slate-300 dark:border-neutral-800">
+                            <i data-lucide="database" class="w-6 h-6 text-slate-900 dark:text-white"></i>
                         </div>
                         <div>
-                            <h3 class="text-white font-bold">health_intel.sql</h3>
-                            <p class="text-neutral-500 text-xs">Contains Users, Cases, Registry & Ledger</p>
+                            <h3 class="text-slate-900 dark:text-white font-bold">health_intel.sql</h3>
+                            <p class="text-slate-700 dark:text-neutral-400 text-xs">Contains Users, Cases, Registry & Ledger</p>
                         </div>
                     </div>
-                    <button onclick="backupDB()" class="px-6 py-3 bg-white hover:bg-neutral-200 text-black font-bold rounded-full text-sm transition flex items-center gap-2">
+                    <button onclick="backupDB()" class="px-6 py-3 bg-slate-200 dark:bg-neutral-800 text-slate-800 dark:text-white hover:bg-slate-300 dark:hover:bg-neutral-700 font-bold rounded-full text-sm transition flex items-center gap-2">
                         <i data-lucide="download" class="w-4 h-4"></i> Execute Backup
                     </button>
                 </div>
@@ -256,6 +274,15 @@
     </main>
 
     <script>
+      function toggleSuperTheme() {
+          const html = document.documentElement;
+          html.classList.toggle("dark");
+          const isDark = html.classList.contains("dark");
+          const btn = document.getElementById("theme-toggle-btn");
+          if(btn) btn.innerHTML = isDark ? `<i data-lucide="sun" class="w-5 h-5"></i>` : `<i data-lucide="moon" class="w-5 h-5"></i>`;
+          lucide.createIcons();
+      }
+
       let allAuditLogs = [];
       let currentAuditPage = 1;
       const AUDIT_PER_PAGE = 8;
@@ -301,19 +328,19 @@
             if (document.getElementById("stat-active-admins")) document.getElementById("stat-active-admins").innerText = admins.length;
             admins.forEach(user => {
               let statusBadge = user.status === 'approved' 
-                ? '<span class="inline-block px-3 py-1 rounded-full bg-neutral-800 text-white text-xs font-medium">Active</span>' 
-                : '<span class="inline-block px-3 py-1 rounded-full bg-neutral-800 text-neutral-500 text-xs font-medium">Suspended</span>';
+                ? '<span class="inline-block px-3 py-1 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-900 dark:text-white text-xs font-medium">Active</span>' 
+                : '<span class="inline-block px-3 py-1 rounded-full bg-slate-100 dark:bg-neutral-800 text-slate-500 dark:text-neutral-500 text-xs font-medium">Suspended</span>';
               
               let actionBtn = user.status === 'approved' 
-                ? `<button onclick="toggleAdminStatus('${user.system_id}', 'suspended')" class="px-4 py-1.5 rounded-full border border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-800 text-xs font-medium transition">Suspend</button>`
-                : `<button onclick="toggleAdminStatus('${user.system_id}', 'approved')" class="px-4 py-1.5 rounded-full border border-neutral-700 text-white hover:bg-neutral-800 text-xs font-medium transition">Restore</button>`;
+                ? `<button onclick="toggleAdminStatus('${user.system_id}', 'suspended')" class="px-4 py-1.5 rounded-full border border-slate-300 dark:border-neutral-700 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:text-white hover:bg-slate-100 dark:bg-neutral-800 text-xs font-medium transition">Suspend</button>`
+                : `<button onclick="toggleAdminStatus('${user.system_id}', 'approved')" class="px-4 py-1.5 rounded-full border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:bg-neutral-800 text-xs font-medium transition">Restore</button>`;
               
               buffer += `
-                <tr class="hover:bg-neutral-800/50 transition">
-                  <td class="p-4 text-white font-medium">${user.system_id}</td>
-                  <td class="p-4 text-neutral-400 capitalize">${user.role}</td>
+                <tr class="hover:bg-slate-50 dark:bg-neutral-800/50 transition">
+                  <td class="p-4 text-slate-900 dark:text-white font-medium">${user.system_id}</td>
+                  <td class="p-4 text-slate-800 dark:text-neutral-300 capitalize">${user.role}</td>
                   <td class="p-4">${statusBadge}</td>
-                  <td class="p-4 text-neutral-500 text-xs font-mono">${new Date(user.created_at).toLocaleDateString()}</td>
+                  <td class="p-4 text-slate-700 dark:text-neutral-400 text-xs font-mono">${new Date(user.created_at).toLocaleDateString()}</td>
                   <td class="p-4 text-right">${actionBtn}</td>
                 </tr>
               `;
@@ -362,19 +389,19 @@
 
         paginatedData.forEach((log) => {
           const date = new Date(log.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-          let badgeClass = 'inline-block px-3 py-1 rounded-full bg-neutral-800 text-xs font-medium '; 
-          if (log.role === 'Admin' || log.role === 'LGU Admin') badgeClass += 'text-white';
-          else if (log.role === 'MHO') badgeClass += 'text-neutral-300';
-          else if (log.role === 'Superadmin' || log.role === 'Super Admin') badgeClass += 'text-neutral-100 border border-neutral-700 bg-neutral-900';
-          else badgeClass += 'text-neutral-400';
+          let badgeClass = 'inline-block px-3 py-1 rounded-full bg-slate-100 dark:bg-neutral-800 text-xs font-medium '; 
+          if (log.role === 'Admin' || log.role === 'LGU Admin') badgeClass += 'text-slate-900 dark:text-white';
+          else if (log.role === 'MHO') badgeClass += 'text-slate-700 dark:text-neutral-300';
+          else if (log.role === 'Superadmin' || log.role === 'Super Admin') badgeClass += 'text-slate-900 dark:text-neutral-100 border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-900';
+          else badgeClass += 'text-slate-600 dark:text-neutral-400';
           
           buffer += `
-            <tr class="hover:bg-neutral-800/50 transition">
-              <td class="p-4 text-neutral-500 font-mono text-xs whitespace-nowrap">${date}</td>
-              <td class="p-4 text-white font-medium whitespace-nowrap">${log.user_id}</td>
+            <tr class="hover:bg-slate-50 dark:bg-neutral-800/50 transition">
+              <td class="p-4 text-slate-700 dark:text-neutral-400 font-mono text-xs whitespace-nowrap">${date}</td>
+              <td class="p-4 text-slate-900 dark:text-white font-medium whitespace-nowrap">${log.user_id}</td>
               <td class="p-4 whitespace-nowrap"><span class="${badgeClass}">${log.role}</span></td>
-              <td class="p-4 text-neutral-300 whitespace-nowrap">${log.action}</td>
-              <td class="p-4 text-neutral-400 text-xs">${log.details}</td>
+              <td class="p-4 text-slate-700 dark:text-neutral-300 whitespace-nowrap">${log.action}</td>
+              <td class="p-4 text-slate-800 dark:text-neutral-300 text-xs">${log.details}</td>
             </tr>
           `;
         });
@@ -388,9 +415,9 @@
         
         // Prev button (render invisible if disabled to maintain layout width)
         if (currentAuditPage > 1) {
-            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage - 1})" class="w-8 h-8 rounded-full flex items-center justify-center bg-neutral-800 text-neutral-400 hover:text-white transition">&lt;</button>`;
+            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage - 1})" class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:text-white transition">&lt;</button>`;
         } else {
-            buttonsHtml += `<button disabled class="w-8 h-8 rounded-full flex items-center justify-center text-neutral-700 cursor-not-allowed">&lt;</button>`;
+            buttonsHtml += `<button disabled class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 dark:text-neutral-700 cursor-not-allowed">&lt;</button>`;
         }
         
         let startPage = Math.max(1, currentAuditPage - 2);
@@ -398,15 +425,15 @@
         if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
         
         for (let i = startPage; i <= endPage; i++) {
-            let activeClass = i === currentAuditPage ? 'bg-white text-black' : 'bg-neutral-800 text-neutral-400 hover:text-white hover:bg-neutral-700';
+            let activeClass = i === currentAuditPage ? 'bg-slate-800 dark:bg-white text-white dark:text-black' : 'bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-neutral-700';
             buttonsHtml += `<button onclick="goToAuditPage(${i})" class="w-8 h-8 rounded-full flex items-center justify-center font-medium text-sm transition ${activeClass}">${i}</button>`;
         }
         
         // Next button (render invisible if disabled to maintain layout width)
         if (currentAuditPage < totalPages) {
-            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage + 1})" class="w-8 h-8 rounded-full flex items-center justify-center bg-neutral-800 text-neutral-400 hover:text-white transition">&gt;</button>`;
+            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage + 1})" class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-neutral-800 text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:text-white transition">&gt;</button>`;
         } else {
-            buttonsHtml += `<button disabled class="w-8 h-8 rounded-full flex items-center justify-center text-neutral-700 cursor-not-allowed">&gt;</button>`;
+            buttonsHtml += `<button disabled class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 dark:text-neutral-700 cursor-not-allowed">&gt;</button>`;
         }
         document.getElementById("audit-page-buttons").innerHTML = buttonsHtml;
       }

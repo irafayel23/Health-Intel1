@@ -38,12 +38,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
   </head>
-  <body class="h-screen flex overflow-hidden antialiased selection:bg-blue-500/30">
+  <body class="h-screen flex overflow-hidden antialiased selection:bg-blue-500/30 bg-slate-100 dark:bg-neutral-950">
     
     <!-- Sidebar -->
-    <aside id="sidebar" class="w-64 border-r border-[hsl(var(--border))] bg-[hsl(var(--card))] flex flex-col transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-30 relative">
+    <aside id="sidebar" class="w-64 bg-transparent flex flex-col transition-all duration-300 relative z-10 shrink-0">
       <!-- Logo Area -->
-      <div class="h-16 flex items-center px-6 border-b border-[hsl(var(--border))] group cursor-default">
+      <div class="h-16 flex items-center px-6 group cursor-default pt-4">
         <img src="assets/img/Logo-Health-Intel.png" alt="Logo" class="w-8 h-8 mr-3 object-contain hover:scale-110 transition-transform duration-300">
         <h2 id="sidebar-text" class="font-bold text-lg tracking-tight whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent group-hover:tracking-wider">HEALTH-INTEL</h2>
       </div>
@@ -73,7 +73,7 @@
       </nav>
 
       <!-- Bottom Sign Out -->
-      <div class="p-4 border-t border-[hsl(var(--border))]">
+      <div class="p-4">
         <a href="index.html" class="nav-item sign-out group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:translate-x-1 transition-all duration-300">
           <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:-translate-x-1"></i>
           <span class="sidebar-label whitespace-nowrap">Log Out</span></a><div class="mt-4 text-center flex justify-center"><a href="#" onclick="showTerms(event)" class="sidebar-label text-[10px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors whitespace-nowrap">&copy; 2026 Health-Intel &bull; Terms &amp; Privacy</a></div>
@@ -81,10 +81,10 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-full bg-[hsl(var(--background))] overflow-hidden relative">
+    <main class="flex-1 flex flex-col h-full bg-[hsl(var(--card))] overflow-hidden relative z-20 rounded-tl-[2.5rem] shadow-[-10px_0_30px_rgba(0,0,0,0.2)] dark:shadow-[-10px_0_30px_rgba(0,0,0,0.5)] border-l border-t border-slate-300 dark:border-neutral-800">
       
       <!-- Top Header Bar -->
-      <header class="h-16 border-b border-[hsl(var(--border))] bg-[hsl(var(--card))] flex items-center justify-between px-6 z-20 shadow-[0_1px_10px_rgba(0,0,0,0.03)]">
+      <header class="h-16 flex items-center justify-between px-6 z-20 bg-transparent">
         <div class="flex items-center gap-4">
           <!-- Sidebar Toggle -->
           <button id="sidebar-toggle" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-blue-500 transition-colors">
@@ -357,9 +357,27 @@
           </button>
         </div>
 
-        <div class="p-6 overflow-y-auto">
-          <h3 class="font-bold text-[hsl(var(--foreground))] mb-4 text-lg">Medical History & Cases</h3>
-          <div class="border border-[hsl(var(--border))] rounded-xl overflow-hidden shadow-sm">
+                  <div class="p-6 overflow-y-auto">
+            <!-- DOSSIER STATS -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+              <div class="bg-[hsl(var(--muted))] p-4 rounded-xl border border-[hsl(var(--border))]">
+                <p class="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-1">Total Cases</p>
+                <h4 id="dossier-total" class="text-2xl font-black text-[hsl(var(--foreground))]">0</h4>
+              </div>
+              <div class="bg-orange-500/10 p-4 rounded-xl border border-orange-500/20">
+                <p class="text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-1">Active Cases</p>
+                <h4 id="dossier-active" class="text-2xl font-black text-orange-600 dark:text-orange-400">0</h4>
+              </div>
+              <div class="bg-red-500/10 p-4 rounded-xl border border-red-500/20">
+                <p class="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">High Risk</p>
+                <h4 id="dossier-risk" class="text-2xl font-black text-red-600 dark:text-red-400">0</h4>
+              </div>
+            </div>
+
+            <h3 class="font-bold text-[hsl(var(--foreground))] mb-4 text-lg flex items-center gap-2">
+              <i data-lucide="activity" class="w-5 h-5 text-blue-500"></i> Medical History
+            </h3>
+            <div class="border border-[hsl(var(--border))] rounded-xl overflow-hidden shadow-sm">
             <table class="w-full text-sm text-left">
               <thead class="bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]">
                 <tr>
@@ -678,10 +696,21 @@
                   document.getElementById("profile-purok").innerText = data.purok || "Unknown";
                   document.getElementById("profile-age").innerText = data.age || "N/A";
 
-                  const tbody = document.getElementById("profile-history-body");
-                  tbody.innerHTML = "";
-                  
-                  if(history.length === 0) {
+                                      const tbody = document.getElementById("profile-history-body");
+                    tbody.innerHTML = "";
+
+                    // Calculate stats
+                    const totalCases = history.length;
+                    const activeCases = history.filter(h => h.status === 'Active').length;
+                    const highRisk = history.filter(h => h.severity === 'High Risk').length;
+                    
+                    if (document.getElementById("dossier-total")) {
+                        document.getElementById("dossier-total").innerText = totalCases;
+                        document.getElementById("dossier-active").innerText = activeCases;
+                        document.getElementById("dossier-risk").innerText = highRisk;
+                    }
+                    
+                    if(history.length === 0) {
                       tbody.innerHTML = '<tr><td colspan="4" class="px-5 py-4 text-center text-slate-500">No records found</td></tr>';
                   } else {
                       history.forEach(record => {
@@ -743,6 +772,7 @@
             Swal.fire("Updated!", "Patient status has been updated.", "success");
             loadPatients();
             loadDashboardStats();
+        loadTrendChart();
           }
       }
 
@@ -766,20 +796,41 @@
                   loadPatients();
               }
               loadDashboardStats();
+        loadTrendChart();
             }
           })
       }
 
       // 5. CHART & MAP LOGIC
-      const ctx = document.getElementById("bhwChart").getContext("2d");
-      new Chart(ctx, {
-        type: "line",
-        data: {
-          labels: ["Jan", "Feb", "Mar", "Apr", "May"],
-          datasets: [{ label: "Cases", data: [15, 28, 22, 35, 45], borderColor: "#0ea5e9", backgroundColor: "rgba(14, 165, 233, 0.1)", fill: true, tension: 0.4 }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true }, x: { grid: { display: false } } } }
-      });
+      let myBhwChart = null;
+      async function loadTrendChart() {
+          try {
+              const url = window.currentBrgyId ? `http://localhost:3000/api/bhw-trend?barangay_id=${window.currentBrgyId}` : 'http://localhost:3000/api/bhw-trend';
+              const res = await fetch(url);
+              const result = await res.json();
+              if (result.success) {
+                  const ctx = document.getElementById("bhwChart").getContext("2d");
+                  if (myBhwChart) myBhwChart.destroy();
+                  
+                  // Get the months up to current month to match standard UI, or just show Jan-May if it's currently early in the year
+                  // Let's just dynamically grab Jan through the current month
+                  const currentMonthIndex = new Date().getMonth(); 
+                  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                  
+                  const displayLabels = monthLabels.slice(0, currentMonthIndex + 1);
+                  const displayData = result.data.slice(0, currentMonthIndex + 1);
+
+                  myBhwChart = new Chart(ctx, {
+                      type: "line",
+                      data: {
+                          labels: displayLabels,
+                          datasets: [{ label: "Cases", data: displayData, borderColor: "#0ea5e9", backgroundColor: "rgba(14, 165, 233, 0.1)", fill: true, tension: 0.4 }]
+                      },
+                      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, suggestedMax: 10 }, x: { grid: { display: false } } } }
+                  });
+              }
+          } catch(e) { console.error("Error loading trend chart:", e); }
+      }
 
       let map;
       const mapContainer = document.getElementById("bhwMap");
@@ -843,6 +894,8 @@
       document.addEventListener("DOMContentLoaded", async () => {
         const userId = localStorage.getItem("active_user_id");
         if (userId) {
+          const nameEl = document.getElementById('dropdown-user-name');
+          if (nameEl) nameEl.innerText = userId;
           try {
             const res = await fetch(`http://localhost:3000/api/bhw/context?system_id=${userId}`);
             const result = await res.json();
@@ -859,6 +912,7 @@
         }
 
         loadDashboardStats();
+        loadTrendChart();
         loadPatients();
         loadResidentDirectory();
       });
@@ -970,6 +1024,7 @@
                 Swal.fire("Saved!", "Patient recorded successfully.", "success");
                 isViewingArchive ? loadArchivedPatients() : loadPatients();
                 loadDashboardStats();
+        loadTrendChart();
               }
             } catch (e) { Swal.fire("Error", "Could not save patient.", "error"); }
           }
@@ -1031,25 +1086,47 @@
 
       function showAccountSettings() {
         const userId = localStorage.getItem('active_user_id') || 'Unknown';
+        const isDark = document.documentElement.classList.contains("dark");
         Swal.fire({
+          background: isDark ? '#1e293b' : '#ffffff',
+          color: isDark ? '#f8fafc' : '#0f172a',
           title: 'Account Info & Security',
           html: `
-            <div style="text-align: left; font-size: 0.9rem; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.03); border-radius: 8px;">
-              <p style="margin: 0 0 5px 0;"><strong>System ID:</strong> ${userId}</p>
-              <p style="margin: 0;"><strong>Role:</strong> ${userId.startsWith('MHO') ? 'Municipal Health Officer' : 'Barangay Health Worker'}</p>
-            </div>
-            <div style="text-align: left; font-size: 0.9rem;">
-              <h4 style="margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Change Password</h4>
-              <label style="font-weight: bold; margin-bottom: 5px; display: block;">Current Password</label>
-              <input type="password" id="current-pass" class="swal2-input" style="width: 100%; max-width: 100%; margin: 0 0 15px 0;" placeholder="Enter current password">
-              <label style="font-weight: bold; margin-bottom: 5px; display: block;">New Password</label>
-              <input type="password" id="new-pass" class="swal2-input" style="width: 100%; max-width: 100%; margin: 0;" placeholder="Enter new password">
+            <div class="text-left">
+              <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800/50 rounded-xl p-5 mb-6 shadow-sm">
+                <div class="flex items-center gap-3 mb-1">
+                  <i data-lucide="shield-check" class="w-5 h-5 text-blue-600 dark:text-blue-400"></i>
+                  <p class="m-0 text-sm font-semibold text-blue-800 dark:text-blue-300">System ID: <span class="font-mono bg-blue-200/50 dark:bg-blue-800/50 px-2 py-0.5 rounded text-blue-900 dark:text-blue-200">${userId}</span></p>
+                </div>
+                <div class="flex items-center gap-3">
+                  <i data-lucide="badge-check" class="w-5 h-5 text-blue-600 dark:text-blue-400"></i>
+                  <p class="m-0 text-sm font-medium text-blue-700 dark:text-blue-400">Role: ${userId.startsWith('MHO') ? 'Municipal Health Officer' : 'Barangay Health Worker'}</p>
+                </div>
+              </div>
+              
+              <div class="border-t border-slate-200 dark:border-slate-700 pt-5">
+                <h4 class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 uppercase tracking-wider">
+                  <i data-lucide="key" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i> Change Password
+                </h4>
+                
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">Current Password</label>
+                    <input type="password" id="current-pass" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="Enter current password">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">New Password</label>
+                    <input type="password" id="new-pass" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="Enter new password">
+                  </div>
+                </div>
+              </div>
             </div>
           `,
+          didOpen: () => { if (window.lucide) lucide.createIcons(); },
           width: '450px',
           showCancelButton: true,
           confirmButtonText: 'Update Password',
-          confirmButtonColor: '#0f172a',
+          confirmButtonColor: isDark ? '#3b82f6' : '#0f172a',
           preConfirm: async () => {
             const current_password = document.getElementById('current-pass').value;
             const new_password = document.getElementById('new-pass').value;
@@ -1086,17 +1163,17 @@
         });
       }
 
-      function showTerms(event) { event.preventDefault(); Swal.fire({ title: 'Terms & Privacy', html: '<p style="text-align: left; font-size: 0.9rem;">Health-Intel is a capstone project for academic purposes. All data is handled in compliance with the Data Privacy Act of 2012 (RA 10173). By using this system, you agree to the responsible use of health information.</p>', confirmButtonColor: '#0f172a' }); }
-
-      document.addEventListener('DOMContentLoaded', () => {
-        const userId = localStorage.getItem('active_user_id');
-        if (userId) {
-          const initialEl = document.getElementById('dropdown-user-initial');
-          if (initialEl) initialEl.innerText = userId.charAt(0).toUpperCase();
-          const nameEl = document.getElementById('dropdown-user-name');
-          if (nameEl) nameEl.innerText = userId;
-        }
-      });
-</script>
+      function showTerms(event) { 
+        event.preventDefault(); 
+        const isDark = document.documentElement.classList.contains("dark");
+        Swal.fire({ 
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f8fafc' : '#0f172a',
+            title: 'Terms & Privacy', 
+            html: '<p style="text-align: left; font-size: 0.9rem;">Health-Intel is a capstone project for academic purposes. All data is handled in compliance with the Data Privacy Act of 2012 (RA 10173). By using this system, you agree to the responsible use of health information.</p>', 
+            confirmButtonColor: isDark ? '#3b82f6' : '#0f172a' 
+        }); 
+      }
+  </script>
   </body>
 </html>
