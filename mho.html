@@ -141,8 +141,8 @@
           
           <div class="flex items-center gap-3 border-l border-[hsl(var(--border))] pl-4">
             <span id="dropdown-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-300">MHO-001</span>
-            <div id="dropdown-user-initial" onclick="showAccountSettings()" class="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 text-white shadow-sm ring-2 ring-transparent font-bold text-lg">
-              M
+            <div id="dropdown-user-initial" onclick="showAccountSettings()" class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center overflow-hidden cursor-pointer hover:shadow-md hover:ring-2 hover:ring-emerald-500/30 transition-all duration-300 text-emerald-700 dark:text-emerald-400">
+              <i data-lucide="user" class="w-5 h-5"></i>
             </div>
           </div>
         </div>
@@ -220,8 +220,11 @@
 
             <div class="flex flex-wrap gap-4 mb-6 bg-[hsl(var(--muted))] p-4 rounded-xl border border-[hsl(var(--border))]">
               <select id="filter-year" aria-label="Filter by Year" onchange="updateDynamicChart()" class="flex-1 min-w-[200px] p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-medium outline-none">
+                <option value="all">All Years</option>
                 <option value="2026">CY 2026</option>
                 <option value="2025">CY 2025</option>
+                <option value="2024">CY 2024</option>
+                <option value="2023">CY 2023</option>
               </select>
               
               <select id="filter-category" aria-label="Filter by Category" onchange="updateDynamicChart()" class="flex-1 min-w-[200px] p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-medium outline-none">
@@ -323,27 +326,80 @@
         </div>
 
         <div id="view-predictive" class="view-section hidden white-panel">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <div class="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
               <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Predictive Analytics</h1>
-              <p class="text-[hsl(var(--muted-foreground))] mt-1">SARIMA Time-Series forecasting for early outbreak detection across 7 pilot barangays.</p>
+              <p class="text-[hsl(var(--muted-foreground))] mt-1">SARIMA Time-Series forecasting (80/20 Train/Test Split) across 7 pilot barangays.</p>
             </div>
-            <input type="hidden" id="predictive-disease-select" aria-label="Select Disease for Prediction" value="Dengue">
+            
+            <div class="flex gap-4 items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div>
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 block">Select Disease</label>
+                <select id="predictive-disease-select" class="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200">
+                  <option value="Cough">Cough</option>
+                  <option value="URTI">URTI</option>
+                  <option value="Infection all types">Infection all types</option>
+                  <option value="ARI">ARI</option>
+                  <option value="Fever unknown origin">Fever unknown origin</option>
+                  <option value="Hypertension">Hypertension</option>
+                  <option value="Influenza" selected>Influenza</option>
+                  <option value="Acute Gastroenteritis">Acute Gastroenteritis</option>
+                  <option value="Vertigo">Vertigo</option>
+                  <option value="All types of skin disease">All types of skin disease</option>
+                  <option value="Dengue">Dengue</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 block">Select Barangay</label>
+                <select id="predictive-brgy-select" class="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200">
+                  <option value="Blumentritt" selected>Blumentritt</option>
+                  <option value="Salvacion">Salvacion</option>
+                  <option value="Minoyan">Minoyan</option>
+                  <option value="Caliban">Caliban</option>
+                  <option value="Cansilayan">Cansilayan</option>
+                  <option value="Alegria">Alegria</option>
+                  <option value="Sta. Rosa">Sta. Rosa</option>
+                </select>
+              </div>
+              <button onclick="runPredictiveModel()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium text-sm transition-all mt-5">
+                Run Forecast
+              </button>
+            </div>
           </div>
 
-          <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-8" style="margin-bottom: 1.5rem;  box-shadow: none;">
-            <div style="position: relative; height: 450px; width: 100%; margin-bottom: 20px;">
-              <canvas id="predictionChart"></canvas>
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 mb-5">
+            <!-- Chart Card -->
+            <div class="lg:col-span-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm">
+              <div class="relative h-[350px] w-full">
+                <canvas id="predictionChart"></canvas>
+              </div>
             </div>
-            <div style=" border-left: 4px solid #0ea5e9; padding: 15px; border-radius: 0 8px 8px 0;">
-              <h4 style="margin: 0 0 5px 0;  font-size: 1rem; display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="lightbulb" style="width: 16px"></i> Automated Insight
-              </h4>
-              <p style="margin: 0;  font-size: 0.95rem; line-height: 1.5;" id="predictive-insight-text">
-                Waiting for AI model...
-              </p>
+
+            <!-- Accuracy & Insight Card -->
+            <div class="flex flex-col gap-5">
+              
+              <!-- Accuracy Metric -->
+              <div class="bg-gradient-to-br from-sky-50 to-blue-50 dark:from-slate-800/80 dark:to-slate-800/40 border border-sky-100 dark:border-slate-700 rounded-2xl p-5 shadow-sm text-center">
+                <h4 class="text-sky-600 dark:text-sky-400 font-semibold text-sm uppercase tracking-wide mb-1">Model Accuracy</h4>
+                <div class="text-5xl font-extrabold text-sky-700 dark:text-sky-300 leading-none">
+                  <span id="predictive-accuracy-score">--</span><span class="text-2xl">%</span>
+                </div>
+                <p class="text-xs text-sky-500 dark:text-slate-400 mt-2 font-medium">Based on 80/20 Test Split</p>
+              </div>
+
+              <!-- Automated Insight -->
+              <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 border-l-4 border-l-blue-500 rounded-2xl p-5 shadow-sm flex-grow">
+                <h4 class="m-0 mb-2.5 text-base flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
+                  <i data-lucide="lightbulb" class="w-[18px] text-amber-500"></i> AI Insight
+                </h4>
+                <p class="m-0 text-sm leading-relaxed text-slate-600 dark:text-slate-300" id="predictive-insight-text">
+                  Waiting for SARIMA model to process historical data...
+                </p>
+              </div>
+
             </div>
           </div>
+
         </div>
 
         <div id="view-reports" class="view-section hidden">
@@ -652,22 +708,72 @@
           if (yoyCtx) {
             if (window.yoyChartInst) window.yoyChartInst.destroy();
             if (yoyResult.success && yoyResult.data.length > 0) {
-              const labels = yoyResult.data.map(d => d.disease);
-              const data2024 = yoyResult.data.map(d => d.cases_2024);
+              // 3. Shorten labels
+              const labels = yoyResult.data.map(d => d.disease.replace('All types of skin disease', 'Skin Diseases').replace('Acute Gastroenteritis', 'Gastroenteritis'));
               const data2025 = yoyResult.data.map(d => d.cases_2025);
+              const data2026 = yoyResult.data.map(d => d.cases_2026);
+              
               window.yoyChartInst = new Chart(yoyCtx.getContext('2d'), {
                 type: 'bar',
                 data: {
                   labels: labels,
                   datasets: [
-                    { label: 'CY 2026', data: data2024, backgroundColor: 'rgba(148, 163, 184, 0.7)', borderRadius: 4 },
-                    { label: 'CY 2026', data: data2025, backgroundColor: 'rgba(16, 185, 129, 0.9)', borderRadius: 4 }
+                    { 
+                        label: 'CY 2025', 
+                        data: data2025, 
+                        backgroundColor: 'rgba(59, 130, 246, 0.85)', // 1. Deep Royal Blue
+                        borderRadius: 4,
+                        barPercentage: 0.6, // 4. Thinner bars
+                        categoryPercentage: 0.8
+                    },
+                    { 
+                        label: 'CY 2026', 
+                        data: data2026, 
+                        backgroundColor: 'rgba(245, 158, 11, 0.9)', // 1. Vibrant Amber
+                        borderRadius: 4,
+                        barPercentage: 0.6, // 4. Thinner bars
+                        categoryPercentage: 0.8
+                    }
                   ]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true }
+                    }
+                },
+                // 2. Custom plugin to draw numbers on top of bars
+                plugins: [{
+                  id: 'customDataLabels',
+                  afterDatasetsDraw(chart) {
+                    const ctx = chart.ctx;
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    // Check if dark mode is active for text color
+                    const isDark = document.documentElement.classList.contains('dark');
+                    ctx.fillStyle = isDark ? '#cbd5e1' : '#64748b'; 
+                    
+                    chart.data.datasets.forEach((dataset, i) => {
+                      const meta = chart.getDatasetMeta(i);
+                      meta.data.forEach((bar, index) => {
+                        const data = dataset.data[index];
+                        if (data > 0) {
+                          ctx.fillText(data, bar.x, bar.y - 4);
+                        }
+                      });
+                    });
+                  }
+                }]
               });
             } else {
               const ctx = yoyCtx.getContext('2d');
+              
               ctx.clearRect(0, 0, yoyCtx.width, yoyCtx.height);
               ctx.font = "14px Arial";
               ctx.fillStyle = "#94a3b8";
@@ -708,50 +814,118 @@
       // ==========================================
       async function runPredictiveModel() {
         const disease = document.getElementById("predictive-disease-select").value;
+        const barangay = document.getElementById("predictive-brgy-select").value;
+        
         const loader = document.getElementById("predictive-insight-text");
-        if(loader) loader.innerHTML = "Training Model...";
+        const score = document.getElementById("predictive-accuracy-score");
+        
+        if(loader) loader.innerHTML = `<span style="color:#64748b;"><i class="fa fa-spinner fa-spin"></i> Running SARIMA Model (80/20 Split)...</span>`;
+        if(score) score.innerText = "--";
         
         try {
-            const res = await fetch(`http://localhost:3000/api/predict?disease=${disease}`);
+            const res = await fetch(`http://localhost:3000/api/predict?disease=${disease}&barangay=${barangay}`);
             const result = await res.json();
             
             if(result.success) {
                 if(myChart) myChart.destroy();
                 
-                const ctx = document.getElementById("predictionChart").getContext("2d");
-                const colors = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6"];
-                
-                const datasets = result.data.datasets.map((d, index) => {
-                    return {
-                        label: d.label,
-                        data: d.data,
-                        borderColor: colors[index % colors.length],
-                        backgroundColor: "transparent",
-                        borderWidth: 3,
-                        tension: 0.4
-                    };
-                });
+                // Update Score
+                if(score) {
+                    score.innerText = result.accuracy_percentage;
+                }
 
+                // Update Chart
+                const ctx = document.getElementById("predictionChart").getContext("2d");
+                
                 myChart = new Chart(ctx, {
                     type: "line",
                     data: {
-                        labels: result.data.labels,
-                        datasets: datasets
+                        labels: result.dates,
+                        datasets: [
+                            {
+                                label: "Historical Cases (Real/Augmented)",
+                                data: result.historical,
+                                borderColor: "#3b82f6",
+                                backgroundColor: "rgba(59, 130, 246, 0.1)",
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3
+                            },
+                            {
+                                label: "SARIMA Forecast (Future)",
+                                data: result.forecast,
+                                borderColor: "#ef4444",
+                                borderDash: [5, 5],
+                                borderWidth: 3,
+                                pointBackgroundColor: "#ef4444",
+                                pointRadius: 5,
+                                fill: false,
+                                tension: 0.3
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            title: { display: true, text: `SARIMA Forecast (Training Phase): ${disease}` }
+                            title: { display: true, text: `Disease Outbreak Forecast: ${disease} in ${barangay}` },
+                            legend: { position: 'bottom' }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Number of Cases' } }
                         }
                     }
                 });
                 
-                loader.innerHTML = `Based on 50/50 augmented training data, <strong>${disease}</strong> cases show a strong seasonal spike approaching in the rainy months (June-Sept). <br><br><span style=" font-weight:bold;">Intervention:</span> The MHO should allocate maximum resources to the barangays with the steepest predicted inclines.`;
+                // Generate Recommendation
+                const futureValues = result.forecast.filter(v => v !== null);
+                const futureDates = result.dates.slice(-3); // Last 3 months
+                
+                let maxCases = Math.max(...futureValues);
+                let maxIndex = futureValues.indexOf(maxCases);
+                let peakMonth = futureDates[maxIndex]; 
+                
+                // Format the month nicely (e.g., "2026-10" -> "October 2026")
+                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                let dateObj = new Date(peakMonth + "-01");
+                let nicelyFormattedMonth = monthNames[dateObj.getMonth()] + " " + dateObj.getFullYear();
+
+                let futureSum = futureValues.reduce((a,b) => a+b, 0);
+                
+                let trendText = "stable";
+                let actionText = "Continue standard monitoring protocols. No immediate outbreak threat detected.";
+                let headerText = "Normal Outlook";
+                let headerColor = "#0ea5e9";
+                let iconColor = "#0ea5e9";
+                
+                if (futureSum > 10 || maxCases > 5) {
+                    trendText = "rising";
+                    headerText = "Outbreak Warning";
+                    headerColor = "#ef4444";
+                    iconColor = "#ef4444";
+                    actionText = `The MHO should prepare medical supplies for ${disease}. We recommend allocating resources to ${barangay} specifically before ${nicelyFormattedMonth} to mitigate the predicted spike.`;
+                } else if (futureSum === 0) {
+                    trendText = "decreasing";
+                    actionText = "Cases are projected to drop to zero. Maintain routine surveillance.";
+                }
+
+                // Update the Insight Card UI
+                const insightCard = loader.closest('.bg-white');
+                if (insightCard) {
+                    insightCard.style.borderLeftColor = headerColor;
+                    insightCard.querySelector('h4').style.color = headerColor;
+                    insightCard.querySelector('i').style.color = iconColor;
+                    insightCard.querySelector('h4').innerHTML = `<i data-lucide="lightbulb" class="w-[18px]" style="color: ${iconColor}"></i> AI Recommendation`;
+                    lucide.createIcons();
+                }
+
+                loader.innerHTML = `Based on the Predictive Forecast, <strong>${disease}</strong> cases in <strong>${barangay}</strong> are predicted to be <strong>${trendText}</strong>, with a potential peak of <strong>${maxCases} cases in ${nicelyFormattedMonth}</strong>.<br><br><span style="font-weight:600; color:${headerColor};">Recommended Action:</span> ${actionText}`;
+            } else {
+                if(loader) loader.innerHTML = `<span style="color:#ef4444;">Error: ${result.error || 'Failed to generate forecast.'}</span>`;
             }
         } catch(e) {
             console.error(e);
-            if(loader) loader.innerHTML = "Error: Could not connect to Python AI engine.";
+            if(loader) loader.innerHTML = `<span style="color:#ef4444;">Connection Error. Please ensure backend is running.</span>`;
         }
       }
       
@@ -923,25 +1097,47 @@ function toggleDarkMode() {
   <script>
       function showAccountSettings() {
         const userId = localStorage.getItem('active_user_id') || 'Unknown';
+        const isDark = document.documentElement.classList.contains("dark");
         Swal.fire({
+          background: isDark ? '#1e293b' : '#ffffff',
+          color: isDark ? '#f8fafc' : '#0f172a',
           title: 'Account Info & Security',
           html: `
-            <div style="text-align: left; font-size: 0.9rem; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.03); border-radius: 8px;">
-              <p style="margin: 0 0 5px 0;"><strong>System ID:</strong> ${userId}</p>
-              <p style="margin: 0;"><strong>Role:</strong> ${userId.startsWith('MHO') ? 'Municipal Health Officer' : 'Barangay Health Worker'}</p>
-            </div>
-            <div style="text-align: left; font-size: 0.9rem;">
-              <h4 style="margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">Change Password</h4>
-              <label style="font-weight: bold; margin-bottom: 5px; display: block;">Current Password</label>
-              <input type="password" id="current-pass" class="swal2-input" style="width: 100%; max-width: 100%; margin: 0 0 15px 0;" placeholder="Enter current password">
-              <label style="font-weight: bold; margin-bottom: 5px; display: block;">New Password</label>
-              <input type="password" id="new-pass" class="swal2-input" style="width: 100%; max-width: 100%; margin: 0;" placeholder="Enter new password">
+            <div class="text-left">
+              <div class="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800/50 rounded-xl p-5 mb-6 shadow-sm">
+                <div class="flex items-center gap-3 mb-1">
+                  <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
+                  <p class="m-0 text-sm font-semibold text-emerald-800 dark:text-emerald-300">System ID: <span class="font-mono bg-emerald-200/50 dark:bg-emerald-800/50 px-2 py-0.5 rounded text-emerald-900 dark:text-emerald-200">${userId}</span></p>
+                </div>
+                <div class="flex items-center gap-3">
+                  <i data-lucide="badge-check" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
+                  <p class="m-0 text-sm font-medium text-emerald-700 dark:text-emerald-400">Role: ${userId.startsWith('MHO') ? 'Municipal Health Officer' : 'Barangay Health Worker'}</p>
+                </div>
+              </div>
+              
+              <div class="border-t border-slate-200 dark:border-slate-700 pt-5">
+                <h4 class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 uppercase tracking-wider">
+                  <i data-lucide="key" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i> Change Password
+                </h4>
+                
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">Current Password</label>
+                    <input type="password" id="current-pass" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" placeholder="Enter current password">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">New Password</label>
+                    <input type="password" id="new-pass" class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-200 focus:bg-white dark:focus:bg-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" placeholder="Enter new password">
+                  </div>
+                </div>
+              </div>
             </div>
           `,
+          didOpen: () => { if (window.lucide) lucide.createIcons(); },
           width: '450px',
           showCancelButton: true,
           confirmButtonText: 'Update Password',
-          confirmButtonColor: '#0f172a',
+          confirmButtonColor: isDark ? '#10b981' : '#0f172a',
           preConfirm: async () => {
             const current_password = document.getElementById('current-pass').value;
             const new_password = document.getElementById('new-pass').value;
@@ -980,18 +1176,21 @@ function toggleDarkMode() {
 
       function showTerms(event) {
         event.preventDefault();
+        const isDark = document.documentElement.classList.contains("dark");
         Swal.fire({
+          background: isDark ? '#1e293b' : '#ffffff',
+          color: isDark ? '#f8fafc' : '#0f172a',
           title: 'Terms & Privacy',
           html: `<p style="text-align: left; font-size: 0.9rem;">Health-Intel is a capstone project for academic purposes. All data is handled in compliance with the Data Privacy Act of 2012 (RA 10173). By using this system, you agree to the responsible use of health information.</p>`,
-          confirmButtonColor: '#0f172a'
-        });
-      }
+          confirmButtonColor: isDark ? '#3b82f6' : '#0f172a'
+          });
+        }
 
       document.addEventListener('DOMContentLoaded', () => {
         const userId = localStorage.getItem('active_user_id');
         if (userId) {
           const initialEl = document.getElementById('dropdown-user-initial');
-          if (initialEl) initialEl.innerText = userId.charAt(0).toUpperCase();
+          // if (initialEl) initialEl.innerText = userId.charAt(0).toUpperCase(); // Disabled to preserve the Lucide icon
           const nameEl = document.getElementById('dropdown-user-name');
           if (nameEl) nameEl.innerText = userId;
         }
@@ -999,4 +1198,5 @@ function toggleDarkMode() {
     </script>
   </body>
 </html>
+
 
