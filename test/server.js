@@ -540,15 +540,31 @@ app.post('/api/patients', async (req, res) => {
             if(uRows.length > 0) brgy_id = uRows[0].barangay_id;
         }
 
+        // AUTO-LINK RESIDENT PROFILE
+        let resident_id = null;
+        if (brgy_id && patient_name) {
+            const [resRows] = await db.execute('SELECT id FROM residents WHERE patient_name = ? AND barangay_id = ?', [patient_name, brgy_id]);
+            if (resRows.length > 0) {
+                resident_id = resRows[0].id;
+            } else {
+                const [insertRes] = await db.execute(
+                    'INSERT INTO residents (first_name, last_name, patient_name, birthdate, age, purok, barangay_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    [first_name || '', last_name || '', patient_name, birthdate || null, age || null, purok || '', brgy_id]
+                );
+                resident_id = insertRes.insertId;
+            }
+        }
+
         const query = `
             INSERT INTO health_cases 
-            (first_name, last_name, patient_name, birthdate, age, purok, disease, remarks, status, encoded_by, barangay_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (resident_id, first_name, last_name, patient_name, birthdate, age, purok, disease, remarks, status, encoded_by, barangay_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         
         const encoder_name = encoded_by || "System"; 
 
         const [result] = await db.execute(query, [
+            resident_id,
             first_name || '', 
             last_name || '', 
             patient_name, 
@@ -579,10 +595,10 @@ app.post('/api/patients', async (req, res) => {
 app.get('/api/patients', async (req, res) => {
     const { barangay_id } = req.query;
     try {
-        let query = `SELECT * FROM health_cases WHERE is_archived = FALSE`;
+        let query = `SELECT h.*, b.name as barangay_name FROM health_cases h LEFT JOIN barangays b ON h.barangay_id = b.id WHERE h.is_archived = FALSE`;
         let params = [];
         if (barangay_id && barangay_id !== 'null') {
-            query += ` AND barangay_id = ?`;
+            query += ` AND h.barangay_id = ?`;
             params.push(barangay_id);
         }
         query += ` ORDER BY created_at DESC`;
@@ -640,10 +656,10 @@ app.get('/api/residents/:id/dossier', async (req, res) => {
 app.get('/api/patients/archived', async (req, res) => {
     const { barangay_id } = req.query;
     try {
-        let query = `SELECT * FROM health_cases WHERE is_archived = TRUE`;
+        let query = `SELECT h.*, b.name as barangay_name FROM health_cases h LEFT JOIN barangays b ON h.barangay_id = b.id WHERE h.is_archived = TRUE`;
         let params = [];
         if (barangay_id && barangay_id !== 'null') {
-            query += ` AND barangay_id = ?`;
+            query += ` AND h.barangay_id = ?`;
             params.push(barangay_id);
         }
         query += ` ORDER BY deleted_at DESC`;
@@ -684,6 +700,42 @@ app.put('/api/patients/:id/archive', async (req, res) => {
         );
 
         res.json({ success: true, message: 'Record moved to archive.' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: 'Database error' });
+    }
+});
+
+
+// BHW TREND CHART DATA
+app.get('/api/bhw-trend', async (req, res) => {
+    const { barangay_id } = req.query;
+    try {
+        let baseFilter = `WHERE is_archived = FALSE AND YEAR(date_recorded) = YEAR(CURDATE())`;
+        let params = [];
+        if (barangay_id && barangay_id !== 'null') {
+            baseFilter += ` AND barangay_id = ?`;
+            params.push(barangay_id);
+        }
+
+        const query = `
+            SELECT MONTH(date_recorded) as month, COUNT(*) as count 
+            FROM health_cases 
+            ${baseFilter}
+            GROUP BY MONTH(date_recorded)
+            ORDER BY month ASC
+        `;
+        const [rows] = await db.execute(query, params);
+        
+        // Initialize 12 months with 0
+        let monthlyData = new Array(12).fill(0);
+        rows.forEach(row => {
+            monthlyData[row.month - 1] = row.count;
+        });
+
+        // Get the last 5 months based on current month, or just Jan-May if it's early in the year?
+        // Let's just return the whole year and let frontend decide, or return Jan-May.
+        // Actually, just returning the whole 12 months is standard.
+        res.json({ success: true, data: monthlyData });
     } catch (error) {
         res.status(500).json({ success: false, error: 'Database error' });
     }
@@ -898,11 +950,11 @@ app.get('/api/mho/stats', async (req, res) => {
 // PREDICTIVE ANALYTICS API (SARIMA)
 // ==========================================
 app.get('/api/predict', (req, res) => {
-    const { disease } = req.query;
-    if (!disease) return res.status(400).json({ success: false, error: 'Disease parameter required.' });
+    const { disease, barangay } = req.query;
+    if (!disease || !barangay) return res.status(400).json({ success: false, error: 'Disease and barangay parameters required.' });
 
     const { spawn } = require('child_process');
-    const pythonProcess = spawn('python', [__dirname + '/../analytics.py', disease]);
+    const pythonProcess = spawn('python', [__dirname + '/analytics.py', disease, barangay]);
     
     let dataString = '';
     pythonProcess.stdout.on('data', (data) => { dataString += data.toString(); });
