@@ -19,6 +19,11 @@
 .heatmap-details dt { display:flex; align-items:center; gap:6px; }
 .heatmap-details dd { margin:0; font-weight:700; }
 .heatmap-details-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+.heatmap-details-categories { border-top:1px solid #e2e8f0; margin-top:10px; padding-top:8px; }
+.heatmap-details-categories ul { list-style:none; padding:0; margin:5px 0; }
+.heatmap-details-categories li { display:flex; justify-content:space-between; gap:12px; padding:2px 0; }
+.heatmap-details-categories li span { overflow-wrap:anywhere; }
+.heatmap-details-categories small { display:block; color:#64748b; font-size:11px; }
 .heatmap-details-reason { border-top:1px solid #e2e8f0; margin-top:10px; padding-top:8px; }
 .heatmap-details-time { display:block; margin-top:8px; color:#64748b; font-size:11px; }
 .leaflet-tooltip.heatmap-hover { padding:12px; border-radius:10px; box-shadow:0 3px 12px #0002; }
@@ -32,5 +37,7 @@
 .dark .heatmap-info-panel { background:#0f172a; border-color:#334155; }
 .dark .heatmap-info-panel .heatmap-details { color:#e2e8f0; }
 .dark .heatmap-details-reason { border-color:#334155; }
+.dark .heatmap-details-categories { border-color:#334155; }
+.dark .heatmap-details-categories small { color:#94a3b8; }
 .dark .heatmap-details-time { color:#94a3b8; }
 .dark .heatmap-info-close { background:#1e293b; color:#cbd5e1; }

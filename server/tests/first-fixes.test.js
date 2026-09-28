@@ -173,6 +173,45 @@ test('BHW data reads and writes cannot cross barangay boundaries or spoof an enc
     assert.equal(log.user_id, fixtures.bhw);
 });
 
+test('BHW and MHO heatmaps show only aggregate categories for active High Risk cases', async () => {
+    const firstDisease = 'Disposable heatmap category A';
+    const secondDisease = 'Disposable heatmap category B';
+    const inserted = [];
+    try {
+        for (const [barangayId, disease, status, archived] of [
+            [ownBarangay, firstDisease, 'Active', 0],
+            [ownBarangay, firstDisease, 'Active', 0],
+            [ownBarangay, secondDisease, 'Active', 0],
+            [ownBarangay, firstDisease, 'Cleared', 0],
+            [ownBarangay, secondDisease, 'Active', 1],
+            [otherBarangay, secondDisease, 'Active', 0]
+        ]) {
+            const [result] = await connection.execute(`
+                INSERT INTO health_cases (barangay_id, purok, disease, date_recorded, severity, status, is_archived, patient_name)
+                VALUES (?, 'Disposable zone', ?, '2025-01-01', 'High Risk', ?, ?, 'Disposable map patient')
+            `, [barangayId, disease, status, archived]);
+            inserted.push(result.insertId);
+        }
+        for (const role of ['bhw', 'mho']) {
+            const response = await request('/api/heatmap-data', role);
+            assert.equal(response.status, 200);
+            const { data } = await response.json();
+            assert.equal(data.length, 7);
+            assert.ok(data.every(row => row.high_risk_diseases.reduce((sum, item) => sum + item.cases, 0) === row.severity_counts.high_risk));
+            const own = data.find(row => row.id === ownBarangay);
+            assert.equal(own.high_risk_diseases.find(item => item.disease === firstDisease).cases, 2);
+            assert.equal(own.high_risk_diseases.find(item => item.disease === secondDisease).cases, 1);
+            assert.equal(data.find(row => row.id === otherBarangay).high_risk_diseases.find(item => item.disease === secondDisease).cases, 1);
+            assert.ok(data.every(row => !('patient_name' in row) && !('resident_id' in row)));
+            const filtered = await (await request('/api/heatmap-data?disease=' + encodeURIComponent(firstDisease), role)).json();
+            assert.deepEqual(filtered.data.find(row => row.id === ownBarangay).high_risk_diseases, [{ disease: firstDisease, cases: 2 }]);
+            assert.deepEqual(filtered.data.find(row => row.id === otherBarangay).high_risk_diseases, []);
+        }
+    } finally {
+        for (const id of inserted) await connection.execute('DELETE FROM health_cases WHERE id = ?', [id]);
+    }
+});
+
 test('BHW purok choices stay within assigned barangay and map rejects invalid disease filters', async () => {
     await connection.execute("INSERT INTO health_cases(barangay_id,purok,disease,date_recorded,severity,status,patient_name) VALUES(?,'Fixture Own Zone','Fixture illness','2025-01-01','Mild','Active','Disposable')",[ownBarangay]);
     await connection.execute("INSERT INTO health_cases(barangay_id,purok,disease,date_recorded,severity,status,patient_name) VALUES(?,'Fixture Other Zone','Fixture illness','2025-01-01','Mild','Active','Disposable')",[otherBarangay]);

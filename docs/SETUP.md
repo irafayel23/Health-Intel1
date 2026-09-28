@@ -48,7 +48,7 @@ BHW monthly exports use `date_recorded` and the selected month/year. Explicit hi
 
 Status updates append timestamped follow-up notes and preserve earlier remarks. Case/disease archive and restore, registry creation, and account status actions write their audit entry in the same transaction. The audit table remains an application log, not an immutable ledger.
 
-Both heatmaps refresh on view entry, after successful case changes, when returning to a visible tab, and every 30 seconds while the map is visible. Refresh map also provides a manual retry. Failed refreshes retain the last loaded totals with a visible failure message.
+Both heatmaps refresh on view entry, after successful case changes, when returning to a visible tab, and every 30 seconds while the map is visible. Refresh map also provides a manual retry. Failed refreshes retain the last loaded totals with a visible failure message. The barangay popup groups active, non-archived High Risk cases by their recorded disease/case category; it shows counts, not patient identities. High Risk is the recorded case severity, not a rating of the disease or an outbreak finding.
 
 The BHW heatmap shows **aggregate active-case totals for all seven barangays**, matching the MHO map. BHW patient lists, resident dossiers, corrections and status changes remain limited to the assigned barangay. The map shows no patient names or records from other barangays. Circle color is the highest recorded severity among active cases, not proof of an outbreak. A zero means no active case was recorded; it does not establish complete reporting.
 

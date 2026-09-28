@@ -561,6 +561,22 @@ app.get('/api/heatmap-data', async (req, res) => {
             GROUP BY b.id, b.name, b.latitude, b.longitude
         `;
         const [rows] = await db.execute(query, [disease, disease]);
+        const [highRiskRows] = await db.execute(`
+            SELECT h.barangay_id,
+                COALESCE(NULLIF(TRIM(h.disease), ''), 'Not recorded') AS disease,
+                COUNT(*) AS cases
+            FROM health_cases h
+            WHERE h.status = 'Active' AND h.is_archived = FALSE AND h.severity = 'High Risk'
+                AND (? = '' OR h.disease = ?)
+            GROUP BY h.barangay_id, COALESCE(NULLIF(TRIM(h.disease), ''), 'Not recorded')
+            ORDER BY h.barangay_id, cases DESC, disease ASC
+        `, [disease, disease]);
+        const highRiskByBarangay = new Map();
+        for (const row of highRiskRows) {
+            const key = String(row.barangay_id);
+            if (!highRiskByBarangay.has(key)) highRiskByBarangay.set(key, []);
+            highRiskByBarangay.get(key).push({ disease: row.disease, cases: Number(row.cases) });
+        }
         const data = rows.map(r => {
             const cases = Number(r.cases);
             const severityCounts = {
@@ -598,6 +614,7 @@ app.get('/api/heatmap-data', async (req, res) => {
                 lng: parseFloat(r.longitude),
                 cases,
                 severity_counts: severityCounts,
+                high_risk_diseases: highRiskByBarangay.get(String(r.barangay_id)) || [],
                 risk: risk,
                 color: color,
                 color_reason: colorReason
