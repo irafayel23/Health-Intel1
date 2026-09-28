@@ -294,6 +294,10 @@ body {
   color: hsl(var(--foreground));
 }
 
+#main-patient-table { min-width: 980px; }
+.patient-row-actions { display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
+.patient-row-actions > button { flex: none; white-space: nowrap; }
+
 /* --- AI LOADING SPINNER STYLES --- */
 #loading-container {
   display: none; /* Hidden until JS shows it */
