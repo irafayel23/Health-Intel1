@@ -1,0 +1,38 @@
+.hi-dialog.swal2-popup {
+  width: min(620px, calc(100vw - 32px)) !important;
+  max-height: min(92vh, 900px);
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid #cbd5e1;
+  border-radius: 18px;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 20px 60px #0f172a38;
+}
+.hi-dialog .swal2-title { padding: 0; color: inherit; font-size: clamp(1.35rem, 3vw, 1.7rem); line-height: 1.3; }
+.hi-dialog .swal2-html-container { margin: 20px 0 0; padding: 0 2px; overflow: visible; color: inherit; font-size: .95rem; }
+.hi-dialog .swal2-html-container label { display:block; margin-bottom:7px; color:inherit; font-weight:600; }
+.hi-dialog .swal2-html-container input:not([type="checkbox"]),
+.hi-dialog .swal2-html-container select,
+.hi-dialog .swal2-html-container textarea { display:block; width:100%; min-width:0; margin:0; padding:11px 12px; border:1px solid #94a3b8; border-radius:9px; background:#fff; color:#0f172a; font:inherit; line-height:1.4; }
+.hi-dialog .swal2-html-container textarea { resize:vertical; }
+.hi-dialog .swal2-html-container :is(input,select,textarea):focus { outline:2px solid #2563eb; outline-offset:1px; }
+.hi-dialog .swal2-html-container :is(input,select,textarea):disabled { background:#e2e8f0; color:#475569; opacity:1; cursor:not-allowed; }
+.hi-dialog .swal2-html-container input::placeholder,
+.hi-dialog .swal2-html-container textarea::placeholder { color:#64748b; opacity:1; }
+.hi-dialog .swal2-html-container p { line-height:1.5; }
+.hi-dialog .swal2-actions { gap:8px; margin:20px 0 0; }
+.hi-dialog .swal2-styled { margin:0; border-radius:9px; font-weight:600; }
+.hi-form { display:grid; gap:18px; text-align:left; }
+.hi-form p { margin:7px 0 0; color:#475569; font-size:.82rem; }
+.hi-case-details { display:grid; gap:9px; text-align:left; }
+.hi-case-details p { margin:8px 0 0; padding:12px; border-radius:9px; background:#eff6ff; color:#1e3a8a; }
+.dark .hi-dialog.swal2-popup { border-color:#334155; background:#0f172a; color:#f1f5f9; }
+.dark .hi-dialog .swal2-html-container :is(input:not([type="checkbox"]),select,textarea) { border-color:#475569; background:#1e293b; color:#f1f5f9; }
+.dark .hi-dialog .swal2-html-container :is(input,select,textarea):disabled { background:#334155; color:#cbd5e1; }
+.dark .hi-dialog .swal2-html-container input::placeholder,
+.dark .hi-dialog .swal2-html-container textarea::placeholder { color:#cbd5e1; }
+.dark .hi-form p { color:#cbd5e1; }
+.dark .hi-dialog .swal2-html-container .text-slate-600 { color:#cbd5e1; }
+.dark .hi-case-details p { background:#172554; color:#bfdbfe; }
+@media (max-width:640px) { .hi-dialog.swal2-popup { padding:18px; } .hi-dialog .swal2-html-container { margin-top:16px; } }

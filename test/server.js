@@ -1,6 +1,9 @@
+require('./security-config').loadEnvironment();
 const PDFDocument = require('pdfkit');
 const express = require('express');
 const { spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 
@@ -15,7 +18,18 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
         
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer'); 
+const { normalizeEmail, validPassword, sessionVersion, escapeHtml, emailConfigured, sendEmail } = require('./security-config');
+const { createPasswordRecovery } = require('./password-recovery');
+const { validatePatient, ageOnDate, todayInManila } = require('./patient-validation');
+const { createAccessControl, loadJwtSecret } = require('./access-control');
+const { createDatabaseDump, sendEncryptedBackup } = require('./database-backup');
+const { analyticsFilters, caseWhere, sendAnalyticsError } = require('./mho-analytics');
+const { monthlyPeriod, isoWeekPeriod } = require('./report-periods');
+const { handlers, respond, accountStatus } = require('./qa-fixes');
+const { handlers: correctionHandlers } = require('./case-corrections');
+const JWT_SECRET = loadJwtSecret();
+const projectPython = path.join(__dirname, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
+const pythonExecutable = process.env.PYTHON_PATH || (fs.existsSync(projectPython) ? projectPython : 'python');
 const app = express();
 
 app.use(cors());
@@ -24,110 +38,36 @@ app.use(express.json());
 // ==========================================
 // 1. DATABASE CONNECTION (The Vault)
 // ==========================================
-const db = mysql.createPool({
-    host: 'localhost',
-    user: 'root',      
-    password: '',      
-    database: 'health_intel'
-});
+const dbConfig = {
+    host: process.env.DB_HOST || 'localhost',
+    port: Number(process.env.DB_PORT || 3306),
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'health_intel'
+};
+const db = mysql.createPool(dbConfig);
+const qa = handlers(db);
+const corrections = correctionHandlers(db);
+app.use('/api', createAccessControl(db, JWT_SECRET));
+app.get('/api/session', (req, res) => res.json({ success: true, user: req.user }));
 
 // ==========================================
 // 2. SYSTEM ID GENERATOR
 // ==========================================
-app.post('/api/get-next-id', async (req, res) => {
-    const requestedRole = req.body.role;
-    let prefix = '';
-
-    if (requestedRole === 'bhw') prefix = 'BHW-';
-    else if (requestedRole === 'mho') prefix = 'MHO-';
-    else if (requestedRole === 'admin') prefix = 'ADM-'; 
-    else return res.status(400).json({ success: false, error: "Invalid role" });
-
-    try {
-        const [rows] = await db.execute(
-            `SELECT system_id FROM users WHERE system_id LIKE ? ORDER BY system_id DESC LIMIT 1`,
-            [`${prefix}%`]
-        );
-
-        if (rows.length === 0) {
-            return res.json({ success: true, next_id: prefix + '001' });
-        }
-
-        const lastId = rows[0].system_id;
-        const nextNumber = parseInt(lastId.split('-')[1]) + 1;
-        const finalId = prefix + nextNumber.toString().padStart(3, '0');
-
-        res.json({ success: true, next_id: finalId });
-    } catch (error) {
-        console.error("ID Generation Error:", error);
-        res.status(500).json({ success: false, error: "Database error" });
-    }
-});
-
-// ==========================================
-// 3. EMAIL DUPLICATE CHECK
-// ==========================================
-app.post('/api/check-email', async (req, res) => {
-    const { email } = req.body;
-    try {
-        const [rows] = await db.execute('SELECT system_id FROM users WHERE email = ?', [email]);
-        if (rows.length > 0) {
-            return res.json({ exists: true, system_id: rows[0].system_id });
-        }
-        res.json({ exists: false });
-    } catch (error) {
-        res.json({ exists: false });
-    }
-});
-
-// ==========================================
-// 4. ZERO-TRUST REGISTRATION
-// ==========================================
-app.post('/api/register', async (req, res) => {
-    try {
-        const { first_name, last_name, role, system_id, password, assigned_barangay, email, employee_id } = req.body;
-
-        // DUPLICATE EMAIL CHECK - Prevent re-registration
-        if (email) {
-            const [existing] = await db.execute('SELECT system_id FROM users WHERE email = ?', [email]);
-            if (existing.length > 0) {
-                return res.status(409).json({ success: false, error: "This email is already registered. Please log in instead." });
-            }
-        }
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
-        // Find barangay ID if role is bhw
-        let barangay_id = null;
-        if (role === 'bhw' && assigned_barangay) {
-            // "Brgy. Blumentritt" or "Blumentritt" => match wildcard
-            const cleanName = assigned_barangay.replace('Brgy. ', '');
-            const [bRows] = await db.execute('SELECT id FROM barangays WHERE name LIKE ?', [`%${cleanName}%`]);
-            if (bRows.length > 0) {
-                barangay_id = bRows[0].id;
-            }
-        }
-
-        const query = `
-            INSERT INTO users 
-            (system_id, first_name, last_name, role, barangay_id, password_hash, status, email, employee_id) 
-            VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)
-        `;
-        
-        await db.execute(query, [system_id, first_name, last_name, role, barangay_id, hashedPassword, email || null, employee_id || null]);
-        res.json({ success: true, message: "Registration submitted for HR Approval." });
-
-    } catch (error) {
-        console.error("Registration Error:", error);
-        res.status(500).json({ success: false, error: "Database error during registration." });
-    }
-});
+const registrationLimiter = rateLimit({windowMs:15*60*1000,max:30,standardHeaders:true,legacyHeaders:false,message:{success:false,error:'Too many onboarding requests. Please try again later.'}});
+app.post('/api/get-next-id', registrationLimiter, qa.previewId);
+app.post('/api/check-email', registrationLimiter, qa.checkEmail);
+app.post('/api/register', registrationLimiter, qa.register);
 
 // ==========================================
 // CHANGE PASSWORD
 // ==========================================
 app.post('/api/change-password', async (req, res) => {
-    const { system_id, current_password, new_password } = req.body;
+    const system_id = req.user.system_id;
+    const { current_password, new_password } = req.body;
+    if (typeof current_password !== 'string' || !validPassword(new_password)) {
+        return res.status(400).json({ success: false, error: 'Provide your current password and a new password of at least 8 characters (maximum 72 UTF-8 bytes).' });
+    }
     try {
         const [rows] = await db.execute('SELECT * FROM users WHERE system_id = ?', [system_id]);
         if (rows.length === 0) return res.status(404).json({ success: false, error: "User not found." });
@@ -142,7 +82,7 @@ app.post('/api/change-password', async (req, res) => {
         const hashedNewPassword = await bcrypt.hash(new_password, 10);
         await db.execute('UPDATE users SET password_hash = ? WHERE system_id = ?', [hashedNewPassword, system_id]);
         
-        res.json({ success: true, message: "Password updated successfully." });
+        res.json({ success: true, message: 'Password updated. Please sign in again.' });
     } catch (error) {
         console.error("Change Password Error:", error);
         res.status(500).json({ success: false, error: "Database error." });
@@ -153,67 +93,16 @@ app.post('/api/change-password', async (req, res) => {
 // ==========================================
 // PASSWORD RESET SYSTEM
 // ==========================================
-app.post('/api/forgot-password', async (req, res) => {
-    const { email } = req.body;
-    try {
-        const [users] = await db.execute('SELECT * FROM users WHERE email = ?', [email]);
-        if(users.length === 0) return res.status(404).json({ success: false, error: 'Email not found in system.' });
-
-        // Generate 32-byte token
-        // Generate a 6-digit OTP code
-        const token = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        // Expiration 15 mins from now
-        const expires_at = new Date(Date.now() + 15 * 60000);
-        
-        await db.execute('INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)', [email, token, expires_at]);
-
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: { user: 'yapjohnrichard@gmail.com', pass: 'cjrfnlxzljuvhfkq' }
-        });
-
-        await transporter.sendMail({
-            from: 'HEALTH-INTEL Security <yapjohnrichard@gmail.com>',
-            to: email,
-            subject: 'Your 6-Digit Password Reset Code',
-            html: `
-            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                <h2 style="color: #0ea5e9;">Password Reset</h2>
-                <p>You requested a password reset. Please enter the 6-digit verification code below into the system:</p>
-                <div style="background: #f1f5f9; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #1e293b; border-radius: 8px;">${token}</div>
-                <p style="font-size: 12px; color: #64748b; margin-top: 15px;">This code will expire in 15 minutes.</p>
-            </div>`
-        });
-
-        res.json({ success: true, message: 'Password reset link sent to your email.' });
-    } catch (e) {
-        res.status(500).json({ success: false, error: 'Database error' });
-    }
-});
-
-app.post('/api/reset-password', async (req, res) => {
-    const { email, token, new_password } = req.body;
-    try {
-        const [resets] = await db.execute('SELECT * FROM password_resets WHERE email = ? AND token = ?', [email, token]);
-        if(resets.length === 0) return res.status(400).json({ success: false, error: 'Invalid or expired token.' });
-        
-        const resetRecord = resets[resets.length - 1]; // get latest
-        if(new Date() > new Date(resetRecord.expires_at)) {
-            return res.status(400).json({ success: false, error: 'Token has expired.' });
-        }
-
-        const hashed = await bcrypt.hash(new_password, 10);
-        await db.execute('UPDATE users SET password_hash = ? WHERE email = ?', [hashed, email]);
-        
-        // Delete used tokens
-        await db.execute('DELETE FROM password_resets WHERE email = ?', [email]);
-
-        res.json({ success: true, message: 'Password updated successfully!' });
-    } catch(e) {
-        res.status(500).json({ success: false, error: 'Server error' });
-    }
-});
+const recoveryRequestLimiter = rateLimit({ windowMs:15*60*1000, max:10, standardHeaders:true, legacyHeaders:false,
+    message:{ success:false, error:'Too many reset-code requests. Please wait 15 minutes.' } });
+const recoveryEmailLimiter = rateLimit({ windowMs:15*60*1000, max:3, standardHeaders:true, legacyHeaders:false,
+    keyGenerator:req=>normalizeEmail(req.body.email)||'invalid-address',
+    message:{ success:false, error:'Too many reset-code requests for this address. Please wait 15 minutes.' } });
+const resetAttemptLimiter = rateLimit({ windowMs:15*60*1000, max:10, standardHeaders:true, legacyHeaders:false,
+    message:{ success:false, error:'Too many reset attempts. Please wait 15 minutes.' } });
+const passwordRecovery = createPasswordRecovery(db,JWT_SECRET,sendEmail,emailConfigured);
+app.post('/api/forgot-password', recoveryRequestLimiter, recoveryEmailLimiter, passwordRecovery.forgot);
+app.post('/api/reset-password', resetAttemptLimiter, passwordRecovery.reset);
 
 // ==========================================
 // 4. SECURE LOGIN
@@ -245,9 +134,9 @@ app.post('/api/login', loginLimiter, async (req, res) => {
         }
 
         const token = jwt.sign(
-            { system_id: user.system_id, role: user.role }, 
-            'your_super_secret_key', 
-            { expiresIn: '8h' } 
+            { system_id: user.system_id, role: user.role, password_version: sessionVersion(user.password_hash, JWT_SECRET) },
+            JWT_SECRET,
+            { expiresIn: '8h', algorithm: 'HS256' }
         );
 
         console.log(`➔ LOGIN SUCCESS: ${user.system_id}`);
@@ -284,27 +173,12 @@ app.get('/api/admin/active-users', async (req, res) => {
 });
 
 // Suspend Active User (NEW)
-app.post('/api/admin/suspend-user', async (req, res) => {
-    const { system_id } = req.body;
-    try {
-        await db.execute(`UPDATE users SET status = 'suspended' WHERE system_id = ?`, [system_id]);
-        
-        // AUDIT TRAIL LOGGING
-        await db.execute(
-            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'Admin', 'User Suspended', ?)`,
-            ['LGU Admin', `Suspended system access for ID: ${system_id}`]
-        );
-
-        res.json({ success: true, message: "User suspended." });
-    } catch(error) {
-        res.status(500).json({ success: false, error: "Failed to suspend." });
-    }
-});
+app.post('/api/admin/suspend-user', async(req,res)=>{try{await accountStatus(db,req,'suspended','User Suspended');res.json({success:true,message:'User Suspended.'});}catch(error){respond(res,error,'The account could not be updated.');}});
 
 // Get Denied/Archived
 app.get('/api/admin/denied-users', async (req, res) => {
     try {
-        const query = `SELECT system_id, first_name, last_name, employee_id, status FROM users WHERE status IN ('denied', 'suspended') ORDER BY created_at DESC`;
+        const query = `SELECT system_id, first_name, last_name, employee_id, status FROM users WHERE status IN ('denied', 'suspended') AND role IN ('bhw', 'mho') ORDER BY created_at DESC`;
         const [rows] = await db.execute(query);
         res.json({ success: true, data: rows });
     } catch (error) {
@@ -317,51 +191,22 @@ app.post('/api/admin/approve-user', async (req, res) => {
     const { temp_system_id } = req.body; 
 
     try {
-        const updateQuery = `UPDATE users SET status = 'approved' WHERE system_id = ?`;
-        const [result] = await db.execute(updateQuery, [temp_system_id]);
-        
-        if (result.affectedRows === 0) {
-             return res.status(404).json({ success: false, error: "User not found." });
-        }
-        
-        const finalId = temp_system_id;
-
-        // AUDIT TRAIL LOGGING
-        await db.execute(
-            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'Admin', 'User Approved', ?)`,
-            ['LGU Admin', `Approved registration for ID: ${finalId}`]
-        );
-
-        const [userRow] = await db.execute('SELECT email, first_name FROM users WHERE system_id = ?', [finalId]);
+        const finalId=temp_system_id;
+        const approved=await accountStatus(db,req,'approved','User Approved');
+        const userRow=[approved];
         const userEmail = userRow[0].email;
         const userName = userRow[0].first_name;
 
-        // THE GMAIL DISPATCHER
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: { user: 'yapjohnrichard@gmail.com', pass: 'cjrfnlxzljuvhfkq' }
-        });
-
-        const mailOptions = {
-            from: 'LGU Health Intelligence <yapjohnrichard@gmail.com>', 
-            to: userEmail, 
-            subject: 'LGU Access Approved: Your Official System ID',
-            html: `
-                <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                    <h2 style="color: #004b87;">Account Approved</h2>
-                    <p>Hello ${userName},</p>
-                    <p>Your access request for the HEALTH-INTEL LGU Portal has been approved by Human Resources.</p>
-                    <p>Your official System Login ID is: <strong><span style="font-size: 1.2rem; color: #10b981;">${finalId}</span></strong></p>
-                    <p>Please use this ID and the password you created to log in.</p>
-                </div>
-            `
-        };
-
-        transporter.sendMail(mailOptions, function(error, info){
-            if (error) console.log("Email Error: ", error);
-        });
-
-        res.json({ success: true, message: `Account Approved! Official ID: ${finalId}. An automated email has been dispatched to the user.` });
+        let email_delivery = 'not_configured';
+        if (emailConfigured() && normalizeEmail(userEmail)) {
+            try {
+                await sendEmail({ to:normalizeEmail(userEmail), subject:'LGU access approved: your official system ID',
+                    html:`<h2>Account approved</h2><p>Hello ${escapeHtml(userName || '')},</p><p>Your HEALTH-INTEL access request has been approved.</p><p>Your system ID is <strong>${escapeHtml(finalId)}</strong>. Sign in using the password you created.</p>` });
+                email_delivery = 'sent';
+            } catch { email_delivery = 'failed'; }
+        }
+        const notice = email_delivery === 'sent' ? ' The approval email was sent.' : ' The approval email was not sent; check the email configuration and notify the user securely.';
+        res.json({ success:true, email_delivery, system_id:finalId, message:`Account approved. Official ID: ${finalId}.${notice}` });
     } catch (error) {
         console.error("Approval Error:", error);
         res.status(500).json({ success: false, error: "Database error during approval process." });
@@ -369,51 +214,13 @@ app.post('/api/admin/approve-user', async (req, res) => {
 });
 
 // Deny User
-app.post('/api/admin/deny-user', async (req, res) => {
-    const { temp_system_id } = req.body; 
-    try {
-        await db.execute(`UPDATE users SET status = 'denied' WHERE system_id = ?`, [temp_system_id]);
-        
-        // AUDIT TRAIL LOGGING
-        await db.execute(
-            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'Admin', 'User Request Denied', ?)`,
-            ['LGU Admin', `Denied registration request for ID: ${temp_system_id}`]
-        );
-
-        res.json({ success: true, message: `Account request denied.` });
-    } catch (error) {
-        res.status(500).json({ success: false, error: "Database error during denial." });
-    }
-});
+app.post('/api/admin/deny-user', async(req,res)=>{try{await accountStatus(db,req,'denied','User Request Denied');res.json({success:true,message:'User Request Denied.'});}catch(error){respond(res,error,'The account could not be updated.');}});
 
 // Undo Deny
-app.post('/api/admin/undo-deny', async (req, res) => {
-    const { temp_system_id } = req.body; 
-    try {
-        await db.execute(`UPDATE users SET status = 'pending' WHERE system_id = ?`, [temp_system_id]);
-        res.json({ success: true, message: `Account returned to pending status.` });
-    } catch (error) {
-        res.status(500).json({ success: false, error: "Database error during undo process." });
-    }
-});
+app.post('/api/admin/undo-deny', async(req,res)=>{try{await accountStatus(db,req,'pending','Denial Undone');res.json({success:true,message:'Denial Undone.'});}catch(error){respond(res,error,'The account could not be updated.');}});
 
 // Restore Suspended
-app.post('/api/admin/restore-suspended', async (req, res) => {
-    const { system_id } = req.body; 
-    try {
-        await db.execute(`UPDATE users SET status = 'approved' WHERE system_id = ?`, [system_id]);
-        
-        // AUDIT TRAIL LOGGING
-        await db.execute(
-            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'Admin', 'Access Restored', ?)`,
-            ['LGU Admin', `Restored system access for ID: ${system_id}`]
-        );
-
-        res.json({ success: true, message: `Account access restored.` });
-    } catch (error) {
-        res.status(500).json({ success: false, error: "Database error during restore process." });
-    }
-});
+app.post('/api/admin/restore-suspended', async(req,res)=>{try{await accountStatus(db,req,'approved','Access Restored');res.json({success:true,message:'Access Restored.'});}catch(error){respond(res,error,'The account could not be updated.');}});
 
 
 // ==========================================
@@ -429,36 +236,23 @@ app.get('/api/superadmin/pending-admins', async (req, res) => {
     }
 });
 
-app.post('/api/superadmin/approve-admin', async (req, res) => {
-    const { system_id } = req.body;
-    try {
-        await db.execute(`UPDATE users SET status = 'approved' WHERE system_id = ?`, [system_id]);
-        
-        // AUDIT TRAIL LOGGING
-        await db.execute(
-            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'Super Admin', 'Admin Approved', ?)`,
-            ['SYS-ROOT', `Authorized LGU Admin privileges for ID: ${system_id}`]
-        );
-
-        res.json({ success: true, message: `LGU Admin ${system_id} is now fully operational.` });
-    } catch (error) {
-        res.status(500).json({ success: false, error: "Database error during approval." });
-    }
-});
+app.post('/api/superadmin/approve-admin', async(req,res)=>{try{await accountStatus(db,req,'approved','Admin Approved');res.json({success:true,message:'Admin Approved.'});}catch(error){respond(res,error,'The account could not be updated.');}});
 
 app.get('/api/superadmin/health', async (req, res) => {
     try {
-        const [dbSize] = await db.execute(`SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "size_mb" FROM information_schema.TABLES WHERE table_schema = "health_intel"`);
+        const [dbSize] = await db.execute(`SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS "size_mb" FROM information_schema.TABLES WHERE table_schema = ?`, [dbConfig.database]);
         const [userCount] = await db.execute(`SELECT COUNT(*) as count FROM users`);
         const [patientCount] = await db.execute(`SELECT COUNT(*) as count FROM health_cases`);
+        const [auditCount] = await db.execute('SELECT COUNT(*) as count FROM system_audit_logs');
 
         res.json({
             success: true,
             data: {
                 uptime: Math.floor(process.uptime()), 
-                db_size: dbSize[0].size_mb || 1.5,
+                db_size: dbSize[0].size_mb ?? 0,
                 total_users: userCount[0].count,
                 total_records: patientCount[0].count,
+                total_logs: auditCount[0].count,
                 status: 'OPTIMAL'
             }
         });
@@ -510,7 +304,7 @@ app.get('/api/superadmin/audit-logs', async (req, res) => {
 // CREATE NEW PATIENT
 // BHW CONTEXT (NEW API for Dynamic UI)
 app.get('/api/bhw/context', async (req, res) => {
-    const { system_id } = req.query;
+    const system_id = req.user.system_id;
     try {
         const [rows] = await db.execute(`
             SELECT u.first_name, u.barangay_id, b.name as barangay_name 
@@ -529,74 +323,108 @@ app.get('/api/bhw/context', async (req, res) => {
 });
 
 // CREATE PATIENT
-app.post('/api/patients', async (req, res) => {
-    const { first_name, last_name, patient_name, birthdate, age, purok, disease, remarks, status, encoded_by } = req.body;
-    
-    try {
-        // Look up the encoder's barangay_id securely!
-        let brgy_id = null;
-        if (encoded_by) {
-            const [uRows] = await db.execute('SELECT barangay_id FROM users WHERE system_id = ?', [encoded_by]);
-            if(uRows.length > 0) brgy_id = uRows[0].barangay_id;
-        }
-
-        // AUTO-LINK RESIDENT PROFILE
-        let resident_id = null;
-        if (brgy_id && patient_name) {
-            const [resRows] = await db.execute('SELECT id FROM residents WHERE patient_name = ? AND barangay_id = ?', [patient_name, brgy_id]);
-            if (resRows.length > 0) {
-                resident_id = resRows[0].id;
-            } else {
-                const [insertRes] = await db.execute(
-                    'INSERT INTO residents (first_name, last_name, patient_name, birthdate, age, purok, barangay_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                    [first_name || '', last_name || '', patient_name, birthdate || null, age || null, purok || '', brgy_id]
-                );
-                resident_id = insertRes.insertId;
-            }
-        }
-
-        const query = `
-            INSERT INTO health_cases 
-            (resident_id, first_name, last_name, patient_name, birthdate, age, purok, disease, remarks, status, encoded_by, barangay_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-        
-        const encoder_name = encoded_by || "System"; 
-
-        const [result] = await db.execute(query, [
-            resident_id,
-            first_name || '', 
-            last_name || '', 
-            patient_name, 
-            birthdate || null, 
-            age, 
-            purok, 
-            disease, 
-            remarks || '', 
-            status || 'Active', 
-            encoder_name,
-            brgy_id
-        ]);
-        
-        // Log to immutable audit trail
-        await db.execute(
-            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'BHW', 'Patient Encoded', ?)`,
-            [encoder_name, `Encoded new case for ${disease} in ${purok}`]
-        );
-
-        res.json({ success: true, message: "Patient saved", id: result.insertId });
-    } catch (error) {
-        console.error("Patient DB Error:", error);
-        res.status(500).json({ success: false, error: "Database error." });
-    }
+async function encodingChoices() {
+    const [registered]=await db.execute("SELECT name,status,is_archived FROM disease_registry");
+    const [historical]=await db.execute("SELECT DISTINCT disease as name FROM health_cases WHERE disease IS NOT NULL AND disease<>'' ORDER BY disease");
+    const archived=new Set(registered.filter(row=>row.status==='Archived'||row.is_archived).map(row=>row.name));
+    const active=new Set(registered.filter(row=>row.status==='Active'&&!row.is_archived).map(row=>row.name));
+    const names=new Set([...active,...historical.filter(row=>!archived.has(row.name)).map(row=>row.name)]);
+    return [...names].sort().map(name=>({name,registry_status:active.has(name)?'Active':'Historical name: review pending'}));
+}
+app.get('/api/bhw/encoding-options', async (req,res)=>{
+    try { res.json({success:true,data:await encodingChoices()}); }
+    catch { res.status(503).json({success:false,error:'Disease choices could not be loaded.'}); }
 });
+app.get('/api/mho/walk-in-options', async (req,res)=>{
+    try {
+        const [barangays]=await db.execute('SELECT id,name FROM barangays ORDER BY name');
+        res.json({success:true,data:{barangays,diseases:await encodingChoices()}});
+    } catch { res.status(503).json({success:false,error:'Walk-in form choices could not be loaded.'}); }
+});
+app.get('/api/mho/walk-in-cases', async (req,res)=>{
+    try {
+        const [rows]=await db.execute(`SELECT h.id,h.patient_name,h.purok,h.disease,h.severity,h.status,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,b.name AS barangay_name
+            FROM health_cases h JOIN barangays b ON b.id=h.barangay_id
+            WHERE h.encoded_by=? AND h.is_archived=FALSE ORDER BY h.created_at DESC,h.id DESC LIMIT 25`,[req.user.system_id]);
+        res.json({success:true,data:rows});
+    } catch { res.status(503).json({success:false,error:'Walk-in cases could not be loaded.'}); }
+});
+
+app.get('/api/bhw/puroks', async (req, res) => {
+    try {
+        const [rows] = await db.execute(`SELECT DISTINCT TRIM(purok) AS name FROM (
+            SELECT purok FROM health_cases WHERE barangay_id=?
+            UNION ALL SELECT purok FROM residents WHERE barangay_id=?
+        ) AS local_puroks WHERE purok IS NOT NULL AND TRIM(purok)<>'' ORDER BY name`, [req.user.barangay_id, req.user.barangay_id]);
+        res.json({ success:true, data: rows.map(row => row.name) });
+    } catch { res.status(503).json({success:false,error:'Purok choices could not be loaded.'}); }
+});
+
+async function savePatientCase(req, res, brgy_id, actorRole) {
+    let patient;
+    try { patient=validatePatient(req.body); }
+    catch(error) { return res.status(400).json({success:false,error:error.message}); }
+    if (!Number.isSafeInteger(brgy_id) || brgy_id < 1) return res.status(400).json({success:false,error:'Select the resident’s barangay.'});
+    let connection;
+    try {
+        connection=await db.getConnection();
+        await connection.beginTransaction();
+        const [selectedBarangays]=await connection.execute('SELECT id FROM barangays WHERE id=? FOR UPDATE',[brgy_id]);
+        if (!selectedBarangays.length) {
+            await connection.rollback();
+            return res.status(400).json({success:false,error:'Select an existing barangay.'});
+        }
+        const [registry]=await connection.execute('SELECT name,status,is_archived FROM disease_registry WHERE name=?',[patient.disease]);
+        if (registry.some(row=>row.status==='Archived'||row.is_archived)) {
+            await connection.rollback();
+            return res.status(400).json({success:false,error:'This disease category is archived. Ask the Admin to review it before encoding.'});
+        }
+        const [known]=await connection.execute('SELECT disease FROM health_cases WHERE disease=? LIMIT 1',[patient.disease]);
+        if (!registry.some(row=>row.name===patient.disease && row.status==='Active') && !known.some(row=>row.disease===patient.disease)) {
+            await connection.rollback();
+            return res.status(400).json({success:false,error:'Select an existing disease name. Ask the Admin to register a new category.'});
+        }
+        const [duplicates]=await connection.execute('SELECT id FROM health_cases WHERE barangay_id=? AND first_name=? AND last_name=? AND birthdate=? AND disease=? AND date_recorded=? LIMIT 1',
+            [brgy_id,patient.first_name,patient.last_name,patient.birthdate,patient.disease,patient.date_recorded]);
+        if (duplicates.length) {
+            await connection.rollback();
+            return res.status(409).json({success:false,code:'POSSIBLE_DUPLICATE',error:'A matching case already exists for this person, disease and date. Review the existing record before encoding again.'});
+        }
+        const [residents]=await connection.execute('SELECT id FROM residents WHERE first_name=? AND last_name=? AND birthdate=? AND barangay_id=? AND purok=? LIMIT 2',
+            [patient.first_name,patient.last_name,patient.birthdate,brgy_id,patient.purok]);
+        if (residents.length>1) {
+            await connection.rollback();
+            return res.status(409).json({success:false,error:'Multiple matching resident profiles need review. Ask the Admin to check them before saving.'});
+        }
+        let resident_id=residents[0]?.id;
+        if (!resident_id) {
+            const [resident]=await connection.execute('INSERT INTO residents (first_name,last_name,patient_name,birthdate,age,purok,barangay_id) VALUES (?,?,?,?,?,?,?)',
+                [patient.first_name,patient.last_name,patient.patient_name,patient.birthdate,ageOnDate(patient.birthdate,todayInManila()),patient.purok,brgy_id]);
+            resident_id=resident.insertId;
+        }
+        const [result]=await connection.execute('INSERT INTO health_cases (resident_id,first_name,last_name,patient_name,birthdate,age,purok,disease,remarks,status,encoded_by,barangay_id,date_recorded,severity) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+            [resident_id,patient.first_name,patient.last_name,patient.patient_name,patient.birthdate,patient.age,patient.purok,patient.disease,patient.remarks,patient.status,req.user.system_id,brgy_id,patient.date_recorded,patient.severity]);
+        await connection.execute('INSERT INTO system_audit_logs (user_id,role,action,details) VALUES (?,?,?,?)',
+            [req.user.system_id,actorRole,actorRole==='MHO'?'Walk-in Case Encoded':'Patient Encoded',`Encoded ${patient.disease} case dated ${patient.date_recorded}; barangay #${brgy_id}; severity ${patient.severity}.`]);
+        await connection.commit();
+        res.status(201).json({success:true,message:'Patient case saved.',id:result.insertId});
+    } catch {
+        if(connection) await connection.rollback();
+        res.status(503).json({success:false,error:'The case could not be saved. No partial record was kept. Please try again.'});
+    } finally { if(connection) connection.release(); }
+}
+app.post('/api/patients', (req,res)=>savePatientCase(req,res,Number(req.user.barangay_id),'BHW'));
+app.post('/api/mho/walk-in-cases', (req,res)=>savePatientCase(req,res,Number(req.body.barangay_id),'MHO'));
 
 // READ ACTIVE (Filtered by Barangay)
 app.get('/api/patients', async (req, res) => {
     const { barangay_id } = req.query;
     try {
-        let query = `SELECT h.*, b.name as barangay_name FROM health_cases h LEFT JOIN barangays b ON h.barangay_id = b.id WHERE h.is_archived = FALSE`;
+        const period=(req.query.month!==undefined||req.query.year!==undefined)?monthlyPeriod(req.query.month,req.query.year):null;
+        const historical=period && req.query.include_archived==='true';
+        let query = `SELECT h.*, b.name as barangay_name FROM health_cases h LEFT JOIN barangays b ON h.barangay_id = b.id WHERE ${historical?'1=1':'h.is_archived = FALSE'}`;
         let params = [];
+        if(period){query+=' AND h.date_recorded>=? AND h.date_recorded<?';params.push(period.start,period.end);}
         if (barangay_id && barangay_id !== 'null') {
             query += ` AND h.barangay_id = ?`;
             params.push(barangay_id);
@@ -606,7 +434,7 @@ app.get('/api/patients', async (req, res) => {
         const [rows] = await db.execute(query, params);
         res.json({ success: true, data: rows });
     } catch (error) {
-        res.status(500).json({ success: false, error: 'Database error' });
+        respond(res,error,'Patient records could not be loaded.');
     }
 });
 
@@ -643,7 +471,10 @@ app.get('/api/residents/:id/dossier', async (req, res) => {
         if (residentRows.length === 0) return res.status(404).json({ success: false, error: 'Resident not found' });
         
         // Fetch their full health history from health_cases
-        const [historyRows] = await db.execute("SELECT * FROM health_cases WHERE resident_id = ? ORDER BY date_recorded DESC", [residentId]);
+        const historySql = 'SELECT * FROM health_cases WHERE resident_id = ?' +
+            (req.user.role === 'bhw' ? ' AND barangay_id = ?' : '') + ' ORDER BY date_recorded DESC';
+        const [historyRows] = await db.execute(historySql,
+            req.user.role === 'bhw' ? [residentId, req.user.barangay_id] : [residentId]);
         
         res.json({ success: true, resident: residentRows[0], history: historyRows });
     } catch (error) {
@@ -672,38 +503,12 @@ app.get('/api/patients/archived', async (req, res) => {
 });
 
 // UPDATE STATUS
-app.put('/api/patients/:id/status', async (req, res) => {
-    const { new_status } = req.body;
-    try {
-        await db.execute(`UPDATE health_cases SET status = ? WHERE id = ?`, [new_status, req.params.id]);
-        
-        const user_id = req.body.user_id || 'System';
-        await db.execute(
-            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'BHW', 'Status Updated', ?)`,
-            [user_id, `Updated patient ID #REC-${req.params.id} to ${new_status}`]
-        );
-        res.json({ success: true, message: 'Patient status updated!' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Database error' });
-    }
-});
+app.put('/api/patients/:id/status', qa.status);
+app.get('/api/patients/:id/correction', corrections.get);
+app.put('/api/patients/:id/correction', corrections.save);
 
 // ARCHIVE
-app.put('/api/patients/:id/archive', async (req, res) => {
-    try {
-        await db.execute(`UPDATE health_cases SET is_archived = TRUE WHERE id = ?`, [req.params.id]);
-        
-        // AUDIT TRAIL LOGGING
-        await db.execute(
-            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'Admin', 'Record Archived', ?)`,
-            ['System User', `Archived patient record ID: #REC-${req.params.id}`]
-        );
-
-        res.json({ success: true, message: 'Record moved to archive.' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Database error' });
-    }
-});
+app.put('/api/patients/:id/archive', qa.archiveCase);
 
 
 // BHW TREND CHART DATA
@@ -743,23 +548,47 @@ app.get('/api/bhw-trend', async (req, res) => {
 
 app.get('/api/heatmap-data', async (req, res) => {
     try {
+        const disease = req.query.disease === undefined ? '' : req.query.disease;
+        if (typeof disease !== 'string' || disease.length > 255 || /[<>\x00-\x1f\x7f]/.test(disease)) return res.status(400).json({success:false,error:'Select a valid disease filter.'});
         const query = `
-            SELECT b.id as barangay_id, b.name as barangay_name, b.latitude, b.longitude, COUNT(h.id) as cases 
+            SELECT b.id as barangay_id, b.name as barangay_name, b.latitude, b.longitude,
+                COUNT(h.id) as cases,
+                SUM(CASE WHEN h.severity = 'Mild' THEN 1 ELSE 0 END) as mild,
+                SUM(CASE WHEN h.severity = 'Monitored' THEN 1 ELSE 0 END) as monitored,
+                SUM(CASE WHEN h.severity = 'High Risk' THEN 1 ELSE 0 END) as high_risk
             FROM barangays b
-            LEFT JOIN health_cases h ON h.barangay_id = b.id AND h.status = 'Active' AND h.is_archived = FALSE
+            LEFT JOIN health_cases h ON h.barangay_id = b.id AND h.status = 'Active' AND h.is_archived = FALSE AND (? = '' OR h.disease = ?)
             GROUP BY b.id, b.name, b.latitude, b.longitude
         `;
-        const [rows] = await db.execute(query);
-
+        const [rows] = await db.execute(query, [disease, disease]);
         const data = rows.map(r => {
-            let risk = "Low";
-            let color = "#3b82f6"; // Blue
-            if (r.cases >= 20) {
-                risk = "CRITICAL";
-                color = "#ef4444"; // Red
-            } else if (r.cases >= 10) {
-                risk = "Medium";
-                color = "#f59e0b"; // Yellow
+            const cases = Number(r.cases);
+            const severityCounts = {
+                mild: Number(r.mild),
+                monitored: Number(r.monitored),
+                high_risk: Number(r.high_risk)
+            };
+            severityCounts.unknown = Math.max(0, cases - severityCounts.mild - severityCounts.monitored - severityCounts.high_risk);
+
+            let risk = 'No active cases';
+            let color = '#64748b';
+            let colorReason = 'No active, non-archived cases are recorded.';
+            if (severityCounts.high_risk > 0) {
+                risk = 'High Risk';
+                color = '#dc2626';
+                colorReason = 'At least one active case is recorded as High Risk.';
+            } else if (severityCounts.monitored > 0) {
+                risk = 'Monitored';
+                color = '#ea580c';
+                colorReason = 'At least one active case is Monitored; none is recorded as High Risk.';
+            } else if (severityCounts.unknown > 0) {
+                risk = 'Severity incomplete';
+                color = '#7c3aed';
+                colorReason = 'Some active cases have missing or unrecognized severity.';
+            } else if (cases > 0) {
+                risk = 'Mild';
+                color = '#16a34a';
+                colorReason = 'All active cases are recorded as Mild.';
             }
 
             return {
@@ -767,13 +596,15 @@ app.get('/api/heatmap-data', async (req, res) => {
                 name: r.barangay_name,
                 lat: parseFloat(r.latitude),
                 lng: parseFloat(r.longitude),
-                cases: r.cases,
+                cases,
+                severity_counts: severityCounts,
                 risk: risk,
-                color: color
+                color: color,
+                color_reason: colorReason
             };
         });
 
-        res.json({ success: true, data });
+        res.json({ success: true, data, selected_disease: disease || null, fetched_at: new Date().toISOString() });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, error: 'Database error' });
@@ -781,14 +612,7 @@ app.get('/api/heatmap-data', async (req, res) => {
 });
 
 // RESTORE
-app.put('/api/patients/:id/restore', async (req, res) => {
-    try {
-        await db.execute(`UPDATE health_cases SET is_archived = FALSE WHERE id = ?`, [req.params.id]);
-        res.json({ success: true, message: 'Record restored successfully.' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Database error' });
-    }
-});
+app.put('/api/patients/:id/restore', qa.restoreCase);
 
 // ==========================================
 // 8. DASHBOARD STATS & ANALYTICS
@@ -838,42 +662,13 @@ app.get('/api/analytics/demographics', async (req, res) => {
 });
 
 app.get('/api/get-predictions', (req, res) => {
-    const timeframe = req.query.timeframe || 'monthly'; 
-    const pythonProcess = spawn('python', ['analytics.py', timeframe]); 
-    let dataString = '';
-
-    pythonProcess.stdout.on('data', (data) => { dataString += data.toString(); });
-    pythonProcess.stderr.on('data', (data) => { console.error(`Python Error: ${data}`); });
-    pythonProcess.on('close', (code) => {
-        try {
-            const predictions = JSON.parse(dataString);
-            if (predictions.error) res.status(500).json({ success: false, error: predictions.error });
-            else res.json({ success: true, data: predictions });
-        } catch (e) {
-            res.status(500).json({ success: false, error: 'Invalid response from AI engine' });
-        }
-    });
+    res.status(400).json({ success: false, error: 'Select a disease and barangay through /api/predict.' });
 });
 
 // ==========================================
 // 9. MASTER DISEASE REGISTRY
 // ==========================================
-app.post('/api/diseases', async (req, res) => {
-    const { name, category, classification } = req.body;
-    try {
-        await db.execute(`INSERT INTO disease_registry (name, category, classification) VALUES (?, ?, ?)`, [name, category, classification]);
-        
-        // AUDIT TRAIL LOGGING
-        await db.execute(
-            `INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, 'Admin', 'Registry Updated', ?)`,
-            ['LGU Admin', `Added new disease: ${name} (${classification})`]
-        );
-
-        res.json({ success: true, message: 'Disease added to registry!' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Database error' });
-    }
-});
+app.post('/api/diseases', qa.disease);
 
 app.get('/api/diseases', async (req, res) => {
     try {
@@ -893,81 +688,73 @@ app.get('/api/diseases/archived', async (req, res) => {
     }
 });
 
-app.put('/api/diseases/:id/archive', async (req, res) => {
-    try {
-        await db.execute(`UPDATE disease_registry SET is_archived = TRUE, status = 'Archived' WHERE id = ?`, [req.params.id]);
-        res.json({ success: true, message: 'Disease archived.' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Database error' });
-    }
-});
+app.put('/api/diseases/:id/archive', qa.archiveDisease);
 
-app.put('/api/diseases/:id/restore', async (req, res) => {
-    try {
-        await db.execute(`UPDATE disease_registry SET is_archived = FALSE, status = 'Active' WHERE id = ?`, [req.params.id]);
-        res.json({ success: true, message: 'Disease restored.' });
-    } catch (error) {
-        res.status(500).json({ success: false, error: 'Database error' });
-    }
-});
+app.put('/api/diseases/:id/restore', qa.restoreDisease);
 
 // ==========================================
 // MHO DESCRIPTIVE STATS API
 // ==========================================
 app.get('/api/mho/stats', async (req, res) => {
     try {
-        const { year, category, barangay } = req.query;
-        let query = "SELECT disease, COUNT(id) as cases FROM health_cases WHERE disease NOT LIKE '%bite%' AND disease NOT LIKE '%accident%'";
-        let params = [];
-        
-        if (year && year !== 'all') {
-            query += " AND YEAR(date_recorded) = ?";
-            params.push(year);
-        }
-        
-        if (category === 'mortality') {
-            query += " AND status = 'Deceased'";
-        } else {
-            query += " AND status != 'Deceased'";
-        }
-        
-        if (barangay && barangay !== 'all') {
-            query += " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
-            params.push(barangay);
-        }
-        
-        query += " GROUP BY disease ORDER BY cases DESC LIMIT 10";
-        
-        const [rows] = await db.execute(query, params);
-        res.json({ success: true, data: rows });
+        const filters = analyticsFilters(req.query);
+        const where = caseWhere(filters, { deathsOnly: filters.category === 'mortality' });
+        const [rows] = await db.execute(`SELECT disease, COUNT(*) as cases FROM health_cases WHERE ${where.sql} GROUP BY disease ORDER BY cases DESC, disease ASC`, where.params);
+        const [[summary]] = await db.execute(`SELECT COUNT(*) as total_cases, COALESCE(SUM(age IS NULL OR age < 0 OR age > 130),0) as unknown_age_cases, DATE_FORMAT(MIN(date_recorded),'%Y-%m-%d') as first_recorded, DATE_FORMAT(MAX(date_recorded),'%Y-%m-%d') as last_recorded FROM health_cases WHERE ${where.sql}`, where.params);
+        summary.leading_categories = rows.filter(row => row.cases === rows[0]?.cases).length;
+        res.json({ success: true, data: rows.slice(0, 10), summary, filters });
     } catch (error) {
-        console.error("Stats Error:", error);
-        res.status(500).json({ success: false, error: "Database error." });
+        if (!error.status) console.error("Stats Error:", error);
+        sendAnalyticsError(res, error);
     }
 });
 
 // ==========================================
-// PREDICTIVE ANALYTICS API (SARIMA)
+// DEMONSTRATION FORECAST API (AR(1), validation pending)
 // ==========================================
-app.get('/api/predict', (req, res) => {
+app.get('/api/predict', async (req, res) => {
     const { disease, barangay } = req.query;
-    if (!disease || !barangay) return res.status(400).json({ success: false, error: 'Disease and barangay parameters required.' });
-
-    const { spawn } = require('child_process');
-    const pythonProcess = spawn('python', [__dirname + '/analytics.py', disease, barangay]);
+    if (typeof disease !== 'string' || typeof barangay !== 'string' || !disease || !barangay || disease.length > 255 || barangay.length > 255) {
+        return res.status(400).json({ success: false, error: 'Select a disease and barangay.' });
+    }
+    try {
+        const [places]=await db.execute('SELECT name FROM barangays WHERE name=?',[barangay]);
+        const [categories]=await db.execute('SELECT disease FROM health_cases WHERE disease=? LIMIT 1',[disease]);
+        if(!places.length||!categories.length)return res.status(400).json({success:false,error:'Select an existing barangay and disease with recorded history.'});
+    } catch {return res.status(503).json({success:false,error:'Forecast selections could not be checked. Please try again.'});}
+    let pythonProcess;
+    try {
+        pythonProcess = spawn(pythonExecutable, [__dirname + '/analytics.py', disease, barangay], { windowsHide: true });
+    } catch {
+        return res.status(503).json({ success: false, error: 'Forecast engine could not start. Check the Python installation.' });
+    }
+    let finished = false;
+    const finish = (status, payload) => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        if (!res.destroyed) res.status(status).json(payload);
+    };
+    const timer = setTimeout(() => {
+        pythonProcess.kill();
+        finish(504, { success: false, error: 'Forecast timed out. Please try again.' });
+    }, 120000);
+    res.on('close', () => { if (!finished) { finished = true; clearTimeout(timer); pythonProcess.kill(); } });
+    pythonProcess.on('error', () => finish(503, { success: false, error: 'Forecast engine could not start. Check the Python installation.' }));
     
     let dataString = '';
     pythonProcess.stdout.on('data', (data) => { dataString += data.toString(); });
     pythonProcess.stderr.on('data', (data) => { console.error(`Python Error: ${data}`); });
     pythonProcess.on('close', (code) => {
         if (code !== 0) {
-            return res.status(500).json({ success: false, error: 'AI Engine Error. Check python dependencies.' });
+            return finish(503, { success: false, error: 'Forecast engine failed. Check its data and Python dependencies.' });
         }
         try {
             const predictions = JSON.parse(dataString);
-            res.json({ success: true, data: predictions });
+            if (!predictions.success) return finish(422, { success: false, error: predictions.error || 'Not enough data to generate a forecast.' });
+            finish(200, { success: true, data: predictions });
         } catch (e) {
-            res.status(500).json({ success: false, error: 'Failed to parse AI output' });
+            finish(502, { success: false, error: 'The forecast engine returned an invalid response.' });
         }
     });
 });
@@ -977,34 +764,17 @@ app.get('/api/predict', (req, res) => {
 // ==========================================
 app.get('/api/mho/kpi', async (req, res) => {
     try {
-        const { barangay } = req.query;
-        let params = [];
-        
-        let qActive = "SELECT COUNT(*) as count FROM health_cases WHERE status = 'Active'";
-        let qRecovered = "SELECT COUNT(*) as count FROM health_cases WHERE status = 'Cleared' OR status = 'Recovered'";
-        let qHighRisk = "SELECT COUNT(*) as count FROM health_cases WHERE (severity = 'High Risk' OR disease IN ('Dengue', 'Rabies', 'Typhoid', 'Measles'))";
-        
-        if (barangay && barangay !== 'all') {
-            const brgyFilter = " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
-            qActive += brgyFilter;
-            qRecovered += brgyFilter;
-            qHighRisk += brgyFilter;
-            params.push(barangay);
-        }
-        
-        const [activeRows] = await db.execute(qActive, params);
-        const [recoveredRows] = await db.execute(qRecovered, params);
-        const [riskRows] = await db.execute(qHighRisk, params);
-        
-        res.json({
-            success: true,
-            active: activeRows[0].count,
-            recovered: recoveredRows[0].count,
-            highRisk: riskRows[0].count
-        });
+        const filters = analyticsFilters(req.query);
+        const where = caseWhere(filters);
+        const [[counts]] = await db.execute(`SELECT COUNT(*) as total,
+            COALESCE(SUM(status = 'Active' AND is_archived = FALSE),0) as active,
+            COALESCE(SUM(status IN ('Cleared','Recovered')),0) as recovered,
+            COALESCE(SUM(status = 'Active' AND is_archived = FALSE AND severity = 'High Risk'),0) as highRisk
+            FROM health_cases WHERE ${where.sql}`, where.params);
+        res.json({ success: true, ...counts, filters });
     } catch (error) {
-        console.error("KPI Error:", error);
-        res.status(500).json({ success: false, error: "Database error." });
+        if (!error.status) console.error("KPI Error:", error);
+        sendAnalyticsError(res, error);
     }
 });
 
@@ -1013,20 +783,19 @@ app.get('/api/mho/kpi', async (req, res) => {
 // ==========================================
 app.get('/api/mho/yoy', async (req, res) => {
     try {
-        const { barangay } = req.query;
-        let query = "SELECT disease, SUM(CASE WHEN YEAR(date_recorded) = 2026 THEN 1 ELSE 0 END) as cases_2024, SUM(CASE WHEN YEAR(date_recorded) = 2026 THEN 1 ELSE 0 END) as cases_2025 FROM health_cases WHERE status != 'Deceased' AND disease NOT LIKE '%bite%' AND disease NOT LIKE '%accident%'";
-        let params = [];
-        if (barangay && barangay !== 'all') {
-            query += " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
-            params.push(barangay);
-        }
-        query += " GROUP BY disease ORDER BY COUNT(*) DESC LIMIT 4";
-        
-        const [rows] = await db.execute(query, params);
-        res.json({ success: true, data: rows });
+        const filters = analyticsFilters(req.query);
+        const currentYear = filters.year === 'all' ? Number(new Intl.DateTimeFormat('en', { timeZone: 'Asia/Manila', year: 'numeric' }).format(new Date())) : Number(filters.year);
+        const previousYear = currentYear - 1;
+        const where = caseWhere(filters, { includeYear: false });
+        const [rows] = await db.execute(`SELECT disease,
+            SUM(YEAR(date_recorded) = ?) as previous_cases,
+            SUM(YEAR(date_recorded) = ?) as current_cases
+            FROM health_cases WHERE ${where.sql} AND YEAR(date_recorded) IN (?,?)
+            GROUP BY disease ORDER BY COUNT(*) DESC, disease ASC LIMIT 4`, [previousYear, currentYear, ...where.params, previousYear, currentYear]);
+        res.json({ success: true, data: rows, previous_year: previousYear, current_year: currentYear, filters });
     } catch (error) {
-        console.error("YOY Error:", error);
-        res.status(500).json({ success: false, error: "Database error." });
+        if (!error.status) console.error("YOY Error:", error);
+        sendAnalyticsError(res, error);
     }
 });
 
@@ -1035,20 +804,13 @@ app.get('/api/mho/yoy', async (req, res) => {
 // ==========================================
 app.get('/api/mho/mortality', async (req, res) => {
     try {
-        const { barangay } = req.query;
-        let query = "SELECT disease, COUNT(*) as count FROM health_cases WHERE status = 'Deceased' AND YEAR(date_recorded) = 2026";
-        let params = [];
-        if (barangay && barangay !== 'all') {
-            query += " AND barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)";
-            params.push(barangay);
-        }
-        query += " GROUP BY disease ORDER BY count DESC LIMIT 5";
-        
-        const [rows] = await db.execute(query, params);
-        res.json({ success: true, data: rows });
+        const filters = analyticsFilters(req.query);
+        const where = caseWhere(filters, { deathsOnly: true });
+        const [rows] = await db.execute(`SELECT disease, COUNT(*) as count FROM health_cases WHERE ${where.sql} GROUP BY disease ORDER BY count DESC, disease ASC LIMIT 5`, where.params);
+        res.json({ success: true, data: rows, filters });
     } catch (error) {
-        console.error("Mortality Error:", error);
-        res.status(500).json({ success: false, error: "Database error." });
+        if (!error.status) console.error("Mortality Error:", error);
+        sendAnalyticsError(res, error);
     }
 });
 
@@ -1059,11 +821,11 @@ app.get('/api/mho/reports/fhsis', async (req, res) => {
     try {
         const { month, year } = req.query;
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const monthNum = months.indexOf(month) + 1;
+        const period = monthlyPeriod(month,year);
         
         const [rows] = await db.execute(
-            "SELECT disease, status, COUNT(*) as count FROM health_cases WHERE MONTH(date_recorded) = ? AND YEAR(date_recorded) = ? GROUP BY disease, status ORDER BY count DESC",
-             [monthNum, year]
+            "SELECT h.disease,h.status,d.category,COUNT(*) as count FROM health_cases h LEFT JOIN disease_registry d ON d.name=h.disease WHERE h.date_recorded>=? AND h.date_recorded<? GROUP BY h.disease,h.status,d.category ORDER BY count DESC",
+             [period.start, period.end]
         );
         
         const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -1110,7 +872,7 @@ app.get('/api/mho/reports/fhsis', async (req, res) => {
                 
                 doc.text((index + 1).toString(), 60, currentY);
                 doc.font('Helvetica-Bold').fillColor('#0284c7').text(r.disease, 110, currentY);
-                doc.font('Helvetica').fillColor('#475569').text('Morbidity', 300, currentY);
+                doc.font('Helvetica').fillColor('#475569').text(r.category ? (r.category==='mortality'?'Mortality':'Morbidity') : 'Unclassified', 300, currentY);
                 doc.text(r.status, 390, currentY);
                 doc.font('Helvetica-Bold').fillColor('#0f172a').text(r.count.toString(), 470, currentY);
                 
@@ -1139,8 +901,8 @@ app.get('/api/mho/reports/fhsis', async (req, res) => {
         doc.end();
         
     } catch (error) {
-        console.error("FHSIS Report Error:", error);
-        res.status(500).json({ success: false, error: "Report generation failed." });
+        if(!error.status) console.error("FHSIS Report Error:", error.code || error.name);
+        respond(res,error,"Report generation failed.");
     }
 });
 
@@ -1149,16 +911,16 @@ app.get('/api/mho/reports/fhsis', async (req, res) => {
 // ==========================================
 app.get('/api/mho/reports/pidsr', async (req, res) => {
     try {
-        const { week } = req.query; // e.g., 'Morbidity Week 40'
-        const weekNum = parseInt(week.replace(/[^0-9]/g, '')) || 40;
+        const period=isoWeekPeriod(req.query.week,req.query.year);
+        const weekNum=period.week;
         
         const [rows] = await db.execute(
-            "SELECT disease, barangay_id, status, date_recorded FROM health_cases WHERE WEEK(date_recorded, 1) = ? AND status = 'Active' ORDER BY date_recorded DESC",
-             [weekNum]
+            "SELECT disease, barangay_id, status, severity, date_recorded FROM health_cases WHERE date_recorded>=? AND date_recorded<? ORDER BY date_recorded DESC",
+             [period.start,period.end]
         );
         
         const doc = new PDFDocument({ margin: 50, size: 'A4' });
-        res.setHeader('Content-disposition', "attachment; filename=PIDSR_Week_" + weekNum + "_Report.pdf");
+        res.setHeader('Content-disposition', "attachment; filename=PIDSR_" + period.year + "_Week_" + weekNum + "_Report.pdf");
         res.setHeader('Content-type', 'application/pdf');
         
         doc.pipe(res);
@@ -1174,11 +936,11 @@ app.get('/api/mho/reports/pidsr', async (req, res) => {
         doc.moveDown(1);
         
         doc.fontSize(14).font('Helvetica-Bold').fillColor('#0f172a').text("WEEKLY SURVEILLANCE REPORT", { align: 'center' });
-        doc.fontSize(11).font('Helvetica').fillColor('#64748b').text("Morbidity Week " + weekNum + ", CY 2025", { align: 'center' });
+        doc.fontSize(11).font('Helvetica').fillColor('#64748b').text("Week " + weekNum + ", " + period.year + " (Monday-Sunday)", { align: 'center' });
         doc.moveDown(2);
         
         if (rows.length === 0) {
-            doc.fontSize(12).font('Helvetica-Oblique').fillColor('#10b981').text("Status: CLEAR. No active surveillance cases recorded for Week " + weekNum + ".", { align: 'center' });
+            doc.fontSize(12).font('Helvetica-Oblique').fillColor('#10b981').text("No case records found for the selected week. Reporting completeness is not established.", { align: 'center' });
         } else {
             let startY = doc.y;
             doc.rect(50, startY - 5, 495, 25).fill('#fef2f2');
@@ -1186,7 +948,7 @@ app.get('/api/mho/reports/pidsr', async (req, res) => {
             doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11);
             doc.text('Date Recorded', 60, startY);
             doc.text('Target Disease', 180, startY);
-            doc.text('Action Level', 340, startY);
+            doc.text('Recorded Severity', 340, startY);
             doc.text('Status', 450, startY);
             
             doc.moveDown(1.5);
@@ -1201,8 +963,7 @@ app.get('/api/mho/reports/pidsr', async (req, res) => {
                 doc.text(dateStr, 60, currentY);
                 doc.font('Helvetica-Bold').fillColor('#ef4444').text(r.disease, 180, currentY);
                 
-                let actionLevel = "Monitored";
-                if (['Dengue', 'Cholera', 'Measles', 'Typhoid Fever'].includes(r.disease)) actionLevel = "High Risk";
+                let actionLevel = r.severity || 'Not recorded';
                 
                 doc.font('Helvetica-Oblique').fillColor(actionLevel === 'High Risk' ? '#dc2626' : '#ea580c').text(actionLevel, 340, currentY);
                 doc.font('Helvetica-Bold').fillColor('#ef4444').text(r.status, 450, currentY);
@@ -1213,7 +974,7 @@ app.get('/api/mho/reports/pidsr', async (req, res) => {
             let finalY = doc.y;
             doc.moveTo(50, finalY - 5).lineTo(545, finalY - 5).lineWidth(1.5).strokeColor('#ef4444').stroke();
             doc.rect(50, finalY, 495, 25).fill('#fff1f2');
-            doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11).text('TOTAL OUTBREAK ALERTS', 60, finalY + 7);
+            doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11).text('TOTAL RECORDED CASES', 60, finalY + 7);
             doc.text(rows.length.toString(), 450, finalY + 7);
         }
         
@@ -1227,74 +988,44 @@ app.get('/api/mho/reports/pidsr', async (req, res) => {
         doc.end();
         
     } catch (error) {
-        console.error("PIDSR Report Error:", error);
-        res.status(500).json({ success: false, error: "Report generation failed." });
+        if(!error.status) console.error("PIDSR Report Error:", error.code || error.name);
+        respond(res,error,"Report generation failed.");
     }
 });
 
 // ==========================================
 // SUPERADMIN: SECURE DATABASE BACKUP (ZIPPED)
 // ==========================================
-app.get('/api/superadmin/backup', async (req, res) => {
+let backupInProgress = false;
+app.post('/api/superadmin/backup', async (req, res) => {
+    const password = req.body.password;
+    if (typeof password !== 'string' || password.length < 12 || password.length > 128) {
+        return res.status(400).json({ success: false, error: 'Choose a backup password between 12 and 128 characters.' });
+    }
+    if (backupInProgress) return res.status(409).json({ success: false, error: 'A backup is already being generated. Please wait.' });
+    backupInProgress = true;
+    let dump;
+    const cancellation = new AbortController();
+    res.on('close', () => { if (!res.writableEnded) cancellation.abort(); });
     try {
-        const archiver = require('archiver');
-        try {
-            archiver.registerFormat('zip-encrypted', require('archiver-zip-encrypted'));
-        } catch (e) {
-            // Ignore "format already registered" error
-        }
-
-        const filename = 'health_intel_backup_' + Date.now() + '.zip';
-        const sqlFilename = 'health_intel_backup.sql';
-
-        const [users] = await db.execute('SELECT COUNT(*) as c FROM users');
-        const [cases] = await db.execute('SELECT COUNT(*) as c FROM health_cases');
-
-        const dumpContent = `-- MySQL dump 10.13
--- Host: localhost    Database: health_intel
--- Server version       8.0.36
-
---
--- Table structure for table users
---
--- Total users backed up: ${users[0].c}
-
---
--- Table structure for table health_cases
---
--- Total health cases backed up: ${cases[0].c}
-
--- Dump completed on ${new Date().toISOString()}
-`;
-
-        res.setHeader('Content-disposition', 'attachment; filename=' + filename);
-        res.setHeader('Content-type', 'application/zip');
-
-        // Create an encrypted zip archive
-        const archive = archiver('zip-encrypted', {
-            zlib: { level: 9 }, // Maximum compression
-            encryptionMethod: 'aes256', // Strong encryption
-            password: '123'
-        });
-
-        // Send the archive stream directly to the client
-        archive.pipe(res);
-        
-        // Append the SQL dump string as a file inside the zip
-        archive.append(dumpContent, { name: sqlFilename });
-        
-        await archive.finalize();
-
-        await db.execute('INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, ?, ?, ?)', ['SYS-ADMIN-00', 'Superadmin', 'Executed Secure Database Backup', 'Downloaded AES-256 encrypted SQL dump.']);
+        dump = await createDatabaseDump(dbConfig, { signal: cancellation.signal });
+        await db.execute('INSERT INTO system_audit_logs (user_id, role, action, details) VALUES (?, ?, ?, ?)',
+            [req.user.system_id, 'Superadmin', 'Database Backup Generated', 'Generated a complete AES-256 encrypted database dump.']);
+        res.setHeader('Content-Disposition', 'attachment; filename="health_intel_backup_' + Date.now() + '.zip"');
+        res.setHeader('Content-Type', 'application/zip');
+        await sendEncryptedBackup(res, dump.filename, password);
     } catch (error) {
-        console.error("Backup Error:", error);
-        res.status(500).json({ success: false, error: 'Backup failed: ' + error.message, stack: error.stack });
+        console.error('Backup failed:', error.code || error.message);
+        if (!res.headersSent && !res.destroyed) res.status(500).json({ success: false, error: 'Backup failed. Check the MySQL dump utility and database connection.' });
+        else if (!res.destroyed) res.destroy();
+    } finally {
+        try { if (dump) await dump.cleanup(); } finally { backupInProgress = false; }
     }
 });
 
-// ==========================================
-// START SERVER
-// ==========================================
-app.listen(3000, () => {
-    console.log('HEALTH-INTEL Server running on http://localhost:3000');
-});
+if (require.main === module) {
+    app.listen(Number(process.env.PORT || 3000), () => {
+        console.log('HEALTH-INTEL server is ready.');
+    });
+}
+module.exports = { app, db, dbConfig };

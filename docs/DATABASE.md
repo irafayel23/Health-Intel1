@@ -1,72 +1,44 @@
-# Database Design (MySQL)
+# Active database schema
 
-## Schema Definition
-The core schema is defined below. 
-> [!WARNING]
-> See `CHANGELOG.md` regarding discrepancies between this official schema and the prototype Node.js server.
+Observed from `health_intel` on 27 September 2026. This describes the current database rather than an unimplemented design. Phase 2 preserved all eight table structures. The later QA fixes added two generated columns and two unique indexes; no historical patient data was rewritten.
 
-### 1. `users` (Identity & Access Management)
-Stores all personnel (BHW, MHO, Admins).
-```sql
-CREATE TABLE users (
-    system_id VARCHAR(50) PRIMARY KEY, -- e.g., 'SYS-1001'
-    employee_hr_id VARCHAR(50) UNIQUE NOT NULL,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    role ENUM('BHW', 'MHO', 'LGU Admin', 'Super Admin') NOT NULL,
-    assigned_barangay VARCHAR(100) NULL, -- Null for MHO/Admins
-    status ENUM('Pending', 'Active', 'Suspended', 'Archived') DEFAULT 'Pending',
-    password_hash VARCHAR(255) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
+| Table | Main fields and purpose |
+|---|---|
+| barangays | id, name, latitude, longitude; configured geographic reference |
+| users | system_id PK, first_name, last_name, role, barangay_id, password_hash, status, email, employee_id, created_at, qa_email_key (generated) |
+| residents | id PK, first_name, last_name, patient_name, birthdate, age, purok, barangay_id, created_at |
+| health_cases | id PK, resident_id, first_name, last_name, patient_name, birthdate, age, purok, disease, remarks, barangay_id, encoded_by, status, severity, date_recorded, created_at, updated_at, deleted_at, is_archived |
+| disease_registry | id PK, name, category, classification, status, deleted_at, is_archived, qa_name_key (generated) |
+| password_resets | id PK, email, token, expires_at |
+| system_audit_logs | id PK, user_id, role, action, details, timestamp |
+| predictions | id PK, barangay_id, disease_id, predicted_date, predicted_cases, confidence_lower_bound, confidence_upper_bound, generated_at |
 
-### 2. `disease_registry` (Master Reference)
-The centralized list of valid diseases.
-```sql
-CREATE TABLE disease_registry (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(150) UNIQUE NOT NULL,
-    category ENUM('Morbidity', 'Mortality') NOT NULL,
-    classification ENUM('Standard', 'High Risk') NOT NULL,
-    is_archived BOOLEAN DEFAULT FALSE,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
+Users have role values `bhw`, `mho`, `admin`, `superadmin`, and status values `pending`, `approved`, `denied`, `suspended`. Cases have status `Active`, `Cleared`, `Deceased`, and severity `Mild`, `Monitored`, `High Risk`. Disease registry category is `morbidity` or `mortality`; classification is a varchar, and status is `Active` or `Archived`.
 
-### 3. `patient_records` (Transactional Data)
-Stores individual health encodings submitted by BHWs.
-```sql
-CREATE TABLE patient_records (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    birthdate DATE NOT NULL,
-    age INT NOT NULL,
-    barangay VARCHAR(100) NOT NULL,
-    purok VARCHAR(100) NOT NULL,
-    disease VARCHAR(150) NOT NULL, -- Matched to disease_registry.name
-    remarks TEXT NULL,
-    status ENUM('Active', 'Cleared') DEFAULT 'Active',
-    is_archived BOOLEAN DEFAULT FALSE,
-    encoded_by VARCHAR(50) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (encoded_by) REFERENCES users(system_id)
-);
-```
+Barangays: Blumentritt, Salvacion, Minoyan, Caliban, Cansilayan, Alegria and Sta. Rosa.
 
-### 4. `audit_logs` (Security)
-Append-only ledger automatically recording who did what and when.
-```sql
-CREATE TABLE audit_logs (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id VARCHAR(50) NOT NULL,
-    role VARCHAR(50) NOT NULL,
-    action VARCHAR(150) NOT NULL,
-    details TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    -- No strict foreign key for user_id to retain history if user is deleted.
-);
-```
+## Relationships and dates
+
+Users and residents refer to barangays. Health cases refer to barangays, resident profiles and the encoding user. The predictions design refers to a barangay and disease registry ID. Nullable legacy resident links remain possible.
+
+The QA migration generates `qa_email_key = NULLIF(LOWER(TRIM(email)), '')` and `qa_name_key = NULLIF(LOWER(TRIM(name)), '')`. Unique indexes `uq_users_email_key` and `uq_registry_name_key` prevent duplicates regardless of surrounding spaces or letter case, using the installed table collation. Null/blank legacy emails are allowed. Applications never supply generated values. Archived disease names remain reserved; restore an existing category rather than creating a second copy. The migration first checks for duplicates and stops for review if any exist.
+
+`date_recorded` is the case date used for monthly aggregation. `created_at` is the time the database row was inserted and may reflect an import rather than disease occurrence. New BHW encoding requires a valid case date and explicit severity. Case age is calculated at that date; a newly created resident profile age is calculated for today. Existing resident ages are stored values and may become stale.
+
+New case creation checks matching names, birthdate, disease, date and barangay for possible duplicates. Resident linking additionally matches purok and refuses multiple matching profiles. This is conservative matching, not a guaranteed unique person identifier. Old cases with missing resident links remain unresolved and require reviewed source matching.
+
+## Review and security
+
+Historical disease strings still do not all match registry names. Existing historical names remain selectable unless explicitly archived; new unknown categories must first be registered by Admin. The preparation CLI requires active disease names or explicitly reviewed aliases for its monthly preview. It never rewrites historical names.
+
+The case table still has no real/synthetic provenance field. Separate preparation outputs record source type, source reference and input SHA-256; these are not migrations or independent proof of authenticity.
+
+Password reset `token` now holds `v1:<HMAC-SHA256>:<failed-attempt-count>`; the emailed six-digit code is not stored in plaintext. Expiry remains in `expires_at`. The format fits the existing varchar(255), so no column change was needed. Audit entries are application logs rather than a tamper-proof database ledger.
+
+The predictions table is currently unused by the live forecast endpoint. Reliable future forecast tracking also needs model version, training cutoff, source snapshot and forecast horizon; that migration is deferred.
+
+## Audited case correction (27 September 2026)
+
+No tables or columns were added in this batch. Authorized corrections update only `health_cases.date_recorded`, `disease`, `severity` and `age`. A `Case Corrected` audit entry stores JSON with `case_id`, `reason`, `before` and `after`; each value snapshot contains these four fields. Admin and Superadmin audit screens display readable differences and escape their text. Saving the case and audit entry is atomic; an audit failure rolls back the change.
+
+Corrections lock the barangay before the case, check for duplicate resident/disease/date combinations (including full-name/birthdate matches), and compare a version hash to reject stale edits. They never populate a missing resident link or guess an absent birthdate/case date. Existing notes and status remain intact. Cases with insufficient identity information need reviewed source matching before date or disease correction. These checks support record review; names and dates do not guarantee unique personal identity.

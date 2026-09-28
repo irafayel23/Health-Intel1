@@ -1,10 +1,14 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script src="assets/js/api-session.js"></script>
+    <script src="assets/js/safe-text.js"></script>
+    <script src="assets/js/case-corrections.js"></script>
     <meta charset="UTF-8" />
     <title>HEALTH-INTEL | Admin Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="assets/css/mho.css" />
+    <link rel="stylesheet" href="assets/css/health-dialogs.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -76,7 +80,7 @@
             <i data-lucide="users-round" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">User Management</span>
           </button>
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-data" onclick="switchMainView('view-data', 'nav-data')">
-            <i data-lucide="database" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Master Records</span>
+            <i data-lucide="database" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Patient Records</span>
           </button>
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-brandBlue [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-diseases" onclick="switchMainView('view-diseases', 'nav-diseases')">
             <i data-lucide="clipboard-list" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Disease Registry</span>
@@ -199,7 +203,7 @@
           <!-- 2. MASTER RECORD DATABASE (PATIENTS) -->
           <!-- ============================================== -->
           <div id="view-data" class="view-section">
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Master Record Database</h1>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Patient Records</h1>
             <p class="text-slate-500 dark:text-slate-400 mb-6">Centralized oversight of all patient encodings by BHWs.</p>
 
             <div class="white-panel">
@@ -298,11 +302,11 @@
           <div id="view-diseases" class="view-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
               <div>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Master Disease Registry</h1>
-                <p class="text-slate-500 dark:text-slate-400 mt-1">Manage the standardized list of diseases stored in the database.</p>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Disease / Case Registry</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Manage case-encoding categories. Some historical labels describe symptoms or broad case groups and need clinical review.</p>
               </div>
               <button onclick="openDiseaseModal()" style="background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="plus-circle" style="width: 18px"></i> Add New Disease
+                <i data-lucide="plus-circle" style="width: 18px"></i> Add Disease / Case
               </button>
             </div>
 
@@ -317,7 +321,7 @@
                   <table>
                     <thead>
                       <tr>
-                        <th>Disease Name</th>
+                        <th>Disease / Case Name</th>
                         <th>Category</th>
                         <th>Classification</th>
                         <th>Status</th>
@@ -334,7 +338,7 @@
                   <table>
                     <thead>
                       <tr>
-                        <th>Disease Name</th>
+                        <th>Disease / Case Name</th>
                         <th>Category</th>
                         <th>Classification</th>
                         <th>Status</th>
@@ -354,8 +358,8 @@
           <div id="view-audit" class="view-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
               <div>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Immutable Audit Trail</h1>
-                <p class="text-slate-500 dark:text-slate-400 mt-1">Permanent ledger of all system actions and modifications.</p>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">System Audit Trail</h1>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">Recorded account actions and patient record changes.</p>
               </div>
               <button onclick="loadAuditLogs()" class="bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 px-4 py-2 rounded-md font-bold flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700">
                 <i data-lucide="refresh-cw" style="width: 16px"></i> Refresh Ledger
@@ -414,14 +418,14 @@
         </div>
         <div class="p-6 flex flex-col gap-4 bg-white dark:bg-slate-900">
           <div>
-            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Disease Name</label>
+            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Disease / Case Name</label>
             <input type="text" id="new_disease_name" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800" placeholder="e.g. Typhoid Fever" />
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Category</label>
             <select id="new_disease_cat" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800">
-              <option value="Morbidity">Morbidity (Sickness)</option>
-              <option value="Mortality">Mortality (Death)</option>
+              <option value="morbidity">Morbidity (Sickness)</option>
+              <option value="mortality">Mortality (Death)</option>
             </select>
           </div>
           <div>
@@ -443,6 +447,8 @@
     <!-- JAVASCRIPT -->
     <!-- ============================================== -->
     <script>
+      function escapeText(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
       lucide.createIcons();
       function toggleAdminTheme() {
           const html = document.documentElement;
@@ -506,13 +512,13 @@
             pData.data.forEach((u) => {
               pTableHtmlBuffer += `
                 <tr>
-                  <td><strong>${u.system_id}</strong></td>
-                  <td>${u.first_name} ${u.last_name}</td>
-                  <td>${u.employee_id || 'N/A'}</td>
+                  <td><strong>${escapeText(u.system_id)}</strong></td>
+                  <td>${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
+                  <td>${escapeText(u.employee_id || 'N/A')}</td>
                   <td><span style="background:#fef08a; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#854d0e; font-weight:bold;">PENDING</span></td>
                   <td>
-                    <button style="background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="approveUserDirectly('${u.system_id}')">Approve</button> 
-                    <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px;" onclick="denyUser('${u.system_id}')">Deny</button>
+                    <button style="background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="approveUserDirectly(${escapeText(JSON.stringify(u.system_id))})">Approve</button>
+                    <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px;" onclick="denyUser(${escapeText(JSON.stringify(u.system_id))})">Deny</button>
                   </td>
                 </tr>
               `;
@@ -538,13 +544,13 @@
             aData.data.forEach((u) => {
               aTableHtmlBuffer += `
                 <tr>
-                  <td><strong>${u.system_id}</strong></td>
-                  <td>${u.first_name} ${u.last_name}</td>
+                  <td><strong>${escapeText(u.system_id)}</strong></td>
+                  <td>${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
                   <td style="text-transform: uppercase;">${u.role}</td>
                   <td>${u.assigned_barangay || 'Municipality'}</td>
                   <td><span style="background:#dcfce7; color:#16a34a; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">ACTIVE</span></td>
                   <td>
-                    <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="suspendUser('${u.system_id}')">Suspend Access</button>
+                    <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="suspendUser(${escapeText(JSON.stringify(u.system_id))})">Suspend Access</button>
                   </td>
                 </tr>
               `;
@@ -573,16 +579,16 @@
               
               if (u.status === 'suspended') {
                 badgeHTML = `<span style="background:#fee2e2; color:#b91c1c; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">ACCESS SUSPENDED</span>`;
-                btnHTML = `<button style="background:#e0f2fe; color:#0369a1; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="restoreSuspended('${u.system_id}')">Restore Access</button>`;
+                btnHTML = `<button style="background:#e0f2fe; color:#0369a1; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="restoreSuspended(${escapeText(JSON.stringify(u.system_id))})">Restore Access</button>`;
               } else {
                 badgeHTML = `<span style="background:#fef3c7; color:#b45309; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">DENIED REGISTRATION</span>`;
-                btnHTML = `<button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="undoDeny('${u.system_id}')">Re-evaluate</button>`;
+                btnHTML = `<button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="undoDeny(${escapeText(JSON.stringify(u.system_id))})">Re-evaluate</button>`;
               }
 
               dTableHtmlBuffer += `
                 <tr>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${u.system_id}</td>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${u.first_name} ${u.last_name}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(u.system_id)}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
                   <td>${badgeHTML}</td>
                   <td>${btnHTML}</td>
                 </tr>
@@ -616,7 +622,7 @@
               });
               const data = await res.json();
               if (data.success) {
-                Swal.fire("Success", data.message, "success");
+                Swal.fire(data.email_delivery==='sent' ? 'Approved' : 'Approved — check email', data.message, data.email_delivery==='sent' ? 'success' : 'info');
                 loadUsers();
               } else {
                 Swal.fire("Error", data.error || "Failed to approve account.", "error");
@@ -680,6 +686,8 @@
         }
       }
 
+      window.addEventListener('health-intel:case-corrected', () => { fetchPatientRecords(); loadAuditLogs(); });
+
       function renderPatientTable(data) {
         const tbody = document.getElementById("patient-table-body");
         tbody.innerHTML = "";
@@ -698,17 +706,18 @@
           tbodyHtmlBuffer += `
             <tr>
               <td class="font-bold">#REC-${p.id}</td>
-              <td><strong>${p.patient_name || p.first_name + " " + p.last_name}</strong></td>
+              <td><strong>${escapeText(p.patient_name || p.first_name + " " + p.last_name)}</strong></td>
               <td>${p.age || "N/A"}</td>
-              <td style="color:${c}; font-weight:bold;">${p.disease || "Unknown"}</td>
-              <td>${p.barangay_name || p.purok || "Unknown"}</td>
-              <td><span style="color:${statusColor}; font-weight:bold;">${statusText}</span></td>
+              <td style="color:${c}; font-weight:bold;">${escapeText(p.disease || "Unknown")}</td>
+              <td>${escapeText(p.barangay_name || p.purok || "Unknown")}</td>
+              <td><span style="color:${statusColor}; font-weight:bold;">${escapeText(statusText)}</span></td>
               
-              <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${encodedBy}</td>
+              <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${escapeText(encodedBy)}</td>
               <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${timeString}</td>
               
               <td>
                 <button style="border:1px solid #ef4444; background:transparent; color:#ef4444; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="archivePatient(${p.id})">Archive</button>
+                <button class="rounded border border-sky-600 px-2 py-1 text-sky-600" onclick="HealthIntelCorrections.open(${p.id})">Correct</button>
               </td>
             </tr>
           `;
@@ -763,13 +772,13 @@
               tbodyHtmlBuffer += `
                 <tr>
                   <td class="font-bold">#REC-${p.id}</td>
-                  <td><strong>${p.patient_name || p.first_name + " " + p.last_name}</strong></td>
+                  <td><strong>${escapeText(p.patient_name || p.first_name + " " + p.last_name)}</strong></td>
                   <td>${p.age || "N/A"}</td>
-                  <td class="font-bold">${p.disease || "Unknown"}</td>
-                  <td>${p.barangay_name || p.purok || "Unknown"}</td>
+                  <td class="font-bold">${escapeText(p.disease || "Unknown")}</td>
+                  <td>${escapeText(p.barangay_name || p.purok || "Unknown")}</td>
                   <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td>
                   
-                  <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${encodedBy}</td>
+                  <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${escapeText(encodedBy)}</td>
                   <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${timeString}</td>
 
                   <td><button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="restorePatient(${p.id})">Restore</button></td>
@@ -842,9 +851,9 @@
               let classColor = d.classification === "High Risk" ? "color: #ef4444; background: #fee2e2;" : "color: #0284c7; background: #e0f2fe;";
               actBodyHtmlBuffer += `
                 <tr>
-                  <td class="font-bold text-slate-900 dark:text-slate-100">${d.name}</td>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${d.category}</td>
-                  <td><span style="${classColor} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">${d.classification}</span></td>
+                  <td class="font-bold text-slate-900 dark:text-slate-100">${escapeText(d.name)}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.category)}</td>
+                  <td><span style="${classColor} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">${escapeText(d.classification)}</span></td>
                   <td class="text-emerald-500 dark:text-emerald-400 font-bold">Active</td>
                   <td><button onclick="archiveDisease(${d.id})" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">Archive</button></td>
                 </tr>
@@ -870,9 +879,9 @@
             arcData.data.forEach((d) => {
               arcBodyHtmlBuffer += `
                 <tr>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${d.name}</td>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${d.category}</td>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${d.classification}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.name)}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.category)}</td>
+                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.classification)}</td>
                   <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td>
                   <td><button onclick="restoreDisease(${d.id})" style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">Restore</button></td>
                 </tr>
@@ -904,6 +913,7 @@
         };
         if (!payload.name) return;
 
+        try {
         await fetch("http://localhost:3000/api/diseases", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -912,6 +922,8 @@
         closeModal("diseaseModal");
         Swal.fire({ icon: "success", title: "Saved to Database", showConfirmButton: false, timer: 1500 });
         loadDiseases();
+        } catch(error) { Swal.fire({icon:'error',title:'Disease not saved',text:error.message || 'Please check the form and try again.'}); }
+
       }
 
       async function archiveDisease(id) {
@@ -1001,10 +1013,10 @@
           tbodyHtmlBuffer += `
             <tr >
               <td class="whitespace-nowrap font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${date}</td>
-              <td class="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100">${log.user_id}</td>
-              <td class="whitespace-nowrap"><span style="${badgeClass} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; text-transform:uppercase;">${log.role}</span></td>
-              <td class="whitespace-nowrap text-sky-500 dark:text-sky-400 font-bold">${log.action}</td>
-              <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.9rem]">${log.details}</td>
+              <td class="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100">${escapeText(log.user_id)}</td>
+              <td class="whitespace-nowrap"><span style="${badgeClass} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; text-transform:uppercase;">${escapeText(log.role)}</span></td>
+              <td class="whitespace-nowrap text-sky-500 dark:text-sky-400 font-bold">${escapeText(log.action)}</td>
+              <td class="whitespace-pre-line font-medium text-slate-700 dark:text-slate-300 text-[0.9rem]">${escapeText(HealthIntelText.auditDetails(log))}</td>
             </tr>
           `;
         });

@@ -5,13 +5,22 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 import warnings
 import json
 import sys
-import random
+import os
 
 warnings.filterwarnings("ignore") 
 
+def connect_database():
+    return mysql.connector.connect(
+        host=os.getenv('DB_HOST', 'localhost'),
+        port=int(os.getenv('DB_PORT', '3306')),
+        user=os.getenv('DB_USER', 'root'),
+        password=os.getenv('DB_PASSWORD', ''),
+        database=os.getenv('DB_NAME', 'health_intel')
+    )
+
 def fetch_disease_data(disease_name):
     try:
-        db = mysql.connector.connect(host="localhost", user="root", password="", database="health_intel")
+        db = connect_database()
         cursor = db.cursor(dictionary=True)
         query = """
             SELECT DATE_FORMAT(date_recorded, '%Y-%m-01') as month_date, COUNT(id) as total_cases 
@@ -37,40 +46,30 @@ def fetch_disease_data(disease_name):
         print(json.dumps({"error": str(e)}))
         sys.exit(1)
 
-def run_sarima_with_testing(df):
+def run_ar1_demonstration(df):
     data = df['total_cases']
     
     split_index = int(len(data) * 0.8)
     train_data = data.iloc[:split_index]
     test_data = data.iloc[split_index:]
     
-    # Simple SARIMA fit
+    # Non-seasonal AR(1). This demonstration is not a validated SARIMA model.
     model_test = SARIMAX(train_data, order=(1, 0, 0), enforce_stationarity=False, enforce_invertibility=False)
     fitted_test = model_test.fit(disp=False)
     
     test_predictions = fitted_test.get_forecast(steps=len(test_data)).predicted_mean
     test_predictions = np.maximum(test_predictions, 0)
     
-    try:
-        # Calculate real error but bound it for the dummy data presentation
-        # Since dummy data is random, pure math gives 0%. We map the variance to a realistic 88-96% scope
-        # to prove the UI works for the panel.
-        variance_factor = np.var(test_data)
-        random.seed(int(variance_factor * 100)) # Seed it so it's consistent for the same data
-        accuracy_percentage = round(random.uniform(88.5, 96.2), 1)
-    except:
-        accuracy_percentage = 94.0 
-
     # Final forecast
     model_final = SARIMAX(data, order=(1, 0, 0), enforce_stationarity=False, enforce_invertibility=False)
     fitted_final = model_final.fit(disp=False)
     future_forecast = fitted_final.get_forecast(steps=3).predicted_mean
     future_forecast = np.maximum(future_forecast, 0)
     
-    return future_forecast, accuracy_percentage, train_data, test_data, test_predictions
+    return future_forecast, train_data, test_data, test_predictions
 
-def calculate_barangay_forecast(municipal_predictions, barangay_name, disease_name):
-    db = mysql.connector.connect(host="localhost", user="root", password="", database="health_intel")
+def calculate_barangay_forecast(municipal_predictions, barangay_name, disease_name, monthly_index):
+    db = connect_database()
     cursor = db.cursor(dictionary=True)
     cursor.execute("SELECT COUNT(id) as total FROM health_cases WHERE disease = %s", (disease_name,))
     total_mun = cursor.fetchone()['total']
@@ -80,11 +79,19 @@ def calculate_barangay_forecast(municipal_predictions, barangay_name, disease_na
         WHERE h.disease = %s AND b.name = %s
     """, (disease_name, barangay_name))
     total_brgy = cursor.fetchone()['total']
+    cursor.execute("""
+        SELECT DATE_FORMAT(h.date_recorded, '%Y-%m-01') as month_date, COUNT(h.id) as total_cases
+        FROM health_cases h JOIN barangays b ON h.barangay_id = b.id
+        WHERE h.disease = %s AND b.name = %s AND h.date_recorded IS NOT NULL
+        GROUP BY month_date ORDER BY month_date
+    """, (disease_name, barangay_name))
+    local_counts = {pd.Timestamp(row['month_date']): row['total_cases'] for row in cursor.fetchall()}
+    historical_cases = [int(local_counts.get(month, 0)) for month in monthly_index]
     db.close()
     
     barangay_weight = total_brgy / total_mun if total_mun > 0 else 0
     brgy_predictions = municipal_predictions * barangay_weight
-    return brgy_predictions.round(0).tolist()
+    return brgy_predictions.round(0).tolist(), historical_cases
 
 if __name__ == "__main__":
     if len(sys.argv) >= 3:
@@ -94,12 +101,11 @@ if __name__ == "__main__":
         df_municipal = fetch_disease_data(target_disease)
         
         if df_municipal is not None:
-            mun_preds, accuracy, train, test, t_preds = run_sarima_with_testing(df_municipal)
-            brgy_preds = calculate_barangay_forecast(mun_preds, target_barangay, target_disease)
+            mun_preds, train, test, t_preds = run_ar1_demonstration(df_municipal)
+            brgy_preds, historical_cases = calculate_barangay_forecast(mun_preds, target_barangay, target_disease, df_municipal.index)
             
             # Combine historical and future dates for graphing
             dates = [d.strftime('%Y-%m') for d in df_municipal.index]
-            historical_cases = df_municipal['total_cases'].tolist()
             
             # Future dates
             last_date = df_municipal.index[-1]
@@ -109,7 +115,11 @@ if __name__ == "__main__":
                 "success": True,
                 "disease": target_disease,
                 "barangay": target_barangay,
-                "accuracy_percentage": accuracy,
+                "model_name": "AR(1)",
+                "validation_status": "pending",
+                "forecast_method": "Municipal AR(1) forecast allocated using historical barangay share",
+                "historical_scope": "selected_barangay",
+                "forecast_horizon_months": 3,
                 "dates": dates + future_dates,
                 "historical": historical_cases,
                 "forecast": [None]*len(historical_cases) + brgy_preds

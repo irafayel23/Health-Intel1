@@ -352,8 +352,40 @@ div.swal2-container {
   background: rgba(15, 23, 42, 0.7) !important;
 }
 
-body.swal2-height-auto {
+/* SweetAlert may reset body height; keep the portal anchored to the viewport. */
+html body.swal2-height-auto,
+html body.swal2-shown {
   height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+}
+body > #sidebar,
+body > main {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+
+/* Keep long pages scrollable without a permanent dashboard scrollbar. */
+.bhw-page-scroll {
+  scrollbar-width: none;
+}
+.bhw-page-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smaller scrollbars remain available in dialogs and the sidebar. */
+body :is(.nav-menu, .swal2-html-container, .swal2-popup, .heatmap-info-panel) {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 transparent;
+}
+body :is(.nav-menu, .swal2-html-container, .swal2-popup, .heatmap-info-panel)::-webkit-scrollbar {
+  width: 6px;
+}
+body :is(.nav-menu, .swal2-html-container, .swal2-popup, .heatmap-info-panel)::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 6px;
 }
 
 /* Dark Mode Fixes */

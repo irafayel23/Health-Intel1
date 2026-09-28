@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script src="assets/js/api-session.js"></script>
+    <script src="assets/js/case-corrections.js"></script>
+    <script src="assets/js/date-format.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BHW Portal | HEALTH-INTEL</title>
@@ -28,6 +31,8 @@
     
     <!-- Separated CSS -->
     <link rel="stylesheet" href="assets/css/bhw.css" />
+    <link rel="stylesheet" href="assets/css/health-map.css" />
+    <link rel="stylesheet" href="assets/css/health-dialogs.css" />
 
     <!-- Map Libraries -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -76,7 +81,7 @@
       <div class="p-4">
         <a href="index.html" class="nav-item sign-out group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:translate-x-1 transition-all duration-300">
           <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:-translate-x-1"></i>
-          <span class="sidebar-label whitespace-nowrap">Log Out</span></a><div class="mt-4 text-center flex justify-center"><a href="#" onclick="showTerms(event)" class="sidebar-label text-[10px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors whitespace-nowrap">&copy; 2026 Health-Intel &bull; Terms &amp; Privacy</a></div>
+          <span class="sidebar-label whitespace-nowrap">Log Out</span></a><div class="mt-4 text-center flex justify-center"><a href="#" onclick="showTerms(event)" class="sidebar-label text-[10px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors whitespace-nowrap">&copy; 2026 Health-Intel &bull; Terms &amp; Recognitions</a></div>
       </div>
     </aside>
 
@@ -112,7 +117,7 @@
       </header>
 
       <!-- Scrollable Content Area -->
-      <div class="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
+      <div class="bhw-page-scroll flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
         
         <!-- DASHBOARD VIEW -->
         <div id="view-dashboard" class="view-section block animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -125,7 +130,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-1.5 transition-all duration-300 cursor-default group">
               <div class="flex items-center justify-between pb-3">
-                <span class="text-sm font-medium text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--foreground))] transition-colors">Total Patients</span>
+                <span class="text-sm font-medium text-[hsl(var(--muted-foreground))] group-hover:text-[hsl(var(--foreground))] transition-colors">Recorded Cases</span>
                 <div class="p-2 rounded-lg bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300 group-hover:scale-110">
                   <i data-lucide="users" class="w-5 h-5"></i>
                 </div>
@@ -169,28 +174,28 @@
             
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm flex flex-col hover:shadow-md transition-shadow">
               <h3 class="font-semibold mb-6 text-[hsl(var(--foreground))] flex items-center gap-2 text-lg">
-                <i data-lucide="pie-chart" class="w-5 h-5 text-blue-500"></i> Disease Status Breakdown
+                <i data-lucide="pie-chart" class="w-5 h-5 text-blue-500"></i> Case Status &amp; Recorded Severity
               </h3>
               <div class="grid grid-cols-2 gap-4 flex-1">
                 <div class="rounded-xl border border-[hsl(var(--border))] p-5 flex flex-col justify-center items-center text-center hover:bg-[hsl(var(--muted))] hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md">
                   <div id="bd-cleared" class="text-3xl font-bold text-[hsl(var(--foreground))]">...</div>
                   <div class="text-sm font-semibold mt-2 text-[hsl(var(--foreground))]">Cleared</div>
-                  <div class="text-xs text-[hsl(var(--muted-foreground))] mt-1">Recovered entirely</div>
+                  <div class="text-xs text-[hsl(var(--muted-foreground))] mt-1">Marked Cleared</div>
                 </div>
                 <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-green-500/10 hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md hover:shadow-green-500/10">
                   <div id="bd-mild" class="text-3xl font-bold text-green-600 dark:text-green-400">...</div>
                   <div class="text-sm font-semibold mt-2 text-green-600 dark:text-green-400">Mild Cases</div>
-                  <div class="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Currently recovering</div>
+                  <div class="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Recorded Mild</div>
                 </div>
                 <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-blue-500/10 hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md hover:shadow-blue-500/10">
                   <div id="bd-monitored" class="text-3xl font-bold text-blue-600 dark:text-blue-400">...</div>
                   <div class="text-sm font-semibold mt-2 text-blue-600 dark:text-blue-400">Monitored</div>
-                  <div class="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Weekly checkup needed</div>
+                  <div class="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Recorded Monitored</div>
                 </div>
                 <div class="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-orange-500/10 hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md hover:shadow-orange-500/10">
                   <div id="bd-high" class="text-3xl font-bold text-orange-600 dark:text-orange-400">...</div>
                   <div class="text-sm font-semibold mt-2 text-orange-600 dark:text-orange-400">High Risk</div>
-                  <div class="text-xs text-orange-600/70 dark:text-orange-400/70 mt-1">Requires urgent attention</div>
+                  <div class="text-xs text-orange-600/70 dark:text-orange-400/70 mt-1">Recorded High Risk</div>
                 </div>
               </div>
             </div>
@@ -270,11 +275,20 @@
         </div>
 
         <!-- HEATMAP VIEW -->
-        <div id="view-heatmap" class="view-section hidden flex-col h-[calc(100vh-10rem)] animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div id="view-heatmap" class="view-section hidden flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="mb-6 flex-shrink-0">
             <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Barangay Heatmap</h1>
-            <p id="heatmap-subtitle" class="text-[hsl(var(--muted-foreground))] mt-1">Live GIS mapping of outbreak clusters.</p>
+            <p id="heatmap-subtitle" class="text-[hsl(var(--muted-foreground))] mt-1">Recorded active-case totals for all seven barangays, as on the MHO map. Your barangay has a thicker outline. Colors show recorded severity, not an outbreak declaration. Hover or tap a circle for details.</p>
           </div>
+          <p class="mb-3 text-xs text-[hsl(var(--muted-foreground))]">Only barangay totals are shown; no patient details. Zero means no active case is recorded here.</p>
+          <div class="heatmap-legend" aria-label="Map color legend">
+            <span><i style="background:#16a34a"></i>Mild</span>
+            <span><i style="background:#ea580c"></i>Monitored</span>
+            <span><i style="background:#dc2626"></i>High Risk</span>
+            <span><i style="background:#64748b"></i>No active cases</span>
+            <span><i style="background:#7c3aed"></i>Severity incomplete</span>
+          </div>
+          <p id="heatmap-status" class="heatmap-status" role="status">Loading active case totals…</p>
           <div id="bhwMap" class="w-full border border-[hsl(var(--border))] rounded-2xl overflow-hidden z-10 shadow-md hover:shadow-lg transition-shadow relative" style="height: 500px; min-height: 500px;"></div>
         </div>
 
@@ -282,7 +296,7 @@
         <div id="view-reports" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="mb-8">
             <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Report Generation</h1>
-            <p class="text-[hsl(var(--muted-foreground))] mt-1">Generate print-ready certified health summaries.</p>
+            <p class="text-[hsl(var(--muted-foreground))] mt-1">Download recorded case lists for your assigned barangay.</p>
           </div>
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -290,40 +304,49 @@
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-8 shadow-sm border-t-4 border-t-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all group">
               <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
                 <div class="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-colors"><i data-lucide="file-spreadsheet" class="w-6 h-6 text-blue-500 group-hover:text-white"></i></div>
-                BHS-M1: Monthly Summary
+                Monthly Case List
               </h3>
-              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Standardized monthly consolidation of barangay consultations, common morbidity cases, and vital health services.</p>
+              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Recorded cases for the month and year you select below. This list needs review before use as an official report.</p>
               
               <div class="flex gap-4 mb-6">
                 <select id="bhw-report-month" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-blue-500/50 hover:border-blue-500/50 transition-colors">
-                  <option value="January">January</option>
-                  <option value="February">February</option>
-                  <option value="March">March</option>
-                </select>
+<option value="January">January</option>
+<option value="February">February</option>
+<option value="March">March</option>
+<option value="April">April</option>
+<option value="May">May</option>
+<option value="June">June</option>
+<option value="July">July</option>
+<option value="August">August</option>
+<option value="September">September</option>
+<option value="October">October</option>
+<option value="November">November</option>
+<option value="December">December</option>
+</select>
                 <select id="bhw-report-year" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-blue-500/50 hover:border-blue-500/50 transition-colors">
-                  <option value="2026">2026</option>
-                  <option value="2025">2025</option>
-                </select>
+<option value="2026">2026</option>
+<option value="2025">2025</option>
+<option value="2024">2024</option>
+<option value="2023">2023</option>
+</select>
               </div>
               <button onclick="generateBHWReport('MONTHLY')" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-blue-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
-                <i data-lucide="download" class="w-5 h-5"></i> Generate BHS Monthly PDF
+                <i data-lucide="download" class="w-5 h-5"></i> Download Monthly Case PDF
               </button>
             </div>
             
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-8 shadow-sm border-t-4 border-t-orange-500 hover:shadow-xl hover:-translate-y-1 transition-all group">
               <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
                 <div class="p-2 bg-orange-500/10 rounded-lg group-hover:bg-orange-500 group-hover:text-white transition-colors"><i data-lucide="shield-alert" class="w-6 h-6 text-orange-500 group-hover:text-white"></i></div>
-                Surveillance Registry
+                Surveillance Case Log
               </h3>
-              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Event-based surveillance registry of monitored household clusters, fever alerts, and active high-risk patients.</p>
+              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Recorded cases for the month and year selected on the left, optionally limited to one purok in your assigned barangay.</p>
               
               <div class="mb-6">
                 <select id="bhw-purok-filter" class="w-full bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-orange-500/50 hover:border-orange-500/50 transition-colors">
-                  <option value="All Puroks">All Puroks / Zones</option>
-                  <option value="Purok 1">Purok 1</option>
-                  <option value="Purok 2">Purok 2</option>
-                  <option value="Purok 3">Purok 3</option>
+                  <option value="All Puroks">All Puroks / Zones in your barangay</option>
                 </select>
+                <p class="mt-2 text-xs text-[hsl(var(--muted-foreground))]">Puroks are local areas inside your assigned barangay. Choices come from recorded locations.</p>
               </div>
               <button onclick="generateBHWReport('SURVEILLANCE')" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-orange-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
                 <i data-lucide="download" class="w-5 h-5"></i> Generate Surveillance Log PDF
@@ -398,6 +421,8 @@
 
     <!-- UI Interaction Scripts -->
     <script>
+      function escapeText(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
       let isDarkMode = false; 
       function toggleDarkMode() {
         isDarkMode = !isDarkMode;
@@ -466,9 +491,7 @@
           const view = document.getElementById(targetId);
           if (view) {
               view.classList.remove("hidden"); if(view.classList.contains("flex-col")){ view.classList.add("flex"); } else { view.classList.add("block"); }
-              if (targetId === 'view-heatmap' && typeof map !== 'undefined') { 
-                  setTimeout(() => map.invalidateSize(), 300); 
-              }
+
           }
         });
       });
@@ -487,6 +510,25 @@
           console.error("Error loading patients:", e);
         }
       }
+
+      async function loadPurokChoices() {
+        const filter=document.getElementById('bhw-purok-filter');
+        if(!filter)return;
+        try {
+          const response=await fetch('http://localhost:3000/api/bhw/puroks');
+          const result=await response.json();
+          if(!response.ok||!result.success)throw new Error('Purok choices unavailable');
+          const selected=filter.value;
+          filter.replaceChildren();
+          const all=document.createElement('option');all.value='All Puroks';all.textContent='All Puroks / Zones in your barangay';filter.append(all);
+          for(const name of result.data){const option=document.createElement('option');option.value=name;option.textContent=name;filter.append(option);}
+          if(result.data.includes(selected))filter.value=selected;
+        }catch(error){console.error('Purok choices unavailable',error);}
+      }
+
+      window.addEventListener('health-intel:case-corrected', () => {
+          loadPatients(); loadDashboardStats(); loadTrendChart(); loadResidentDirectory();
+      });
 
       async function loadArchivedPatients() {
         try {
@@ -562,6 +604,7 @@
         tbody.innerHTML = "";
         
         const totalPages = Math.ceil(data.length / rowsPerPage);
+        currentPage = Math.max(1,Math.min(currentPage,totalPages || 1));
         const startIndex = (currentPage - 1) * rowsPerPage;
         const endIndex = startIndex + rowsPerPage;
         const pageData = data.slice(startIndex, endIndex);
@@ -573,19 +616,18 @@
                 let statusColor = record.status === "Cleared" ? "text-green-600 dark:text-green-400" : (record.status === "Deceased" ? "text-slate-500 dark:text-slate-400" : "text-orange-600 dark:text-orange-400");
                 let fullName = record.patient_name || record.first_name + " " + record.last_name || record.name;
                 
-                // Construct composite key for viewPatientProfile from the old logic
-                let identifier = record.birthdate || record.age || "Unknown";
-                let compositeKey = fullName.toLowerCase() + "_" + identifier;
+                const residentId = Number.isSafeInteger(Number(record.resident_id)) && Number(record.resident_id)>0 ? Number(record.resident_id) : null;
 
                 tbody.innerHTML += `
                   <tr class="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] transition-colors">
-                    <td class="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">${fullName}</td>
-                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${record.purok}</td>
-                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${record.disease}</td>
+                    <td class="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">${escapeText(fullName)}</td>
+                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${escapeText(record.purok || 'Not recorded')}</td>
+                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${escapeText(record.disease)}</td>
                     <td class="px-6 py-4 font-semibold ${statusColor}">${record.status || (isViewingArchive ? "Archived" : "")}</td>
                     <td class="px-6 py-4 flex gap-2">
-                        <button onclick="viewPatientProfile('${compositeKey}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-xs shadow-sm transition-colors">Profile</button>
+                        <button onclick="${residentId ? `viewPatientProfile(${residentId})` : `viewUnlinkedCase(${record.id})`}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-xs shadow-sm transition-colors">${residentId ? 'Profile' : 'Case details'}</button>
                         ${!isViewingArchive ? `<button onclick="updatePatientStatus(${record.id})" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md font-medium text-xs shadow-sm transition-colors">Update Status</button>` : ""}
+                        ${!isViewingArchive ? `<button onclick="HealthIntelCorrections.open(${record.id})" class="px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-md font-medium text-xs transition-colors">Correct</button>` : ""}
                         <button onclick="toggleArchiveStatus(${record.id})" class="px-3 py-1.5 ${isViewingArchive ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white rounded-md font-medium text-xs shadow-sm transition-colors">${isViewingArchive ? "Restore" : "Archive"}</button>
                     </td>
                   </tr>
@@ -602,20 +644,28 @@
         
         if (totalPages <= 1) return;
         
-        for (let i = 1; i <= totalPages; i++) {
+        const addButton=(label,page,disabled=false)=>{
             const btn = document.createElement("button");
-            btn.innerText = i;
-            if (i === currentPage) {
-                btn.className = "w-8 h-8 rounded-md bg-blue-600 text-white font-medium flex items-center justify-center text-sm shadow-sm";
+            btn.type='button';btn.innerText=label;btn.disabled=disabled;btn.setAttribute('aria-label',label==='Previous'?'Previous page':label==='Next'?'Next page':`Page ${page}`);
+            if (page === currentPage && label!=='Previous' && label!=='Next') {
+                btn.setAttribute('aria-current','page');
+                btn.className = "min-w-9 h-9 px-2 rounded-md bg-blue-600 text-white font-medium flex items-center justify-center text-sm shadow-sm";
             } else {
-                btn.className = "w-8 h-8 rounded-md bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] font-medium flex items-center justify-center text-sm transition-colors";
-                btn.onclick = () => {
-                    currentPage = i;
-                    filterTable();
-                };
+                btn.className = "min-w-9 h-9 px-2 rounded-md bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--muted))] font-medium flex items-center justify-center text-sm transition-colors disabled:opacity-40";
             }
+            btn.onclick=()=>{currentPage=page;filterTable();};
             container.appendChild(btn);
+        };
+        addButton('Previous',currentPage-1,currentPage===1);
+        const pages=new Set([1,totalPages]);
+        for(let page=Math.max(1,currentPage-2);page<=Math.min(totalPages,currentPage+2);page++)pages.add(page);
+        let previous=0;
+        for(const page of [...pages].sort((a,b)=>a-b)){
+            if(page-previous>1){const gap=document.createElement('span');gap.textContent='…';gap.className='px-1 text-[hsl(var(--muted-foreground))]';container.append(gap);}
+            addButton(String(page),page);
+            previous=page;
         }
+        addButton('Next',currentPage+1,currentPage===totalPages);
       }
 
       // 4. DIRECTORY & PROFILES
@@ -663,11 +713,11 @@
             grid.innerHTML += `
               <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center group">
                 <div class="w-16 h-16 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex justify-center items-center text-2xl font-bold mb-4 group-hover:scale-110 transition-transform">
-                  ${initials.toUpperCase()}
+                  ${escapeText(initials.toUpperCase())}
                 </div>
-                <h3 class="font-bold text-lg mb-1 text-[hsl(var(--foreground))]">${patientName}</h3>
+                <h3 class="font-bold text-lg mb-1 text-[hsl(var(--foreground))]">${escapeText(patientName)}</h3>
                 ${isSenior ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 rounded text-xs font-bold mb-2 inline-block">Senior Citizen</span>' : ''}
-                <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${res.purok} | ${res.age} yrs</p>
+                <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${escapeText(res.purok)} | ${res.age} yrs</p>
                 
                 <button onclick="viewPatientProfile('${res.id}')" class="w-full mt-auto py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors">
                   View Medical Dossier<br>
@@ -679,6 +729,10 @@
       }
 
       async function viewPatientProfile(residentId) {
+          if (!Number.isSafeInteger(Number(residentId)) || Number(residentId)<=0) {
+              Swal.fire('Resident link unavailable', 'This historical case has no linked resident profile. Ask the Admin to review the source record; the system will not guess the identity.', 'info');
+              return;
+          }
           try {
               // Now we call the real backend endpoint for dossiers
               const res = await fetch(`http://localhost:3000/api/residents/${residentId}/dossier`);
@@ -715,7 +769,7 @@
                   } else {
                       history.forEach(record => {
                           let statusColor = record.status === "Cleared" ? "text-green-600 dark:text-green-400" : (record.status === "Deceased" ? "text-slate-500 dark:text-slate-400" : "text-orange-600 dark:text-orange-400");
-                          let dateStr = new Date(record.date_recorded).toLocaleDateString();
+                  let dateStr = window.HealthIntelDate.formatCaseDate(record.date_recorded);
                           let severityBadge = record.severity === "High Risk" ? `<span class="bg-red-500/10 text-red-500 rounded px-1 text-xs">High Risk</span>` : "";
 
                           tbody.innerHTML += `
@@ -724,11 +778,11 @@
                                 #REC-${record.id}<br>${dateStr}
                               </td>
                               <td class="px-5 py-4 font-semibold text-[hsl(var(--foreground))]">
-                                ${record.disease} <br>${severityBadge}
+                                ${escapeText(record.disease)} <br>${severityBadge}
                               </td>
-                              <td class="px-5 py-4 text-[hsl(var(--muted-foreground))] text-sm">${record.remarks || "No remarks"}</td>
+                              <td class="px-5 py-4 text-[hsl(var(--muted-foreground))] text-sm">${escapeText(record.remarks || "No remarks")}</td>
                               <td class="px-5 py-4 ${statusColor} font-bold text-sm">
-                                 ${record.status}
+                                 ${escapeText(record.status)}
                               </td>
                             </tr>
                           `;
@@ -738,7 +792,15 @@
                   modal.classList.remove("hidden"); 
                   modal.style.display = "flex";
               }
-          } catch(e) { console.error("Error opening dossier", e); }
+          } catch(e) { console.error("Error opening dossier", e); Swal.fire('Dossier unavailable',e.message || 'Please try again later.','error'); }
+      }
+
+      function viewUnlinkedCase(caseId) {
+          const record=allPatients.find(item=>Number(item.id)===Number(caseId));
+          if(!record)return Swal.fire({icon:'info',title:'Case unavailable',text:'Refresh Patient Records and try again.'});
+          const name=record.patient_name || `${record.first_name || ''} ${record.last_name || ''}`.trim() || 'Not recorded';
+          Swal.fire({title:'Recorded case details',customClass:{popup:'hi-dialog'},confirmButtonText:'Close',
+              html:`<div class="hi-case-details"><div><strong>Name on case:</strong> ${escapeText(name)}</div><div><strong>Barangay:</strong> ${escapeText(window.currentBrgyName || 'Assigned barangay')}</div><div><strong>Purok / Zone:</strong> ${escapeText(record.purok || 'Not recorded')}</div><div><strong>Case date:</strong> ${escapeText(window.HealthIntelDate.formatCaseDate(record.date_recorded))}</div><div><strong>Disease / case:</strong> ${escapeText(record.disease || 'Not recorded')}</div><div><strong>Case status:</strong> ${escapeText(record.status || 'Not recorded')}</div><div><strong>Recorded severity:</strong> ${escapeText(record.severity || 'Not recorded')}</div><div><strong>Remarks:</strong> ${escapeText(record.remarks || 'None recorded')}</div><p>This historical case has no verified resident-profile link. Review its source before linking it to a person.</p></div>`});
       }
 
       function closeProfileModal() {
@@ -748,57 +810,49 @@
       }
 
       async function updatePatientStatus(id) {
-          const { value: formValues } = await Swal.fire({
-            title: "Update Patient Status",
-            html:
-              '<select id="swal-input1" class="swal2-input">' +
-              '<option value="Active">Active</option>' +
-              '<option value="Cleared">Cleared</option>' +
-              '<option value="Deceased">Deceased</option>' +
-              '</select>' +
-              '<input id="swal-input2" class="swal2-input" placeholder="Remarks / Doctor Notes">',
-            focusConfirm: false,
-            preConfirm: () => {
-              return [
-                document.getElementById("swal-input1").value,
-                document.getElementById("swal-input2").value
-              ]
-            }
-          });
-          if (formValues) {
-            await fetch(`http://localhost:3000/api/patients/${id}/status`, {
-              method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ new_status: formValues[0], remarks: formValues[1] }),
-            });
-            Swal.fire("Updated!", "Patient status has been updated.", "success");
-            loadPatients();
-            loadDashboardStats();
-        loadTrendChart();
-          }
+        const result=await Swal.fire({title:'Update Patient Status',
+          width:520,customClass:{popup:'hi-dialog'},
+          html:'<div class="hi-form"><div><label for="swal-input1">Case status</label><select id="swal-input1"><option value="Active">Active</option><option value="Cleared">Cleared</option><option value="Deceased">Deceased</option></select></div><div><label for="swal-input2">Follow-up notes</label><textarea id="swal-input2" maxlength="4000" rows="4" placeholder="Enter a follow-up note, if any"></textarea><p>New notes are appended to existing remarks.</p></div></div>',
+          didOpen:()=>{const current=allPatients.find(record=>Number(record.id)===Number(id));if(current)document.getElementById('swal-input1').value=current.status;},
+          showCancelButton:true,confirmButtonText:'Save update',showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
+          preConfirm:async()=>{try{const response=await fetch(`http://localhost:3000/api/patients/${id}/status`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({new_status:document.getElementById('swal-input1').value,remarks:document.getElementById('swal-input2').value})});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.error||'The update could not be saved.');return data;}catch(error){Swal.showValidationMessage(error.message || 'The update could not be saved.');return false;}}
+        });
+        if(result.isConfirmed){Swal.fire('Updated!','The status and entered follow-up notes were saved.','success');loadPatients();loadDashboardStats();loadTrendChart();window.dispatchEvent(new Event('health-intel:cases-changed'));}
       }
 
-      function toggleArchiveStatus(id) {
-          Swal.fire({
-            title: isViewingArchive ? "Restore Patient?" : "Archive Patient?",
-            text: isViewingArchive ? "This will return the patient to active records." : "This will hide the patient from active views.",
+      async function toggleArchiveStatus(id) {
+          const restoring = isViewingArchive;
+          const result = await Swal.fire({
+            title: restoring ? "Restore Case?" : "Archive Case?",
+            text: restoring ? "This will return the case to active records." : "This will hide the case from active views.",
             icon: "warning",
+            customClass: { popup: 'hi-dialog' },
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, proceed!"
-          }).then(async (result) => {
-            if (result.isConfirmed) {
-              const endpoint = isViewingArchive ? "restore" : "archive";
-              await fetch(`http://localhost:3000/api/patients/${id}/${endpoint}`, { method: "PUT" });
-              Swal.fire(isViewingArchive ? "Restored!" : "Archived!", "", "success");
-              if(isViewingArchive) {
-                  loadArchivedPatients();
-              } else {
-                  loadPatients();
+            confirmButtonText: "Yes, proceed!",
+            showLoaderOnConfirm: true,
+            allowOutsideClick: () => !Swal.isLoading(),
+            preConfirm: async () => {
+              try {
+                const endpoint = restoring ? "restore" : "archive";
+                const response = await fetch(`http://localhost:3000/api/patients/${id}/${endpoint}`, { method: "PUT" });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'The case could not be changed.');
+                return data;
+              } catch (error) {
+                Swal.showValidationMessage(error.message || 'The case could not be changed. Please try again.');
+                return false;
               }
-              loadDashboardStats();
-        loadTrendChart();
             }
-          })
+          });
+          if (!result.isConfirmed) return;
+          Swal.fire(restoring ? "Restored!" : "Archived!", "", "success");
+          if (restoring) loadArchivedPatients();
+          else loadPatients();
+          loadDashboardStats();
+          loadTrendChart();
+          window.dispatchEvent(new Event('health-intel:cases-changed'));
       }
 
       // 5. CHART & MAP LOGIC
@@ -832,65 +886,6 @@
           } catch(e) { console.error("Error loading trend chart:", e); }
       }
 
-      let map;
-      const mapContainer = document.getElementById("bhwMap");
-      if (mapContainer) {
-        map = L.map("bhwMap").setView([10.609090, 123.026559], 13);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-        
-        async function loadHeatmap() {
-          try {
-            const response = await fetch("http://localhost:3000/api/heatmap-data");
-            const result = await response.json();
-            if (result.success) {
-              const barangays = result.data;
-              let targetLat = null;
-              let targetLng = null;
-
-              barangays.forEach((brgy) => {
-                if (window.currentBrgyName && brgy.name === window.currentBrgyName) {
-                    targetLat = brgy.lat;
-                    targetLng = brgy.lng;
-                }
-
-                let calculatedRadius = 550 + (brgy.cases * 50); 
-                const circle = L.circle([brgy.lat, brgy.lng], { 
-                  color: brgy.color, 
-                  fillColor: brgy.color, 
-                  fillOpacity: 0.5, 
-                  weight: 2,
-                  radius: calculatedRadius 
-                }).addTo(map);
-
-                circle.bindTooltip(`<div style="text-align: center; color: #333;"><strong>${brgy.name}</strong><br><small>${brgy.cases} Cases</small></div>`, {
-                    permanent: true, 
-                    direction: "center",
-                    className: "bg-transparent border-0 shadow-none text-xs font-semibold"
-                });
-
-                circle.bindPopup(
-                    `<div style="text-align: center;">
-                        <h4 style="margin: 0;">Brgy. ${brgy.name}</h4>
-                        <p style="margin: 5px 0; color: ${brgy.color}; font-weight: bold;">
-                          ${brgy.cases} Active Cases
-                        </p>
-                        <small>Risk: ${brgy.risk}</small>
-                    </div>`
-                );
-              });
-
-              if (targetLat && targetLng) {
-                  map.setView([targetLat, targetLng], 14);
-              } else {
-                  map.setView([10.609090, 123.026559], 12);
-              }
-            }
-          } catch(e) { console.error("Map load error", e); }
-        }
-        
-        setTimeout(loadHeatmap, 1000);
-      }
-
       document.addEventListener("DOMContentLoaded", async () => {
         const userId = localStorage.getItem("active_user_id");
         if (userId) {
@@ -914,6 +909,7 @@
         loadDashboardStats();
         loadTrendChart();
         loadPatients();
+        loadPurokChoices();
         loadResidentDirectory();
       });
     </script>
@@ -935,35 +931,39 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Birthdate *</label>
-                    <input id="swal-birthdate" type="date" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all [color-scheme:light] dark:[color-scheme:dark]">
+                    <label for="swal-birthdate" class="text-sm font-semibold text-[hsl(var(--foreground))]">Birthdate (MM/DD/YYYY) *</label>
+                    <input id="swal-birthdate" type="text" inputmode="numeric" autocomplete="bday" maxlength="10" placeholder="MM/DD/YYYY" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all">
                 </div>
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Age (Auto-Computed)</label>
+                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Age on Case Date (Auto-Computed)</label>
                     <input id="swal-age" type="number" class="w-full px-4 py-2.5 bg-[hsl(var(--muted))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] opacity-70 cursor-not-allowed outline-none" readonly placeholder="--">
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Purok / Zone *</label>
-                    <select id="swal-purok" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px_12px] bg-[position:right_1rem_center] bg-no-repeat [&>option]:text-slate-900">
-                        <option value="" disabled selected>Select Purok</option>
-                        <option value="Purok 1">Purok 1</option>
-                        <option value="Purok 2">Purok 2</option>
-                        <option value="Purok 3">Purok 3</option>
-                        <option value="Blumentritt">Blumentritt</option>
+                    <label for="swal-case-date" class="text-sm font-semibold text-[hsl(var(--foreground))]">Case Date *</label>
+                    <input id="swal-case-date" type="date" min="1900-01-01" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none [color-scheme:light] dark:[color-scheme:dark]">
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label for="swal-severity" class="text-sm font-semibold text-[hsl(var(--foreground))]">Recorded Severity *</label>
+                    <select id="swal-severity" class="w-full px-4 py-2.5 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none">
+                        <option value="">Select recorded severity</option>
+                        <option value="Mild">Mild</option><option value="Monitored">Monitored</option><option value="High Risk">High Risk</option>
                     </select>
+                    <p class="text-xs text-[hsl(var(--muted-foreground))]">Choose the severity actually assessed for this case. The map uses it for color; it does not diagnose an outbreak.</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Purok / Zone within your barangay *</label>
+                    <input id="swal-purok" maxlength="100" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 outline-none" placeholder="Enter the actual purok / zone">
+                    <p class="text-xs text-[hsl(var(--muted-foreground))]">Assigned barangay: <span id="swal-assigned-barangay"></span></p>
                 </div>
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Diagnosed Disease / Case *</label>
-                    <input list="disease-options" id="swal-disease" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="Select or type...">
-                    <datalist id="disease-options">
-                        <option value="Acute Respiratory Infection (ARI)">
-                        <option value="Animal Bite / Wound">
-                        <option value="Dengue">
-                        <option value="Hypertension">
-                        <option value="Pneumonia">
-                    </datalist>
+                    <input list="disease-options" id="swal-disease" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="Select an existing category">
+                    <datalist id="disease-options"></datalist>
+                    <p id="swal-disease-notice" class="text-xs text-[hsl(var(--muted-foreground))]">Loading case categories...</p>
                 </div>
             </div>
             <div class="flex flex-col gap-1.5 text-left">
@@ -971,37 +971,57 @@
                 <textarea id="swal-remarks" class="w-full px-4 py-3 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all min-h-[80px] resize-y" placeholder="Any additional notes..."></textarea>
             </div>
 `,
-          customClass: { popup: "bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl", title: "text-[hsl(var(--foreground))] font-bold text-2xl" },
+          customClass: { popup: "hi-dialog" },
           confirmButtonText: "Save Record",
           confirmButtonColor: "#007bff",
           showCancelButton: true,
+          showLoaderOnConfirm: true,
+          allowOutsideClick: () => !Swal.isLoading(),
           didOpen: () => {
              const bd = document.getElementById('swal-birthdate');
              const age = document.getElementById('swal-age');
-             bd.addEventListener('change', function() {
-                 if(this.value) {
-                     const dob = new Date(this.value);
-                     const today = new Date();
-                     let a = today.getFullYear() - dob.getFullYear();
-                     const m = today.getMonth() - dob.getMonth();
-                     if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) a--;
-                     age.value = a;
-                 } else age.value = '';
-             });
+             const caseDate = document.getElementById('swal-case-date');
+             const parts = new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+             const today = ['year','month','day'].map(type=>parts.find(part=>part.type===type).value).join('-');
+             caseDate.max = today;
+             caseDate.value = today;
+             document.getElementById('swal-assigned-barangay').textContent=window.currentBrgyName || 'Loading…';
+             function refreshAge() {
+                 const birthdate=window.HealthIntelDate.parseBirthdate(bd.value);
+                 if (!birthdate || !caseDate.value) { age.value=''; return; }
+                 const [by,bm,day] = birthdate.split('-').map(Number);
+                 const [cy,cm,cd] = caseDate.value.split('-').map(Number);
+                 const value = cy-by-(cm<bm||(cm===bm&&cd<day)?1:0);
+                 age.value = value>=0 && value<=130 ? value : '';
+             }
+             bd.addEventListener('input',refreshAge);
+             caseDate.addEventListener('change',refreshAge);
+             fetch('http://localhost:3000/api/bhw/encoding-options').then(response=>response.json()).then(result=>{
+                 const choices=document.getElementById('disease-options');
+                 const notice=document.getElementById('swal-disease-notice');
+                 if(!choices||!notice) return;
+                 if(!result.success) throw new Error('Disease choices are unavailable.');
+                 for(const item of result.data) { const option=document.createElement('option'); option.value=item.name; choices.append(option); }
+                 notice.textContent='All recorded categories are eligible, not only the ten forecast diseases. Ask Admin to add a new category; historical names need registry review.';
+             }).catch(()=>{ const notice=document.getElementById('swal-disease-notice'); if(notice) notice.textContent='Disease choices could not be loaded. Close this form and try again.'; });
           },
-          preConfirm: () => {
+          preConfirm: async () => {
             const f = document.getElementById("swal-fname").value;
             const l = document.getElementById("swal-lname").value;
-            const b = document.getElementById("swal-birthdate").value;
+            const birthdateText = document.getElementById("swal-birthdate").value;
+            const b = window.HealthIntelDate.parseBirthdate(birthdateText);
             const a = document.getElementById("swal-age").value;
             const p = document.getElementById("swal-purok").value;
             const d = document.getElementById("swal-disease").value;
             const r = document.getElementById("swal-remarks").value;
-            if (!f || !l || !b || !p || !d) {
+            const caseDate = document.getElementById('swal-case-date').value;
+            const severity = document.getElementById('swal-severity').value;
+            if (birthdateText.trim() && !b) { Swal.showValidationMessage('Enter a real birthdate as MM/DD/YYYY, for example 05/14/2000.'); return false; }
+            if (!f.trim() || !l.trim() || !b || !p || !d.trim() || !caseDate || !severity || a === '') {
               Swal.showValidationMessage("Please fill out all required fields (*)");
               return false; 
             }
-            return {
+            const payload = {
               first_name: f, 
               last_name: l, 
               patient_name: `${f} ${l}`, 
@@ -1009,24 +1029,27 @@
               age: a, 
               purok: p, 
               disease: d, 
-              remarks: r, 
+              remarks: r,
+              date_recorded: caseDate,
+              severity,
               status: "Active",
               encoded_by: localStorage.getItem('active_user_id') || "Unknown BHW"
             };
+            try {
+                const response = await fetch('http://localhost:3000/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+                const result = await response.json();
+                if(!result.success) throw new Error(result.error || 'The record could not be saved.');
+                return result;
+            } catch(error) { Swal.showValidationMessage(error.message || 'The record could not be saved. Please try again.'); return false; }
           },
         }).then(async (result) => {
           if (result.isConfirmed) {
-            try {
-              const res = await fetch("http://localhost:3000/api/patients", {
-                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(result.value),
-              });
-              if ((await res.json()).success) {
                 Swal.fire("Saved!", "Patient recorded successfully.", "success");
                 isViewingArchive ? loadArchivedPatients() : loadPatients();
                 loadDashboardStats();
-        loadTrendChart();
-              }
-            } catch (e) { Swal.fire("Error", "Could not save patient.", "error"); }
+              loadTrendChart();
+              loadPurokChoices();
+              window.dispatchEvent(new Event('health-intel:cases-changed'));
           }
         });
       }
@@ -1040,8 +1063,12 @@
         });
         
         try {
-          const brgy_id = window.currentBrgyId || 'all';
-          const res = await fetch(`http://localhost:3000/api/patients?barangay_id=${brgy_id}`);
+          const month=document.getElementById('bhw-report-month').value;
+          const year=document.getElementById('bhw-report-year').value;
+          const brgy_id = window.currentBrgyId;
+          if(!brgy_id)throw new Error('Your assigned barangay is still loading. Please try again.');
+          const params=new URLSearchParams({barangay_id:brgy_id,month,year,include_archived:'true'});
+          const res = await fetch('http://localhost:3000/api/patients?' + params);
           const result = await res.json();
           
           if(!result.success) throw new Error("DB Error");
@@ -1050,21 +1077,22 @@
           const doc = new jsPDF();
           
           const brgyName = window.currentBrgyName || 'Blumentritt';
-          const month = document.getElementById('bhw-report-month') ? document.getElementById('bhw-report-month').value : 'Current';
-          const year = document.getElementById('bhw-report-year') ? document.getElementById('bhw-report-year').value : '2026';
           
           doc.setFontSize(16);
           doc.text(`Barangay Health Station - ${brgyName}`, 14, 20);
           doc.setFontSize(12);
-          doc.text(type === 'MONTHLY' ? `BHS-M1: Monthly Summary (${month} ${year})` : `PIDSR Surveillance Log (${month} ${year})`, 14, 30);
+          doc.text(type === 'MONTHLY' ? `Barangay Monthly Case List (${month} ${year})` : `Barangay Surveillance Case Log (${month} ${year})`, 14, 30);
           
-          const data = result.data.map(p => [
+          const chosenPurok=document.getElementById('bhw-purok-filter').value;
+          const records=type==='SURVEILLANCE' && chosenPurok!=='All Puroks' ? result.data.filter(p=>p.purok===chosenPurok) : result.data;
+          if(type==='SURVEILLANCE' && chosenPurok!=='All Puroks') doc.text(`Purok / Zone: ${chosenPurok}`,14,37);
+          const data = records.map(p => [
             p.patient_name || 'N/A', 
-            p.age || 'N/A', 
+            p.age ?? 'N/A',
             p.purok || 'N/A', 
             p.disease || 'N/A', 
             p.status || 'Active', 
-            new Date(p.created_at).toLocaleDateString()
+            p.date_recorded ? new Date(p.date_recorded).toLocaleDateString('en-PH',{timeZone:'Asia/Manila'}) : 'Not recorded'
           ]);
           
           doc.autoTable({
@@ -1075,12 +1103,11 @@
             headStyles: { fillColor: type === 'MONTHLY' ? [2, 132, 199] : [234, 88, 12] }
           });
           
-          await new Promise(r => setTimeout(r, 1200));
-          doc.save(`BHW_Report_${brgyName}_${type}_${month}.pdf`);
+          doc.save(`BHW_Report_${brgyName}_${type}_${month}_${year}.pdf`);
           Swal.fire('Success', 'Report successfully generated and downloaded.', 'success');
         } catch (e) {
           console.error(e);
-          Swal.fire('Error', 'Failed to generate report. Make sure the database is running.', 'error');
+          Swal.fire('Error', e.message || 'Failed to generate report. Please try again.', 'error');
         }
       }
 
@@ -1149,7 +1176,7 @@
               }
               return data;
             } catch (err) {
-              Swal.showValidationMessage('Server error. Try again later.');
+              Swal.showValidationMessage(err.message || 'Server error. Try again later.');
             }
           }
         }).then((result) => {
@@ -1157,23 +1184,29 @@
             Swal.fire({
               icon: 'success',
               title: 'Success',
-              text: 'Password updated successfully!'
-            });
+              text: 'Password updated. Please sign in with your new password.'
+            }).then(() => { HealthIntel.clearSession(); window.location.replace('index.html'); });
           }
         });
       }
 
       function showTerms(event) { 
         event.preventDefault(); 
-        const isDark = document.documentElement.classList.contains("dark");
         Swal.fire({ 
-            background: isDark ? '#1e293b' : '#ffffff',
-            color: isDark ? '#f8fafc' : '#0f172a',
-            title: 'Terms & Privacy', 
-            html: '<p style="text-align: left; font-size: 0.9rem;">Health-Intel is a capstone project for academic purposes. All data is handled in compliance with the Data Privacy Act of 2012 (RA 10173). By using this system, you agree to the responsible use of health information.</p>', 
-            confirmButtonColor: isDark ? '#3b82f6' : '#0f172a' 
+            title: 'Terms & Recognitions',
+            html: `<div class="hi-form">
+              <p><strong>Academic prototype.</strong> Health-Intel is a capstone project, not an official LGU privacy notice or proof of legal compliance.</p>
+              <p><strong>Record use.</strong> Authorized health workers encode cases; the MHO reviews summaries and reports; the Admin oversees records and accounts; and the Superadmin maintains system backups.</p>
+              <p><strong>User responsibility.</strong> Access and share health information only for approved project work and through authorized procedures.</p>
+              <p><strong>Real records.</strong> The responsible LGU and project team need to review how existing real records are handled and provide a complete privacy notice before operational use. It should identify who controls the data, contact details, purposes, lawful basis, recipients, retention, and how people can exercise their rights.</p>
+              <p><strong>Project recognitions.</strong> This capstone uses Tailwind CSS, Leaflet.js, Chart.js, and SweetAlert2.</p>
+            </div>`,
+            customClass: { popup: 'hi-dialog' },
+            confirmButtonText: 'Close',
+            confirmButtonColor: '#2563eb'
         }); 
       }
   </script>
+    <script src="assets/js/health-map.js"></script>
   </body>
 </html>

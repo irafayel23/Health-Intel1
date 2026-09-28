@@ -1,0 +1,5 @@
+# Forecasting dependencies verified on Python 3.12 during the first fix batch.
+pandas==3.0.1
+numpy==2.3.5
+statsmodels==0.15.0
+mysql-connector-python==26.7.0

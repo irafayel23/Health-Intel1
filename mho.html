@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script src="assets/js/api-session.js"></script>
+    <script src="assets/js/date-format.js"></script>
     <meta charset="UTF-8" />
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
     <link rel="preconnect" href="https://unpkg.com" crossorigin />
@@ -10,6 +12,7 @@
     <meta name="description" content="Health-Intel Epidemiological Profiling System" />
     <title>Portal | HEALTH-INTEL</title>
     <link rel="stylesheet" href="assets/css/mho.css" />
+    <link rel="stylesheet" href="assets/css/health-map.css" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -100,6 +103,10 @@
           <i data-lucide="brain-circuit" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Predictions</span>
         </button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-history" aria-label="Record walk-in patients">
+          <i data-lucide="user-plus" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Walk-in Patients</span>
+        </button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-reports" aria-label="Export Reports">
           <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Export Reports</span>
@@ -113,7 +120,7 @@
           <span class="sidebar-label whitespace-nowrap">Log Out</span>
         </a>
         <div class="mt-4 text-center flex justify-center">
-          <a href="#" onclick="showTerms(event)" class="sidebar-label text-[10px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors whitespace-nowrap">&copy; 2026 Health-Intel &bull; Terms &amp; Privacy</a>
+          <a href="#" onclick="showTerms(event)" class="sidebar-label text-[10px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors whitespace-nowrap">&copy; 2026 Health-Intel &bull; Terms &amp; Recognitions</a>
         </div>
       </div>
     </aside>
@@ -151,7 +158,7 @@
       <!-- Scrollable Content Area -->
       <div class="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
         <div id="view-analytics" class="view-section">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
+          <div class="analytics-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
             <div>
               <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Municipal Analytics</h1>
               <p class="text-[hsl(var(--muted-foreground))] mt-1">
@@ -176,7 +183,8 @@
                   font-size: 1rem;
                 "
               >
-                <option value="all">All Barangays (Municipality)</option>`n                <option value="Blumentritt">Blumentritt</option>
+                <option value="all">All seven pilot barangays</option>
+                <option value="Blumentritt">Blumentritt</option>
                 <option value="Salvacion">Salvacion</option>
                 <option value="Minoyan">Minoyan</option>
                 <option value="Caliban">Caliban</option>
@@ -189,8 +197,8 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5 flex flex-col justify-center items-center text-center hover:scale-[1.02] transition-all shadow-sm">
-        <div id="stat-pop" class="text-3xl font-bold text-slate-800 dark:text-slate-100">92,241</div>
-        <div class="text-sm font-semibold mt-2 text-slate-600 dark:text-slate-400">Total Population</div>
+        <div id="stat-total" class="text-3xl font-bold text-slate-800 dark:text-slate-100">...</div>
+        <div class="text-sm font-semibold mt-2 text-slate-600 dark:text-slate-400">Recorded Disease Cases</div>
        </div>
 
             <div class="rounded-xl border border-rose-500/20 bg-rose-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-rose-500/10 hover:scale-[1.02] transition-all shadow-sm">
@@ -205,18 +213,19 @@
 
             <div class="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-orange-500/10 hover:scale-[1.02] transition-all shadow-sm">
         <div id="stat-risk" class="text-3xl font-bold text-orange-600 dark:text-orange-400">...</div>
-        <div class="text-sm font-semibold mt-2 text-orange-600 dark:text-orange-400">High Risk Cases</div>
+        <div class="text-sm font-semibold mt-2 text-orange-600 dark:text-orange-400">Active High Risk Cases</div>
        </div>
           </div>
 
           
-          <!-- Epidemiological Health Profile Restored -->
+          <p id="analytics-kpi-context" class="analytics-context mb-5">Totals follow the selected year, barangay and recorded age. Statuses reflect the current records.</p>
+          <!-- Epidemiological Health Profile -->
           <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-6">
             <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
               <i data-lucide="activity" class="text-blue-500 mr-2" style="width: 24px; height: 24px;"></i>
               <h3 class="text-xl font-bold tracking-tight text-[hsl(var(--foreground))]">Epidemiological Health Profile</h3>
             </div>
-            <p class="text-[hsl(var(--muted-foreground))] text-sm mb-6">Cross-reference demographic parameters to generate automated descriptive summaries of past health events.</p>
+            <p class="text-[hsl(var(--muted-foreground))] text-sm mb-6">Explore the ten most frequently recorded disease categories for the selected year, barangay and age group.</p>
 
             <div class="flex flex-wrap gap-4 mb-6 bg-[hsl(var(--muted))] p-4 rounded-xl border border-[hsl(var(--border))]">
               <select id="filter-year" aria-label="Filter by Year" onchange="updateDynamicChart()" class="flex-1 min-w-[200px] p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] font-medium outline-none">
@@ -241,7 +250,7 @@
                 <option value="60+">60+ Years</option>
               </select>
             </div>
-
+            <p id="analytics-data-context" class="analytics-context mb-4" aria-live="polite">Loading the selected records...</p>
             <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
               <div class="xl:col-span-2 border border-[hsl(var(--border))] rounded-xl p-4">
                 <div style="position: relative; height: 350px; width: 100%">
@@ -256,7 +265,7 @@
                   <h4 class="font-bold text-lg text-[hsl(var(--foreground))]">Automated<br>Descriptive Analysis</h4>
                 </div>
                 <div class="flex-1 border-t border-[hsl(var(--border))] pt-4">
-                  <p id="insight-text" class="text-[hsl(var(--muted-foreground))] text-sm leading-relaxed mb-6">
+                  <p id="insight-text" aria-live="polite" class="text-[hsl(var(--muted-foreground))] text-sm leading-relaxed mb-6">
                     No data available for these specific demographic parameters.
                   </p>
                 </div>
@@ -278,11 +287,10 @@
                     data-lucide="trending-up"
                     style="width: 18px; margin-right: 8px"
                   ></i>
-                  Year-Over-Year Morbidity (2025 vs 2026)
+                  <span id="yoy-title">Year-to-Year Recorded Cases</span>
               </h3>
               <p style="font-size: 0.8rem;  margin-bottom: 15px">
-                Comparative analysis of leading health burdens across all
-                barangays.
+                <span id="yoy-context">Comparison uses the selected barangay and age group. Reporting completeness can differ between years.</span>
               </p>
               <div style="position: relative; height: 300px; width: 100%">
                 <canvas id="yoyMorbidityChart"></canvas>
@@ -295,10 +303,10 @@
                     data-lucide="pie-chart"
                     style="width: 18px; margin-right: 8px"
                   ></i>
-                  Leading Mortality (2026)
+                  <span id="mortality-title">Recorded Deaths</span>
               </h3>
               <p style="font-size: 0.8rem;  margin-bottom: 15px">
-                Top causes of death requiring system intervention.
+                Most frequently recorded categories among records marked Deceased, using the selected filters.
               </p>
               <div style="position: relative; height: 300px; width: 100%">
                 <canvas id="mortalityChart"></canvas>
@@ -310,9 +318,17 @@
         <div id="view-heatmap" class="view-section hidden white-panel">
           <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Municipality Heatmap (Active Cases)</h1>
           <p class="text-[hsl(var(--muted-foreground))] mt-1">
-            Live GIS mapping of outbreak clusters across Murcia using
-            OpenStreetMap.
+            Active cases across the seven pilot barangays. Circle size shows case count;
+            color shows the highest recorded case severity. Hover for details or click/tap to keep them open.
           </p>
+          <div class="heatmap-legend" aria-label="Map color legend">
+            <span><i style="background:#16a34a"></i>Mild</span>
+            <span><i style="background:#ea580c"></i>Monitored</span>
+            <span><i style="background:#dc2626"></i>High Risk</span>
+            <span><i style="background:#64748b"></i>No active cases</span>
+            <span><i style="background:#7c3aed"></i>Severity incomplete</span>
+          </div>
+          <p id="heatmap-status" class="heatmap-status" role="status">Loading active case totals…</p>
           <div
             id="murciaMap"
             style="
@@ -329,10 +345,10 @@
           <div class="flex flex-wrap justify-between items-start gap-4 mb-6">
             <div>
               <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Predictive Analytics</h1>
-              <p class="text-[hsl(var(--muted-foreground))] mt-1">SARIMA Time-Series forecasting (80/20 Train/Test Split) across 7 pilot barangays.</p>
+              <p class="text-[hsl(var(--muted-foreground))] mt-1">Three-month demonstration forecast across 7 pilot barangays. Validation is pending.</p>
             </div>
             
-            <div class="flex gap-4 items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div class="forecast-filters flex flex-wrap gap-4 items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
               <div>
                 <label class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1 block">Select Disease</label>
                 <select id="predictive-disease-select" class="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200">
@@ -361,16 +377,16 @@
                   <option value="Sta. Rosa">Sta. Rosa</option>
                 </select>
               </div>
-              <button onclick="runPredictiveModel()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium text-sm transition-all mt-5">
+              <button id="run-forecast-button" onclick="runPredictiveModel()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium text-sm transition-all mt-5 disabled:opacity-50 disabled:cursor-wait">
                 Run Forecast
               </button>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 mb-5">
+          <div class="forecast-layout mb-5">
             <!-- Chart Card -->
-            <div class="lg:col-span-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm">
-              <div class="relative h-[350px] w-full">
+            <div class="min-w-0 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-5 shadow-sm">
+              <div class="forecast-chart-frame">
                 <canvas id="predictionChart"></canvas>
               </div>
             </div>
@@ -380,38 +396,47 @@
               
               <!-- Accuracy Metric -->
               <div class="bg-gradient-to-br from-sky-50 to-blue-50 dark:from-slate-800/80 dark:to-slate-800/40 border border-sky-100 dark:border-slate-700 rounded-2xl p-5 shadow-sm text-center">
-                <h4 class="text-sky-600 dark:text-sky-400 font-semibold text-sm uppercase tracking-wide mb-1">Model Accuracy</h4>
-                <div class="text-5xl font-extrabold text-sky-700 dark:text-sky-300 leading-none">
-                  <span id="predictive-accuracy-score">--</span><span class="text-2xl">%</span>
+                <h4 class="text-sky-600 dark:text-sky-400 font-semibold text-sm uppercase tracking-wide mb-1">Validation Status</h4>
+                <div class="text-xl font-bold text-sky-700 dark:text-sky-300 leading-snug">
+                  <span id="predictive-validation-status">Pending</span>
                 </div>
-                <p class="text-xs text-sky-500 dark:text-slate-400 mt-2 font-medium">Based on 80/20 Test Split</p>
-              </div>
-
-              <!-- Automated Insight -->
-              <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 border-l-4 border-l-blue-500 rounded-2xl p-5 shadow-sm flex-grow">
-                <h4 class="m-0 mb-2.5 text-base flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
-                  <i data-lucide="lightbulb" class="w-[18px] text-amber-500"></i> AI Insight
-                </h4>
-                <p class="m-0 text-sm leading-relaxed text-slate-600 dark:text-slate-300" id="predictive-insight-text">
-                  Waiting for SARIMA model to process historical data...
-                </p>
+                <p class="text-xs text-sky-500 dark:text-slate-400 mt-2 font-medium">Demonstration only. Accuracy has not been established on verified real data.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-3">Current model: AR(1). Municipal forecasts are allocated using historical barangay shares.</p>
               </div>
 
             </div>
           </div>
 
+          <div class="forecast-result-stack">
+              <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 border-l-4 border-l-blue-500 rounded-2xl p-5 shadow-sm">
+                <h4 class="m-0 mb-2.5 text-base flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
+                  <i data-lucide="lightbulb" class="w-[18px] text-amber-500"></i> Forecast Summary
+                </h4>
+                <p class="m-0 text-sm leading-relaxed text-slate-600 dark:text-slate-300" id="predictive-insight-text" aria-live="polite">
+                  Select a disease and barangay to view a demonstration forecast.
+                </p>
+                <div id="forecast-months" class="forecast-months" hidden></div>
+              </div>
+              <div class="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900 rounded-2xl p-5">
+                <h4 class="text-base font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-2 mb-2"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Automated Recommendations</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Suggested follow-up for MHO review, based on the displayed forecast and recorded history.</p>
+                <p id="forecast-recommendation-status" class="text-sm text-slate-600 dark:text-slate-300" aria-live="polite">Run a forecast to see suggested follow-up.</p>
+                <ul id="forecast-recommendations" class="forecast-recommendations" hidden></ul>
+              </div>
+          </div>
+
         </div>
 
         <div id="view-reports" class="view-section hidden">
-          <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Official DOH Report Generation</h1>
+          <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Health Report Exports</h1>
           <p class="text-[hsl(var(--muted-foreground))] mt-1">
-            Generate immutable, print-ready PDF documents formatted for regional Department of Health submission.
+            Download monthly and weekly case summaries for Municipal Health Office review.
           </p>
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             <!-- FHSIS Report Card -->
-            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-8" style="margin-bottom: 0; ">
+            <div class="report-card report-card--monthly rounded-2xl p-6 shadow-sm">
               <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
                 <i data-lucide="file-check-2" style=""></i> FHSIS Consolidation
               </h3>
@@ -423,6 +448,15 @@
                   <option value="January">January</option>
                   <option value="February">February</option>
                   <option value="March">March</option>
+                  <option value="April">April</option>
+                  <option value="May">May</option>
+                  <option value="June">June</option>
+                  <option value="July">July</option>
+                  <option value="August">August</option>
+                  <option value="September">September</option>
+                  <option value="October">October</option>
+                  <option value="November">November</option>
+                  <option value="December">December</option>
                 </select>
                 <select id="fhsis-year" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-emerald-500/50 hover:border-emerald-500/50 transition-colors" style="background: hsl(var(--card)); color: hsl(var(--foreground));  ">
                   <option value="2026">2026</option>
@@ -432,59 +466,131 @@
                 </select>
               </div>
               <button onclick="generateOfficialPDF('FHSIS')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
-                <i data-lucide="download" style="width: 18px;"></i> Download Certified PDF
+                <i data-lucide="download" style="width: 18px;"></i> Download PDF
               </button>
             </div>
 
             <!-- PIDSR Report Card -->
-            <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm mb-8" style="margin-bottom: 0; ">
+            <div class="report-card report-card--weekly rounded-2xl p-6 shadow-sm">
               <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
                 <i data-lucide="activity" style=""></i> PIDSR Surveillance
               </h3>
               <p class="text-sm text-[hsl(var(--muted-foreground))] mb-6 leading-relaxed">
-                Philippine Integrated Disease Surveillance and Response. Weekly tracking of outbreak-prone cases.
+                Philippine Integrated Disease Surveillance and Response. Weekly case records for the selected year, using Monday–Sunday periods.
               </p>
               <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <select id="pidsr-week" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-emerald-500/50 hover:border-emerald-500/50 transition-colors" style="background: hsl(var(--card)); color: hsl(var(--foreground));  ">
-                  <option value="Morbidity Week 40">Morbidity Week 40</option>
-                  <option value="Morbidity Week 41">Morbidity Week 41</option>
-                  <option value="Morbidity Week 42">Morbidity Week 42</option>
-                </select>
+<option value="1">Week 1</option>
+<option value="2">Week 2</option>
+<option value="3">Week 3</option>
+<option value="4">Week 4</option>
+<option value="5">Week 5</option>
+<option value="6">Week 6</option>
+<option value="7">Week 7</option>
+<option value="8">Week 8</option>
+<option value="9">Week 9</option>
+<option value="10">Week 10</option>
+<option value="11">Week 11</option>
+<option value="12">Week 12</option>
+<option value="13">Week 13</option>
+<option value="14">Week 14</option>
+<option value="15">Week 15</option>
+<option value="16">Week 16</option>
+<option value="17">Week 17</option>
+<option value="18">Week 18</option>
+<option value="19">Week 19</option>
+<option value="20">Week 20</option>
+<option value="21">Week 21</option>
+<option value="22">Week 22</option>
+<option value="23">Week 23</option>
+<option value="24">Week 24</option>
+<option value="25">Week 25</option>
+<option value="26">Week 26</option>
+<option value="27">Week 27</option>
+<option value="28">Week 28</option>
+<option value="29">Week 29</option>
+<option value="30">Week 30</option>
+<option value="31">Week 31</option>
+<option value="32">Week 32</option>
+<option value="33">Week 33</option>
+<option value="34">Week 34</option>
+<option value="35">Week 35</option>
+<option value="36">Week 36</option>
+<option value="37">Week 37</option>
+<option value="38">Week 38</option>
+<option value="39">Week 39</option>
+<option value="40">Week 40</option>
+<option value="41">Week 41</option>
+<option value="42">Week 42</option>
+<option value="43">Week 43</option>
+<option value="44">Week 44</option>
+<option value="45">Week 45</option>
+<option value="46">Week 46</option>
+<option value="47">Week 47</option>
+<option value="48">Week 48</option>
+<option value="49">Week 49</option>
+<option value="50">Week 50</option>
+<option value="51">Week 51</option>
+<option value="52">Week 52</option>
+<option value="53">Week 53</option>
+</select>
+<select id="pidsr-year" aria-label="Surveillance report year" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3"><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option></select>
               </div>
-              <button onclick="generateOfficialPDF('PIDSR')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
-                <i data-lucide="download" style="width: 18px;"></i> Download Certified PDF
+              <button onclick="generateOfficialPDF('PIDSR')" class="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-sky-500/30 flex justify-center items-center gap-2">
+                <i data-lucide="download" style="width: 18px;"></i> Download PDF
               </button>
             </div>
 
           </div>
         </div>
 
-        <div id="view-history" class="view-section hidden white-panel">
-          <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Data Management</h1>
-          <p class="text-[hsl(var(--muted-foreground))] mt-1">
-            Add / edit / delete system database records.
-          </p>
-          <table class="data-table">
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Barangay</th>
-              <th>Action</th>
-            </tr>
-            <tr>
-              <td>#001</td>
-              <td>Luz Villanueva</td>
-              <td>San Jose</td>
-              <td>
-                <a href="#" style=" font-weight: bold">Manage</a>
-              </td>
-            </tr>
-          </table>
+        <div id="view-history" class="view-section hidden">
+          <div class="walkin-page-heading">
+            <div><span class="walkin-eyebrow">MHO case encoding</span><h1>Walk-in Patients</h1><p>Record a patient seen at the Municipal Health Office and assign the case to their resident barangay.</p></div>
+            <span class="walkin-heading-badge"><i data-lucide="clipboard-plus" aria-hidden="true"></i> New case</span>
+          </div>
+          <form id="mho-walkin-form" class="walkin-card walkin-form">
+            <div class="walkin-section">
+              <div class="walkin-section-heading"><span class="walkin-step">1</span><div><h2>Resident details</h2><p>Use the patient’s recorded identity and home barangay.</p></div></div>
+              <div class="walkin-grid">
+                <label class="walkin-field">First name *<input id="walkin-first" autocomplete="given-name" maxlength="100" required></label>
+                <label class="walkin-field">Last name *<input id="walkin-last" autocomplete="family-name" maxlength="100" required></label>
+                <label class="walkin-field">Birthdate (MM/DD/YYYY) *<input id="walkin-birthdate" inputmode="numeric" placeholder="MM/DD/YYYY" maxlength="10" required></label>
+                <label class="walkin-field">Age on case date<input id="walkin-age" placeholder="Auto-computed" readonly></label>
+                <label class="walkin-field">Resident barangay *<select id="walkin-barangay" required><option value="">Loading barangays…</option></select></label>
+                <label class="walkin-field">Purok / zone within that barangay *<input id="walkin-purok" maxlength="100" placeholder="Enter the resident’s purok or zone" required></label>
+              </div>
+            </div>
+            <div class="walkin-section">
+              <div class="walkin-section-heading"><span class="walkin-step">2</span><div><h2>Case details</h2><p>Record the diagnosis and severity observed on the case date.</p></div></div>
+              <div class="walkin-grid">
+                <label class="walkin-field">Case date *<input id="walkin-date" type="date" required></label>
+                <label class="walkin-field">Recorded severity *<select id="walkin-severity" required><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></label>
+                <div class="walkin-field walkin-full">
+                  <label for="walkin-disease">Diagnosed disease / case *</label>
+                  <div class="walkin-disease-tools"><input id="walkin-disease-search" type="search" autocomplete="off" placeholder="Search a disease or case name" aria-label="Search diagnosis choices"><label class="walkin-history-toggle"><input id="walkin-show-history" type="checkbox"> Show historical names</label></div>
+                  <select id="walkin-disease" required><option value="">Loading case categories…</option></select>
+                  <p id="walkin-disease-note" class="walkin-help">Loading available categories…</p>
+                  <button id="walkin-retry-options" type="button" class="walkin-retry" hidden>Retry loading choices</button>
+                </div>
+                <label class="walkin-field walkin-full">Symptoms / remarks<textarea id="walkin-remarks" maxlength="4000" rows="3" placeholder="Optional clinical notes"></textarea></label>
+              </div>
+            </div>
+            <div class="walkin-form-footer"><p>The case starts as Active. Severity affects the map color; it does not declare an outbreak.</p><button id="walkin-save" type="submit" disabled><i data-lucide="save" aria-hidden="true"></i> Save walk-in case</button></div>
+            <p id="walkin-status" role="status" aria-live="polite" class="walkin-status" hidden></p>
+          </form>
+          <div class="walkin-card walkin-recent">
+            <div class="walkin-recent-heading"><div><h2>Your recent walk-in entries</h2><p>Up to 25 cases entered by your MHO account. The assigned barangay worker or Admin handles corrections.</p></div></div>
+            <div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Case date</th><th>Patient</th><th>Barangay</th><th>Disease / case</th><th>Status</th></tr></thead><tbody id="walkin-recent-body"></tbody></table></div>
+          </div>
         </div>
       </div>
     </main>
 
     <script src="assets/js/app.js"></script>
+    <script src="assets/js/health-map.js"></script>
+    <script src="assets/js/mho-insights.js"></script>
+    <script src="assets/js/mho-walkins.js"></script>
     <script>
       lucide.createIcons();
     </script>
@@ -698,262 +804,155 @@
       // ==========================================
       // CHART 1 & 2: DYNAMIC FETCH FROM DB
       // ==========================================
-            async function fetchYoyAndMortality() {
-        try {
-          const barangay = document.getElementById("filter-barangay").value;
-          const yoyRes = await fetch("http://localhost:3000/api/mho/yoy?barangay=" + encodeURIComponent(barangay));
-          const yoyResult = await yoyRes.json();
-          
-          let yoyCtx = document.getElementById('yoyMorbidityChart');
-          if (yoyCtx) {
-            if (window.yoyChartInst) window.yoyChartInst.destroy();
-            if (yoyResult.success && yoyResult.data.length > 0) {
-              // 3. Shorten labels
-              const labels = yoyResult.data.map(d => d.disease.replace('All types of skin disease', 'Skin Diseases').replace('Acute Gastroenteritis', 'Gastroenteritis'));
-              const data2025 = yoyResult.data.map(d => d.cases_2025);
-              const data2026 = yoyResult.data.map(d => d.cases_2026);
-              
-              window.yoyChartInst = new Chart(yoyCtx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                  labels: labels,
-                  datasets: [
-                    { 
-                        label: 'CY 2025', 
-                        data: data2025, 
-                        backgroundColor: 'rgba(59, 130, 246, 0.85)', // 1. Deep Royal Blue
-                        borderRadius: 4,
-                        barPercentage: 0.6, // 4. Thinner bars
-                        categoryPercentage: 0.8
-                    },
-                    { 
-                        label: 'CY 2026', 
-                        data: data2026, 
-                        backgroundColor: 'rgba(245, 158, 11, 0.9)', // 1. Vibrant Amber
-                        borderRadius: 4,
-                        barPercentage: 0.6, // 4. Thinner bars
-                        categoryPercentage: 0.8
-                    }
-                  ]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: { beginAtZero: true }
-                    }
-                },
-                // 2. Custom plugin to draw numbers on top of bars
-                plugins: [{
-                  id: 'customDataLabels',
-                  afterDatasetsDraw(chart) {
-                    const ctx = chart.ctx;
-                    ctx.font = 'bold 11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'bottom';
-                    // Check if dark mode is active for text color
-                    const isDark = document.documentElement.classList.contains('dark');
-                    ctx.fillStyle = isDark ? '#cbd5e1' : '#64748b'; 
-                    
-                    chart.data.datasets.forEach((dataset, i) => {
-                      const meta = chart.getDatasetMeta(i);
-                      meta.data.forEach((bar, index) => {
-                        const data = dataset.data[index];
-                        if (data > 0) {
-                          ctx.fillText(data, bar.x, bar.y - 4);
-                        }
-                      });
-                    });
-                  }
-                }]
-              });
-            } else {
-              const ctx = yoyCtx.getContext('2d');
-              
-              ctx.clearRect(0, 0, yoyCtx.width, yoyCtx.height);
-              ctx.font = "14px Arial";
-              ctx.fillStyle = "#94a3b8";
-              ctx.textAlign = "center";
-              ctx.fillText("No comparative data available.", yoyCtx.width/2, yoyCtx.height/2);
-            }
-          }
-
-          const mortRes = await fetch("http://localhost:3000/api/mho/mortality?barangay=" + encodeURIComponent(barangay));
-          const mortResult = await mortRes.json();
-          let mortCtx = document.getElementById('mortalityChart');
-          if (mortCtx) {
-            if (window.mortChartInst) window.mortChartInst.destroy();
-            if (mortResult.success && mortResult.data.length > 0) {
-              const labels = mortResult.data.map(d => d.disease);
-              const data = mortResult.data.map(d => d.count);
-              const colors = ['#64748b', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
-              window.mortChartInst = new Chart(mortCtx.getContext('2d'), {
-                type: 'doughnut',
-                data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' } } }
-              });
-            } else {
-              const ctx = mortCtx.getContext('2d');
-              ctx.clearRect(0, 0, mortCtx.width, mortCtx.height);
-              ctx.font = "14px Arial";
-              ctx.fillStyle = "#94a3b8";
-              ctx.textAlign = "center";
-              ctx.fillText("No mortality cases reported.", mortCtx.width/2, mortCtx.height/2);
-            }
-          }
-        } catch (error) { console.error('Failed to load YOY/Mortality data', error); }
+      let analyticsRequestId = 0;
+      function selectedAnalyticsFilters() {
+        return {
+          year: document.getElementById('filter-year').value,
+          barangay: document.getElementById('filter-barangay').value,
+          age: document.getElementById('filter-age').value,
+          category: document.getElementById('filter-category').value
+        };
       }
-      fetchYoyAndMortality();
+      async function fetchYoyAndMortality(filters, requestId) {
+        const params = new URLSearchParams(filters);
+        const yoyCanvas = document.getElementById('yoyMorbidityChart');
+        const mortalityCanvas = document.getElementById('mortalityChart');
+        try {
+          const [yoyResponse, mortalityResponse] = await Promise.all([
+            fetch('http://localhost:3000/api/mho/yoy?' + params),
+            fetch('http://localhost:3000/api/mho/mortality?' + params)
+          ]);
+          const [yoy, mortality] = await Promise.all([yoyResponse.json(), mortalityResponse.json()]);
+          if (requestId !== analyticsRequestId) return;
+          if (!yoy.success || !mortality.success) throw new Error('Comparison charts are unavailable.');
+          document.getElementById('yoy-title').textContent = `Recorded Cases: ${yoy.previous_year} vs ${yoy.current_year}`;
+          document.getElementById('yoy-context').textContent = `Uses the selected barangay and recorded age. ${filters.year === 'all' ? 'All Years compares the current calendar year with the previous year. ' : ''}Current-year counts may be incomplete; this chart does not establish an increase or decline in community disease incidence.`;
+          document.getElementById('mortality-title').textContent = `Recorded Deaths: ${filters.year === 'all' ? 'All Years' : 'CY ' + filters.year}`;
+          if (window.yoyChartInst) window.yoyChartInst.destroy();
+          if (window.mortChartInst) window.mortChartInst.destroy();
+          window.yoyChartInst = new Chart(yoyCanvas.getContext('2d'), {
+            type: 'bar',
+            data: { labels: yoy.data.map(row => row.disease), datasets: [
+              { label: 'CY ' + yoy.previous_year, data: yoy.data.map(row => Number(row.previous_cases)), backgroundColor: '#3b82f6', borderRadius: 4 },
+              { label: 'CY ' + yoy.current_year, data: yoy.data.map(row => Number(row.current_cases)), backgroundColor: '#f59e0b', borderRadius: 4 }
+            ] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, title: { display: !yoy.data.length, text: 'No matching comparison records.' } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } }
+          });
+          window.mortChartInst = new Chart(mortalityCanvas.getContext('2d'), {
+            type: 'doughnut',
+            data: { labels: mortality.data.map(row => row.disease), datasets: [{ data: mortality.data.map(row => Number(row.count)), backgroundColor: ['#64748b','#ef4444','#f59e0b','#3b82f6','#8b5cf6'], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom' }, title: { display: !mortality.data.length, text: 'No matching records marked Deceased.' } } }
+          });
+        } catch (error) {
+          if (requestId !== analyticsRequestId) return;
+          if (window.yoyChartInst) { window.yoyChartInst.destroy(); window.yoyChartInst = null; }
+          if (window.mortChartInst) { window.mortChartInst.destroy(); window.mortChartInst = null; }
+          document.getElementById('yoy-context').textContent = 'Comparison charts could not be loaded. Refresh or try another filter.';
+        }
+      }
+
 
       // ==========================================
       // API FETCH & TOGGLE LOGIC
       // ==========================================
       async function runPredictiveModel() {
-        const disease = document.getElementById("predictive-disease-select").value;
-        const barangay = document.getElementById("predictive-brgy-select").value;
-        
-        const loader = document.getElementById("predictive-insight-text");
-        const score = document.getElementById("predictive-accuracy-score");
-        
-        if(loader) loader.innerHTML = `<span style="color:#64748b;"><i class="fa fa-spinner fa-spin"></i> Running SARIMA Model (80/20 Split)...</span>`;
-        if(score) score.innerText = "--";
-        
+        const button = document.getElementById('run-forecast-button');
+        if (button.disabled) return;
+        const diseaseSelect = document.getElementById('predictive-disease-select');
+        const barangaySelect = document.getElementById('predictive-brgy-select');
+        const disease = diseaseSelect.value;
+        const barangay = barangaySelect.value;
+        const summary = document.getElementById('predictive-insight-text');
+        const validation = document.getElementById('predictive-validation-status');
+        const months = document.getElementById('forecast-months');
+        const recommendations = document.getElementById('forecast-recommendations');
+        const recommendationStatus = document.getElementById('forecast-recommendation-status');
+        months.hidden = recommendations.hidden = true;
+        months.replaceChildren();
+        recommendations.replaceChildren();
+        recommendationStatus.hidden = false;
+        recommendationStatus.textContent = 'Preparing suggested follow-up...';
+        if (myChart) { myChart.destroy(); myChart = null; }
+        button.disabled = diseaseSelect.disabled = barangaySelect.disabled = true;
+        button.textContent = 'Generating...';
+        summary.textContent = 'Generating demonstration forecast...';
+        validation.textContent = 'Pending';
         try {
-            const res = await fetch(`http://localhost:3000/api/predict?disease=${disease}&barangay=${barangay}`);
-            const result = await res.json();
-            
-            if(result.success) {
-                const data = result.data && result.data.dates ? result.data : result;
-                if(myChart) myChart.destroy();
-                
-                // Update Score
-                if(score) {
-                    score.innerText = data.accuracy_percentage;
+            const params = new URLSearchParams({ disease, barangay });
+            const response = await fetch('http://localhost:3000/api/predict?' + params);
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error || 'Unable to generate a forecast.');
+            const data = result.data;
+            const guidance = MHOInsights.forecastGuidance(data, disease, barangay);
+            const futureValues = data.forecast.filter(value => value !== null);
+            if (!futureValues.length || !futureValues.every(Number.isFinite)) throw new Error('The forecast contains invalid values.');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(document.getElementById('predictionChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.dates,
+                    datasets: [
+                        { label: 'Recorded cases in selected barangay', data: data.historical,
+                          borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', borderWidth: 3, fill: true, tension: 0.3 },
+                        { label: 'Demonstration estimate (validation pending)', data: data.forecast,
+                          borderColor: '#ef4444', borderDash: [5,5], borderWidth: 3, pointRadius: 5, fill: false, tension: 0.3 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { title: { display: true, text: `Demonstration forecast: ${disease} in ${barangay}` }, legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true, title: { display: true, text: 'Number of cases' } } }
                 }
-
-                // Update Chart
-                const ctx = document.getElementById("predictionChart").getContext("2d");
-                
-                myChart = new Chart(ctx, {
-                    type: "line",
-                    data: {
-                        labels: data.dates,
-                        datasets: [
-                            {
-                                label: "Historical Cases (Real/Augmented)",
-                                data: data.historical,
-                                borderColor: "#3b82f6",
-                                backgroundColor: "rgba(59, 130, 246, 0.1)",
-                                borderWidth: 3,
-                                fill: true,
-                                tension: 0.3
-                            },
-                            {
-                                label: "SARIMA Forecast (Future)",
-                                data: data.forecast,
-                                borderColor: "#ef4444",
-                                borderDash: [5, 5],
-                                borderWidth: 3,
-                                pointBackgroundColor: "#ef4444",
-                                pointRadius: 5,
-                                fill: false,
-                                tension: 0.3
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: { display: true, text: `Disease Outbreak Forecast: ${disease} in ${barangay}` },
-                            legend: { position: 'bottom' }
-                        },
-                        scales: {
-                            y: { beginAtZero: true, title: { display: true, text: 'Number of Cases' } }
-                        }
-                    }
-                });
-                
-                // Generate Recommendation
-                const futureValues = data.forecast.filter(v => v !== null);
-                const futureDates = data.dates.slice(-3); // Last 3 months
-                
-                let maxCases = Math.max(...futureValues);
-                let maxIndex = futureValues.indexOf(maxCases);
-                let peakMonth = futureDates[maxIndex]; 
-                
-                // Format the month nicely (e.g., "2026-10" -> "October 2026")
-                const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                let dateObj = new Date(peakMonth + "-01");
-                let nicelyFormattedMonth = monthNames[dateObj.getMonth()] + " " + dateObj.getFullYear();
-
-                let futureSum = futureValues.reduce((a,b) => a+b, 0);
-                
-                let trendText = "stable";
-                let actionText = "Continue standard monitoring protocols. No immediate outbreak threat detected.";
-                let headerText = "Normal Outlook";
-                let headerColor = "#0ea5e9";
-                let iconColor = "#0ea5e9";
-                
-                if (futureSum > 10 || maxCases > 5) {
-                    trendText = "rising";
-                    headerText = "Outbreak Warning";
-                    headerColor = "#ef4444";
-                    iconColor = "#ef4444";
-                    actionText = `The MHO should prepare medical supplies for ${disease}. We recommend allocating resources to ${barangay} specifically before ${nicelyFormattedMonth} to mitigate the predicted spike.`;
-                } else if (futureSum === 0) {
-                    trendText = "decreasing";
-                    actionText = "Cases are projected to drop to zero. Maintain routine surveillance.";
-                }
-
-                // Update the Insight Card UI
-                const insightCard = loader.closest('.bg-white');
-                if (insightCard) {
-                    insightCard.style.borderLeftColor = headerColor;
-                    insightCard.querySelector('h4').style.color = headerColor;
-                    insightCard.querySelector('i').style.color = iconColor;
-                    insightCard.querySelector('h4').innerHTML = `<i data-lucide="lightbulb" class="w-[18px]" style="color: ${iconColor}"></i> AI Recommendation`;
-                    lucide.createIcons();
-                }
-
-                loader.innerHTML = `Based on the Predictive Forecast, <strong>${disease}</strong> cases in <strong>${barangay}</strong> are predicted to be <strong>${trendText}</strong>, with a potential peak of <strong>${maxCases} cases in ${nicelyFormattedMonth}</strong>.<br><br><span style="font-weight:600; color:${headerColor};">Recommended Action:</span> ${actionText}`;
-            } else {
-                if(loader) loader.innerHTML = `<span style="color:#ef4444;">Error: ${result.error || 'Failed to generate forecast.'}</span>`;
+            });
+            summary.textContent = guidance.summary;
+            for (const entry of guidance.entries) {
+                const card = document.createElement('div');
+                card.className = 'forecast-month';
+                const label = document.createElement('span');
+                label.textContent = new Date(entry.date + '-01T12:00:00').toLocaleDateString('en-PH', { month: 'short', year: 'numeric' });
+                const count = document.createElement('strong');
+                count.textContent = entry.value.toLocaleString('en-PH');
+                const unit = document.createElement('span');
+                unit.textContent = entry.value === 1 ? 'estimated case' : 'estimated cases';
+                card.append(label, count, unit);
+                months.append(card);
             }
-        } catch(e) {
-            console.error(e);
-            if(loader) loader.innerHTML = `<span style="color:#ef4444;">Connection Error. Please ensure backend is running.</span>`;
+            for (const text of guidance.recommendations) {
+                const item = document.createElement('li');
+                item.textContent = text;
+                recommendations.append(item);
+            }
+            months.hidden = recommendations.hidden = false;
+            recommendationStatus.hidden = true;
+        } catch (error) {
+            summary.textContent = error.message || 'Unable to generate a forecast. Please try again.';
+            recommendationStatus.textContent = 'Suggested follow-up is unavailable because the forecast did not complete.';
+        } finally {
+            button.disabled = diseaseSelect.disabled = barangaySelect.disabled = false;
+            button.textContent = 'Run Forecast';
         }
       }
-      
-      runPredictiveModel();
 
       // ==========================================
       // DATABASE SYNC: Fetch Live Stats from MySQL
       // ==========================================
-      async function fetchLiveMHOStats() {
+      async function fetchLiveMHOStats(filters, requestId) {
+        const ids = { total: 'stat-total', active: 'stat-active', recovered: 'stat-recovered', highRisk: 'stat-risk' };
         try {
-          const selectedBarangay = document.getElementById("filter-barangay").value;
-          const url = `http://localhost:3000/api/mho/kpi?barangay=${selectedBarangay}`;
-          const res = await fetch(url);
-          const result = await res.json();
-          
-          if(result.success) {
-              document.getElementById("stat-active").innerText = result.active;
-              document.getElementById("stat-recovered").innerText = result.recovered;
-              document.getElementById("stat-risk").innerText = result.highRisk;
-          }
-          
+          const response = await fetch('http://localhost:3000/api/mho/kpi?' + new URLSearchParams(filters));
+          const result = await response.json();
+          if (requestId !== analyticsRequestId) return;
+          if (!result.success) throw new Error('Totals are unavailable.');
+          for (const [key, id] of Object.entries(ids)) document.getElementById(id).textContent = Number(result[key]).toLocaleString('en-PH');
+          document.getElementById('analytics-kpi-context').textContent = 'Totals follow the selected year, barangay and recorded age, across all disease-case outcomes. Statuses reflect the current records; active totals exclude archived records. The Cases/Deaths selector applies to the health profile below.';
         } catch (error) {
-          console.error("Failed to read CSV dataset", error);
+          if (requestId !== analyticsRequestId) return;
+          for (const id of Object.values(ids)) document.getElementById(id).textContent = 'Unavailable';
+          document.getElementById('analytics-kpi-context').textContent = 'Totals could not be loaded. They are not zero counts.';
         }
       }
 
-      
+
       // ==========================================
       // EPIDEMIOLOGICAL HEALTH PROFILE (DYNAMIC CHART)
       // ==========================================
@@ -976,100 +975,72 @@
           });
       }
 
-      function generateInsights(data, category, age, year) {
-        const insightText = document.getElementById("insight-text");
-        const actionText = document.getElementById("action-text");
-        if (!insightText) return;
-        if (!data || data.length === 0) {
-          insightText.innerHTML = "No data available for these specific demographic parameters.";
-          actionText.innerHTML = "Awaiting data input.";
-          return;
-        }
-        const topDisease = data[0];
-        insightText.innerHTML = `In <strong>CY ${year}</strong>, the leading cause of ${category} is <strong>${topDisease.disease}</strong> with <strong>${topDisease.cases}</strong> recorded cases.`;
-        if (category === "morbidity") {
-            actionText.innerHTML = `Deploy preventive measures and allocate resources for <strong>${topDisease.disease}</strong>.`;
-        } else {
-            actionText.innerHTML = `Immediate systemic review and mortality prevention protocol required for <strong>${topDisease.disease}</strong>.`;
-        }
-      }
-
       async function updateDynamicChart() {
-        const year = document.getElementById("filter-year")?.value || "2026";
-        const barangay = document.getElementById("filter-barangay")?.value || "all";
-        const category = document.getElementById("filter-category")?.value || "morbidity";
-        
+        const filters = selectedAnalyticsFilters();
+        const requestId = ++analyticsRequestId;
+        const insight = document.getElementById('insight-text');
+        const action = document.getElementById('action-text');
+        const context = document.getElementById('analytics-data-context');
+        insight.textContent = 'Loading the selected records...';
+        action.textContent = 'Suggested follow-up will appear after the records load.';
+        context.textContent = 'Updating charts and descriptions for the selected filters...';
+        for (const id of ['stat-total','stat-active','stat-recovered','stat-risk']) document.getElementById(id).textContent = '...';
+        if (dynamicChart) {
+          dynamicChart.data.labels = [];
+          dynamicChart.data.datasets[0].data = [];
+          dynamicChart.update();
+        }
+        const otherPanels = Promise.all([fetchLiveMHOStats(filters, requestId), fetchYoyAndMortality(filters, requestId)]);
         try {
-            const url = `http://localhost:3000/api/mho/stats?year=${year}&barangay=${barangay}&category=${category}`;
-            const response = await fetch(url);
-            const result = await response.json();
-            
-            if(result.success && dynamicChart) {
-                let processedData = result.data;
-                dynamicChart.data.labels = processedData.map((d) => d.disease);
-                dynamicChart.data.datasets[0].data = processedData.map((d) => d.cases);
-                dynamicChart.data.datasets[0].backgroundColor = category === "morbidity" ? blueGradient : redGradient;
-                dynamicChart.update();
-                generateInsights(processedData, category, "all", year);
-            }
-        } catch (error) { console.error(error); }
-        
-        // Trigger the other panels to update too!
-        if (typeof fetchLiveMHOStats === 'function') fetchLiveMHOStats();
-        if (typeof fetchYoyAndMortality === 'function') fetchYoyAndMortality();
+          const response = await fetch('http://localhost:3000/api/mho/stats?' + new URLSearchParams(filters));
+          const result = await response.json();
+          if (requestId !== analyticsRequestId) return;
+          if (!result.success) throw new Error('The selected records could not be loaded.');
+          const description = MHOInsights.describeProfile(result.data, filters, result.summary);
+          insight.textContent = description.text;
+          action.textContent = description.action;
+          const range = result.summary.first_recorded ? ` Matching record dates: ${result.summary.first_recorded} to ${result.summary.last_recorded}.` : '';
+          context.textContent = `Counts use recorded dates and recorded ages. Bite and accident categories are excluded. Historical totals retain archived records.${range} Reporting completeness and real/dummy provenance are not established by this chart.`;
+          if (dynamicChart) {
+            dynamicChart.data.labels = result.data.map(row => row.disease);
+            dynamicChart.data.datasets[0].data = result.data.map(row => Number(row.cases));
+            dynamicChart.data.datasets[0].label = filters.category === 'mortality' ? 'Records marked Deceased' : 'Recorded disease cases (all outcomes)';
+            dynamicChart.data.datasets[0].backgroundColor = filters.category === 'mortality' ? redGradient : blueGradient;
+            dynamicChart.options.scales = { x: { beginAtZero: true, ticks: { precision: 0 } } };
+            dynamicChart.update();
+          }
+        } catch (error) {
+          if (requestId !== analyticsRequestId) return;
+          insight.textContent = 'The selected records could not be loaded. Please refresh or try again.';
+          action.textContent = 'Suggested follow-up is unavailable while the data cannot be loaded.';
+          context.textContent = 'Data unavailable. A connection error does not mean there are zero cases.';
+        } finally { await otherPanels; }
       }
-      setTimeout(updateDynamicChart, 300);
-fetchLiveMHOStats();
-          fetchYoyAndMortality();
-      // Re-fetch when barangay filter changes (add event listener to the existing updateDynamicChart function)
-      fetchLiveMHOStats();
+      updateDynamicChart();
 
-      // --- PRESCRIPTIVE DSS ENGINE ---
-      function generateDSS() {
-        const btn = document.getElementById("btn-run-dss");
-        const icon = document.getElementById("dss-icon");
 
-        // Change button to loading state
-        btn.innerHTML = `<i data-lucide="loader-2" class="lucide-spin" style="width: 18px;"></i> Analyzing Forecast...`;
-        lucide.createIcons();
 
-        // Simulate AI Processing time (1.5 seconds)
-        setTimeout(() => {
-          // Change button to success state
-          btn.innerHTML = `<i data-lucide="check-circle" style="width: 18px; "></i> Analysis Complete`;
-          btn.style.background = "hsl(var(--muted))";
-          btn.style.color = "hsl(var(--foreground))";
-          btn.style.border = "1px solid #cbd5e1";
-          lucide.createIcons();
-
-          // Animate the specific rules based on the chart's "Spike" prediction
-          document.getElementById("dss-rule-a").style.display = "flex";
-          document.getElementById("dss-rule-c").style.display = "flex";
-        }, 1500);
-      }
       // ==========================================
       // OFFICIAL DOH PDF GENERATOR (Backend)
       // ==========================================
-      function generateOfficialPDF(reportType) {
-        let url = '';
+      async function generateOfficialPDF(reportType) {
+        let url;
         if (reportType === 'FHSIS') {
-          const month = document.getElementById('fhsis-month').value;
-          const year = document.getElementById('fhsis-year').value;
-          url = "http://localhost:3000/api/mho/reports/fhsis?month=" + month + "&year=" + year;
+          const params = new URLSearchParams({ month: document.getElementById('fhsis-month').value, year: document.getElementById('fhsis-year').value });
+          url = 'http://localhost:3000/api/mho/reports/fhsis?' + params;
         } else if (reportType === 'PIDSR') {
-          const week = document.getElementById('pidsr-week').value;
-          url = "http://localhost:3000/api/mho/reports/pidsr?week=" + encodeURIComponent(week);
+          url = 'http://localhost:3000/api/mho/reports/pidsr?' + new URLSearchParams({week:document.getElementById('pidsr-week').value,year:document.getElementById('pidsr-year').value});
+        } else return;
+        Swal.fire({ title: 'Generating report...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        try {
+          await HealthIntel.download(url, {}, reportType + '_Report.pdf');
+          Swal.fire({ icon: 'success', title: 'Download started', text: 'Your ' + reportType + ' PDF is ready.' });
+        } catch (error) {
+          Swal.fire({ icon: 'error', title: 'Report unavailable', text: error.message });
         }
-        window.open(url, '_blank');
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'Generating PDF',
-          text: 'The ' + reportType + ' report is being generated and will download shortly.',
-          confirmButtonColor: reportType === 'FHSIS' ? '#10b981' : '#ef4444'
-        });
       }
     
+
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     const icon = document.getElementById("sidebar-icon");
@@ -1161,7 +1132,7 @@ function toggleDarkMode() {
               }
               return data;
             } catch (err) {
-              Swal.showValidationMessage('Server error. Try again later.');
+              Swal.showValidationMessage(err.message || 'Server error. Try again later.');
             }
           }
         }).then((result) => {
@@ -1169,8 +1140,8 @@ function toggleDarkMode() {
             Swal.fire({
               icon: 'success',
               title: 'Success',
-              text: 'Password updated successfully!'
-            });
+              text: 'Password updated. Please sign in with your new password.'
+            }).then(() => { HealthIntel.clearSession(); window.location.replace('index.html'); });
           }
         });
       }
@@ -1181,8 +1152,14 @@ function toggleDarkMode() {
         Swal.fire({
           background: isDark ? '#1e293b' : '#ffffff',
           color: isDark ? '#f8fafc' : '#0f172a',
-          title: 'Terms & Privacy',
-          html: `<p style="text-align: left; font-size: 0.9rem;">Health-Intel is a capstone project for academic purposes. All data is handled in compliance with the Data Privacy Act of 2012 (RA 10173). By using this system, you agree to the responsible use of health information.</p>`,
+          title: 'Terms & Recognitions',
+          html: `<div style="display:grid;gap:12px;text-align:left;font-size:0.9rem;line-height:1.6;">
+            <p><strong>Academic prototype.</strong> Health-Intel is a capstone project, not an official LGU privacy notice or proof of legal compliance.</p>
+            <p><strong>Record use.</strong> Authorized health workers encode cases; the MHO reviews summaries and reports; the Admin oversees records and accounts; and the Superadmin maintains system backups.</p>
+            <p><strong>User responsibility.</strong> Access and share health information only for approved project work and through authorized procedures.</p>
+            <p><strong>Real records.</strong> The responsible LGU and project team need to review how existing real records are handled and provide a complete privacy notice before operational use. It should identify who controls the data, contact details, purposes, lawful basis, recipients, retention, and how people can exercise their rights.</p>
+            <p><strong>Project recognitions.</strong> This capstone uses Tailwind CSS, Leaflet.js, Chart.js, and SweetAlert2.</p>
+          </div>`,
           confirmButtonColor: isDark ? '#3b82f6' : '#0f172a'
           });
         }
