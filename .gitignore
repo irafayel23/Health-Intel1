@@ -2,8 +2,6 @@ node_modules/
 .env
 .env.*
 !.env.example
-test/.local-jwt-secret
-test/.venv/
 server/.local-jwt-secret
 server/.venv/
 /analysis/
