@@ -47,22 +47,7 @@
         .sub-tab-btn.active { @apply bg-slate-100 text-slate-900 font-bold; }
       }
     </style>
-    <style>
-      /* Raw CSS overrides for Dark Mode to bypass Tailwind CDN @apply limitations */
-      .dark .table-container { background-color: #0f172a !important; border-color: #334155 !important; }
-      .dark th { background-color: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
-      .dark td { background-color: #0f172a !important; border-color: #334155 !important; color: #cbd5e1 !important; }
-      .dark tr:hover td { background-color: #1e293b !important; }
-      .dark th:last-child { background-color: #1e293b !important; }
-      .dark .white-panel { background-color: #0f172a !important; border-color: #1e293b !important; }
-      .dark .sub-tabs { border-color: #1e293b !important; }
-      .dark .sub-tab-btn { color: #94a3b8 !important; }
-      .dark .sub-tab-btn:hover { background-color: #1e293b !important; color: #e2e8f0 !important; }
-      .dark .sub-tab-btn.active { background-color: #1e293b !important; color: #ffffff !important; }
-      
-      /* Darker fonts in light mode fix */
-      td { color: #334155; font-weight: 500; }
-    </style>
+    <link rel="stylesheet" href="assets/css/admin-page.css" />
 
   </head>
   <body>
@@ -162,7 +147,7 @@
               </div>
 
               <!-- Active Personnel View -->
-              <div id="iam-active-view" style="display: none">
+              <div id="iam-active-view" class="admin-hidden-subview">
                 <div class="table-container">
                   <table>
                     <thead>
@@ -181,7 +166,7 @@
               </div>
 
               <!-- Archived / Denied View -->
-              <div id="iam-archived-view" style="display: none">
+              <div id="iam-archived-view" class="admin-hidden-subview">
                 <div class="table-container">
                   <table>
                     <thead>
@@ -217,8 +202,8 @@
               </div>
 
               <div id="data-active-view">
-                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-                  <input type="text" id="search-patient" onkeyup="filterData()" placeholder="Search name or System ID..." style="flex: 2; min-width: 220px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-size: 0.95rem;"/>
+                <div class="admin-patient-search-row">
+                  <input type="text" id="search-patient" onkeyup="filterData()" placeholder="Search name or System ID..." class="admin-patient-search-input" />
                   <select id="filter-table-brgy" onchange="filterData()" class="flex-1 min-w-[140px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
                     <option value="">All Barangays</option>
                     <option value="1">Blumentritt</option>
@@ -262,8 +247,8 @@
                         <th>Barangay</th>
                         <th>Status</th>
                         <!-- NEW PROVENANCE COLUMNS -->
-                        <th style="color: #0284c7;">Encoded By</th>
-                        <th style="color: #0284c7;">Last Updated</th>
+                        <th class="admin-table-highlight">Encoded By</th>
+                        <th class="admin-table-highlight">Last Updated</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -272,7 +257,7 @@
                 </div>
               </div>
 
-              <div id="data-archived-view" style="display: none">
+              <div id="data-archived-view" class="admin-hidden-subview">
                 <div class="table-container">
                   <table>
                     <thead>
@@ -284,8 +269,8 @@
                         <th>Barangay</th>
                         <th>Status</th>
                         <!-- NEW PROVENANCE COLUMNS -->
-                        <th style="color: #0284c7;">Encoded By</th>
-                        <th style="color: #0284c7;">Last Updated</th>
+                        <th class="admin-table-highlight">Encoded By</th>
+                        <th class="admin-table-highlight">Last Updated</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -300,13 +285,13 @@
           <!-- 3. DISEASE REGISTRY -->
           <!-- ============================================== -->
           <div id="view-diseases" class="view-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <div class="admin-section-heading">
               <div>
                 <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Disease / Case Registry</h1>
                 <p class="text-slate-500 dark:text-slate-400 mt-1">Manage case-encoding categories. Some historical labels describe symptoms or broad case groups and need clinical review.</p>
               </div>
-              <button onclick="openDiseaseModal()" style="background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="plus-circle" style="width: 18px"></i> Add Disease / Case
+              <button onclick="openDiseaseModal()" class="admin-add-disease">
+                <i data-lucide="plus-circle" class="admin-add-disease-icon"></i> Add Disease / Case
               </button>
             </div>
 
@@ -333,7 +318,7 @@
                 </div>
               </div>
 
-              <div id="disease-archived-view" style="display: none">
+              <div id="disease-archived-view" class="admin-hidden-subview">
                 <div class="table-container">
                   <table>
                     <thead>
@@ -356,13 +341,13 @@
           <!-- 4. SECURITY AUDIT TRAIL (NEW MODULE) -->
           <!-- ============================================== -->
           <div id="view-audit" class="view-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <div class="admin-section-heading">
               <div>
                 <h1 class="text-2xl font-bold text-slate-900 dark:text-white">System Audit Trail</h1>
                 <p class="text-slate-500 dark:text-slate-400 mt-1">Recorded account actions and patient record changes.</p>
               </div>
               <button onclick="loadAuditLogs()" class="bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 px-4 py-2 rounded-md font-bold flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700">
-                <i data-lucide="refresh-cw" style="width: 16px"></i> Refresh Ledger
+                <i data-lucide="refresh-cw" class="admin-refresh-icon"></i> Refresh Ledger
               </button>
             </div>
 
@@ -397,15 +382,15 @@
     <!-- ============================================== -->
     <div id="approvalModal" class="modal-overlay hidden">
       <div class="modal-box">
-        <h3 style="margin-top: 0; color: #0f172a">Approve Employee Account</h3>
+        <h3 class="admin-approval-heading">Approve Employee Account</h3>
         <input type="hidden" id="modal_temp_id" />
-        <select id="modal_role" class="login-input" style="margin-top: 15px; margin-bottom: 20px">
+        <select id="modal_role" class="login-input admin-approval-role">
           <option value="bhw">Barangay Health Worker (BHW)</option>
           <option value="mho">Municipal Health Officer (MHO)</option>
         </select>
-        <div style="display: flex; gap: 10px">
-          <button onclick="submitApproval()" class="login-btn" style="margin-top: 0">Approve & Save</button>
-          <button onclick="closeModal('approvalModal')" class="login-btn" style="margin-top: 0; background: #e2e8f0; color: #475569">Cancel</button>
+        <div class="admin-approval-actions">
+          <button onclick="submitApproval()" class="login-btn admin-approval-submit">Approve & Save</button>
+          <button onclick="closeModal('approvalModal')" class="login-btn admin-approval-cancel">Cancel</button>
         </div>
       </div>
     </div>
@@ -515,10 +500,10 @@
                   <td><strong>${escapeText(u.system_id)}</strong></td>
                   <td>${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
                   <td>${escapeText(u.employee_id || 'N/A')}</td>
-                  <td><span style="background:#fef08a; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#854d0e; font-weight:bold;">PENDING</span></td>
+                  <td><span class="admin-badge-pending">PENDING</span></td>
                   <td>
-                    <button style="background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="approveUserDirectly(${escapeText(JSON.stringify(u.system_id))})">Approve</button>
-                    <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px;" onclick="denyUser(${escapeText(JSON.stringify(u.system_id))})">Deny</button>
+                    <button onclick="approveUserDirectly(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-approve">Approve</button>
+                    <button onclick="denyUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-deny">Deny</button>
                   </td>
                 </tr>
               `;
@@ -546,11 +531,11 @@
                 <tr>
                   <td><strong>${escapeText(u.system_id)}</strong></td>
                   <td>${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
-                  <td style="text-transform: uppercase;">${u.role}</td>
+                  <td class="admin-uppercase-role">${u.role}</td>
                   <td>${u.assigned_barangay || 'Municipality'}</td>
-                  <td><span style="background:#dcfce7; color:#16a34a; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">ACTIVE</span></td>
+                  <td><span class="admin-badge-active">ACTIVE</span></td>
                   <td>
-                    <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;" onclick="suspendUser(${escapeText(JSON.stringify(u.system_id))})">Suspend Access</button>
+                    <button onclick="suspendUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-suspend">Suspend Access</button>
                   </td>
                 </tr>
               `;
@@ -578,11 +563,11 @@
               let btnHTML = "";
               
               if (u.status === 'suspended') {
-                badgeHTML = `<span style="background:#fee2e2; color:#b91c1c; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">ACCESS SUSPENDED</span>`;
-                btnHTML = `<button style="background:#e0f2fe; color:#0369a1; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="restoreSuspended(${escapeText(JSON.stringify(u.system_id))})">Restore Access</button>`;
+                badgeHTML = `<span class="admin-badge-suspended">ACCESS SUSPENDED</span>`;
+                btnHTML = `<button onclick="restoreSuspended(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-restore-access">Restore Access</button>`;
               } else {
-                badgeHTML = `<span style="background:#fef3c7; color:#b45309; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">DENIED REGISTRATION</span>`;
-                btnHTML = `<button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="undoDeny(${escapeText(JSON.stringify(u.system_id))})">Re-evaluate</button>`;
+                badgeHTML = `<span class="admin-badge-denied">DENIED REGISTRATION</span>`;
+                btnHTML = `<button onclick="undoDeny(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-reevaluate">Re-evaluate</button>`;
               }
 
               dTableHtmlBuffer += `
@@ -695,9 +680,9 @@
         const maxResults = 50;
         const slicedData = data.slice(0, maxResults);
         slicedData.forEach((p) => {
-          let c = (p.disease || "").toLowerCase().includes("bite") ? "#ef4444" : "inherit";
+          let diseaseClass = (p.disease || "").toLowerCase().includes("bite") ? "admin-disease-alert" : "";
           let statusText = p.status || "Active";
-          let statusColor = statusText.toLowerCase() === "active" ? "#ea580c" : "#10b981";
+          let statusClass = statusText.toLowerCase() === "active" ? "admin-status-active" : "admin-status-resolved";
 
           let dateObj = p.updated_at ? new Date(p.updated_at) : (p.created_at ? new Date(p.created_at) : new Date());
           let timeString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -708,15 +693,15 @@
               <td class="font-bold">#REC-${p.id}</td>
               <td><strong>${escapeText(p.patient_name || p.first_name + " " + p.last_name)}</strong></td>
               <td>${p.age || "N/A"}</td>
-              <td style="color:${c}; font-weight:bold;">${escapeText(p.disease || "Unknown")}</td>
+              <td class="admin-disease-name ${diseaseClass}">${escapeText(p.disease || "Unknown")}</td>
               <td>${escapeText(p.barangay_name || p.purok || "Unknown")}</td>
-              <td><span style="color:${statusColor}; font-weight:bold;">${escapeText(statusText)}</span></td>
+              <td><span class="admin-case-status ${statusClass}">${escapeText(statusText)}</span></td>
               
               <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${escapeText(encodedBy)}</td>
               <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${timeString}</td>
               
               <td>
-                <button style="border:1px solid #ef4444; background:transparent; color:#ef4444; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="archivePatient(${p.id})">Archive</button>
+                <button onclick="archivePatient(${p.id})" class="admin-button-archive-patient">Archive</button>
                 <button class="rounded border border-sky-600 px-2 py-1 text-sky-600" onclick="HealthIntelCorrections.open(${p.id})">Correct</button>
               </td>
             </tr>
@@ -776,12 +761,12 @@
                   <td>${p.age || "N/A"}</td>
                   <td class="font-bold">${escapeText(p.disease || "Unknown")}</td>
                   <td>${escapeText(p.barangay_name || p.purok || "Unknown")}</td>
-                  <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td>
+                  <td><span class="admin-badge-archived">Archived</span></td>
                   
                   <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${escapeText(encodedBy)}</td>
                   <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${timeString}</td>
 
-                  <td><button style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;" onclick="restorePatient(${p.id})">Restore</button></td>
+                  <td><button onclick="restorePatient(${p.id})" class="admin-button-reevaluate">Restore</button></td>
                 </tr>
               `;
             });
@@ -848,14 +833,14 @@
           let actBodyHtmlBuffer = "";
           if (actData.success) {
             actData.data.forEach((d) => {
-              let classColor = d.classification === "High Risk" ? "color: #ef4444; background: #fee2e2;" : "color: #0284c7; background: #e0f2fe;";
+              let classificationClass = d.classification === "High Risk" ? "admin-classification-high" : "admin-classification-standard";
               actBodyHtmlBuffer += `
                 <tr>
                   <td class="font-bold text-slate-900 dark:text-slate-100">${escapeText(d.name)}</td>
                   <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.category)}</td>
-                  <td><span style="${classColor} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">${escapeText(d.classification)}</span></td>
+                  <td><span class="admin-classification ${classificationClass}">${escapeText(d.classification)}</span></td>
                   <td class="text-emerald-500 dark:text-emerald-400 font-bold">Active</td>
-                  <td><button onclick="archiveDisease(${d.id})" style="background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold;">Archive</button></td>
+                  <td><button onclick="archiveDisease(${d.id})" class="admin-button-archive-disease">Archive</button></td>
                 </tr>
               `;
             });
@@ -882,8 +867,8 @@
                   <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.name)}</td>
                   <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.category)}</td>
                   <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.classification)}</td>
-                  <td><span style="background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Archived</span></td>
-                  <td><button onclick="restoreDisease(${d.id})" style="background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">Restore</button></td>
+                  <td><span class="admin-badge-archived">Archived</span></td>
+                  <td><button onclick="restoreDisease(${d.id})" class="admin-button-reevaluate">Restore</button></td>
                 </tr>
               `;
             });
@@ -1006,15 +991,15 @@
         paginatedData.forEach((log) => {
           const date = new Date(log.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
           
-          let badgeClass = 'background:#e2e8f0; color:#475569;'; 
-          if (log.role === 'BHW') badgeClass = 'background:#dcfce7; color:#16a34a;'; 
-          else if (log.role === 'Admin' || log.role === 'LGU Admin') badgeClass = 'background:#e0f2fe; color:#0284c7;';
+          let badgeClass = 'admin-audit-role-default';
+          if (log.role === 'BHW') badgeClass = 'admin-audit-role-bhw';
+          else if (log.role === 'Admin' || log.role === 'LGU Admin') badgeClass = 'admin-audit-role-admin';
           
           tbodyHtmlBuffer += `
             <tr >
               <td class="whitespace-nowrap font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${date}</td>
               <td class="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100">${escapeText(log.user_id)}</td>
-              <td class="whitespace-nowrap"><span style="${badgeClass} padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; text-transform:uppercase;">${escapeText(log.role)}</span></td>
+              <td class="whitespace-nowrap"><span class="admin-audit-role ${badgeClass}">${escapeText(log.role)}</span></td>
               <td class="whitespace-nowrap text-sky-500 dark:text-sky-400 font-bold">${escapeText(log.action)}</td>
               <td class="whitespace-pre-line font-medium text-slate-700 dark:text-slate-300 text-[0.9rem]">${escapeText(HealthIntelText.auditDetails(log))}</td>
             </tr>

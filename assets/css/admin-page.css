@@ -1,0 +1,54 @@
+      /* Raw CSS overrides for Dark Mode to bypass Tailwind CDN @apply limitations */
+      .dark .table-container { background-color: #0f172a !important; border-color: #334155 !important; }
+      .dark th { background-color: #1e293b !important; border-color: #334155 !important; color: #94a3b8 !important; }
+      .dark td { background-color: #0f172a !important; border-color: #334155 !important; color: #cbd5e1 !important; }
+      .dark tr:hover td { background-color: #1e293b !important; }
+      .dark th:last-child { background-color: #1e293b !important; }
+      .dark .white-panel { background-color: #0f172a !important; border-color: #1e293b !important; }
+      .dark .sub-tabs { border-color: #1e293b !important; }
+      .dark .sub-tab-btn { color: #94a3b8 !important; }
+      .dark .sub-tab-btn:hover { background-color: #1e293b !important; color: #e2e8f0 !important; }
+      .dark .sub-tab-btn.active { background-color: #1e293b !important; color: #ffffff !important; }
+
+      /* Darker fonts in light mode fix */
+      td { color: #334155; font-weight: 500; }
+
+
+/* Page-specific element styles */
+.admin-hidden-subview { display: none }
+.admin-patient-search-row { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+.admin-patient-search-input { flex: 2; min-width: 220px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-size: 0.95rem; }
+.admin-table-highlight { color: #0284c7; }
+.admin-section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.admin-add-disease { background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.admin-add-disease-icon { width: 18px }
+.admin-refresh-icon { width: 16px }
+.admin-approval-heading { margin-top: 0; color: #0f172a }
+.admin-approval-role { margin-top: 15px; margin-bottom: 20px }
+.admin-approval-actions { display: flex; gap: 10px }
+.admin-approval-submit { margin-top: 0 }
+.admin-approval-cancel { margin-top: 0; background: #e2e8f0; color: #475569 }
+.admin-badge-pending { background:#fef08a; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#854d0e; font-weight:bold; }
+.admin-button-approve { background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
+.admin-button-deny { background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px; }
+.admin-uppercase-role { text-transform: uppercase; }
+.admin-badge-active { background:#dcfce7; color:#16a34a; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
+.admin-button-suspend { background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
+.admin-badge-suspended { background:#fee2e2; color:#b91c1c; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
+.admin-button-restore-access { background:#e0f2fe; color:#0369a1; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold; }
+.admin-badge-denied { background:#fef3c7; color:#b45309; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
+.admin-button-reevaluate { background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold; }
+.admin-button-archive-patient { border:1px solid #ef4444; background:transparent; color:#ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; }
+.admin-badge-archived { background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
+.admin-button-archive-disease { background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold; }
+.admin-disease-name, .admin-case-status { font-weight: bold; }
+.admin-disease-alert { color: #ef4444; }
+.admin-status-active { color: #ea580c; }
+.admin-status-resolved { color: #10b981; }
+.admin-classification, .admin-audit-role { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+.admin-classification-high { color: #ef4444; background: #fee2e2; }
+.admin-classification-standard { color: #0284c7; background: #e0f2fe; }
+.admin-audit-role { text-transform: uppercase; }
+.admin-audit-role-default { background: #e2e8f0; color: #475569; }
+.admin-audit-role-bhw { background: #dcfce7; color: #16a34a; }
+.admin-audit-role-admin { background: #e0f2fe; color: #0284c7; }
