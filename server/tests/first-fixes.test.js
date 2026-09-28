@@ -9,8 +9,8 @@ const vm = require('node:vm');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createDatabaseDump } = require('./database-backup');
-const { sessionVersion } = require('./security-config');
+const { createDatabaseDump } = require('../database-backup');
+const { sessionVersion } = require('../security-config');
 
 const sourceConfig = { host: process.env.DB_HOST || '127.0.0.1', port: Number(process.env.DB_PORT || 3306),
     user: process.env.DB_USER || 'root', password: process.env.DB_PASSWORD || '', database: process.env.DB_NAME || 'health_intel' };
@@ -71,7 +71,7 @@ before(async () => {
     process.env.JWT_SECRET = testSecret;
     // Test account approval must never send mail to real addresses in the copied data.
     require('nodemailer').createTransport = () => ({ sendMail: async () => ({}) });
-    const application = require('./server');
+    const application = require('../server');
     applicationDb = application.db;
     server = application.app.listen(0, '127.0.0.1');
     await new Promise(resolve => server.once('listening', resolve));
@@ -103,8 +103,8 @@ async function request(route, role, options = {}) {
 test('real SQL backup restores all tables and rows without altering the source', () => assert.deepEqual(restored, baseline));
 
 test('all protected routes reject anonymous requests', async () => {
-    const source = fs.readFileSync(path.join(__dirname, 'server.js'), 'utf8');
-    const { publicEndpoints } = require('./access-control');
+    const source = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+    const { publicEndpoints } = require('../access-control');
     for (const match of source.matchAll(/app\.(get|post|put)\('([^']+)'/g)) {
         const method = match[1].toUpperCase();
         const route = match[2].replace(':id', String(ownCase));
@@ -183,7 +183,7 @@ test('BHW purok choices stay within assigned barangay and map rejects invalid di
 });
 
 test('birthdate display accepts only real MM/DD/YYYY dates and stores ISO dates', () => {
-    const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/js/date-format.js'),'utf8'),sandbox);
+    const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/date-format.js'),'utf8'),sandbox);
     const parse=sandbox.window.HealthIntelDate.parseBirthdate;
     assert.equal(parse('02/29/2024'),'2024-02-29');
     for(const bad of ['29/02/2024','02/29/2023','13/01/2000','2/01/2000','01/01/1899','2024-02-29'])assert.equal(parse(bad),null);
@@ -262,13 +262,13 @@ test('Superadmin backup downloads an encrypted ZIP with restorable SQL and rejec
 
 test('edited JavaScript and inline page scripts parse', () => {
     for(const name of ['index.html','bhw.html','mho.html','admin.html','superadmin.html']) {
-        const html=fs.readFileSync(path.join(__dirname,'..',name),'utf8');
+        const html=fs.readFileSync(path.join(__dirname,'..','..',name),'utf8');
         assert.match(html,/assets\/js\/api-session\.js/);
         for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) if(match[1].trim()) new vm.Script(match[1],{filename:name});
     }
-    const html=fs.readFileSync(path.join(__dirname,'..','mho.html'),'utf8');
+    const html=fs.readFileSync(path.join(__dirname,'..','..','mho.html'),'utf8');
     assert.doesNotMatch(html,/accuracy_percentage|predictive-accuracy-score|Outbreak Warning|SARIMA Forecast/);
-    new vm.Script(fs.readFileSync(path.join(__dirname,'..','assets','js','api-session.js'),'utf8'));
+    new vm.Script(fs.readFileSync(path.join(__dirname,'..','..','assets','js','api-session.js'),'utf8'));
 });
 
 test('browser session helper attaches tokens only to the API, clears logout and propagates errors', async () => {
@@ -277,7 +277,7 @@ test('browser session helper attaches tokens only to the API, clears logout and 
     const sandbox={URL,Headers,Request,Error,setTimeout,console,localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
         document:{addEventListener:(event,callback)=>callback(),querySelectorAll:()=>[{addEventListener:(event,callback)=>{logoutHandler=callback;}}]}};
     sandbox.window={location:{href:'http://localhost:5500/index.html',pathname:'/index.html',replace:()=>{redirected=true;}},fetch:async(input,options)=>{calls.push({input,options});return response;}};
-    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','assets','js','api-session.js'),'utf8'),sandbox);
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','..','assets','js','api-session.js'),'utf8'),sandbox);
     await sandbox.window.fetch('http://localhost:3000/api/patients');
     assert.equal(calls.at(-1).options.headers.get('Authorization'),'Bearer test-token');
     await sandbox.window.fetch('https://example.test/api/anything');
@@ -346,7 +346,7 @@ test('MHO age, year, barangay, outcome and comparison filters count the correct 
 
 test('MHO descriptions handle ties, all years, empty records, zero estimates and changing forecasts', () => {
     const sandbox = { window: {} };
-    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','assets','js','mho-insights.js'),'utf8'),sandbox);
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','..','assets','js','mho-insights.js'),'utf8'),sandbox);
     const insights = sandbox.window.MHOInsights;
     const filters = {year:'all',barangay:'Blumentritt',age:'all',category:'morbidity'};
     const description = insights.describeProfile([{disease:'Dengue',cases:4},{disease:'Influenza',cases:4}],filters,{total_cases:10,unknown_age_cases:2,leading_categories:2});

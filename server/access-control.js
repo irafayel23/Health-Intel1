@@ -40,7 +40,9 @@ function loadJwtSecret() {
         return process.env.JWT_SECRET;
     }
     if (process.env.NODE_ENV === 'production') throw new Error('Set JWT_SECRET before running in production.');
-    const filename = path.join(__dirname, '.local-jwt-secret');
+    const current = path.join(__dirname, '.local-jwt-secret');
+    const legacy = path.join(__dirname, '..', 'test', '.local-jwt-secret');
+    const filename = fs.existsSync(current) ? current : (fs.existsSync(legacy) ? legacy : current);
     try {
         fs.writeFileSync(filename, crypto.randomBytes(64).toString('hex'), { flag: 'wx', mode: 0o600 });
     } catch (error) {

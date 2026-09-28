@@ -1,6 +1,6 @@
 # Cloud Deployment Guide (Beta Testing)
 
-This document outlines the professional deployment strategy to make the HEALTH-INTEL system accessible on the public internet 24/7.
+This is an unverified deployment draft, not a production-ready procedure. The active backend is in `server/`. Review security, privacy, database access, and hosting requirements before any public deployment.
 
 ## Architecture Overview
 * **Database:** Aiven.io (Free Cloud MySQL)
@@ -23,10 +23,10 @@ Your local XAMPP database (`localhost`) must be migrated to the cloud so the int
 ---
 
 ## Step 2: Code Preparation (Cloud-Ready)
-Before pushing the code to GitHub, we must prepare the environment files. (The AI Assistant will help generate these).
+Keep private configuration in hosting environment variables. Do not push `.env` or database exports to GitHub.
 
 ### A. Environment Variables (`.env`)
-We must remove `root` and `localhost` from `server.js` and `analytics.py`. Create a `.env` file in the root folder:
+Set these values in the hosting environment. For local development only, `server/.env` is supported:
 ```env
 DB_HOST=your_aiven_host_url
 DB_USER=your_aiven_username
@@ -48,7 +48,7 @@ statsmodels
 Because the system runs **Node.js** but executes **Python** via child processes for SARIMA forecasting, standard hosting will crash. We must provide a `Dockerfile` to install both environments simultaneously:
 ```dockerfile
 # Start with a Node.js base image
-FROM node:18-bullseye
+FROM node:24-bookworm
 
 # Install Python and pip
 RUN apt-get update && apt-get install -y python3 python3-pip
@@ -57,12 +57,12 @@ RUN apt-get update && apt-get install -y python3 python3-pip
 WORKDIR /app
 
 # Install Node.js dependencies
-COPY package*.json ./
-RUN npm install
+COPY server/package*.json ./server/
+RUN cd server && npm ci
 
 # Install Python dependencies
-COPY requirements.txt ./
-RUN pip3 install -r requirements.txt --break-system-packages
+COPY server/requirements.txt ./server/
+RUN pip3 install -r server/requirements.txt --break-system-packages
 
 # Copy all project files
 COPY . .
@@ -71,13 +71,13 @@ COPY . .
 EXPOSE 3000
 
 # Start the Node.js server
-CMD ["node", "test/server.js"]
+CMD ["node", "server/server.js"]
 ```
 
 ---
 
 ## Step 3: Deployment (Render.com)
-1. Upload the entire project folder (including the new `.env`, `requirements.txt`, and `Dockerfile`) to a new public or private repository on **GitHub**.
+1. Push the reviewed source files, including `server/requirements.txt` and any reviewed Dockerfile, to a repository. Keep `.env`, local signing keys, database exports, and patient records out of Git.
 2. Go to [Render.com](https://render.com/) and create a free account.
 3. Click **New +** > **Web Service**.
 4. Connect your GitHub account and select your repository.

@@ -3,9 +3,9 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
 const mysql=require('mysql2/promise'),bcrypt=require('bcrypt'),jwt=require('jsonwebtoken');
 const fixture=require('./firebase-fixture');
-const {createFirebaseVerifier}=require('./firebase-verification');
-const {createDatabaseDump}=require('./database-backup');
-const {sessionVersion}=require('./security-config');
+const {createFirebaseVerifier}=require('../firebase-verification');
+const {createDatabaseDump}=require('../database-backup');
+const {sessionVersion}=require('../security-config');
 const source={host:process.env.DB_HOST||'127.0.0.1',port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER||'root',password:process.env.DB_PASSWORD||'',database:process.env.DB_NAME||'health_intel'};
 const name='health_intel_workflow_verify_'+process.pid,secret=crypto.randomBytes(32).toString('hex');
 let root,db,server,appDb,dump,created=false,baseline,base,own,other,caseId,residentId,restoreFetch;const tokens={};
@@ -17,7 +17,7 @@ before(async()=>{
     await db.execute("INSERT INTO disease_registry(name,classification,category,status) VALUES('Workflow Disease A','Communicable','morbidity','Active'),('Workflow Disease B','Communicable','morbidity','Active'),('Workflow Archived Disease','Communicable','morbidity','Archived')");
     const [resident]=await db.execute("INSERT INTO residents(first_name,last_name,patient_name,birthdate,age,purok,barangay_id) VALUES('Disposable','Workflow','Disposable Workflow','2000-06-15',26,'QA Zone',?)",[own.id]);residentId=resident.insertId;
     const [row]=await db.execute("INSERT INTO health_cases(resident_id,first_name,last_name,patient_name,birthdate,age,purok,barangay_id,disease,date_recorded,severity,status,remarks,encoded_by) VALUES(?,'Disposable','Workflow','Disposable Workflow','2000-06-15',24,'QA Zone',?,'Workflow Disease A','2025-06-14','Mild','Active','Keep original notes','WORKFLOW-BHW')",[residentId,own.id]);caseId=row.insertId;
-    restoreFetch=fixture.install();require('nodemailer').createTransport=()=>({sendMail:async()=>({})});process.env.DB_NAME=name;process.env.DB_HOST=source.host;process.env.JWT_SECRET=secret;const app=require('./server');appDb=app.db;server=app.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
+    restoreFetch=fixture.install();require('nodemailer').createTransport=()=>({sendMail:async()=>({})});process.env.DB_NAME=name;process.env.DB_HOST=source.host;process.env.JWT_SECRET=secret;const app=require('../server');appDb=app.db;server=app.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
 });
 after(async()=>{if(server)await new Promise(r=>server.close(r));if(appDb)await appDb.end();if(db)await db.end();if(dump)await dump.cleanup();if(root){try{if(created){assert.match(name,/^health_intel_workflow_verify_\d+$/);assert.notEqual(name,source.database);await root.query('DROP DATABASE `'+name+'`');}assert.equal(await fingerprint(),baseline,'Source data must remain unchanged');}finally{await root.end();}}restoreFetch?.();});
 async function request(route,role,body,method){return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
@@ -132,6 +132,6 @@ test('BHW rehearsal checks all seven barangay assignments and keeps patient list
     assert.ok(localCases.some(row=>row.id===mhoWalkin.id),'MHO walk-in appears to the assigned barangay BHW');
 });
 test('shared correction and MHO walk-in scripts parse without changing existing page hooks',()=>{
-    for(const file of ['case-corrections.js','mho-walkins.js'])new vm.Script(fs.readFileSync(path.join(__dirname,'../assets/js',file),'utf8'),{filename:file});
-    for(const file of ['bhw.html','admin.html','index.html','mho.html'])for(const script of fs.readFileSync(path.join(__dirname,'..',file),'utf8').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))if(script[1].trim())new vm.Script(script[1],{filename:file});
+    for(const file of ['case-corrections.js','mho-walkins.js'])new vm.Script(fs.readFileSync(path.join(__dirname,'../../assets/js',file),'utf8'),{filename:file});
+    for(const file of ['bhw.html','admin.html','index.html','mho.html'])for(const script of fs.readFileSync(path.join(__dirname,'..','..',file),'utf8').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))if(script[1].trim())new vm.Script(script[1],{filename:file});
 });

@@ -14,11 +14,11 @@ The user has provided a clear specification for a lightweight, highly-styled web
 
 ## Repository State
 - **Frontend**: Exists in `.html` files (`admin.html`, `bhw.html`, `mho.html`, `index.html`, etc.) inside the `proposal` directory.
-- **Backend**: There are backend prototype files in `test/server.js` and `client/server/server.js`.
-- **AI Engine**: Python SARIMA model is prototyped in `test/analytics.py` and expects to be called via Node.js `child_process`.
+- **Backend**: The active Express API is `server/server.js`; integration checks are in `server/tests/`.
+- **AI Engine**: The demonstration forecast is in `server/analytics.py` and expects to be called via Node.js `child_process`.
 
 ## Immediate Tasks
-1. Consolidate the Node.js backend. 
+1. Keep the active Node.js backend in `server/` and tests in `server/tests/`.
 2. Reconcile the Database Schema discrepancies (see `DATABASE.md` and `CHANGELOG.md`).
 3. Wire up the Vanilla JS frontend to the Node.js REST API endpoints.
 

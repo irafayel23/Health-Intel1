@@ -1,6 +1,6 @@
 # Verification
 
-From `proposal/test`, run:
+From `proposal/server`, run:
 
 ```text
 npm run test:phase-two

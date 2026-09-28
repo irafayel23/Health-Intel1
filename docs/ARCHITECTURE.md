@@ -8,7 +8,7 @@ The role portals use HTML, Tailwind, vanilla JavaScript and section navigation. 
 
 ## Application
 
-`test/server.js` is the Express REST gateway. `access-control.js` checks database role/status on protected requests and enforces BHW barangay scope. Tokens contain a password-hash-derived session version; resetting or changing a password revokes older tokens. Public onboarding/recovery endpoints still require their own validation and rate limits.
+`server/server.js` is the Express REST gateway. `access-control.js` checks database role/status on protected requests and enforces BHW barangay scope. Tokens contain a password-hash-derived session version; resetting or changing a password revokes older tokens. Public onboarding/recovery endpoints still require their own validation and rate limits.
 
 `password-recovery.js` implements transaction-protected, hashed OTP recovery. `security-config.js` reads private environment configuration and handles email. Approval and mail delivery are separate outcomes. `patient-validation.js` validates explicit case date, severity and age; case creation links a resident and audit action in one transaction and blocks possible same-person/same-disease/same-date duplicates.
 
@@ -18,7 +18,7 @@ The MHO Walk-in Patients page can create a case for a resident of one of the con
 
 ## Prediction
 
-Node starts `test/analytics.py` as a child process and returns its JSON result. Python currently queries MySQL directly using environment credentials. It does not yet use a database-isolated input pipeline. The statsmodels SARIMAX fit currently has nonseasonal order (1,0,0), an AR(1) model, and allocates municipal estimates using historical barangay shares. Forecasts remain demonstrations with validation pending. Missing months in this older pipeline are still filled with zero; the new review tool preserves missing reports instead, but is not yet integrated into model training.
+Node starts `server/analytics.py` as a child process and returns its JSON result. Python currently queries MySQL directly using environment credentials. It does not yet use a database-isolated input pipeline. The statsmodels SARIMAX fit currently has nonseasonal order (1,0,0), an AR(1) model, and allocates municipal estimates using historical barangay shares. Forecasts remain demonstrations with validation pending. Missing months in this older pipeline are still filled with zero; the new review tool preserves missing reports instead, but is not yet integrated into model training.
 
 The `predictions` table exists, but the current forecast route does not save its results there. The data review CLI only reads registry/aggregate metadata and writes separate review files. Training, comparisons and integration await the verified real dataset.
 

@@ -1,13 +1,13 @@
 # Setup
 
-Verified on Windows with Node.js 24, Python 3.12 and the local XAMPP MySQL-compatible database. Use a supported Node.js 22 or newer release. Required packages are declared in `test/package.json` and pinned Python requirements in `test/requirements.txt`.
+Verified on Windows with Node.js 24, Python 3.12 and the local XAMPP MySQL-compatible database. Use a supported Node.js 22 or newer release. Required packages are declared in `server/package.json` and pinned Python requirements in `server/requirements.txt`.
 
 ## Existing installation
 
 1. Start MySQL in XAMPP. The current local database is `health_intel`.
-2. Open a terminal in `proposal/test` and run `npm ci` when installing on another machine.
+2. Open a terminal in `proposal/server` and run `npm ci` when installing on another machine.
 3. Create a Python environment with `python -m venv .venv`, then run `.venv\Scripts\python.exe -m pip install -r requirements.txt` on Windows.
-4. Copy `.env.example` to `.env` on a fresh installation and configure the database and email. Keep `.env` private. This installation already has a private configuration; do not overwrite it.
+4. Copy `.env.example` to `.env` on a fresh installation and configure the database and email. Keep `.env` private. During an upgrade, the server can temporarily read the existing private `test/.env`, `test/.local-jwt-secret`, and `test/.venv` if their new `server/` counterparts are absent. Move or recreate those private files in `server/` when convenient; never commit them. Do not overwrite a working configuration.
 5. Run `npm start`. The API uses port 3000 unless PORT is configured.
 6. Serve the frontend from `proposal` using your existing local frontend server and open `index.html`. Frontend requests default to `http://localhost:3000`. A different deployment can set `window.HEALTH_INTEL_API_ORIGIN` before `assets/js/api-session.js` loads.
 
@@ -17,7 +17,7 @@ For a fresh database, restore a trusted SQL backup containing the eight document
 
 `.env.example` lists DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, PORT, JWT_SECRET and SMTP settings. Existing process environment variables take priority over `.env`.
 
-Set a strong, stable JWT_SECRET for a shared deployment. Local development otherwise uses the ignored `test/.local-jwt-secret`. Changing this key invalidates sessions and pending reset codes. Password changes and resets also invalidate existing login sessions; sign in again.
+Set a strong, stable JWT_SECRET for a shared deployment. Local development otherwise uses the ignored `server/.local-jwt-secret`. Changing this key invalidates sessions and pending reset codes. Password changes and resets also invalidate existing login sessions; sign in again.
 
 SMTP_SERVICE or SMTP_HOST, SMTP_USER and SMTP_PASSWORD enable email. Gmail requires appropriate account authentication, such as an app password. Keep any account credentials out of commits and shared reports. Real delivery depends on the account, network and hosting provider; local tests mock email and do not verify inbox delivery.
 
@@ -25,7 +25,7 @@ Approval reports whether email was sent, failed or was not configured. If approv
 
 ## Aggregate forecasting data
 
-From `test`:
+From `server`:
 
 ```text
 npm run data:review
@@ -40,7 +40,7 @@ Every run creates a new output folder under `analysis/data_preparation` unless -
 
 ## QA fixes and verification
 
-Run `npm test` from `test` while MySQL is running. The integration suites restore disposable databases, mock email delivery, and compare original database records before and after their checks. The database user needs permission to create/drop test schemas. Never run tests against a public/shared production database account.
+Run `npm test` from `server` while MySQL is running. The integration suites restore disposable databases, mock email delivery, and compare original database records before and after their checks. The database user needs permission to create/drop test schemas. Never run tests against a public/shared production database account.
 
 Registration allocates the final system ID at save time; the form preview is not a reservation. Normalized emails and disease names are unique, including archived disease names. On another installation with an older schema, run `node apply-qa-constraints.js --backup PRIVATE_NEW_SQL_PATH` once. The command saves a private SQL backup and adds generated normalization columns and unique indexes. Existing duplicates stop the migration for review; it never merges or deletes them. This local installation has already been migrated.
 
@@ -56,7 +56,7 @@ The BHW encoding form displays birthdate as `MM/DD/YYYY`, validates the actual c
 
 The encoding disease picker includes active registry names and historical names not explicitly archived. It is not limited to the ten disease categories being considered for forecasting. BHWs should ask Admin to add a genuinely new category; historical names still require registry review. Existing case strings are not renamed automatically. The patient-list **Case details** action shows recorded information for legacy cases with no resident-profile link without guessing identity; linked cases retain their resident dossier action. Recorded severity is an entered case label used by the map and breakdown, not an automatic diagnosis or care instruction.
 
-The ten most frequent case labels in the current 2023–2025 demonstration records can be added to a fresh registry with `cd test` then `node seed-top10-registry.js`. The seed is repeatable: it skips names already present, keeps archived entries archived, and writes an audit entry for additions. These are recorded case labels, not ten clinically validated diseases; several are symptoms or broad case groups. The Admin should review their classification before using the registry as an official clinical taxonomy. The seed does not rename or alter historical case rows.
+The ten most frequent case labels in the current 2023–2025 demonstration records can be added to a fresh registry with `cd server` then `node seed-top10-registry.js`. The seed is repeatable: it skips names already present, keeps archived entries archived, and writes an audit entry for additions. These are recorded case labels, not ten clinically validated diseases; several are symptoms or broad case groups. The Admin should review their classification before using the registry as an official clinical taxonomy. The seed does not rename or alter historical case rows.
 
 Restart the backend after updating code and refresh browser tabs. The QA file rollback is `../.rollback/20260927-qa-fixes/Undo-QA-Fixes.ps1`; use `-CheckOnly` to validate it first. It refuses to overwrite subsequent edits. File rollback keeps the additive database protections; ask for a reviewed schema rollback if needed rather than restoring a whole database over newer records.
 

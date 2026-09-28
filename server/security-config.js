@@ -1,9 +1,12 @@
 const path = require('node:path');
 const crypto = require('node:crypto');
 const nodemailer = require('nodemailer');
+const fs = require('node:fs');
 
 function loadEnvironment() {
-    require('dotenv').config({ path: path.join(__dirname, '.env'), quiet: true });
+    const current = path.join(__dirname, '.env');
+    const legacy = path.join(__dirname, '..', 'test', '.env');
+    require('dotenv').config({ path: fs.existsSync(current) ? current : legacy, quiet: true });
 }
 function normalizeEmail(value) {
     if (typeof value !== 'string') return null;

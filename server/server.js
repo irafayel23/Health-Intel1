@@ -29,7 +29,8 @@ const { handlers, respond, accountStatus } = require('./qa-fixes');
 const { handlers: correctionHandlers } = require('./case-corrections');
 const JWT_SECRET = loadJwtSecret();
 const projectPython = path.join(__dirname, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
-const pythonExecutable = process.env.PYTHON_PATH || (fs.existsSync(projectPython) ? projectPython : 'python');
+const legacyPython = path.join(__dirname, '..', 'test', '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
+const pythonExecutable = process.env.PYTHON_PATH || (fs.existsSync(projectPython) ? projectPython : (fs.existsSync(legacyPython) ? legacyPython : 'python'));
 const app = express();
 
 app.use(cors());

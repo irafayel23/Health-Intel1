@@ -1,5 +1,7 @@
 # Project Changelog & Handoff Status
 
+> Historical planning notes below describe an early prototype. For the current application, use [ARCHITECTURE.md](ARCHITECTURE.md) and [SETUP.md](SETUP.md). The active backend now lives in `server/`, with automated checks in `server/tests/`.
+
 ## Completed Work
 - Initial UI Mockups & HTML templates (`admin.html`, `bhw.html`, `mho.html`, `index.html`, etc.) are completed.
 - Python SARIMA predictive engine prototyped (`test/analytics.py`).

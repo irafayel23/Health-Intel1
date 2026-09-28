@@ -3,10 +3,10 @@ const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),zlib=require('node:zlib'),vm=require('node:vm');
 const mysql=require('mysql2/promise'),bcrypt=require('bcrypt'),jwt=require('jsonwebtoken');
-const {createDatabaseDump}=require('./database-backup');
-const {applyConstraints}=require('./apply-qa-constraints');
-const {sessionVersion}=require('./security-config');
-const {monthlyPeriod,isoWeekPeriod}=require('./report-periods');
+const {createDatabaseDump}=require('../database-backup');
+const {applyConstraints}=require('../apply-qa-constraints');
+const {sessionVersion}=require('../security-config');
+const {monthlyPeriod,isoWeekPeriod}=require('../report-periods');
 const firebaseFixture=require('./firebase-fixture');
 const restoreFetch=firebaseFixture.install();
 after(()=>restoreFetch());
@@ -25,7 +25,7 @@ before(async()=>{
     for(const id of ['BHW-99999998','BHW-99999999'])await db.execute("INSERT INTO users(system_id,first_name,last_name,role,password_hash,status) VALUES(?,'QA','Number','bhw',?,'pending')",[id,hash]);
     process.env.DB_NAME=name;process.env.DB_HOST=source.host;process.env.JWT_SECRET=secret;
     require('nodemailer').createTransport=()=>({sendMail:async()=>({})});
-    const app=require('./server');appDb=app.db;server=app.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
+    const app=require('../server');appDb=app.db;server=app.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
 });
 after(async()=>{if(server)await new Promise(r=>server.close(r));if(appDb)await appDb.end();if(db)await db.end();if(dump)await dump.cleanup();if(root){try{if(created){assert.match(name,/^health_intel_qa_fixes_verify_\d+$/);assert.notEqual(name,source.database);await root.query('DROP DATABASE `'+name+'`');}assert.equal(await fingerprint(),beforeHash,'Original database records must remain unchanged');}finally{await root.end();}}});
 async function request(route,role,body,method){if(body&&['/api/register','/api/check-email'].includes(route))body={...body,firebase_id_token:firebaseFixture.token(body.email)};return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
@@ -88,11 +88,11 @@ test('date periods reject invalid weeks and years, and forecasting rejects unkno
     assert.equal((await request('/api/predict?disease=Influenza&barangay=UNKNOWN_QA_BARANGAY','mho')).status,400);
 });
 test('safe text helper escapes HTML delimiters and shared JavaScript files parse',()=>{
-    const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../assets/js/safe-text.js'),'utf8'),sandbox);assert.equal(sandbox.window.HealthIntelText.escape('<b>"QA" & \'x\'</b>'),'&lt;b&gt;&quot;QA&quot; &amp; &#39;x&#39;&lt;/b&gt;');
+    const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/safe-text.js'),'utf8'),sandbox);assert.equal(sandbox.window.HealthIntelText.escape('<b>"QA" & \'x\'</b>'),'&lt;b&gt;&quot;QA&quot; &amp; &#39;x&#39;&lt;/b&gt;');
     const helper=sandbox.window.HealthIntelText;
     const entry={action:'Case Corrected',details:JSON.stringify({case_id:12,before:{disease:'Old',severity:'Mild'},after:{disease:'New',severity:'High Risk'},reason:'<b>Literal reason</b>'})};
     assert.match(helper.auditDetails(entry),/Disease: Old → New/);
     assert.match(helper.escape(helper.auditDetails(entry)),/&lt;b&gt;Literal reason&lt;\/b&gt;/);
     assert.equal(helper.auditDetails({action:'Case Corrected',details:'not JSON'}),'not JSON');
-    for(const file of ['safe-text.js','health-map.js','mho-insights.js','api-session.js'])new vm.Script(fs.readFileSync(path.join(__dirname,'../assets/js',file),'utf8'),{filename:file});
+    for(const file of ['safe-text.js','health-map.js','mho-insights.js','api-session.js'])new vm.Script(fs.readFileSync(path.join(__dirname,'../../assets/js',file),'utf8'),{filename:file});
 });

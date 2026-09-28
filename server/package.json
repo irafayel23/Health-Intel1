@@ -4,10 +4,10 @@
   "description": "Backend API for Health-Intel Municipal Health Intelligence System",
   "main": "server.js",
   "scripts": {
-    "test": "node --test first-fixes.test.js phase-two.test.js qa-fixes.test.js workflow-fixes.test.js",
+    "test": "node --test tests/first-fixes.test.js tests/phase-two.test.js tests/qa-fixes.test.js tests/workflow-fixes.test.js",
     "start": "node server.js",
-    "test:first-fixes": "node --test first-fixes.test.js",
-    "test:phase-two": "node --test first-fixes.test.js phase-two.test.js",
+    "test:first-fixes": "node --test tests/first-fixes.test.js",
+    "test:phase-two": "node --test tests/first-fixes.test.js tests/phase-two.test.js",
     "data:review": "node prepare-forecast-data.js --review",
     "data:prepare": "node prepare-forecast-data.js"
   },
