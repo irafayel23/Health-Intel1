@@ -282,14 +282,14 @@
           </div>
           <p class="mb-3 text-xs text-[hsl(var(--muted-foreground))]">Only barangay totals are shown; no patient details. Zero means no active case is recorded here.</p>
           <div class="heatmap-legend" aria-label="Map color legend">
-            <span><i style="background:#16a34a"></i>Mild</span>
-            <span><i style="background:#ea580c"></i>Monitored</span>
-            <span><i style="background:#dc2626"></i>High Risk</span>
-            <span><i style="background:#64748b"></i>No active cases</span>
-            <span><i style="background:#7c3aed"></i>Severity incomplete</span>
+            <span><i class="heatmap-severity-mild"></i>Mild</span>
+            <span><i class="heatmap-severity-monitored"></i>Monitored</span>
+            <span><i class="heatmap-severity-high"></i>High Risk</span>
+            <span><i class="heatmap-severity-none"></i>No active cases</span>
+            <span><i class="heatmap-severity-incomplete"></i>Severity incomplete</span>
           </div>
           <p id="heatmap-status" class="heatmap-status" role="status">Loading active case totals…</p>
-          <div id="bhwMap" class="w-full border border-[hsl(var(--border))] rounded-2xl overflow-hidden z-10 shadow-md hover:shadow-lg transition-shadow relative" style="height: 500px; min-height: 500px;"></div>
+          <div id="bhwMap" class="w-full border border-[hsl(var(--border))] rounded-2xl overflow-hidden z-10 shadow-md hover:shadow-lg transition-shadow relative"></div>
         </div>
 
         <!-- REPORTS VIEW -->

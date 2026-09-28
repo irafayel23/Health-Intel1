@@ -1,6 +1,12 @@
 .heatmap-legend { display:flex; flex-wrap:wrap; gap:8px 18px; margin:16px 0 8px; font-size:13px; }
 .heatmap-legend span { display:inline-flex; align-items:center; gap:7px; }
 .heatmap-legend i { display:inline-block; width:11px; height:11px; border-radius:50%; }
+.heatmap-severity-mild { background:#16a34a; }
+.heatmap-severity-monitored { background:#ea580c; }
+.heatmap-severity-high { background:#dc2626; }
+.heatmap-severity-none { background:#64748b; }
+.heatmap-severity-incomplete { background:#7c3aed; }
+#bhwMap { height:500px; min-height:500px; }
 .heatmap-status { min-height:20px; margin-bottom:10px; font-size:12px; color:#64748b; }
 .dark .heatmap-status { color:#94a3b8; }
 .heatmap-label { background:transparent; border:0; pointer-events:none; }

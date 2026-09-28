@@ -15,291 +15,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-      :root {
-        --teal: #0EBCBF;
-        --purple: #7059C9;
-        --dark: #0f172a;
-        --gray: #64748b;
-        --light-gray: #f1f5f9;
-        --gradient: linear-gradient(90deg, var(--teal) 0%, var(--purple) 100%);
-      }
-
-      body {
-        margin: 0;
-        font-family: 'Poppins', sans-serif;
-        background: #f4f8fb;
-        min-height: 100vh;
-        overflow-x: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
-      }
-
-      .bg-wave {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100vw;
-        height: 12vh;
-        z-index: 0;
-        
-      }
-      
-      .bg-blob {
-        position: absolute;
-        top: -100px;
-        right: -100px;
-        width: 500px;
-        height: 500px;
-        background: radial-gradient(circle, rgba(112,89,201,0.08) 0%, rgba(14,188,191,0.02) 100%);
-        border-radius: 50%;
-        filter: blur(60px);
-        z-index: 0;
-      }
-
-      .split-layout {
-        display: flex;
-        width: 100%;
-        max-width: 1100px;
-        min-height: 100vh;
-        align-items: center;
-        justify-content: space-between;
-        gap: 30px;
-        z-index: 1;
-        position: relative;
-        padding: 24px 40px;
-        box-sizing: border-box;
-      }
-
-      /* --- LEFT SIDE: INFO --- */
-      .info-side {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-      .split-layout.profile-layout .info-side {
-        align-self: flex-start;
-        padding-top: 28px;
-      }
-
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        margin-bottom: 30px;
-      }
-
-      .brand-text h1 { margin: 0; font-size: 1.4rem; color: var(--dark); font-weight: 700; letter-spacing: 1px; }
-      .brand-text p { margin: 0; font-size: 0.75rem; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
-
-      .main-heading { font-size: 2.6rem; font-weight: 600; color: var(--dark); line-height: 1.2; margin-bottom: 15px; }
-     .gradient-text {
-        background: var(--gradient);
-        -webkit-background-clip: text;
-        background-clip: text; /* <-- ADD THIS LINE */
-        -webkit-text-fill-color: transparent;
-      }
-      .sub-heading { color: var(--gray); font-size: 0.9rem; line-height: 1.5; max-width: 420px; margin-bottom: 30px; }
-
-      .feature-list { display: flex; flex-direction: column; gap: 18px; position: relative; }
-      .feature-list::before { content: ''; position: absolute; left: 18px; top: 15px; bottom: 15px; width: 2px; background: #e2e8f0; z-index: -1; }
-
-      .feature-item { display: flex; align-items: flex-start; gap: 15px; }
-      .feature-icon { width: 38px; height: 38px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); color: var(--teal); flex-shrink: 0; }
-      .feature-text h4 { margin: 0 0 2px 0; font-size: 0.9rem; color: var(--teal); font-weight: 600; }
-      .feature-text p { margin: 0; font-size: 0.75rem; color: var(--gray); }
-      .feature-item:nth-child(2) .feature-text h4 { color: var(--purple); }
-      .feature-item:nth-child(2) .feature-icon { color: var(--purple); }
-      .feature-item:nth-child(3) .feature-text h4 { color: var(--dark); }
-      .feature-item:nth-child(3) .feature-icon { color: var(--dark); }
-
-      /* --- RIGHT SIDE: FORM --- */
-      .form-side {
-        flex: 1.1;
-        display: flex;
-        justify-content: flex-end;
-      }
-
-      /* COMPRESSED CARD FOR 100% ZOOM */
-      .login-card {
-        background: white;
-        width: 100%;
-        max-width: 440px;
-        border-radius: 24px;
-        padding: 20px 35px 16px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
-        position: relative;
-        text-align: center;
-        box-sizing: border-box;
-      }
-
-      /* SCALED DOWN NOTCH */
-      .notch {
-        margin: -10px auto 10px auto;
-        width: 68px;
-        height: 68px;
-        background: white;
-        border-radius: 25px;
-        box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.05);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      .notch img {
-        width: 75%;
-        height: auto;
-      }
-
-      .form-header h3 { color: var(--purple); font-size: 0.8rem; font-weight: 600; margin: 0 0 2px 0; }
-      .form-header h2 { color: var(--dark); font-size: 1.4rem; font-weight: 600; margin: 0 0 12px 0; }
-      .form-header h2 span { color: var(--purple); }
-
-      /* TIGHTER MARGINS FOR INPUTS */
-      .input-group { text-align: left; margin-bottom: 10px; }
-      .input-group label { display: block; font-size: 0.7rem; font-weight: 700; color: var(--teal); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; }
-      
-      .input-wrapper {
-        display: flex;
-        align-items: center;
-        background: white;
-        border: 1px solid #cbd5e1;
-        border-radius: 12px;
-        padding: 3px;
-        transition: 0.3s;
-      }
-      .input-wrapper:focus-within { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(112,89,201,0.1); }
-      .input-icon-box {
-        width: 36px;
-        height: 36px;
-        background: #f8fafc;
-        border-radius: 8px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: var(--teal);
-        flex-shrink: 0;
-      }
-      .input-wrapper input, .input-wrapper select {
-        flex: 1;
-        border: none;
-        outline: none;
-        padding: 8px 12px;
-        font-family: 'Poppins', sans-serif;
-        font-size: 0.85rem;
-        color: var(--dark);
-        background: transparent;
-      }
-      
-      .options-row {
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        margin-bottom: 12px;
-        font-size: 0.75rem;
-      }
-      .options-row label { display: flex; align-items: center; gap: 8px; color: var(--gray); cursor: pointer; }
-
-      .btn-primary {
-        width: 100%;
-        background: var(--gradient);
-        color: white;
-        border: none;
-        padding: 12px; 
-        border-radius: 50px;
-        font-family: 'Poppins', sans-serif;
-        font-size: 0.9rem;
-        font-weight: 500;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        transition: 0.3s;
-        box-shadow: 0 10px 20px rgba(112,89,201,0.25);
-        position: relative;
-      }
-      .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(112,89,201,0.35); }
-      
-      .btn-icon {
-        position: absolute;
-        right: 6px;
-        background: white;
-        color: var(--purple);
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .divider {
-        display: flex;
-        align-items: center;
-        text-align: center;
-        margin: 10px 0;
-        color: #94a3b8;
-        font-size: 0.75rem;
-      }
-      .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
-      .divider:not(:empty)::before { margin-right: .5em; }
-      .divider:not(:empty)::after { margin-left: .5em; }
-
-      .btn-secondary {
-        width: 100%;
-        background: white;
-        border: 1px solid #cbd5e1;
-        padding: 5px; 
-        border-radius: 14px;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        transition: 0.3s;
-        text-align: left;
-      }
-      .btn-secondary:hover { border-color: var(--purple); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-      
-      .btn-secondary .secondary-icon-box {
-        width: 40px;
-        height: 40px;
-        background: #e0f2fe; 
-        color: var(--purple);
-        border-radius: 10px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-right: 12px;
-      }
-      .btn-secondary h4 { flex: 1; margin: 0; color: var(--dark); font-size: 0.85rem; font-weight: 700; font-family: 'Poppins', sans-serif;}
-
-      .security-badge {
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        color: var(--gray);
-        font-size: 0.7rem;
-      }
-
-      .hidden { display: none !important; }
-
-      #profile-screen .form-row { display: flex; gap: 8px; margin-bottom: 10px;}
-      #profile-screen .input-group { margin-bottom: 0; }
-
-      @media (max-width: 800px) {
-        .split-layout { flex-direction: column; justify-content: flex-start; gap: 20px; padding: 24px 16px 48px; }
-        .info-side { flex: none; width: 100%; align-items: center; }
-        .split-layout.profile-layout .info-side { padding-top: 0; }
-        .brand { margin-bottom: 0; }
-        .main-heading, .sub-heading, .feature-list { display: none; }
-        .form-side { flex: none; width: 100%; justify-content: center; }
-        .login-card { padding-inline: 24px; }
-      }
-    </style>
+    <link rel="stylesheet" href="assets/css/access.css" />
   </head>
   <body>
     
@@ -320,7 +36,7 @@
       <!-- ============================================== -->
       <div class="info-side">
         <div class="brand">
-          <img src="/assets/img/Logo-Health-Intel.png" alt="Health-Intel Logo" style="width: 75px; height: auto;">
+          <img src="/assets/img/Logo-Health-Intel.png" alt="Health-Intel Logo" class="access-brand-logo">
           <div class="brand-text">
             <h1>HEALTH-INTEL</h1>
             <p>Secure LGU Access Portal</p>
@@ -338,23 +54,23 @@
 
         <div class="feature-list">
           <div class="feature-item">
-            <div class="feature-icon"><i data-lucide="shield-check" style="width: 18px;"></i></div>
+            <div class="feature-icon"><i data-lucide="shield-check" class="access-icon-18"></i></div>
             <div class="feature-text">
               <h4>Smart Security</h4>
               <p>Multi-layered protection for sensitive health data.</p>
             </div>
           </div>
           <div class="feature-item">
-            <div class="feature-icon"><i data-lucide="users" style="width: 18px;"></i></div>
+            <div class="feature-icon"><i data-lucide="users" class="access-icon-18"></i></div>
             <div class="feature-text">
               <h4>Role-Aware Access</h4>
               <p>Right information. Right people. Every time.</p>
             </div>
           </div>
           <div class="feature-item">
-            <div class="feature-icon" style="color: var(--dark);"><i data-lucide="clipboard-list" style="width: 18px;"></i></div>
+            <div class="feature-icon access-dark-text"><i data-lucide="clipboard-list" class="access-icon-18"></i></div>
             <div class="feature-text">
-              <h4 style="color: var(--dark);">Accountability Built-In</h4>
+              <h4 class="access-dark-text">Accountability Built-In</h4>
               <p>Track access, ensure compliance, improve trust.</p>
             </div>
           </div>
@@ -368,7 +84,7 @@
         <div class="login-card">
           
           <div class="notch">
-            <img src="/assets/img/Logo-Health-Intel.png" alt="Health-Intel Notch Logo" style="width: 70px; height: auto;">
+            <img src="/assets/img/Logo-Health-Intel.png" alt="Health-Intel Notch Logo" class="access-card-logo">
           </div>
 
           <div class="form-header">
@@ -383,39 +99,39 @@
             <div class="input-group">
               <label>System ID / Username</label>
               <div class="input-wrapper">
-                <div class="input-icon-box"><i data-lucide="user" style="width: 18px;"></i></div>
+                <div class="input-icon-box"><i data-lucide="user" class="access-icon-18"></i></div>
                 <input type="text" id="login_id" placeholder="e.g. BHW-001" required autocomplete="off" />
               </div>
             </div>
 
             <div class="input-group">
-              <label style="color: var(--purple);">Password</label>
+              <label class="access-purple-text">Password</label>
               <div class="input-wrapper">
-                <div class="input-icon-box" style="color: var(--purple);"><i data-lucide="lock" style="width: 18px;"></i></div>
+                <div class="input-icon-box access-purple-text"><i data-lucide="lock" class="access-icon-18"></i></div>
                 <input type="password" id="login_password" placeholder="••••••••" required />
           
-                <i data-lucide="eye" id="togglePassword" onclick="togglePasswordVisibility()" style="color: #cbd5e1; width: 18px; margin-right: 10px; cursor: pointer;"></i>
+                <i data-lucide="eye" id="togglePassword" onclick="togglePasswordVisibility()" class="access-password-toggle"></i>
               </div>
             </div>
 
-            <div class="options-row" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="options-row access-options-spaced">
               <label><input type="checkbox" id="remember_me" checked /> Remember me</label>
-              <a href="#" id="forgot-pass-btn" style="color: var(--gray); font-size: 0.75rem; text-decoration: none; padding-right: 5px;">Forgot Password?</a>
+              <a href="#" id="forgot-pass-btn" class="access-forgot-link">Forgot Password?</a>
             </div>
 
             <button type="submit" class="btn-primary">
               Access My Dashboard
-              <div class="btn-icon"><i data-lucide="arrow-right" style="width: 16px;"></i></div>
+              <div class="btn-icon"><i data-lucide="arrow-right" class="access-icon-16"></i></div>
             </button>
 
             <div class="divider">or continue with</div>
 
             <div class="btn-secondary" onclick="toggleForms('gateway')">
               <div class="secondary-icon-box">
-                <i data-lucide="user-plus" style="width: 18px;"></i>
+                <i data-lucide="user-plus" class="access-icon-18"></i>
               </div>
               <h4>Register Account</h4>
-              <i data-lucide="chevron-right" style="color: #cbd5e1; width: 18px; margin-right: 10px;"></i>
+              <i data-lucide="chevron-right" class="access-muted-chevron"></i>
             </div>
           </form>
 
@@ -423,16 +139,16 @@
           <!-- SCREEN 2: GOOGLE GATEWAY -->
           <!-- ============================================== -->
           <div id="gateway-screen" class="hidden">
-            <p style="font-size: 0.8rem; color: var(--gray); margin-bottom: 15px;">
+            <p class="access-gateway-note">
               Before creating an account, review how this academic prototype uses health information.
             </p>
-            <label style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: var(--dark); margin-bottom: 25px;">
-              <input type="checkbox" id="privacy-checkbox" style="width: 14px; height: 14px" />
-              <span>I have read the <a href="#" onclick="showTerms(event)" style="color: var(--teal); text-decoration: underline;">prototype terms and privacy information</a> and will use the system only as authorized.</span>
+            <label class="access-privacy-consent">
+              <input type="checkbox" id="privacy-checkbox" class="access-privacy-checkbox" />
+              <span>I have read the <a href="#" onclick="showTerms(event)" class="access-terms-link">prototype terms and privacy information</a> and will use the system only as authorized.</span>
             </label>
 
-            <button id="btn-google-login" class="btn-primary" disabled style="opacity: 0.5; cursor: not-allowed;">
-              <svg width="20" height="20" viewBox="0 0 48 48" style="background: white; border-radius: 50%; padding: 2px;">
+            <button id="btn-google-login" class="btn-primary access-google-gate" disabled>
+              <svg width="20" height="20" viewBox="0 0 48 48" class="access-google-icon">
                 <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
                 <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
                 <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
@@ -441,30 +157,30 @@
               <span>Sign in with Google</span>
             </button>
 
-            <a onclick="toggleForms('login')" style="color: var(--gray); font-size: 0.8rem; cursor: pointer; display: block; margin-top: 15px;">Cancel and return to Login</a>
+            <a onclick="toggleForms('login')" class="access-cancel-gateway">Cancel and return to Login</a>
           </div>
 
           <!-- ============================================== -->
           <!-- SCREEN 3: REGISTRATION PROFILE -->
           <!-- ============================================== -->
           <form id="profile-screen" class="hidden">
-            <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px 10px; margin-bottom: 12px; border-radius: 8px; font-size: 0.75rem; color: var(--teal);">
-              Google Verified: <strong id="verified-email-text" style="color: var(--dark);">Waiting...</strong>
+            <div class="access-verified-banner">
+              Google Verified: <strong id="verified-email-text" class="access-dark-text">Waiting...</strong>
             </div>
 
             <div class="form-row">
-              <div class="input-group" style="flex: 1;">
+              <div class="input-group access-flex-field">
                 <div class="input-wrapper"><input type="text" id="reg_first" placeholder="First Name" required /></div>
               </div>
-              <div class="input-group" style="flex: 1;">
+              <div class="input-group access-flex-field">
                 <div class="input-wrapper"><input type="text" id="reg_last" placeholder="Last Name" required /></div>
               </div>
             </div>
 
             <div class="form-row">
-              <div class="input-group" style="flex: 1;">
+              <div class="input-group access-flex-field">
                 <div class="input-wrapper">
-                  <select id="reg_role" required style="padding-left: 10px;">
+                  <select id="reg_role" required class="access-inset-control">
                     <option value="" disabled selected>Select Role...</option>
                     <option value="bhw">BHW</option>
                     <option value="mho">MHO</option>
@@ -472,16 +188,16 @@
                   </select>
                 </div>
               </div>
-              <div class="input-group" style="flex: 1;">
+              <div class="input-group access-flex-field">
                 <div class="input-wrapper">
-                  <input type="text" id="reg_system_id" placeholder="System ID" readonly style="background: #f1f5f9; font-weight: bold; padding-left: 10px;" />
+                  <input type="text" id="reg_system_id" placeholder="System ID" readonly class="access-system-id" />
                 </div>
               </div>
             </div>
 
-            <div class="input-group" id="barangay-group" style="display: none; margin-bottom: 12px;">
+            <div class="input-group access-barangay-group" id="barangay-group">
               <div class="input-wrapper">
-                <select id="reg_barangay" style="padding-left: 10px;">
+                <select id="reg_barangay" class="access-inset-control">
                   <option value="" disabled selected>Assign Barangay...</option>
                   <option value="Blumentritt">Brgy. Blumentritt</option>
                   <option value="Salvacion">Brgy. Salvacion</option>
@@ -494,58 +210,58 @@
               </div>
             </div>
 
-            <div class="input-group" style="margin-bottom: 12px;">
-              <div class="input-wrapper"><input type="text" id="reg_emp_id" placeholder="HR Employee ID (e.g. EMP-2026)" required style="padding-left: 10px;" /></div>
+            <div class="input-group access-space-bottom-12">
+              <div class="input-wrapper"><input type="text" id="reg_emp_id" placeholder="HR Employee ID (e.g. EMP-2026)" required class="access-inset-control" /></div>
             </div>
 
-            <div class="input-group" style="margin-bottom: 15px;">
-              <div class="input-wrapper"><input type="password" id="reg_password" placeholder="Create Password" required style="padding-left: 10px;" /></div>
+            <div class="input-group access-space-bottom-15">
+              <div class="input-wrapper"><input type="password" id="reg_password" placeholder="Create Password" required class="access-inset-control" /></div>
             </div>
 
-            <button type="submit" class="btn-primary" style="margin-bottom: 12px; padding: 10px; border-radius: 12px;">Submit Request</button>
-            <a onclick="toggleForms('login')" style="color: var(--gray); font-size: 0.75rem; cursor: pointer;">Cancel</a>
+            <button type="submit" class="btn-primary access-submit">Submit Request</button>
+            <a onclick="toggleForms('login')" class="access-cancel-profile">Cancel</a>
           </form>
 
           <!-- ============================================== -->
           <!-- SCREEN 4: PASSWORD RESET -->
           <!-- ============================================== -->
           <form id="reset-screen" class="hidden">
-            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.8rem; color: #166534; text-align: center;">
+            <div class="access-reset-notice">
                 We sent a 6-digit code to your email.
             </div>
             
             <div class="input-group">
               <label>6-Digit Verification Code</label>
               <div class="input-wrapper">
-                <div class="input-icon-box"><i data-lucide="key" style="width: 18px;"></i></div>
-                <input type="text" id="reset_otp" placeholder="e.g. 123456" maxlength="6" required autocomplete="off" style="letter-spacing: 2px; font-weight: bold;"/>
+                <div class="input-icon-box"><i data-lucide="key" class="access-icon-18"></i></div>
+                <input type="text" id="reset_otp" placeholder="e.g. 123456" maxlength="6" required autocomplete="off" class="access-reset-code" />
               </div>
             </div>
             <div class="input-group">
               <label>New Password</label>
               <div class="input-wrapper">
-                <div class="input-icon-box"><i data-lucide="lock" style="width: 18px;"></i></div>
+                <div class="input-icon-box"><i data-lucide="lock" class="access-icon-18"></i></div>
                 <input type="password" id="reset_new_password" placeholder="At least 8 characters" minlength="8" maxlength="72" required autocomplete="new-password" />
               </div>
             </div>
             <div class="input-group">
               <label>Confirm Password</label>
               <div class="input-wrapper">
-                <div class="input-icon-box"><i data-lucide="shield-check" style="width: 18px;"></i></div>
+                <div class="input-icon-box"><i data-lucide="shield-check" class="access-icon-18"></i></div>
                 <input type="password" id="reset_confirm_password" placeholder="Repeat your new password" minlength="8" maxlength="72" required autocomplete="new-password" />
               </div>
             </div>
-            <button type="submit" class="btn-primary" style="margin-top: 15px;">
+            <button type="submit" class="btn-primary access-space-top-15">
               Reset Password
-              <div class="btn-icon"><i data-lucide="save" style="width: 16px;"></i></div>
+              <div class="btn-icon"><i data-lucide="save" class="access-icon-16"></i></div>
             </button>
             <div class="text-center mt-4">
-              <a href="#" onclick="toggleForms('login')" style="font-size: 0.85rem; color: var(--gray); text-decoration: none;">Back to Login</a>
+              <a href="#" onclick="toggleForms('login')" class="access-back-login">Back to Login</a>
             </div>
           </form>
 
           <div class="security-badge">
-            <i data-lucide="shield" style="width: 14px;"></i> Protected by Health-Intel Security
+            <i data-lucide="shield" class="access-icon-14"></i> Protected by Health-Intel Security
           </div>
         </div>
       </div>
@@ -878,15 +594,15 @@
         Swal.fire({
           title: "Terms & Privacy",
           html: `
-            <div style="text-align: left; font-size: 0.9rem; line-height: 1.6; color: #334155;">
-              <h4 style="color: #0ea5e9; font-weight: bold; margin-bottom: 8px;">Academic prototype</h4>
-              <p style="margin-bottom: 12px;">Health-Intel is a capstone project, not an official LGU privacy notice or proof of legal compliance.</p>
-              <p style="margin-bottom: 12px;">Authorized health workers encode cases; the MHO reviews summaries and reports; the Admin oversees records and accounts; and the Superadmin maintains system backups. Use health information only for approved project work and through authorized procedures.</p>
-              <p style="margin-bottom: 15px;">The responsible LGU and project team need to review how existing real records are handled and provide a complete privacy notice before operational use. It should identify who controls the data, contact details, purposes, lawful basis, recipients, retention, and how people can exercise their rights.</p>
+            <div class="access-terms-body">
+              <h4 class="access-terms-heading">Academic prototype</h4>
+              <p class="access-space-bottom-12">Health-Intel is a capstone project, not an official LGU privacy notice or proof of legal compliance.</p>
+              <p class="access-space-bottom-12">Authorized health workers encode cases; the MHO reviews summaries and reports; the Admin oversees records and accounts; and the Superadmin maintains system backups. Use health information only for approved project work and through authorized procedures.</p>
+              <p class="access-space-bottom-15">The responsible LGU and project team need to review how existing real records are handled and provide a complete privacy notice before operational use. It should identify who controls the data, contact details, purposes, lawful basis, recipients, retention, and how people can exercise their rights.</p>
               
-              <h4 style="color: #0ea5e9; font-weight: bold; margin-bottom: 8px;">System Credits & Recognitions</h4>
-              <p style="margin-bottom: 15px;">This system is built as a Capstone Project to digitalize and enhance community health monitoring. We recognize and extend our gratitude to our LGU partners, Capstone Advisers, and the local Barangay Health Centers for their cooperation.</p>
-              <p style="margin-bottom: 0;">Powered by open-source technologies: <strong>Tailwind CSS, Leaflet.js, Chart.js, and SweetAlert2</strong>.</p>
+              <h4 class="access-terms-heading">System Credits & Recognitions</h4>
+              <p class="access-space-bottom-15">This system is built as a Capstone Project to digitalize and enhance community health monitoring. We recognize and extend our gratitude to our LGU partners, Capstone Advisers, and the local Barangay Health Centers for their cooperation.</p>
+              <p class="access-space-bottom-0">Powered by open-source technologies: <strong>Tailwind CSS, Leaflet.js, Chart.js, and SweetAlert2</strong>.</p>
             </div>
           `,
           width: '600px',
