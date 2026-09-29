@@ -103,7 +103,9 @@ async function request(route, role, options = {}) {
 test('real SQL backup restores all tables and rows without altering the source', () => assert.deepEqual(restored, baseline));
 
 test('all protected routes reject anonymous requests', async () => {
-    const source = ['server.js', 'mho-reports.js']
+    const routeFiles = fs.readdirSync(path.join(__dirname, '..'))
+        .filter(file => file === 'server.js' || file === 'mho-reports.js' || file.endsWith('-routes.js'));
+    const source = routeFiles
         .map(file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')).join('\n');
     const { publicEndpoints } = require('../access-control');
     for (const match of source.matchAll(/app\.(get|post|put)\('([^']+)'/g)) {
