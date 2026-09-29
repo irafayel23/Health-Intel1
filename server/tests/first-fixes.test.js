@@ -103,7 +103,8 @@ async function request(route, role, options = {}) {
 test('real SQL backup restores all tables and rows without altering the source', () => assert.deepEqual(restored, baseline));
 
 test('all protected routes reject anonymous requests', async () => {
-    const source = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
+    const source = ['server.js', 'mho-reports.js']
+        .map(file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')).join('\n');
     const { publicEndpoints } = require('../access-control');
     for (const match of source.matchAll(/app\.(get|post|put)\('([^']+)'/g)) {
         const method = match[1].toUpperCase();
@@ -299,11 +300,19 @@ test('Superadmin backup downloads an encrypted ZIP with restorable SQL and rejec
     assert.equal(log.user_id,fixtures.superadmin);
 });
 
-test('edited JavaScript and inline page scripts parse', () => {
+test('page scripts exist and parse', () => {
     for(const name of ['index.html','bhw.html','mho.html','admin.html','superadmin.html']) {
         const html=fs.readFileSync(path.join(__dirname,'..','..',name),'utf8');
         assert.match(html,/assets\/js\/api-session\.js/);
-        for(const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)) if(match[1].trim()) new vm.Script(match[1],{filename:name});
+        for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+            if(match[2].trim() && !/type=["']text\/tailwindcss["']/.test(match[1])) new vm.Script(match[2],{filename:name});
+            const src=match[1].match(/\bsrc=["'](assets\/js\/[^"']+)["']/i)?.[1];
+            if(src) {
+                const file=path.join(__dirname,'..','..',src);
+                assert.ok(fs.existsSync(file),`${name} references missing ${src}`);
+                new vm.Script(fs.readFileSync(file,'utf8'),{filename:src});
+            }
+        }
     }
     const html=fs.readFileSync(path.join(__dirname,'..','..','mho.html'),'utf8');
     assert.doesNotMatch(html,/accuracy_percentage|predictive-accuracy-score|Outbreak Warning|SARIMA Forecast/);
