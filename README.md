@@ -17,6 +17,8 @@ Backend endpoints live in `server/routes/`, operations and validation in `server
 
 Registration, account status, disease registry and case lifecycle now have separate service modules. Shared transaction and validation/error helpers replace the former mixed `qa-fixes.js`; API behavior and database schema are preserved. Service ownership and code-only rollback checkpoints are documented in `docs/ARCHITECTURE.md`.
 
+All route files now delegate database queries/transactions to services for encoding, resident/case records, maps, accounts, analytics, review, reports and backup auditing. Routes retain HTTP handling, rate limits and delivery/process control. The full suite has 69 checks, including rollback of new resident/case rows when encoding audit persistence fails.
+
 Connected page behavior is split into feature scripts in `assets/js/admin/`, `bhw/`, `mho/`, `index/` and `superadmin/`. Reused browser helpers live in `assets/js/shared/`, with local library bundles in `assets/js/vendor/`. Styles follow role folders under `assets/css/`, with common styles in `shared/` and older/prototype styles in `legacy/`. Each HTML page defines its required script order. See [architecture and recovery instructions](docs/ARCHITECTURE.md) before changing paths or undoing a refactor. No frontend build command is required.
 
 Forecasts currently use an AR(1) demonstration through statsmodels SARIMAX and municipal-share allocation. Seasonal model selection and real-data validation remain future work. There is no verified accuracy percentage. The data preparation tool does not import data into the live case table.

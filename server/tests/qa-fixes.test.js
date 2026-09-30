@@ -65,6 +65,23 @@ test('account actions and their audit entry commit together with accurate Supera
     await db.query('RENAME TABLE system_audit_logs TO qa_audit_hold');try{assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:'QA-MHO'})).status,503);const [[row]]=await db.query("SELECT status FROM users WHERE system_id='QA-MHO'");assert.equal(row.status,'suspended');}finally{await db.query('RENAME TABLE qa_audit_hold TO system_audit_logs');}
     assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:'QA-MHO'})).status,200);
 });
+test('BHW and MHO encoding roll back new residents and cases when their audit cannot be saved',async()=>{
+    const [[category]]=await db.query("SELECT name FROM disease_registry WHERE status='Active' AND is_archived=0 ORDER BY name LIMIT 1");
+    assert.ok(category,'An active condition is required for the encoding fixture');
+    const [[beforeCounts]]=await db.query('SELECT (SELECT COUNT(*) FROM residents) AS residents,(SELECT COUNT(*) FROM health_cases) AS cases');
+    for(const role of ['bhw','mho']){
+        const body={first_name:'QA Atomic '+role,last_name:'Encoding',birthdate:'2000-01-01',date_recorded:'2025-01-02',purok:'QA Zone',disease:category.name,severity:'Mild',barangay_id:barangay};
+        const route=role==='bhw'?'/api/patients':'/api/mho/walk-in-cases';
+        await db.query('RENAME TABLE system_audit_logs TO qa_encoding_audit_hold');
+        try{
+            const response=await request(route,role,body);
+            assert.equal(response.status,503);
+            assert.match((await response.json()).error,/No partial record was kept/);
+            const [[afterCounts]]=await db.query('SELECT (SELECT COUNT(*) FROM residents) AS residents,(SELECT COUNT(*) FROM health_cases) AS cases');
+            assert.deepEqual(afterCounts,beforeCounts,'Neither an orphan resident nor a partial case may survive');
+        }finally{await db.query('RENAME TABLE qa_encoding_audit_hold TO system_audit_logs');}
+    }
+});
 test('monthly report inputs use case date, include requested archived history and exclude other months/years',async()=>{
     const january=await fixture('QA January','2090-01-31'),archived=await fixture('QA Archived January','2090-01-05',true);const feb=await fixture('QA February','2090-02-01'),otherYear=await fixture('QA Other Year','2089-01-05');
     const response=await request('/api/patients?month=January&year=2090&include_archived=true','bhw');assert.equal(response.status,200);const data=await response.json(),rows=Array.isArray(data)?data:data.data;assert.ok(rows.some(r=>r.id===january));assert.ok(rows.some(r=>r.id===archived));assert.ok(!rows.some(r=>r.id===feb||r.id===otherYear));

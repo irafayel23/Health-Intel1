@@ -124,7 +124,7 @@ The mixed `server/services/qa-fixes.js` is retired. Route modules now construct 
 
 Existing correction, classification/review and report modules import these helpers directly. All 15 extracted handler/helper function bodies match the previous implementation exactly; all 26 active backend JavaScript files pass syntax checks. The full suite passed **68 tests, 0 failures**, including registration concurrency, failed-audit rollback, role/barangay restrictions, status remarks and disease review. Source database fingerprints were unchanged. API routes, limiter placement, SQL, response text and private configuration were preserved. No schema migration, model/data change or new browser/mail verification was performed.
 
-Case creation and several database queries still live in route modules. Further extraction can reduce that coupling, but this checkpoint only separates the mixed service; it does not claim that all backend cleanup is finished.
+At this checkpoint, case creation and several database queries still lived in route modules. The subsequent route-services checkpoint below completes that extraction.
 
 Recovery checkpoint `pre-backend-services-20261001` preserves `c65fb4b`. The completed service split is tagged `backend-services-20261001`. To reverse only this step, preserve newer work and run from `proposal`:
 
@@ -134,9 +134,38 @@ git revert --no-edit backend-services-20261001
 
 Restart the backend with `npm start` from `server/` after updating or reverting. No database rollback or dependency reinstall is required. The checkpoint is local until pushed. Original files and the extraction verification script are retained in ignored `analysis/backend-services-20261001/`. The test filename `qa-fixes.test.js` remains as the existing regression suite; it no longer denotes an active service module.
 
+### Database operations behind routes (1 October)
+
+All seven route modules now delegate database queries and transactions to services. They retain HTTP input validation, status/error responses, rate limiters, email outcomes, report streaming and Python process handling. The entry point and access-control middleware keep their existing pool and authorization responsibilities.
+
+| Service | Database responsibility |
+|---|---|
+| `case-encoding.js` | Save a BHW/MHO case, reuse or create its resident profile, and write its explicit audit reference atomically. |
+| `case-records.js` | Encoding choices, assigned context/puroks, recent walk-ins, current/archived cases, resident dossiers and explicit case history. |
+| `case-map-data.js` | Existing monthly trend and barangay severity/disease aggregates. |
+| `account-credentials.js` | Account lookup and password-hash persistence; existing bcrypt/JWT rules remain in the auth route. |
+| `account-directory.js` | Staff directories, Admin/Superadmin audit reads and database health counts. |
+| `dashboard-data.js` | Existing dashboard, demographic, KPI/year comparison/mortality queries and forecast-selection checks. |
+| `report-data.js` | Existing monthly consolidation and weekly case queries; PDF rendering remains in the report route. |
+| `condition-review.js` | Review queue, BHW clarification and transaction-protected MHO classification decisions. |
+| `backup-audit.js` | Record the existing backup-generation audit action; download/cancellation/cleanup remain in the backup route. |
+| Existing `disease-registry.js` | Active and archived catalog reads, alongside its previously extracted change handlers. |
+
+The extraction moves 41 operations into nine new service modules and the existing registry service. New services accept ordinary values/objects and return data; they do not depend on Express requests or responses. Case encoding reuses `database-transaction.js`; the existing barangay row lock, duplicate/resident checks, insert order and case/audit contents are retained. Validation and duplicate-conflict HTTP payloads stay the same. No schema migration or dependency installation is required.
+
+Verification: **69 tests passed, 0 failures**. A new integration test deliberately fails audit persistence for both BHW and MHO creation and confirms that neither a new resident nor a partial case survives. All existing concurrency, classification, access, report and backup tests pass, with unchanged source database fingerprints. A separate local comparison preserved all **60 endpoint/middleware registrations** and matched query order/parameters and HTTP responses in **120 synthetic read/error scenarios**. That comparison normalizes SQL whitespace and excludes changing fetch timestamps/uptime; it does not claim to test every possible input. All **35 active backend JavaScript files** parse. Changed backend modules were formatted using the user's already installed VS Code formatter; no build step was added.
+
+Recovery checkpoint `pre-route-services-20261001` preserves `cf5b668`. The finished extraction is tagged `route-services-20261001`. Preserve newer work, then reverse only this step from `proposal`:
+
+```text
+git revert --no-edit route-services-20261001
+```
+
+Restart using `npm start` from `server/` after updating or reverting. No database restore is needed. Both checkpoint tags and this commit are local until pushed. Original route/service snapshots, extraction scripts and the local comparison harness are retained in ignored `analysis/route-services-20261001/`. Manual browser testing remains deferred; the automated checks mock email delivery. Frontend assets and predictive-model/data files were not edited.
+
 ## Disease encoding and review
 
-`assets/js/shared/encoding-controls.js` and `assets/css/shared/encoding-controls.css` provide shared searchable dropdowns and pending-condition display. `assets/js/mho/mho-disease-review.js` implements the MHO review screen. `server/routes/disease-review-routes.js` exposes protected review/clarification endpoints. `server/services/disease-review.js` validates catalog selection and contains the explicit additive migration used by `server/scripts/apply-disease-review.js`. Case creation still lives in `server/routes/case-routes.js` and retains resident/audit transactions. See [DISEASE_REGISTRY.md](DISEASE_REGISTRY.md) for the workflow and recovery limits.
+`assets/js/shared/encoding-controls.js` and `assets/css/shared/encoding-controls.css` provide shared searchable dropdowns and pending-condition display. `assets/js/mho/mho-disease-review.js` implements the MHO review screen. `server/routes/disease-review-routes.js` exposes protected review/clarification endpoints through `server/services/condition-review.js`. `server/services/disease-review.js` validates catalog selection and contains the explicit additive migration used by `server/scripts/apply-disease-review.js`. Case creation is dispatched by `server/routes/case-routes.js` to `server/services/case-encoding.js`, which owns resident/case/audit transactions. See [DISEASE_REGISTRY.md](DISEASE_REGISTRY.md) for the workflow and recovery limits.
 
 ## Prediction details
 
