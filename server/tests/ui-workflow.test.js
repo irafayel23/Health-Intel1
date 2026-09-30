@@ -3,12 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const script = name => fs.readFileSync(path.join(__dirname,'../../assets/js',name),'utf8');
+const {scriptPath} = require('./helpers/frontend-assets');
+const script = name => fs.readFileSync(scriptPath(name),'utf8');
 const {caseIdForAudit} = require('../services/case-audit');
 function loadAdminScripts(sandbox) {
     vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
     const html = fs.readFileSync(path.join(__dirname,'../../admin.html'),'utf8');
-    for(const [,name] of html.matchAll(/<script src="assets\/js\/(admin-[^"]+\.js)"><\/script>/g)) {
+    for(const [,name] of html.matchAll(/<script src="assets\/js\/(admin\/admin-[^"]+\.js)"><\/script>/g)) {
         vm.runInNewContext(script(name),sandbox,{filename:name});
     }
 }
@@ -103,7 +104,7 @@ test('resident directory reloads after saved case changes and when its real side
         escapeText:value=>String(value), fetch:async url=>{requests.push(url);return {json:async()=>({success:true,data:residents})};} };
     vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
     const bhwHtml = fs.readFileSync(path.join(__dirname,'../../bhw.html'),'utf8');
-    for (const [,name] of bhwHtml.matchAll(/<script src="assets\/js\/(bhw-(?:records|residents|dashboard|startup)\.js)"><\/script>/g)) {
+    for (const [,name] of bhwHtml.matchAll(/<script src="assets\/js\/(bhw\/bhw-(?:records|residents|dashboard|startup)\.js)"><\/script>/g)) {
         vm.runInNewContext(script(name),sandbox,{filename:name});
     }
     await sandbox.loadResidentDirectory();

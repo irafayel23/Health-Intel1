@@ -179,6 +179,6 @@ test('BHW rehearsal checks all seven barangay assignments and keeps patient list
     assert.ok(localCases.some(row=>row.id===mhoWalkin.id),'MHO walk-in appears to the assigned barangay BHW');
 });
 test('shared correction and MHO walk-in scripts parse without changing existing page hooks',()=>{
-    for(const file of ['case-corrections.js','mho-walkins.js'])new vm.Script(fs.readFileSync(path.join(__dirname,'../../assets/js',file),'utf8'),{filename:file});
+    for(const file of ['shared/case-corrections.js','mho/mho-walkins.js'])new vm.Script(fs.readFileSync(path.join(__dirname,'../../assets/js',file),'utf8'),{filename:file});
     for(const file of ['bhw.html','admin.html','index.html','mho.html'])for(const script of fs.readFileSync(path.join(__dirname,'..','..',file),'utf8').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))if(script[1].trim())new vm.Script(script[1],{filename:file});
 });

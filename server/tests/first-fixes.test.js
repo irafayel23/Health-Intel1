@@ -238,7 +238,7 @@ test('BHW purok choices stay within assigned barangay and map rejects invalid di
 });
 
 test('birthdate display accepts only real MM/DD/YYYY dates and stores ISO dates', () => {
-    const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/date-format.js'),'utf8'),sandbox);
+    const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared/date-format.js'),'utf8'),sandbox);
     const parse=sandbox.window.HealthIntelDate.parseBirthdate;
     assert.equal(parse('02/29/2024'),'2024-02-29');
     for(const bad of ['29/02/2024','02/29/2023','13/01/2000','2/01/2000','01/01/1899','2024-02-29'])assert.equal(parse(bad),null);
@@ -318,7 +318,7 @@ test('Superadmin backup downloads an encrypted ZIP with restorable SQL and rejec
 test('page scripts exist and parse', () => {
     for(const name of ['index.html','bhw.html','mho.html','admin.html','superadmin.html']) {
         const html=fs.readFileSync(path.join(__dirname,'..','..',name),'utf8');
-        assert.match(html,/assets\/js\/api-session\.js/);
+        assert.match(html,/assets\/js\/shared\/api-session\.js/);
         for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
             if(match[2].trim() && !/type=["']text\/tailwindcss["']/.test(match[1])) new vm.Script(match[2],{filename:name});
             const src=match[1].match(/\bsrc=["'](assets\/js\/[^"']+)["']/i)?.[1];
@@ -331,7 +331,7 @@ test('page scripts exist and parse', () => {
     }
     const html=fs.readFileSync(path.join(__dirname,'..','..','mho.html'),'utf8');
     assert.doesNotMatch(html,/accuracy_percentage|predictive-accuracy-score|Outbreak Warning|SARIMA Forecast/);
-    new vm.Script(fs.readFileSync(path.join(__dirname,'..','..','assets','js','api-session.js'),'utf8'));
+    new vm.Script(fs.readFileSync(path.join(__dirname,'..','..','assets','js','shared','api-session.js'),'utf8'));
 });
 
 test('browser session helper attaches tokens only to the API, clears logout and propagates errors', async () => {
@@ -340,7 +340,7 @@ test('browser session helper attaches tokens only to the API, clears logout and 
     const sandbox={URL,Headers,Request,Error,setTimeout,console,localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
         document:{addEventListener:(event,callback)=>callback(),querySelectorAll:()=>[{addEventListener:(event,callback)=>{logoutHandler=callback;}}]}};
     sandbox.window={location:{href:'http://localhost:5500/index.html',pathname:'/index.html',replace:()=>{redirected=true;}},fetch:async(input,options)=>{calls.push({input,options});return response;}};
-    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','..','assets','js','api-session.js'),'utf8'),sandbox);
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','..','assets','js','shared','api-session.js'),'utf8'),sandbox);
     await sandbox.window.fetch('http://localhost:3000/api/patients');
     assert.equal(calls.at(-1).options.headers.get('Authorization'),'Bearer test-token');
     await sandbox.window.fetch('https://example.test/api/anything');
@@ -409,7 +409,7 @@ test('MHO age, year, barangay, outcome and comparison filters count the correct 
 
 test('MHO descriptions handle ties, all years, empty records, zero estimates and changing forecasts', () => {
     const sandbox = { window: {} };
-    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','..','assets','js','mho-insights.js'),'utf8'),sandbox);
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','..','assets','js','mho','mho-insights.js'),'utf8'),sandbox);
     const insights = sandbox.window.MHOInsights;
     const filters = {year:'all',barangay:'Blumentritt',age:'all',category:'morbidity'};
     const description = insights.describeProfile([{disease:'Dengue',cases:4},{disease:'Influenza',cases:4}],filters,{total_cases:10,unknown_age_cases:2,leading_categories:2});

@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const {scriptPath} = require('./helpers/frontend-assets');
 const root = path.resolve(__dirname, '../..');
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
@@ -59,9 +60,9 @@ function page(file) {
     s.window=s;
     s.Chart=class {constructor(_ctx,config){this.data=config.data;this.options=config.options;}update(){}destroy(){}};
     const prefix=file==='index.html'?'index-':file.split('.')[0]+'-';
-    const names=[...html.matchAll(/<script src="assets\/js\/([^"]+\.js)"><\/script>/g)].map(m=>m[1]).filter(name=>name.startsWith(prefix));
+    const names=[...html.matchAll(/<script src="assets\/js\/([^"]+\.js)"><\/script>/g)].map(m=>m[1]).filter(name=>path.basename(name).startsWith(prefix));
     function load() {
-        for(const name of ['safe-text.js','date-format.js',...names])vm.runInNewContext(fs.readFileSync(path.join(root,'assets/js',name),'utf8'),s,{filename:name});
+        for(const name of ['safe-text.js','date-format.js',...names])vm.runInNewContext(fs.readFileSync(scriptPath(name),'utf8'),s,{filename:name});
     }
     async function start(){for(const fn of events.DOMContentLoaded || [])await fn();await settle();await settle();}
     function hooks(){for(const [,name] of html.matchAll(/\bon(?:click|keyup|change|submit)="([a-zA-Z_$][\w$]*)\(/g))assert.equal(typeof s[name],'function',`${file}: ${name}`);}
@@ -136,4 +137,16 @@ test('Access-page recovery continues across the screen helper and reset scripts'
     const reset=p.requests.find(r=>r.url.endsWith('/reset-password'));assert.ok(reset);
     assert.equal(JSON.parse(reset.options.body).email,'fixture@example.invalid');
     assert.equal(p.elements['form-subtitle'].innerText,'Welcome back');assert.deepEqual(p.errors,[]);
+});
+
+test('connected and prototype pages resolve all local script, style and image paths after asset moves',()=>{
+    for(const file of ['index.html','bhw.html','mho.html','admin.html','superadmin.html','municipal.html','register.html']){
+        const html=fs.readFileSync(path.join(root,file),'utf8');
+        const paths=[...html.matchAll(/\b(?:src|href)="(assets\/[^"]+)"/g)].map(m=>m[1]);
+        for(const asset of paths){
+            assert.ok(fs.existsSync(path.join(root,asset)),`${file}: ${asset}`);
+            if(asset.endsWith('.js'))new vm.Script(fs.readFileSync(path.join(root,asset),'utf8'),{filename:asset});
+            if(asset.endsWith('.css'))assert.ok(fs.statSync(path.join(root,asset)).size>0,asset);
+        }
+    }
 });

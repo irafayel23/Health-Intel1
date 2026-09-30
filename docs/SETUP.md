@@ -9,7 +9,7 @@ Verified on Windows with Node.js 24, Python 3.12 and the local XAMPP MySQL-compa
 3. Create a Python environment with `python -m venv .venv`, then run `.venv\Scripts\python.exe -m pip install -r requirements.txt` on Windows.
 4. Copy `.env.example` to `.env` on a fresh installation and configure the database and email. Keep `.env` private. Keep the local JWT secret and virtual environment under `server/`; never commit them. Do not overwrite a working configuration.
 5. Run `npm start`. The API uses port 3000 unless PORT is configured.
-6. Serve the frontend from `proposal` using your existing local frontend server and open `index.html`. Frontend requests default to `http://localhost:3000`. A different deployment can set `window.HEALTH_INTEL_API_ORIGIN` before `assets/js/api-session.js` loads.
+6. Serve the frontend from `proposal` using your existing local frontend server and open `index.html`. Frontend requests default to `http://localhost:3000`. A different deployment can set `window.HEALTH_INTEL_API_ORIGIN` before `assets/js/shared/api-session.js` loads.
 
 For a fresh database, restore a trusted SQL backup containing the eight documented tables. Creating an empty database alone is insufficient. There is no automatic, verified CSV-to-patient import script.
 

@@ -88,11 +88,11 @@ test('date periods reject invalid weeks and years, and forecasting rejects unkno
     assert.equal((await request('/api/predict?disease=Influenza&barangay=UNKNOWN_QA_BARANGAY','mho')).status,400);
 });
 test('safe text helper escapes HTML delimiters and shared JavaScript files parse',()=>{
-    const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/safe-text.js'),'utf8'),sandbox);assert.equal(sandbox.window.HealthIntelText.escape('<b>"QA" & \'x\'</b>'),'&lt;b&gt;&quot;QA&quot; &amp; &#39;x&#39;&lt;/b&gt;');
+    const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared/safe-text.js'),'utf8'),sandbox);assert.equal(sandbox.window.HealthIntelText.escape('<b>"QA" & \'x\'</b>'),'&lt;b&gt;&quot;QA&quot; &amp; &#39;x&#39;&lt;/b&gt;');
     const helper=sandbox.window.HealthIntelText;
     const entry={action:'Case Corrected',details:JSON.stringify({case_id:12,before:{disease:'Old',severity:'Mild'},after:{disease:'New',severity:'High Risk'},reason:'<b>Literal reason</b>'})};
     assert.match(helper.auditDetails(entry),/Disease: Old → New/);
     assert.match(helper.escape(helper.auditDetails(entry)),/&lt;b&gt;Literal reason&lt;\/b&gt;/);
     assert.equal(helper.auditDetails({action:'Case Corrected',details:'not JSON'}),'not JSON');
-    for(const file of ['safe-text.js','health-map.js','mho-insights.js','api-session.js'])new vm.Script(fs.readFileSync(path.join(__dirname,'../../assets/js',file),'utf8'),{filename:file});
+    for(const file of ['shared/safe-text.js','shared/health-map.js','mho/mho-insights.js','shared/api-session.js'])new vm.Script(fs.readFileSync(path.join(__dirname,'../../assets/js',file),'utf8'),{filename:file});
 });
