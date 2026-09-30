@@ -5,6 +5,12 @@ const path = require('node:path');
 const vm = require('node:vm');
 const script = name => fs.readFileSync(path.join(__dirname,'../../assets/js',name),'utf8');
 const {caseIdForAudit} = require('../case-audit');
+function loadAdminScripts(sandbox) {
+    const html = fs.readFileSync(path.join(__dirname,'../../admin.html'),'utf8');
+    for(const [,name] of html.matchAll(/<script src="assets\/js\/(admin-[^"]+\.js)"><\/script>/g)) {
+        vm.runInNewContext(script(name),sandbox,{filename:name});
+    }
+}
 
 test('case links use explicit references and never guess IDs from unrelated or legacy encoding details', () => {
     assert.equal(caseIdForAudit({action:'Patient Encoded',details:JSON.stringify({case_id:5257,summary:'Created case'})}),5257);
@@ -24,7 +30,7 @@ test('Admin searches exact Case IDs and displays actionable audit references saf
     const elements = {'audit-table-body':{innerHTML:''},'audit-pagination':{classList:{remove(){},add(){}}},'audit-page-info':{},'audit-page-buttons':{}};
     const sandbox = {console,lucide:{createIcons(){}},window:{addEventListener(){}},document:{getElementById:id=>elements[id]},HealthIntelText:null};
     vm.runInNewContext(script('safe-text.js'),sandbox);sandbox.HealthIntelText=sandbox.window.HealthIntelText;
-    vm.runInNewContext(script('admin-page.js'),sandbox);
+    loadAdminScripts(sandbox);
     assert.equal(sandbox.matchesCaseSearch({id:5257,patient_name:'Fixture'},'REC-5257'),true);
     assert.equal(sandbox.matchesCaseSearch({id:5257,patient_name:'Fixture'},'#REC-5257'),true);
     assert.equal(sandbox.matchesCaseSearch({id:5257,patient_name:'Fixture'},'5257'),true);
@@ -47,7 +53,7 @@ test('Admin case links select the correct records tab and explain missing reside
             fetch:async()=>({ok:true,json:async()=>({success:true,case:{id:5257,is_archived:archived,resident_id:archived?42:null,patient_name:'Fixture',encoded_by:'QA-BHW'},history:[]})}),
             Swal:{fire:async value=>{dialog=value;return {};}}};
         vm.runInNewContext(script('safe-text.js'),sandbox);sandbox.HealthIntelText=sandbox.window.HealthIntelText;
-        vm.runInNewContext(script('admin-page.js'),sandbox);
+        loadAdminScripts(sandbox);
         sandbox.fetchPatientRecords=async()=>{};sandbox.loadArchivedPatients=async()=>{};
         sandbox.switchMainView=(view)=>{selectedView=view;};sandbox.switchSubView=(_,tab)=>{selectedTab=tab;};
         sandbox.filterData=()=>{};sandbox.filterArchivedPatients=()=>{};
@@ -59,6 +65,26 @@ test('Admin case links select the correct records tab and explain missing reside
         assert.doesNotMatch(dialog.html,/No verified resident link/);
         if(archived)assert.match(dialog.html,/RES-42/);
         else assert.match(dialog.html,/This case is not linked to a resident profile\./);
+    }
+});
+
+test('Admin scripts load in HTML order and initialize all feature views with existing hooks', async () => {
+    const elements = {}, events = {}, requests = [], errors = [];
+    const sandbox = {console:{error:(...args)=>errors.push(args)},lucide:{createIcons(){}},window:{addEventListener:(name,fn)=>{events[name]=fn;}},
+        document:{getElementById:id=>elements[id] ||= {value:'',innerHTML:'',classList:{add(){},remove(){}}}},
+        fetch:async url=>{requests.push(url);return {ok:true,json:async()=>({success:true,data:[]}),clone(){return this;}};}};
+    loadAdminScripts(sandbox);
+    events.DOMContentLoaded();
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.deepEqual(errors,[]);
+    for(const endpoint of ['/admin/pending-users','/admin/active-users','/admin/denied-users','/patients','/patients/archived','/diseases','/diseases/archived','/admin/audit-logs']) {
+        assert.ok(requests.includes('http://localhost:3000/api'+endpoint),endpoint);
+    }
+    const html = fs.readFileSync(path.join(__dirname,'../../admin.html'),'utf8');
+    for(const [,handler] of html.matchAll(/\bon(?:click|keyup|change)="([a-zA-Z_$][\w$]*)\(/g)) {
+        if(handler==='logout')continue; // Shared session script owns this handler.
+        if(handler==='submitApproval')continue; // Pre-existing unused approvalModal; live buttons use approveUserDirectly.
+        assert.equal(typeof sandbox[handler],'function',handler);
     }
 });
 
