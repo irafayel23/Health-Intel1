@@ -150,7 +150,13 @@ if (mapContainer) {
 
     function detailsFor(brgy, refreshedAt) {
         const counts = brgy.severity_counts;
-        const highRiskDiseases = Array.isArray(brgy.high_risk_diseases) ? brgy.high_risk_diseases : [];
+        const diseaseGroups = brgy.diseases_by_severity || { high_risk: brgy.high_risk_diseases || [] };
+        const breakdown = [['high_risk', 'High Risk'], ['monitored', 'Monitored'], ['mild', 'Mild']]
+            .filter(([key]) => counts[key] > 0)
+            .map(([key, label]) => `<div class="heatmap-details-categories">
+                <strong>${label} cases by recorded disease / case</strong>
+                <ul>${(diseaseGroups[key] || []).map(item => `<li><span>${escapeMapText(item.disease)}</span><b>${Number(item.cases)}</b></li>`).join('') || '<li>Disease breakdown unavailable. Refresh after restarting the backend.</li>'}</ul>
+            </div>`).join('');
         return `<div class="heatmap-details">
             <h3>${escapeMapText(brgy.name)}</h3>
             <div class="heatmap-details-total">${brgy.cases} active ${brgy.cases === 1 ? 'case' : 'cases'}</div>
@@ -160,11 +166,8 @@ if (mapContainer) {
                 <dt><i class="heatmap-details-dot" style="background:#dc2626"></i>High Risk</dt><dd>${counts.high_risk}</dd>
                 ${counts.unknown > 0 ? `<dt>Unknown severity</dt><dd>${counts.unknown}</dd>` : ''}
             </dl>
-            ${counts.high_risk > 0 ? `<div class="heatmap-details-categories">
-                <strong>High Risk cases by recorded disease / case</strong>
-                <ul>${highRiskDiseases.map(item => `<li><span>${escapeMapText(item.disease)}</span><b>${Number(item.cases)}</b></li>`).join('')}</ul>
-                <small>High Risk is the recorded case severity, not a rating of the disease.</small>
-            </div>` : ''}
+            ${breakdown}
+            ${brgy.cases > 0 ? '<div class="heatmap-details-categories"><small>Mild, Monitored and High Risk are recorded case severities, not ratings of the disease.</small></div>' : ''}
             <div class="heatmap-details-reason"><strong>Color reason:</strong> ${escapeMapText(brgy.color_reason)}</div>
             ${counts.unknown > 0 ? '<div>Severity information is incomplete.</div>' : ''}
             <small class="heatmap-details-time">Data refreshed: ${escapeMapText(refreshedAt)}<br>Barangay summary; circles do not show outbreak boundaries.</small>

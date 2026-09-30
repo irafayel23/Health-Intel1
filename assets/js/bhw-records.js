@@ -18,6 +18,7 @@
           button.classList.add("active");
 
           const targetId = button.getAttribute("data-target");
+          if (targetId === 'view-resident-profiles') loadResidentDirectory();
           viewSections.forEach((view) => {
             view.classList.add("hidden"); view.classList.remove("block"); view.classList.remove("flex");
           });
@@ -63,6 +64,7 @@
       window.addEventListener('health-intel:case-corrected', () => {
           loadPatients(); loadDashboardStats(); loadTrendChart(); loadResidentDirectory();
       });
+      window.addEventListener('health-intel:cases-changed', loadResidentDirectory);
 
       async function loadArchivedPatients() {
         try {
@@ -448,4 +450,3 @@
         loadPurokChoices();
         loadResidentDirectory();
       });
-    

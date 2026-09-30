@@ -52,3 +52,24 @@
 .admin-audit-role-default { background: #e2e8f0; color: #475569; }
 .admin-audit-role-bhw { background: #dcfce7; color: #16a34a; }
 .admin-audit-role-admin { background: #e0f2fe; color: #0284c7; }
+.admin-case-view-button { display:inline-block; margin:3px 6px 3px 0; padding:5px 9px; border:1px solid #0284c7; border-radius:6px; color:#0369a1; background:#f0f9ff; font-weight:600; cursor:pointer; }
+.admin-case-view-button:hover { background:#e0f2fe; }
+.admin-case-view-button:focus-visible { outline:2px solid #0284c7; outline-offset:2px; }
+.admin-case-focused { background:#e0f2fe; }
+.admin-case-dialog.hi-dialog.swal2-popup { width:min(900px, calc(100vw - 32px)) !important; overflow:hidden; }
+.admin-case-dialog.hi-dialog .swal2-html-container { max-height:calc(92vh - 180px); overflow:auto; }
+.admin-case-detail { text-align:left; }
+.admin-case-detail dl { display:grid; grid-template-columns:1fr 1fr; gap:12px 24px; margin:0; }
+.admin-case-detail dt { font-size:.8rem; color:#64748b; font-weight:600; }
+.admin-case-detail dd { margin:3px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.admin-case-detail h3 { font-weight:700; margin:24px 0 8px; }
+.admin-case-history-note { font-size:.8rem; color:#64748b; }
+.admin-case-history { list-style:none; padding:0; margin:12px 0 0; }
+.admin-case-history li { margin-top:12px; padding:12px; border:1px solid #cbd5e1; border-radius:9px; }
+.admin-case-history small { color:#64748b; }
+.admin-case-history p { white-space:pre-wrap; overflow-wrap:anywhere; margin:8px 0 0; }
+.dark .admin-case-view-button { border-color:#38bdf8; color:#7dd3fc; background:#082f49; }
+.dark .admin-case-view-button:hover, .dark .admin-case-focused { background:#0c4a6e; }
+.dark .admin-case-detail dt, .dark .admin-case-history-note, .dark .admin-case-history small { color:#94a3b8; }
+.dark .admin-case-history li { border-color:#475569; }
+@media(max-width:640px) { .admin-case-detail dl { grid-template-columns:1fr; } }

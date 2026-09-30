@@ -142,7 +142,7 @@
       async function generateBHWReport(type) {
         Swal.fire({
           title: 'Generating PDF...',
-          html: 'Please wait while we connect to the database and generate the certified report.',
+          html: 'Please wait while we load the selected period and generate the case list.',
           allowOutsideClick: false,
           didOpen: () => { Swal.showLoading(); }
         });
@@ -183,18 +183,32 @@
           doc.autoTable({
             startY: 40,
             head: [['Patient Name', 'Age', 'Purok', 'Diagnosis', 'Status', 'Date']],
-            body: data,
+            body: data.length ? data : [[{ content: `No recorded cases match ${month} ${year}${type === 'SURVEILLANCE' && chosenPurok !== 'All Puroks' ? ` in ${chosenPurok}` : ''}.`, colSpan: 6 }]],
             theme: 'striped',
             headStyles: { fillColor: type === 'MONTHLY' ? [2, 132, 199] : [234, 88, 12] }
           });
           
           doc.save(`BHW_Report_${brgyName}_${type}_${month}_${year}.pdf`);
-          Swal.fire('Success', 'Report successfully generated and downloaded.', 'success');
+          Swal.fire(data.length ? 'Report downloaded' : 'No matching cases', data.length ? `${data.length} recorded cases included for ${month} ${year}.` : `The downloaded PDF states that no cases match ${month} ${year} and the selected location. Check the case date and report filters.`, data.length ? 'success' : 'info');
         } catch (e) {
           console.error(e);
           Swal.fire('Error', e.message || 'Failed to generate report. Please try again.', 'error');
         }
       }
+
+      document.addEventListener('DOMContentLoaded', () => {
+          const today = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'long', year: 'numeric' }).formatToParts(new Date());
+          const month = document.getElementById('bhw-report-month');
+          const year = document.getElementById('bhw-report-year');
+          if (month) month.value = today.find(part => part.type === 'month').value;
+          if (year) {
+              const currentYear = today.find(part => part.type === 'year').value;
+              if (![...year.options].some(option => option.value === currentYear)) {
+                  const option = document.createElement('option'); option.value = currentYear; option.textContent = currentYear; year.prepend(option);
+              }
+              year.value = currentYear;
+          }
+      });
 
       function showAccountSettings() {
         const userId = localStorage.getItem('active_user_id') || 'Unknown';
@@ -291,4 +305,3 @@
             confirmButtonColor: '#2563eb'
         }); 
       }
-  

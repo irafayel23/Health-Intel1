@@ -12,6 +12,7 @@ const rules = [
     ['GET', /^\/session$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['POST', /^\/change-password$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['GET', /^\/admin\/(pending-users|active-users|denied-users|audit-logs)$/, ['admin', 'superadmin']],
+    ['GET', /^\/admin\/cases\/\d+$/, ['admin']],
     ['POST', /^\/admin\/(approve-user|deny-user|undo-deny|suspend-user|restore-suspended)$/, ['admin', 'superadmin']],
     ['GET', /^\/superadmin\/(pending-admins|health|users|audit-logs)$/, ['superadmin']],
     ['POST', /^\/superadmin\/(approve-admin|backup)$/, ['superadmin']],

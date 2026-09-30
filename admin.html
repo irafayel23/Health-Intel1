@@ -189,7 +189,7 @@
           <!-- ============================================== -->
           <div id="view-data" class="view-section">
             <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Patient Records</h1>
-            <p class="text-slate-500 dark:text-slate-400 mb-6">Centralized oversight of all patient encodings by BHWs.</p>
+            <p class="text-slate-500 dark:text-slate-400 mb-6">Master records of BHW cases and MHO walk-ins. Use a Case ID to trace a specific record and its history.</p>
 
             <div class="white-panel">
               <div class="sub-tabs">
@@ -203,7 +203,7 @@
 
               <div id="data-active-view">
                 <div class="admin-patient-search-row">
-                  <input type="text" id="search-patient" onkeyup="filterData()" placeholder="Search name or System ID..." class="admin-patient-search-input" />
+                  <input type="text" id="search-patient" onkeyup="filterData()" placeholder="Search name or Case ID (REC-5257)..." aria-label="Search active records by patient name or Case ID" class="admin-patient-search-input" />
                   <select id="filter-table-brgy" onchange="filterData()" class="flex-1 min-w-[140px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
                     <option value="">All Barangays</option>
                     <option value="1">Blumentritt</option>
@@ -228,7 +228,7 @@
                     <option value="all types of skin disease">All types of skin disease</option>
                     <option value="dengue">Dengue</option>
                   </select>
-                  <select id="filter-table-status" onchange="filtercData()" class="flex-1 min-w-[120px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
+                  <select id="filter-table-status" onchange="filterData()" class="flex-1 min-w-[120px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
                     <option value="">All Statuses</option>
                     <option value="active">Active</option>
                     <option value="cleared">Cleared</option>
@@ -240,7 +240,7 @@
                   <table>
                     <thead>
                       <tr>
-                        <th>System ID</th>
+                        <th>Case ID</th>
                         <th>Patient Name</th>
                         <th>Age</th>
                         <th>Disease</th>
@@ -258,11 +258,14 @@
               </div>
 
               <div id="data-archived-view" class="admin-hidden-subview">
+                <div class="admin-patient-search-row">
+                  <input type="text" id="search-archived-patient" onkeyup="filterArchivedPatients()" placeholder="Search name or Case ID (REC-5257)..." aria-label="Search archived records by patient name or Case ID" class="admin-patient-search-input" />
+                </div>
                 <div class="table-container">
                   <table>
                     <thead>
                       <tr>
-                        <th>System ID</th>
+                        <th>Case ID</th>
                         <th>Patient Name</th>
                         <th>Age</th>
                         <th>Disease</th>

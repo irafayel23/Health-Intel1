@@ -1,6 +1,7 @@
 const { validatePatient, ageOnDate, todayInManila } = require('./patient-validation');
 const { monthlyPeriod } = require('./report-periods');
 const { respond } = require('./qa-fixes');
+const { CASE_ACTIONS, withCaseReference, caseAuditDetails } = require('./case-audit');
 
 function registerCaseRoutes(app, db, qa, corrections) {
 // ==========================================
@@ -75,7 +76,7 @@ async function savePatientCase(req, res, brgy_id, actorRole) {
     try {
         connection=await db.getConnection();
         await connection.beginTransaction();
-        const [selectedBarangays]=await connection.execute('SELECT id FROM barangays WHERE id=? FOR UPDATE',[brgy_id]);
+        const [selectedBarangays]=await connection.execute('SELECT id,name FROM barangays WHERE id=? FOR UPDATE',[brgy_id]);
         if (!selectedBarangays.length) {
             await connection.rollback();
             return res.status(400).json({success:false,error:'Select an existing barangay.'});
@@ -111,7 +112,7 @@ async function savePatientCase(req, res, brgy_id, actorRole) {
         const [result]=await connection.execute('INSERT INTO health_cases (resident_id,first_name,last_name,patient_name,birthdate,age,purok,disease,remarks,status,encoded_by,barangay_id,date_recorded,severity) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             [resident_id,patient.first_name,patient.last_name,patient.patient_name,patient.birthdate,patient.age,patient.purok,patient.disease,patient.remarks,patient.status,req.user.system_id,brgy_id,patient.date_recorded,patient.severity]);
         await connection.execute('INSERT INTO system_audit_logs (user_id,role,action,details) VALUES (?,?,?,?)',
-            [req.user.system_id,actorRole,actorRole==='MHO'?'Walk-in Case Encoded':'Patient Encoded',`Encoded ${patient.disease} case dated ${patient.date_recorded}; barangay #${brgy_id}; severity ${patient.severity}.`]);
+            [req.user.system_id,actorRole,actorRole==='MHO'?'Walk-in Case Encoded':'Patient Encoded',caseAuditDetails(result.insertId, `Created case #REC-${result.insertId} · ${selectedBarangays[0].name} · Case date: ${patient.date_recorded} · Saved.`, { barangay_id:brgy_id })]);
         await connection.commit();
         res.status(201).json({success:true,message:'Patient case saved.',id:result.insertId});
     } catch {
@@ -121,6 +122,22 @@ async function savePatientCase(req, res, brgy_id, actorRole) {
 }
 app.post('/api/patients', (req,res)=>savePatientCase(req,res,Number(req.user.barangay_id),'BHW'));
 app.post('/api/mho/walk-in-cases', (req,res)=>savePatientCase(req,res,Number(req.body.barangay_id),'MHO'));
+
+app.get('/api/admin/cases/:id', async (req, res) => {
+    const id = Number(req.params.id);
+    if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ success:false, error:'Select a valid case ID.' });
+    try {
+        const [cases] = await db.execute(`SELECT h.*, b.name AS barangay_name,
+            DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,
+            DATE_FORMAT(h.birthdate,'%Y-%m-%d') AS birthdate
+            FROM health_cases h LEFT JOIN barangays b ON b.id=h.barangay_id WHERE h.id=?`, [id]);
+        if (!cases.length) return res.status(404).json({ success:false, error:'Case not found. The record may no longer exist.' });
+        const [logs] = await db.execute(`SELECT id,user_id,role,action,details,timestamp AS created_at
+            FROM system_audit_logs WHERE action IN (${CASE_ACTIONS.map(()=>'?').join(',')}) ORDER BY timestamp DESC,id DESC`, CASE_ACTIONS);
+        const history = logs.map(withCaseReference).filter(log=>log.case_id===id);
+        res.json({ success:true, case:cases[0], history });
+    } catch { res.status(503).json({ success:false, error:'The case and its recorded history could not be loaded.' }); }
+});
 
 // READ ACTIVE (Filtered by Barangay)
 app.get('/api/patients', async (req, res) => {
@@ -267,21 +284,23 @@ app.get('/api/heatmap-data', async (req, res) => {
             GROUP BY b.id, b.name, b.latitude, b.longitude
         `;
         const [rows] = await db.execute(query, [disease, disease]);
-        const [highRiskRows] = await db.execute(`
-            SELECT h.barangay_id,
+        const [diseaseRows] = await db.execute(`
+            SELECT h.barangay_id, h.severity,
                 COALESCE(NULLIF(TRIM(h.disease), ''), 'Not recorded') AS disease,
                 COUNT(*) AS cases
             FROM health_cases h
-            WHERE h.status = 'Active' AND h.is_archived = FALSE AND h.severity = 'High Risk'
+            WHERE h.status = 'Active' AND h.is_archived = FALSE
+                AND h.severity IN ('Mild', 'Monitored', 'High Risk')
                 AND (? = '' OR h.disease = ?)
-            GROUP BY h.barangay_id, COALESCE(NULLIF(TRIM(h.disease), ''), 'Not recorded')
-            ORDER BY h.barangay_id, cases DESC, disease ASC
+            GROUP BY h.barangay_id, h.severity, COALESCE(NULLIF(TRIM(h.disease), ''), 'Not recorded')
+            ORDER BY h.barangay_id, h.severity, cases DESC, disease ASC
         `, [disease, disease]);
-        const highRiskByBarangay = new Map();
-        for (const row of highRiskRows) {
+        const diseasesByBarangay = new Map();
+        const severityKeys = { Mild: 'mild', Monitored: 'monitored', 'High Risk': 'high_risk' };
+        for (const row of diseaseRows) {
             const key = String(row.barangay_id);
-            if (!highRiskByBarangay.has(key)) highRiskByBarangay.set(key, []);
-            highRiskByBarangay.get(key).push({ disease: row.disease, cases: Number(row.cases) });
+            if (!diseasesByBarangay.has(key)) diseasesByBarangay.set(key, { mild: [], monitored: [], high_risk: [] });
+            diseasesByBarangay.get(key)[severityKeys[row.severity]].push({ disease: row.disease, cases: Number(row.cases) });
         }
         const data = rows.map(r => {
             const cases = Number(r.cases);
@@ -320,7 +339,8 @@ app.get('/api/heatmap-data', async (req, res) => {
                 lng: parseFloat(r.longitude),
                 cases,
                 severity_counts: severityCounts,
-                high_risk_diseases: highRiskByBarangay.get(String(r.barangay_id)) || [],
+                diseases_by_severity: diseasesByBarangay.get(String(r.barangay_id)) || { mild: [], monitored: [], high_risk: [] },
+                high_risk_diseases: diseasesByBarangay.get(String(r.barangay_id))?.high_risk || [],
                 risk: risk,
                 color: color,
                 color_reason: colorReason

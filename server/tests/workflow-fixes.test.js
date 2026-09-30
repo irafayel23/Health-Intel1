@@ -99,6 +99,53 @@ test('four-role rehearsal covers login, approved/pending governance, case views,
     const weekly=await request('/api/mho/reports/pidsr?week=24&year=2025','mho');assert.equal(weekly.status,200);assert.match(Buffer.from(await weekly.arrayBuffer()).toString('latin1',0,5),/%PDF/);
     const health=await (await request('/api/superadmin/health','superadmin')).json();const [[auditCount]]=await db.query('SELECT COUNT(*) AS count FROM system_audit_logs');assert.equal(health.data.total_logs,auditCount.count,'Total Logs counts audit entries rather than patient cases');
 });
+
+test('new BHW cases appear in resident directory and Admin sees their saved actions', async () => {
+    const patient = { first_name:'AuditDirectory', last_name:'Fixture', birthdate:'2000-01-01', date_recorded:'2025-09-30', purok:'QA Zone', disease:'Workflow Disease A', severity:'Mild', remarks:'Disposable fixture' };
+    const created = await request('/api/patients','bhw',patient);
+    assert.equal(created.status,201);
+    const id = (await created.json()).id;
+    const patients = (await (await request('/api/patients','bhw')).json()).data;
+    const saved = patients.find(row => row.id === id);
+    assert.ok(saved.resident_id);
+    const residents = (await (await request('/api/residents','bhw')).json()).data;
+    assert.equal(residents.find(row => row.id === saved.resident_id).case_count,1);
+    const dossier = await (await request(`/api/residents/${saved.resident_id}/dossier`,'bhw')).json();
+    assert.ok(dossier.history.some(row => row.id === id));
+    const september = await (await request('/api/patients?month=September&year=2025&include_archived=true','bhw')).json();
+    const october = await (await request('/api/patients?month=October&year=2025&include_archived=true','bhw')).json();
+    assert.ok(september.data.some(row => row.id === id));
+    assert.ok(!october.data.some(row => row.id === id));
+    assert.equal((await request(`/api/patients/${id}/status`,'bhw',{new_status:'Cleared',remarks:'Reviewed fixture'},'PUT')).status,200);
+    assert.equal((await request(`/api/patients/${id}/archive`,'bhw',{},'PUT')).status,200);
+    assert.equal((await request(`/api/patients/${id}/restore`,'bhw',{},'PUT')).status,200);
+    const corrected = await form('bhw',id);
+    assert.equal((await request(`/api/patients/${id}/correction`,'bhw',{...payload(corrected),severity:'Monitored'},'PUT')).status,200);
+    const audit = await request('/api/admin/audit-logs','admin');
+    assert.equal(audit.status,200);
+    const logs = (await audit.json()).data.filter(row => row.user_id === 'WORKFLOW-BHW');
+    assert.ok(logs.some(row => row.action === 'Patient Encoded' && row.case_id === id && row.details.includes(own.name)));
+    for (const action of ['Status Updated','Record Archived','Record Restored','Case Corrected']) {
+        assert.ok(logs.some(row => row.action === action && row.details.includes(String(id))), action);
+        assert.ok(logs.some(row => row.action === action && row.case_id === id), action+' case reference');
+    }
+    const detail = await request(`/api/admin/cases/${id}`,'admin');
+    assert.equal(detail.status,200);
+    const tracked = await detail.json();
+    assert.equal(tracked.case.id,id);
+    assert.equal(tracked.case.resident_id,saved.resident_id);
+    assert.ok(tracked.history.every(log=>log.case_id===id));
+    for (const action of ['Patient Encoded','Status Updated','Record Archived','Record Restored','Case Corrected']) assert.ok(tracked.history.some(log=>log.action===action),action);
+    assert.equal((await request(`/api/patients/${id}/archive`,'bhw',{},'PUT')).status,200);
+    const archivedDetail = await (await request(`/api/admin/cases/${id}`,'admin')).json();
+    assert.equal(archivedDetail.case.is_archived,1);
+    assert.ok(archivedDetail.history.some(log=>log.action==='Patient Encoded'));
+    assert.equal((await request('/api/admin/cases/999999999','admin')).status,404);
+    assert.equal((await request('/api/admin/cases/0','admin')).status,400);
+    assert.equal((await request(`/api/admin/cases/${id}`)).status,401);
+    for (const role of ['bhw','mho','superadmin']) assert.equal((await request(`/api/admin/cases/${id}`,role)).status,403);
+    assert.equal((await request('/api/admin/audit-logs','bhw')).status,403);
+});
 test('BHW rehearsal checks all seven barangay assignments and keeps patient lists local',async()=>{
     const [barangays]=await db.query('SELECT id,name FROM barangays ORDER BY id');assert.equal(barangays.length,7);
     const hash=await bcrypt.hash('Seven-barangay-fixture-2026',10);

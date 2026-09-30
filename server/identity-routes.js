@@ -1,5 +1,6 @@
 const { normalizeEmail, escapeHtml, emailConfigured, sendEmail } = require('./security-config');
 const { respond, accountStatus } = require('./qa-fixes');
+const { withCaseReference } = require('./case-audit');
 
 function registerIdentityRoutes(app, db, dbConfig) {
 // ==========================================
@@ -131,9 +132,9 @@ app.get('/api/superadmin/users', async (req, res) => {
 
 app.get('/api/admin/audit-logs', async (req, res) => {
     try {
-        const query = "SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs WHERE role != 'SUPERADMIN' AND role != 'Superadmin' AND role != 'Super Admin' ORDER BY timestamp DESC";
+        const query = "SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs WHERE role != 'SUPERADMIN' AND role != 'Superadmin' AND role != 'Super Admin' ORDER BY timestamp DESC,id DESC";
         const [rows] = await db.execute(query);
-        res.json({ success: true, data: rows });
+        res.json({ success: true, data: rows.map(withCaseReference) });
     } catch (error) {
         console.error("Audit Error:", error);
         res.status(500).json({ success: false, error: "Database error" });

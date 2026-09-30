@@ -176,7 +176,7 @@ test('BHW data reads and writes cannot cross barangay boundaries or spoof an enc
     assert.equal(log.user_id, fixtures.bhw);
 });
 
-test('BHW and MHO heatmaps show only aggregate categories for active High Risk cases', async () => {
+test('BHW and MHO heatmaps show disease aggregates for each recorded severity', async () => {
     const firstDisease = 'Disposable heatmap category A';
     const secondDisease = 'Disposable heatmap category B';
     const inserted = [];
@@ -195,14 +195,26 @@ test('BHW and MHO heatmaps show only aggregate categories for active High Risk c
             `, [barangayId, disease, status, archived]);
             inserted.push(result.insertId);
         }
+        for (const severity of ['Mild', 'Monitored']) {
+            for (const [status, archived] of [['Active', 0], ['Cleared', 0], ['Active', 1]]) {
+                const [result] = await connection.execute("INSERT INTO health_cases (barangay_id,disease,severity,status,is_archived,patient_name) VALUES (?,?,?,?,?,'Disposable map patient')", [ownBarangay, firstDisease, severity, status, archived]);
+                inserted.push(result.insertId);
+            }
+        }
         for (const role of ['bhw', 'mho']) {
             const response = await request('/api/heatmap-data', role);
             assert.equal(response.status, 200);
             const { data } = await response.json();
             assert.equal(data.length, 7);
             assert.ok(data.every(row => row.high_risk_diseases.reduce((sum, item) => sum + item.cases, 0) === row.severity_counts.high_risk));
+            for (const key of ['mild', 'monitored', 'high_risk']) {
+                assert.ok(data.every(row => row.diseases_by_severity[key].reduce((sum, item) => sum + item.cases, 0) === row.severity_counts[key]));
+                assert.ok(data.every(row => row.diseases_by_severity[key].every(item => Object.keys(item).sort().join(',') === 'cases,disease')));
+            }
             const own = data.find(row => row.id === ownBarangay);
             assert.equal(own.high_risk_diseases.find(item => item.disease === firstDisease).cases, 2);
+            assert.equal(own.diseases_by_severity.mild.find(item => item.disease === firstDisease).cases, 1);
+            assert.equal(own.diseases_by_severity.monitored.find(item => item.disease === firstDisease).cases, 1);
             assert.equal(own.high_risk_diseases.find(item => item.disease === secondDisease).cases, 1);
             assert.equal(data.find(row => row.id === otherBarangay).high_risk_diseases.find(item => item.disease === secondDisease).cases, 1);
             assert.ok(data.every(row => !('patient_name' in row) && !('resident_id' in row)));
