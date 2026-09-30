@@ -5,7 +5,6 @@ const path = require('path');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const { createAccessControl, loadJwtSecret } = require('./middleware/access-control');
-const { handlers } = require('./services/qa-fixes');
 const { handlers: correctionHandlers } = require('./services/case-corrections');
 const { registerAuthRoutes } = require('./routes/auth-routes');
 const { registerIdentityRoutes } = require('./routes/identity-routes');
@@ -33,16 +32,15 @@ const dbConfig = {
     database: process.env.DB_NAME || 'health_intel'
 };
 const db = mysql.createPool(dbConfig);
-const qa = handlers(db);
 const corrections = correctionHandlers(db);
 app.use('/api', createAccessControl(db, JWT_SECRET));
 app.get('/api/session', (req, res) => res.json({ success: true, user: req.user }));
 
-registerAuthRoutes(app, db, qa, JWT_SECRET);
+registerAuthRoutes(app, db, JWT_SECRET);
 registerIdentityRoutes(app, db, dbConfig);
-registerCaseRoutes(app, db, qa, corrections);
+registerCaseRoutes(app, db, corrections);
 registerDiseaseReviewRoutes(app, db);
-registerAnalyticsRoutes(app, db, qa, pythonExecutable);
+registerAnalyticsRoutes(app, db, pythonExecutable);
 registerMhoReportRoutes(app, db);
 registerBackupRoutes(app, db, dbConfig);
 

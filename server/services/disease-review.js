@@ -1,4 +1,4 @@
-const {plain,invalid}=require('./qa-fixes');
+const {plain,invalid}=require('./service-errors');
 const { caseAuditDetails } = require('./case-audit');
 const PENDING_DISEASE = 'Pending classification';
 const reviewVersion = row => require('crypto').createHash('sha256').update(JSON.stringify([

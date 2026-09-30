@@ -1,5 +1,6 @@
 const { normalizeEmail, escapeHtml, emailConfigured, sendEmail } = require('../config/security-config');
-const { respond, accountStatus } = require('../services/qa-fixes');
+const { respond } = require('../services/service-errors');
+const { accountStatus } = require('../services/account-status');
 const { withCaseReference } = require('../services/case-audit');
 
 function registerIdentityRoutes(app, db, dbConfig) {

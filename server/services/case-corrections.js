@@ -1,5 +1,6 @@
 const crypto = require('node:crypto');
-const { transaction, invalid, plain, respond } = require('./qa-fixes');
+const { invalid, plain, respond } = require('./service-errors');
+const { transaction } = require('./database-transaction');
 const { validDate, ageOnDate, todayInManila } = require('./patient-validation');
 const fields = "id,barangay_id,resident_id,first_name,last_name,DATE_FORMAT(birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(date_recorded,'%Y-%m-%d') AS date_recorded,disease,disease_review_status,disease_reported,condition_source,disease_id,severity,age,status,remarks,is_archived,updated_at";
 const version = row => crypto.createHash('sha256').update(JSON.stringify(row)).digest('hex');

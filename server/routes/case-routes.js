@@ -1,10 +1,12 @@
 const { encodingClassification } = require('../services/disease-review');
 const { validatePatient, ageOnDate, todayInManila } = require('../services/patient-validation');
 const { monthlyPeriod } = require('../services/report-periods');
-const { respond } = require('../services/qa-fixes');
+const { respond } = require('../services/service-errors');
+const { createCaseLifecycleHandlers } = require('../services/case-lifecycle');
 const { CASE_ACTIONS, withCaseReference, caseAuditDetails } = require('../services/case-audit');
 
-function registerCaseRoutes(app, db, qa, corrections) {
+function registerCaseRoutes(app, db, corrections) {
+const cases = createCaseLifecycleHandlers(db);
 // ==========================================
 // 7. PATIENT RECORDS (DATA ENTRY & PROVENANCE)
 // ==========================================
@@ -216,12 +218,12 @@ app.get('/api/patients/archived', async (req, res) => {
 });
 
 // UPDATE STATUS
-app.put('/api/patients/:id/status', qa.status);
+app.put('/api/patients/:id/status', cases.status);
 app.get('/api/patients/:id/correction', corrections.get);
 app.put('/api/patients/:id/correction', corrections.save);
 
 // ARCHIVE
-app.put('/api/patients/:id/archive', qa.archiveCase);
+app.put('/api/patients/:id/archive', cases.archiveCase);
 
 
 // BHW TREND CHART DATA
@@ -347,7 +349,7 @@ app.get('/api/heatmap-data', async (req, res) => {
 });
 
 // RESTORE
-app.put('/api/patients/:id/restore', qa.restoreCase);
+app.put('/api/patients/:id/restore', cases.restoreCase);
 
 
 }

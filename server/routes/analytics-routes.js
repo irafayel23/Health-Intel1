@@ -1,7 +1,9 @@
 const { spawn } = require('child_process');
+const { createDiseaseRegistryHandlers } = require('../services/disease-registry');
 const { analyticsFilters, caseWhere, sendAnalyticsError } = require('../services/mho-analytics');
 
-function registerAnalyticsRoutes(app, db, qa, pythonExecutable) {
+function registerAnalyticsRoutes(app, db, pythonExecutable) {
+const registry = createDiseaseRegistryHandlers(db);
 // ==========================================
 // 8. DASHBOARD STATS & ANALYTICS
 // ==========================================
@@ -56,7 +58,7 @@ app.get('/api/get-predictions', (req, res) => {
 // ==========================================
 // 9. MASTER DISEASE REGISTRY
 // ==========================================
-app.post('/api/diseases', qa.disease);
+app.post('/api/diseases', registry.disease);
 
 app.get('/api/diseases', async (req, res) => {
     try {
@@ -76,9 +78,9 @@ app.get('/api/diseases/archived', async (req, res) => {
     }
 });
 
-app.put('/api/diseases/:id/archive', qa.archiveDisease);
+app.put('/api/diseases/:id/archive', registry.archiveDisease);
 
-app.put('/api/diseases/:id/restore', qa.restoreDisease);
+app.put('/api/diseases/:id/restore', registry.restoreDisease);
 
 // ==========================================
 // MHO DESCRIPTIVE STATS API

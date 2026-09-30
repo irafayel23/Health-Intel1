@@ -3,8 +3,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { normalizeEmail, validPassword, sessionVersion, emailConfigured, sendEmail } = require('../config/security-config');
 const { createPasswordRecovery } = require('../services/password-recovery');
+const { createRegistrationHandlers } = require('../services/registration');
 
-function registerAuthRoutes(app, db, qa, JWT_SECRET) {
+function registerAuthRoutes(app, db, JWT_SECRET) {
+const registration = createRegistrationHandlers(db);
 const loginLimiter = rateLimit({
     windowMs: 1 * 60 * 1000,
     max: 10,
@@ -15,9 +17,9 @@ const loginLimiter = rateLimit({
 // 2. SYSTEM ID GENERATOR
 // ==========================================
 const registrationLimiter = rateLimit({windowMs:15*60*1000,max:30,standardHeaders:true,legacyHeaders:false,message:{success:false,error:'Too many onboarding requests. Please try again later.'}});
-app.post('/api/get-next-id', registrationLimiter, qa.previewId);
-app.post('/api/check-email', registrationLimiter, qa.checkEmail);
-app.post('/api/register', registrationLimiter, qa.register);
+app.post('/api/get-next-id', registrationLimiter, registration.previewId);
+app.post('/api/check-email', registrationLimiter, registration.checkEmail);
+app.post('/api/register', registrationLimiter, registration.register);
 
 // ==========================================
 // CHANGE PASSWORD

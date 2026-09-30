@@ -18,6 +18,8 @@ After the asset-folder move, these checks also resolve every local script, style
 
 Phase 2 checks cover explicit case dates, computed ages, severity, resident links, repeated/concurrent duplicate submissions, archived/unknown categories, date validation, email injection, password byte limits, hashed reset codes, expiry, failed-attempt persistence, single use under concurrency, old-session revocation, public reset routes, rate limits, mocked mail failures and aggregate CSV provenance/missing-report/review behavior.
 
+After splitting the mixed backend service on 1 October, the full suite again passed **68 tests, 0 failures**, with unchanged source database fingerprints. The existing `qa-fixes.test.js` name is retained for its regression checks: concurrent registration/duplicate prevention, registry changes, follow-up notes, archive/restore attribution and failed-audit rollback. Those endpoints now use focused registration, account-status, disease-registry and case-lifecycle services. An additional local extraction audit compared all 15 moved handler/helper bodies exactly and checked syntax for 26 active backend JavaScript files. Manual browser testing remains deferred; no new real SMTP check was made.
+
 Date-only database assertions use SQL YYYY-MM-DD formatting, avoiding UTC shifts when the test machine is in Philippine time. The first Phase 2 run exposed that assertion issue; the corrected check verifies the actual SQL date.
 
 Browser verification uses a disposable database and fake accounts. Do not use real patient identities or reset real credentials for demonstration tests. Real SMTP delivery must be checked separately with a deliberately chosen recipient; the automated tests do not establish inbox delivery.

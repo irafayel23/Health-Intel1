@@ -108,6 +108,32 @@ git revert --no-edit assets-layout-20261001 portal-structure-20261001
 
 Refresh browser tabs afterward. No database rollback or dependency reinstall is required. These checkpoints are local until pushed; ignored path/hash manifests and previous reference files are in `analysis/assets-layout-20261001/`.
 
+### Backend service responsibilities (1 October)
+
+The mixed `server/services/qa-fixes.js` is retired. Route modules now construct the focused handlers they use, rather than receiving a shared object containing unrelated operations. The entry point still owns the database pool and access-control middleware.
+
+| Service | Responsibility |
+|---|---|
+| `registration.js` | System ID allocation, Google-verified email checking and pending-account registration. |
+| `account-status.js` | Account approval, suspension, denial and restoration with transactional audit logging. |
+| `disease-registry.js` | Catalog creation and its archive/restore handlers. |
+| `case-lifecycle.js` | Case status/follow-up updates and case archive/restore handlers. |
+| `record-archive.js` | Shared transactional archive/restore implementation; callers supply fixed internal table names. |
+| `database-transaction.js` | Connection ownership, commit/rollback and database-specific named locks. |
+| `service-errors.js` | Shared text validation and safe API error responses. |
+
+Existing correction, classification/review and report modules import these helpers directly. All 15 extracted handler/helper function bodies match the previous implementation exactly; all 26 active backend JavaScript files pass syntax checks. The full suite passed **68 tests, 0 failures**, including registration concurrency, failed-audit rollback, role/barangay restrictions, status remarks and disease review. Source database fingerprints were unchanged. API routes, limiter placement, SQL, response text and private configuration were preserved. No schema migration, model/data change or new browser/mail verification was performed.
+
+Case creation and several database queries still live in route modules. Further extraction can reduce that coupling, but this checkpoint only separates the mixed service; it does not claim that all backend cleanup is finished.
+
+Recovery checkpoint `pre-backend-services-20261001` preserves `c65fb4b`. The completed service split is tagged `backend-services-20261001`. To reverse only this step, preserve newer work and run from `proposal`:
+
+```text
+git revert --no-edit backend-services-20261001
+```
+
+Restart the backend with `npm start` from `server/` after updating or reverting. No database rollback or dependency reinstall is required. The checkpoint is local until pushed. Original files and the extraction verification script are retained in ignored `analysis/backend-services-20261001/`. The test filename `qa-fixes.test.js` remains as the existing regression suite; it no longer denotes an active service module.
+
 ## Disease encoding and review
 
 `assets/js/shared/encoding-controls.js` and `assets/css/shared/encoding-controls.css` provide shared searchable dropdowns and pending-condition display. `assets/js/mho/mho-disease-review.js` implements the MHO review screen. `server/routes/disease-review-routes.js` exposes protected review/clarification endpoints. `server/services/disease-review.js` validates catalog selection and contains the explicit additive migration used by `server/scripts/apply-disease-review.js`. Case creation still lives in `server/routes/case-routes.js` and retains resident/audit transactions. See [DISEASE_REGISTRY.md](DISEASE_REGISTRY.md) for the workflow and recovery limits.
