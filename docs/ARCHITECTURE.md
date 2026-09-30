@@ -1,6 +1,6 @@
 # Current architecture
 
-Verified against the active implementation on 30 September 2026.
+Verified against the active implementation on 1 October 2026.
 
 ## Browser
 
@@ -29,6 +29,10 @@ proposal/
       admin-records.js
       admin-registry.js
       admin-audit.js
+      bhw-*.js       # Shell, cases, residents, dashboard, startup, dialogs
+      mho-*.js       # Analytics, forecast UI, reports, walk-ins, review, account
+      index-*.js     # Firebase, screens, recovery, registration, login
+      superadmin-*.js # Shell, health, users, ledger, backup, startup
   server/
     server.js        # Entry point: npm start
     config/          # Environment and email configuration
@@ -56,6 +60,31 @@ git revert --no-edit folder-structure-20260930 b58df60
 ```
 
 This creates reversal commits; it does not restore a database, erase saved patients, or replace private configuration. Review conflicts if later work changed the same files. Restart the backend and refresh browser tabs after either refactoring or reverting. These tags and commits are local until pushed.
+
+### Portal feature scripts (1 October)
+
+The remaining large BHW, MHO, access-page and Superadmin scripts are separated by feature. The HTML pages remain at the repository root, and page scripts remain in `assets/js/` with role prefixes. API URLs, HTML IDs, inline event handlers and extracted function bodies are preserved. Shared helpers remain separate from page behavior.
+
+Load these classic scripts in the order used by their HTML; do not add `async` or load a feature alone. Page-wide lexical state and existing global functions still connect the features. BHW startup follows its records, residents and dashboard declarations, so its direct resident-refresh event registration has a defined function to register.
+
+| Page | Page-specific script order |
+|---|---|
+| BHW | `bhw-shell.js` → `bhw-records.js` → `bhw-residents.js` → `bhw-dashboard.js` → `bhw-startup.js` → `bhw-dialogs.js`; shared `health-map.js` follows. |
+| MHO | `mho-insights.js` → `mho-walkins.js` → `mho-disease-review.js` → `mho-shell.js` → `mho-forecast.js` → `mho-analytics.js` → `mho-reports.js` → `mho-account.js`. |
+| Access / login | `index-firebase.js` → `index-shell.js` → `index-recovery.js` → `index-registration.js` → `index-login.js`. Firebase compatibility libraries load first. |
+| Superadmin | `superadmin-shell.js` → `superadmin-health.js` → `superadmin-users.js` → `superadmin-ledger.js` → `superadmin-backup.js` → `superadmin-startup.js`. |
+
+`index-page.js`, `mho-page.js` and `superadmin-page.js` are retired. `bhw-records.js` now owns only case state/table/actions; resident dossiers and dashboard logic have their own files. The unused `healthDatabase` sample-data literal was removed from the former MHO script after confirming it had no references. Live descriptive charts continue to read the same API endpoints. Forecast code was moved without changing its behavior; `analytics.py` and its data were not edited.
+
+The full suite passed **67 checks** after this refactor, including actual-HTML script order, startup/active hooks, cross-feature resident refresh, mocked Google verification/registration/login/recovery, MHO filters/report downloads and Superadmin ledger/backup behavior. A source-block comparison verified that all extracted code was retained apart from trailing-whitespace cleanup. Backend integration tests again confirmed unchanged source database fingerprints. These are automated checks, not a new visual browser or real SMTP verification.
+
+Recovery checkpoint `pre-portal-structure-20261001` points to `34f3fc2`, which already includes disease review. The completed refactor is tagged `portal-structure-20261001`. To reverse only this refactor while keeping disease review and previous work, preserve newer changes and run from the repository root:
+
+```text
+git revert --no-edit portal-structure-20261001
+```
+
+Then refresh the role/login tabs. Backend startup remains `npm start` from `server/`. No schema migration or database restore is needed for this code-only rollback. Local source/HTML copies are also retained in ignored `analysis/portal-structure-20261001/`; the Git checkpoint is the recovery path intended for another checkout.
 
 ## Disease encoding and review
 

@@ -102,7 +102,10 @@ test('resident directory reloads after saved case changes and when its real side
         document:{ querySelectorAll:selector=>selector.includes('nav-menu')?[button]:[], addEventListener(){}, getElementById:id=>id==='directory-search'?{value:''}:id==='resident-grid'?grid:null },
         escapeText:value=>String(value), fetch:async url=>{requests.push(url);return {json:async()=>({success:true,data:residents})};} };
     vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
-    vm.runInNewContext(script('bhw-records.js'),sandbox);
+    const bhwHtml = fs.readFileSync(path.join(__dirname,'../../bhw.html'),'utf8');
+    for (const [,name] of bhwHtml.matchAll(/<script src="assets\/js\/(bhw-(?:records|residents|dashboard|startup)\.js)"><\/script>/g)) {
+        vm.runInNewContext(script(name),sandbox,{filename:name});
+    }
     await sandbox.loadResidentDirectory();
     assert.match(grid.innerHTML,/No residents found/);
     residents = [{id:42,patient_name:'Disposable Directory',age:26,purok:'QA Zone',case_count:1}];

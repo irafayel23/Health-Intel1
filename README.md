@@ -15,6 +15,6 @@ The active backend is `server/server.js`; automated checks live in `server/tests
 
 Backend endpoints live in `server/routes/`, operations and validation in `server/services/`, authorization in `server/middleware/`, configuration in `server/config/`, and maintenance commands in `server/scripts/`. Existing CSV files are grouped in `server/data/`. Private `.env`, the local JWT secret, Node dependencies and the Python environment stay under `server/`.
 
-Admin behavior is split into `admin-shell.js`, `admin-users.js`, `admin-records.js`, `admin-registry.js` and `admin-audit.js` under `assets/js/`. `admin.html` loads them in that order. See [architecture and recovery instructions](docs/ARCHITECTURE.md) before changing paths or undoing the folder refactor.
+Connected page behavior is split into feature scripts under `assets/js/`, using `admin-`, `bhw-`, `mho-`, `index-` and `superadmin-` prefixes. Cases, resident dossiers, charts, reports, account access, ledger and backups have separate files. Each HTML page defines its required load order. See [architecture and recovery instructions](docs/ARCHITECTURE.md) before changing paths or undoing a refactor. No frontend build command is required.
 
 Forecasts currently use an AR(1) demonstration through statsmodels SARIMAX and municipal-share allocation. Seasonal model selection and real-data validation remain future work. There is no verified accuracy percentage. The data preparation tool does not import data into the live case table.

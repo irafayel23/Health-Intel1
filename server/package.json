@@ -4,7 +4,7 @@
   "description": "Backend API for Health-Intel Municipal Health Intelligence System",
   "main": "server.js",
   "scripts": {
-    "test": "node --test tests/first-fixes.test.js tests/phase-two.test.js tests/qa-fixes.test.js tests/workflow-fixes.test.js tests/ui-workflow.test.js tests/disease-review.test.js",
+    "test": "node --test tests/first-fixes.test.js tests/phase-two.test.js tests/qa-fixes.test.js tests/workflow-fixes.test.js tests/ui-workflow.test.js tests/disease-review.test.js tests/portal-structure.test.js",
     "start": "node server.js",
     "test:first-fixes": "node --test tests/first-fixes.test.js",
     "test:phase-two": "node --test tests/first-fixes.test.js tests/phase-two.test.js",

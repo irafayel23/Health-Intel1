@@ -514,7 +514,7 @@
                 <label class="walkin-field">Recorded severity *<select id="walkin-severity" required><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></label>
                 <div class="walkin-field walkin-full">
                   <div class="hi-condition-field"><label for="walkin-disease">Reported disease / condition *</label>
-                  <select id="walkin-disease"><option value="">Loading conditions…</option></select><p id="walkin-disease-note" class="hi-field-help">Choose the condition from the available medical information.</p>
+                  <select id="walkin-disease"><option value="">Loading conditionsï¿½</option></select><p id="walkin-disease-note" class="hi-field-help">Choose the condition from the available medical information.</p>
                   <div id="walkin-unlisted" class="hi-unlisted-fields" hidden><label for="walkin-reported">Reported condition *</label><input id="walkin-reported" maxlength="255" placeholder="Enter the condition exactly as reported"><label for="walkin-source">Source / reference *</label><input id="walkin-source" maxlength="500" placeholder="For example: clinic referral or patient report"><p class="hi-field-help">This case will be saved for MHO review. Recording it does not establish a diagnosis.</p></div></div>
                   <button id="walkin-retry-options" type="button" class="walkin-retry" hidden>Retry loading choices</button>
                 </div>
@@ -544,7 +544,10 @@
     <script>
       lucide.createIcons();
     </script>
-    <script src="assets/js/mho-page.js"></script>
+    <script src="assets/js/mho-shell.js"></script>
+    <script src="assets/js/mho-forecast.js"></script>
+    <script src="assets/js/mho-analytics.js"></script>
+    <script src="assets/js/mho-reports.js"></script>
   <script src="assets/js/mho-account.js"></script>
   </body>
 </html>
