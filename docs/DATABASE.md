@@ -29,7 +29,9 @@ New case creation checks matching names, birthdate, disease, date and barangay f
 
 ## Review and security
 
-Historical disease strings still do not all match registry names. Existing historical names remain selectable unless explicitly archived; new unknown categories must first be registered by Admin. The preparation CLI requires active disease names or explicitly reviewed aliases for its monthly preview. It never rewrites historical names.
+The 30 September disease-review migration adds nullable `disease_id` (foreign key to the registry), `disease_review_status` (Recorded/Pending/Clarification/Reviewed), `disease_reported`, `condition_source`, `disease_review_note`, `disease_reviewed_by` and `disease_reviewed_at`, plus a queue index. Existing cases retain their original fields and Recorded state; old names are not automatically mapped. New active-catalog selections store a registry ID. Unlisted cases retain the reported wording/source while using Pending classification for aggregates until MHO review. See [DISEASE_REGISTRY.md](DISEASE_REGISTRY.md).
+
+Historical disease strings still do not all match registry names. Historical names remain in saved cases and reviewed corrections, but new encoding uses active catalog names or the unlisted-condition review path. The preparation CLI requires active disease names or explicitly reviewed aliases for its monthly preview. It never rewrites historical names.
 
 The case table still has no real/synthetic provenance field. Separate preparation outputs record source type, source reference and input SHA-256; these are not migrations or independent proof of authenticity.
 

@@ -21,7 +21,7 @@ before(async()=>{
     original=await createDatabaseDump(source);
     await root.query('CREATE DATABASE `'+name+'` CHARACTER SET utf8mb4');created=true;
     await root.query('USE `'+name+'`');await root.query(fs.readFileSync(original.filename,'utf8'));await original.cleanup();original=null;
-    db=mysql.createPool({...source,database:name});
+    db=mysql.createPool({...source,database:name});await require('../services/disease-review').migrateDiseaseReview(db);
     const [[b]]=await db.query('SELECT id FROM barangays ORDER BY id LIMIT 1');barangay=b.id;
     await db.execute("INSERT INTO users(system_id,first_name,last_name,role,barangay_id,password_hash,status,email) VALUES('PHASE2-BHW','Fixture','Only','bhw',?,?,'approved',?)",[barangay,await bcrypt.hash('Original-fixture-2026',10),email]);
     await db.execute("INSERT INTO disease_registry(name,classification,status) VALUES('Phase2 Test Disease','morbidity','Active')");

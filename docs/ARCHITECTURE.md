@@ -8,7 +8,7 @@ The role portals use HTML, Tailwind, vanilla JavaScript and section navigation. 
 
 ## Application
 
-`server/server.js` configures the Express app, database pool, and access-control middleware, then registers the six modules in `server/routes/`. `server/middleware/access-control.js` checks database role/status on protected requests and enforces BHW barangay scope. Tokens contain a password-hash-derived session version; resetting or changing a password revokes older tokens. Public onboarding/recovery endpoints still require their own validation and rate limits.
+`server/server.js` configures the Express app, database pool, and access-control middleware, then registers the modules in `server/routes/`. `server/middleware/access-control.js` checks database role/status on protected requests and enforces BHW barangay scope. Tokens contain a password-hash-derived session version; resetting or changing a password revokes older tokens. Public onboarding/recovery endpoints still require their own validation and rate limits.
 
 `server/services/password-recovery.js` implements transaction-protected, hashed OTP recovery. `server/config/security-config.js` reads private environment configuration and handles email. Approval and mail delivery are separate outcomes. `server/services/patient-validation.js` validates explicit case date, severity and age; case creation links a resident and audit action in one transaction and blocks possible same-person/same-disease/same-date duplicates.
 
@@ -57,7 +57,11 @@ git revert --no-edit folder-structure-20260930 b58df60
 
 This creates reversal commits; it does not restore a database, erase saved patients, or replace private configuration. Review conflicts if later work changed the same files. Restart the backend and refresh browser tabs after either refactoring or reverting. These tags and commits are local until pushed.
 
-## Prediction
+## Disease encoding and review
+
+`assets/js/encoding-controls.js` and `assets/css/encoding-controls.css` provide shared searchable dropdowns and pending-condition display. `assets/js/mho-disease-review.js` implements the MHO review screen. `server/routes/disease-review-routes.js` exposes protected review/clarification endpoints. `server/services/disease-review.js` validates catalog selection and contains the explicit additive migration used by `server/scripts/apply-disease-review.js`. Case creation still lives in `server/routes/case-routes.js` and retains resident/audit transactions. See [DISEASE_REGISTRY.md](DISEASE_REGISTRY.md) for the workflow and recovery limits.
+
+## Prediction details
 
 Node starts `server/analytics.py` as a child process and returns its JSON result. Python currently queries MySQL directly using environment credentials. It does not yet use a database-isolated input pipeline. The statsmodels SARIMAX fit currently has nonseasonal order (1,0,0), an AR(1) model, and allocates municipal estimates using historical barangay shares. Forecasts remain demonstrations with validation pending. Missing months in this older pipeline are still filled with zero; the new review tool preserves missing reports instead, but is not yet integrated into model training.
 

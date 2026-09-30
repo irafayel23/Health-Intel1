@@ -1,142 +1,42 @@
-
       function openAddPatientModal() {
-        Swal.fire({
-          title: "New Resident Health Record",
-          width: "600px",
-          html: `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">First Name *</label>
-                    <input id="swal-fname" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="e.g. Juan">
-                </div>
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Last Name *</label>
-                    <input id="swal-lname" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="e.g. Dela Cruz">
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
-                <div class="flex flex-col gap-1.5">
-                    <label for="swal-birthdate" class="text-sm font-semibold text-[hsl(var(--foreground))]">Birthdate (MM/DD/YYYY) *</label>
-                    <input id="swal-birthdate" type="text" inputmode="numeric" autocomplete="bday" maxlength="10" placeholder="MM/DD/YYYY" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all">
-                </div>
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Age on Case Date (Auto-Computed)</label>
-                    <input id="swal-age" type="number" class="w-full px-4 py-2.5 bg-[hsl(var(--muted))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] opacity-70 cursor-not-allowed outline-none" readonly placeholder="--">
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
-                <div class="flex flex-col gap-1.5">
-                    <label for="swal-case-date" class="text-sm font-semibold text-[hsl(var(--foreground))]">Case Date *</label>
-                    <input id="swal-case-date" type="date" min="1900-01-01" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none [color-scheme:light] dark:[color-scheme:dark]">
-                </div>
-                <div class="flex flex-col gap-1.5">
-                    <label for="swal-severity" class="text-sm font-semibold text-[hsl(var(--foreground))]">Recorded Severity *</label>
-                    <select id="swal-severity" class="w-full px-4 py-2.5 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none">
-                        <option value="">Select recorded severity</option>
-                        <option value="Mild">Mild</option><option value="Monitored">Monitored</option><option value="High Risk">High Risk</option>
-                    </select>
-                    <p class="text-xs text-[hsl(var(--muted-foreground))]">Choose the severity actually assessed for this case. The map uses it for color; it does not diagnose an outbreak.</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-4">
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Purok / Zone within your barangay *</label>
-                    <input id="swal-purok" maxlength="100" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 outline-none" placeholder="Enter the actual purok / zone">
-                    <p class="text-xs text-[hsl(var(--muted-foreground))]">Assigned barangay: <span id="swal-assigned-barangay"></span></p>
-                </div>
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Diagnosed Disease / Case *</label>
-                    <input list="disease-options" id="swal-disease" class="w-full px-4 py-2.5 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all" placeholder="Select an existing category">
-                    <datalist id="disease-options"></datalist>
-                    <p id="swal-disease-notice" class="text-xs text-[hsl(var(--muted-foreground))]">Loading case categories...</p>
-                </div>
-            </div>
-            <div class="flex flex-col gap-1.5 text-left">
-                <label class="text-sm font-semibold text-[hsl(var(--foreground))]">Symptoms / Remarks</label>
-                <textarea id="swal-remarks" class="w-full px-4 py-3 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all min-h-[80px] resize-y" placeholder="Any additional notes..."></textarea>
-            </div>
-`,
-          customClass: { popup: "hi-dialog" },
-          confirmButtonText: "Save Record",
-          confirmButtonColor: "#007bff",
-          showCancelButton: true,
-          showLoaderOnConfirm: true,
-          allowOutsideClick: () => !Swal.isLoading(),
-          didOpen: () => {
-             const bd = document.getElementById('swal-birthdate');
-             const age = document.getElementById('swal-age');
-             const caseDate = document.getElementById('swal-case-date');
-             const parts = new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
-             const today = ['year','month','day'].map(type=>parts.find(part=>part.type===type).value).join('-');
-             caseDate.max = today;
-             caseDate.value = today;
-             document.getElementById('swal-assigned-barangay').textContent=window.currentBrgyName || 'Loading…';
-             function refreshAge() {
-                 const birthdate=window.HealthIntelDate.parseBirthdate(bd.value);
-                 if (!birthdate || !caseDate.value) { age.value=''; return; }
-                 const [by,bm,day] = birthdate.split('-').map(Number);
-                 const [cy,cm,cd] = caseDate.value.split('-').map(Number);
-                 const value = cy-by-(cm<bm||(cm===bm&&cd<day)?1:0);
-                 age.value = value>=0 && value<=130 ? value : '';
-             }
-             bd.addEventListener('input',refreshAge);
-             caseDate.addEventListener('change',refreshAge);
-             fetch('http://localhost:3000/api/bhw/encoding-options').then(response=>response.json()).then(result=>{
-                 const choices=document.getElementById('disease-options');
-                 const notice=document.getElementById('swal-disease-notice');
-                 if(!choices||!notice) return;
-                 if(!result.success) throw new Error('Disease choices are unavailable.');
-                 for(const item of result.data) { const option=document.createElement('option'); option.value=item.name; choices.append(option); }
-                 notice.textContent='All recorded categories are eligible, not only the ten forecast diseases. Ask Admin to add a new category; historical names need registry review.';
-             }).catch(()=>{ const notice=document.getElementById('swal-disease-notice'); if(notice) notice.textContent='Disease choices could not be loaded. Close this form and try again.'; });
+        const controls=[];
+        Swal.fire({title:'New patient case',width:720,customClass:{popup:'hi-dialog hi-encode-dialog'},
+          html:`<div class="hi-encode"><p class="hi-encode-intro">Record the patient details, then choose the reported condition. Fields marked * are required.</p>
+          <section><h3>1. Patient details</h3><div class="hi-encode-grid">
+          <div><label for="swal-fname">First name *</label><input id="swal-fname" maxlength="100" autocomplete="given-name" placeholder="First name"></div>
+          <div><label for="swal-lname">Last name *</label><input id="swal-lname" maxlength="100" autocomplete="family-name" placeholder="Last name"></div>
+          <div><label for="swal-birthdate">Birthdate *</label><input id="swal-birthdate" inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY"></div>
+          <div><label for="swal-age">Age on case date</label><input id="swal-age" readonly placeholder="Calculated from birthdate"></div>
+          <div class="hi-encode-wide"><label for="swal-purok">Purok / zone *</label><input id="swal-purok" maxlength="100" placeholder="Enter the purok or zone"><p class="hi-field-help">Assigned barangay: <span id="swal-assigned-barangay"></span></p></div></div></section>
+          <section><h3>2. Case details</h3><div class="hi-encode-grid">
+          <div><label for="swal-case-date">Case date *</label><input id="swal-case-date" type="date" min="1900-01-01"></div>
+          <div><label for="swal-severity">Recorded severity *</label><select id="swal-severity"><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></div>
+          <div class="hi-encode-wide">${HealthIntelEncoding.conditionMarkup('swal')}</div>
+          <div class="hi-encode-wide"><label for="swal-remarks">Symptoms / remarks</label><textarea id="swal-remarks" maxlength="4000" rows="3" placeholder="Optional follow-up information"></textarea><p class="hi-field-help">Severity describes this case. It does not declare an outbreak.</p></div></div></section></div>`,
+          confirmButtonText:'Save case',confirmButtonColor:'#2563eb',showCancelButton:true,showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
+          didOpen:()=>{
+            const field=id=>document.getElementById(id),date=field('swal-case-date'),bd=field('swal-birthdate');
+            const todayParts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+            date.max=['year','month','day'].map(type=>todayParts.find(part=>part.type===type).value).join('-');date.value=date.max;
+            field('swal-assigned-barangay').textContent=window.currentBrgyName || 'Your assigned barangay';
+            const age=()=>{const b=HealthIntelDate.parseBirthdate(bd.value);let value='';if(b&&date.value&&b<=date.value){const [by,bm,day]=b.split('-').map(Number),[cy,cm,cd]=date.value.split('-').map(Number);const n=cy-by-(cm<bm||(cm===bm&&cd<day)?1:0);if(n<=130)value=n;}field('swal-age').value=value;};
+            bd.addEventListener('input',age);date.addEventListener('change',age);
+            controls.push(HealthIntelEncoding.enhanceSelect(field('swal-severity')),HealthIntelEncoding.bindCondition('swal'));
+            field('swal-disease').disabled=true;
+            fetch('http://localhost:3000/api/bhw/encoding-options').then(r=>r.json()).then(result=>{if(!result.success)throw Error();if(field('swal-disease'))HealthIntelEncoding.populateConditions('swal',result.data);}).catch(()=>{if(field('swal-disease-note'))field('swal-disease-note').textContent='Choices could not be loaded. Close and reopen the form to retry.';});
           },
-          preConfirm: async () => {
-            const f = document.getElementById("swal-fname").value;
-            const l = document.getElementById("swal-lname").value;
-            const birthdateText = document.getElementById("swal-birthdate").value;
-            const b = window.HealthIntelDate.parseBirthdate(birthdateText);
-            const a = document.getElementById("swal-age").value;
-            const p = document.getElementById("swal-purok").value;
-            const d = document.getElementById("swal-disease").value;
-            const r = document.getElementById("swal-remarks").value;
-            const caseDate = document.getElementById('swal-case-date').value;
-            const severity = document.getElementById('swal-severity').value;
-            if (birthdateText.trim() && !b) { Swal.showValidationMessage('Enter a real birthdate as MM/DD/YYYY, for example 05/14/2000.'); return false; }
-            if (!f.trim() || !l.trim() || !b || !p || !d.trim() || !caseDate || !severity || a === '') {
-              Swal.showValidationMessage("Please fill out all required fields (*)");
-              return false; 
-            }
-            const payload = {
-              first_name: f, 
-              last_name: l, 
-              patient_name: `${f} ${l}`, 
-              birthdate: b, 
-              age: a, 
-              purok: p, 
-              disease: d, 
-              remarks: r,
-              date_recorded: caseDate,
-              severity,
-              status: "Active",
-              encoded_by: localStorage.getItem('active_user_id') || "Unknown BHW"
-            };
-            try {
-                const response = await fetch('http://localhost:3000/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-                const result = await response.json();
-                if(!result.success) throw new Error(result.error || 'The record could not be saved.');
-                return result;
-            } catch(error) { Swal.showValidationMessage(error.message || 'The record could not be saved. Please try again.'); return false; }
-          },
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-                Swal.fire("Saved!", "Patient recorded successfully.", "success");
-                isViewingArchive ? loadArchivedPatients() : loadPatients();
-                loadDashboardStats();
-              loadTrendChart();
-              loadPurokChoices();
-              window.dispatchEvent(new Event('health-intel:cases-changed'));
+          willClose:()=>controls.forEach(control=>control.destroy()),
+          preConfirm:async()=>{
+            try{
+              const value=id=>document.getElementById(id).value.trim(),birthdate=HealthIntelDate.parseBirthdate(value('swal-birthdate'));
+              if(!birthdate)throw Error('Enter a real birthdate as MM/DD/YYYY.');
+              if(!value('swal-fname')||!value('swal-lname')||!value('swal-purok')||!value('swal-case-date')||!value('swal-severity')||value('swal-age')==='')throw Error('Complete the required patient details, case date and severity.');
+              const payload={first_name:value('swal-fname'),last_name:value('swal-lname'),birthdate,purok:value('swal-purok'),date_recorded:value('swal-case-date'),severity:value('swal-severity'),remarks:value('swal-remarks'),status:'Active',...HealthIntelEncoding.conditionPayload('swal')};
+              const response=await fetch('http://localhost:3000/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),result=await response.json();
+              if(!response.ok||!result.success)throw Error(result.error||'The case could not be saved.');return result;
+            }catch(error){Swal.showValidationMessage(error.message);return false;}
           }
-        });
+        }).then(result=>{if(result.isConfirmed){Swal.fire({icon:'success',title:`Case #REC-${result.value.id} saved`,text:result.value.review_status==='Pending'?'The reported condition is awaiting MHO review.':'The patient case was recorded.'});isViewingArchive?loadArchivedPatients():loadPatients();loadDashboardStats();loadTrendChart();loadPurokChoices();window.dispatchEvent(new Event('health-intel:cases-changed'));}});
       }
 
       async function generateBHWReport(type) {
@@ -146,7 +46,7 @@
           allowOutsideClick: false,
           didOpen: () => { Swal.showLoading(); }
         });
-        
+
         try {
           const month=document.getElementById('bhw-report-month').value;
           const year=document.getElementById('bhw-report-year').value;
@@ -155,31 +55,31 @@
           const params=new URLSearchParams({barangay_id:brgy_id,month,year,include_archived:'true'});
           const res = await fetch('http://localhost:3000/api/patients?' + params);
           const result = await res.json();
-          
+
           if(!result.success) throw new Error("DB Error");
-          
+
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
-          
+
           const brgyName = window.currentBrgyName || 'Blumentritt';
-          
+
           doc.setFontSize(16);
           doc.text(`Barangay Health Station - ${brgyName}`, 14, 20);
           doc.setFontSize(12);
           doc.text(type === 'MONTHLY' ? `Barangay Monthly Case List (${month} ${year})` : `Barangay Surveillance Case Log (${month} ${year})`, 14, 30);
-          
+
           const chosenPurok=document.getElementById('bhw-purok-filter').value;
           const records=type==='SURVEILLANCE' && chosenPurok!=='All Puroks' ? result.data.filter(p=>p.purok===chosenPurok) : result.data;
           if(type==='SURVEILLANCE' && chosenPurok!=='All Puroks') doc.text(`Purok / Zone: ${chosenPurok}`,14,37);
           const data = records.map(p => [
-            p.patient_name || 'N/A', 
+            p.patient_name || 'N/A',
             p.age ?? 'N/A',
-            p.purok || 'N/A', 
-            p.disease || 'N/A', 
-            p.status || 'Active', 
+            p.purok || 'N/A',
+            HealthIntelEncoding.conditionLabel(p),
+            p.status || 'Active',
             p.date_recorded ? new Date(p.date_recorded).toLocaleDateString('en-PH',{timeZone:'Asia/Manila'}) : 'Not recorded'
           ]);
-          
+
           doc.autoTable({
             startY: 40,
             head: [['Patient Name', 'Age', 'Purok', 'Diagnosis', 'Status', 'Date']],
@@ -187,7 +87,7 @@
             theme: 'striped',
             headStyles: { fillColor: type === 'MONTHLY' ? [2, 132, 199] : [234, 88, 12] }
           });
-          
+
           doc.save(`BHW_Report_${brgyName}_${type}_${month}_${year}.pdf`);
           Swal.fire(data.length ? 'Report downloaded' : 'No matching cases', data.length ? `${data.length} recorded cases included for ${month} ${year}.` : `The downloaded PDF states that no cases match ${month} ${year} and the selected location. Check the case date and report filters.`, data.length ? 'success' : 'info');
         } catch (e) {
@@ -229,12 +129,12 @@
                   <p class="m-0 text-sm font-medium text-blue-700 dark:text-blue-400">Role: ${userId.startsWith('MHO') ? 'Municipal Health Officer' : 'Barangay Health Worker'}</p>
                 </div>
               </div>
-              
+
               <div class="border-t border-slate-200 dark:border-slate-700 pt-5">
                 <h4 class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 uppercase tracking-wider">
                   <i data-lucide="key" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i> Change Password
                 </h4>
-                
+
                 <div class="space-y-4">
                   <div>
                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">Current Password</label>
@@ -257,12 +157,12 @@
             const current_password = document.getElementById('current-pass').value;
             const new_password = document.getElementById('new-pass').value;
             const system_id = localStorage.getItem('active_user_id');
-            
+
             if(!current_password || !new_password) {
               Swal.showValidationMessage('Please fill in both password fields to update, or cancel to close.');
               return false;
             }
-            
+
             try {
               const res = await fetch('http://localhost:3000/api/change-password', {
                 method: 'POST',
@@ -289,9 +189,9 @@
         });
       }
 
-      function showTerms(event) { 
-        event.preventDefault(); 
-        Swal.fire({ 
+      function showTerms(event) {
+        event.preventDefault();
+        Swal.fire({
             title: 'Terms & Recognitions',
             html: `<div class="hi-form">
               <p><strong>Academic prototype.</strong> Health-Intel is a capstone project, not an official LGU privacy notice or proof of legal compliance.</p>
@@ -303,5 +203,13 @@
             customClass: { popup: 'hi-dialog' },
             confirmButtonText: 'Close',
             confirmButtonColor: '#2563eb'
-        }); 
+        });
       }
+
+async function supplyConditionClarification(id) {
+  const row=allPatients.find(item=>item.id===id);if(!row)return;const safe=HealthIntelEncoding.escape;
+  Swal.fire({title:`Clarify case #REC-${id}`,customClass:{popup:'hi-dialog'},showCancelButton:true,confirmButtonText:'Send clarification',showLoaderOnConfirm:true,
+    html:`<div class="hi-review-dialog"><p class="hi-review-summary">${safe(row.disease_review_note)}</p><label for="clarify-condition">Reported condition</label><input id="clarify-condition" maxlength="255" value="${safe(row.disease_reported)}"><label for="clarify-source">Source / reference</label><input id="clarify-source" maxlength="500" value="${safe(row.condition_source)}"></div>`,
+    preConfirm:async()=>{try{const response=await fetch(`http://localhost:3000/api/patients/${id}/condition-clarification`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({reported_condition:document.getElementById('clarify-condition').value,condition_source:document.getElementById('clarify-source').value})});const result=await response.json();if(!response.ok||!result.success)throw Error(result.error);return result;}catch(error){Swal.showValidationMessage(error.message);return false;}}
+  }).then(result=>{if(result.isConfirmed){loadPatients();window.dispatchEvent(new Event('health-intel:cases-changed'));Swal.fire('Clarification sent','MHO can now review the updated information.','success');}});
+}

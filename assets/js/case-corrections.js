@@ -11,6 +11,8 @@
             const data = result.data;
             const options = [...new Set([data.disease, ...data.diseases].filter(Boolean))].map(name => `<option value="${escape(name)}" ${name === data.disease ? 'selected' : ''}>${escape(name)}</option>`).join('');
             const locked = data.identity_ready ? '' : 'disabled';
+            const classificationPending = ['Pending','Clarification'].includes(data.disease_review_status);
+            const diseaseLocked = classificationPending ? 'disabled' : locked;
             const note = !data.identity_ready ? 'This historical record needs source/profile review before date or disease changes. Recorded severity can still be corrected.' : data.has_birthdate ? 'Age on the case date is recalculated when the date changes.' : 'No birthdate is recorded. The existing age will be preserved.';
             const saved = await Swal.fire({
                 title: 'Correct Case Record', width: 620, customClass:{popup:'hi-dialog'}, confirmButtonText: 'Save correction', showCancelButton: true,
@@ -20,10 +22,10 @@
                     <label class="block text-sm font-medium" for="correction-date">Case date</label>
                     <input id="correction-date" type="date" class="w-full rounded-lg border px-3 py-2 disabled:opacity-60" value="${escape(data.date_recorded)}" ${locked}>
                     <label class="block text-sm font-medium" for="correction-disease">Recorded disease / case</label>
-                    <select id="correction-disease" class="w-full rounded-lg border px-3 py-2 disabled:opacity-60" ${locked}>${options}</select>
+                    <select id="correction-disease" class="w-full rounded-lg border px-3 py-2 disabled:opacity-60" ${diseaseLocked}>${options}</select>
                     <label class="block text-sm font-medium" for="correction-severity">Recorded severity</label>
                     <select id="correction-severity" class="w-full rounded-lg border px-3 py-2"><option value="">Select recorded severity</option>${['Mild','Monitored','High Risk'].map(name => `<option ${name === data.severity ? 'selected' : ''}>${name}</option>`).join('')}</select>
-                    <p class="text-xs text-slate-600">${escape(note)}</p>
+                    <p class="text-xs text-slate-600">${escape(note)}${classificationPending ? ' MHO must review the reported condition before its category changes.' : ''}</p>
                     <label class="block text-sm font-medium" for="correction-reason">Reason for correction</label>
                     <textarea id="correction-reason" rows="3" maxlength="1000" class="w-full rounded-lg border px-3 py-2" placeholder="Explain what was entered incorrectly and how you confirmed the correction."></textarea>
                 </div>`,

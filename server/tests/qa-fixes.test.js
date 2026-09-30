@@ -17,7 +17,7 @@ async function fingerprint(){const [tables]=await root.query('SELECT TABLE_NAME 
 before(async()=>{
     root=await mysql.createConnection({...source,multipleStatements:true});beforeHash=await fingerprint();dump=await createDatabaseDump(source);
     await root.query('CREATE DATABASE `'+name+'` CHARACTER SET utf8mb4');created=true;await root.query('USE `'+name+'`');await root.query(fs.readFileSync(dump.filename,'utf8'));await dump.cleanup();dump=null;
-    db=mysql.createPool({...source,database:name});await applyConstraints(db);await applyConstraints(db);
+    db=mysql.createPool({...source,database:name});await require('../services/disease-review').migrateDiseaseReview(db);await applyConstraints(db);await applyConstraints(db);
     const [[b]]=await db.query('SELECT id,name FROM barangays ORDER BY id LIMIT 1');barangay=b.id;barangayName=b.name;
     const hash=await bcrypt.hash('Regression-only-2026',10);
     for(const role of ['bhw','mho','admin','superadmin']){const id='QA-'+role.toUpperCase();await db.execute("INSERT INTO users(system_id,first_name,last_name,role,barangay_id,password_hash,status) VALUES(?,'QA','Fixture',?,?,?,'approved')",[id,role,role==='bhw'?barangay:null,hash]);tokens[role]=jwt.sign({system_id:id,password_version:sessionVersion(hash,secret)},secret,{expiresIn:'1h'});}

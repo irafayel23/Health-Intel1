@@ -44,6 +44,8 @@
       }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+      <link rel="stylesheet" href="assets/css/encoding-controls.css">
+    <script src="assets/js/encoding-controls.js"></script>
   </head>
   <body class="h-screen flex overflow-hidden antialiased selection:bg-emerald-500/30 bg-slate-100 dark:bg-neutral-950">
     <!-- Sidebar -->
@@ -72,6 +74,7 @@
           <i data-lucide="user-plus" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Walk-in Patients</span>
         </button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400" data-target="view-disease-review" aria-label="Review unlisted conditions"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="label">Disease Review</span><span id="disease-review-count" class="hi-review-count" hidden>0</span></button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-reports" aria-label="Export Reports">
           <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Export Reports</span>
@@ -510,10 +513,9 @@
                 <label class="walkin-field">Case date *<input id="walkin-date" type="date" required></label>
                 <label class="walkin-field">Recorded severity *<select id="walkin-severity" required><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></label>
                 <div class="walkin-field walkin-full">
-                  <label for="walkin-disease">Diagnosed disease / case *</label>
-                  <div class="walkin-disease-tools"><input id="walkin-disease-search" type="search" autocomplete="off" placeholder="Search a disease or case name" aria-label="Search diagnosis choices"><label class="walkin-history-toggle"><input id="walkin-show-history" type="checkbox"> Show historical names</label></div>
-                  <select id="walkin-disease" required><option value="">Loading case categories…</option></select>
-                  <p id="walkin-disease-note" class="walkin-help">Loading available categories…</p>
+                  <div class="hi-condition-field"><label for="walkin-disease">Reported disease / condition *</label>
+                  <select id="walkin-disease"><option value="">Loading conditions�</option></select><p id="walkin-disease-note" class="hi-field-help">Choose the condition from the available medical information.</p>
+                  <div id="walkin-unlisted" class="hi-unlisted-fields" hidden><label for="walkin-reported">Reported condition *</label><input id="walkin-reported" maxlength="255" placeholder="Enter the condition exactly as reported"><label for="walkin-source">Source / reference *</label><input id="walkin-source" maxlength="500" placeholder="For example: clinic referral or patient report"><p class="hi-field-help">This case will be saved for MHO review. Recording it does not establish a diagnosis.</p></div></div>
                   <button id="walkin-retry-options" type="button" class="walkin-retry" hidden>Retry loading choices</button>
                 </div>
                 <label class="walkin-field walkin-full">Symptoms / remarks<textarea id="walkin-remarks" maxlength="4000" rows="3" placeholder="Optional clinical notes"></textarea></label>
@@ -527,6 +529,10 @@
             <div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Case date</th><th>Patient</th><th>Barangay</th><th>Disease / case</th><th>Status</th></tr></thead><tbody id="walkin-recent-body"></tbody></table></div>
           </div>
         </div>
+        <section id="view-disease-review" class="view-section hidden">
+          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">MHO classification review</span><h1>Disease Review</h1><p>Resolve unlisted conditions while keeping each original case and its history.</p></div><button id="disease-review-refresh" class="hi-review-actions" type="button">Refresh list</button></div>
+          <div class="walkin-card"><p class="hi-field-help" style="padding:16px">Catalog review standardizes the recorded condition. It does not establish or confirm a clinical diagnosis. Use established MHO channels for urgent reporting.</p><p id="disease-review-status" role="status" class="hi-review-message"></p><div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Case / patient</th><th>Barangay / date</th><th>Reported condition / source</th><th>Review status</th><th>Action</th></tr></thead><tbody id="disease-review-body"></tbody></table></div></div>
+        </section>
       </div>
     </main>
 
@@ -534,6 +540,7 @@
     <script src="assets/js/health-map.js"></script>
     <script src="assets/js/mho-insights.js"></script>
     <script src="assets/js/mho-walkins.js"></script>
+    <script src="assets/js/mho-disease-review.js"></script>
     <script>
       lucide.createIcons();
     </script>

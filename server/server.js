@@ -13,6 +13,7 @@ const { registerCaseRoutes } = require('./routes/case-routes');
 const { registerAnalyticsRoutes } = require('./routes/analytics-routes');
 const { registerMhoReportRoutes } = require('./routes/mho-reports');
 const { registerBackupRoutes } = require('./routes/backup-routes');
+const { registerDiseaseReviewRoutes } = require('./routes/disease-review-routes');
 const JWT_SECRET = loadJwtSecret();
 const projectPython = path.join(__dirname, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
 const pythonExecutable = process.env.PYTHON_PATH || (fs.existsSync(projectPython) ? projectPython : 'python');
@@ -40,6 +41,7 @@ app.get('/api/session', (req, res) => res.json({ success: true, user: req.user }
 registerAuthRoutes(app, db, qa, JWT_SECRET);
 registerIdentityRoutes(app, db, dbConfig);
 registerCaseRoutes(app, db, qa, corrections);
+registerDiseaseReviewRoutes(app, db);
 registerAnalyticsRoutes(app, db, qa, pythonExecutable);
 registerMhoReportRoutes(app, db);
 registerBackupRoutes(app, db, dbConfig);

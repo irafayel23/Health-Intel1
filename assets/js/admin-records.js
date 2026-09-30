@@ -8,6 +8,7 @@
           const res = await fetch("http://localhost:3000/api/patients");
           if ((await res).ok) {
             allPatients = (await res.clone().json()).data;
+            refreshAdminDiseaseFilter();
             filterData();
           }
         } catch (e) {
@@ -37,7 +38,7 @@
               <td class="font-bold">#REC-${p.id}</td>
               <td><strong>${escapeText(p.patient_name || p.first_name + " " + p.last_name)}</strong></td>
               <td>${p.age || "N/A"}</td>
-              <td class="admin-disease-name ${diseaseClass}">${escapeText(p.disease || "Unknown")}</td>
+              <td class="admin-disease-name ${diseaseClass}">${HealthIntelEncoding.conditionCell(p)}</td>
               <td>${escapeText(p.barangay_name || p.purok || "Unknown")}</td>
               <td><span class="admin-case-status ${statusClass}">${escapeText(statusText)}</span></td>
               
@@ -87,6 +88,7 @@
           const data = await res.json();
           if (!res.ok || !data.success) throw new Error(data.error || 'Archived cases could not be loaded.');
           allArchivedPatients = data.data;
+          refreshAdminDiseaseFilter();
           filterArchivedPatients();
         } catch (e) { console.error(e); }
       }
@@ -119,7 +121,7 @@
                   <td class="font-bold">#REC-${p.id}</td>
                   <td><strong>${escapeText(p.patient_name || p.first_name + " " + p.last_name)}</strong></td>
                   <td>${p.age || "N/A"}</td>
-                  <td class="font-bold">${escapeText(p.disease || "Unknown")}</td>
+                  <td class="font-bold">${HealthIntelEncoding.conditionCell(p)}</td>
                   <td>${escapeText(p.barangay_name || p.purok || "Unknown")}</td>
                   <td><span class="admin-badge-archived">Archived</span></td>
                   
@@ -167,7 +169,7 @@
               const fields = [
                   ['Patient',record.patient_name || `${record.first_name || ''} ${record.last_name || ''}`],
                   ['Barangay',record.barangay_name || 'Not recorded'],['Purok / Zone',record.purok || 'Not recorded'],
-                  ['Case date',record.date_recorded || 'Not recorded'],['Disease / Case',record.disease || 'Not recorded'],
+                  ['Case date',record.date_recorded || 'Not recorded'],['Disease / Case',HealthIntelEncoding.conditionLabel(record)],['Classification review',record.disease_review_status || 'Recorded'],['Reported condition',record.disease_reported || 'Not applicable'],['Condition source',record.condition_source || 'Not recorded'],['Review note',record.disease_review_note || 'None'],
                   ['Recorded severity',record.severity || 'Not recorded'],['Case status',record.status || 'Not recorded'],
                   ['Record location',record.is_archived ? 'Archived records' : 'Current records'],
                   ['Encoded by',record.encoded_by || 'Not recorded'],['Resident ID',record.resident_id ? `RES-${record.resident_id}` : 'This case is not linked to a resident profile.'],
@@ -219,3 +221,12 @@
         });
       }
 
+
+function refreshAdminDiseaseFilter() {
+    const filter=document.getElementById('filter-table-disease');if(!filter?.replaceChildren)return;
+    const current=filter.value,names=new Set([...allPatients,...allArchivedPatients].map(row=>row.disease).filter(Boolean));
+    for(const item of window.adminRegistryChoices || [])names.add(item.name);
+    filter.replaceChildren(new Option('All diseases',''));
+    for(const name of [...names].sort())filter.add(new Option(name,name));
+    if(names.has(current))filter.value=current;
+}

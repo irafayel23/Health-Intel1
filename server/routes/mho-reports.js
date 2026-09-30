@@ -36,6 +36,8 @@ app.get('/api/mho/reports/fhsis', async (req, res) => {
         doc.fontSize(14).font('Helvetica-Bold').fillColor('#0f172a').text("MONTHLY CONSOLIDATION REPORT", { align: 'center' });
         doc.fontSize(11).font('Helvetica').fillColor('#64748b').text("Period: " + month + " " + year, { align: 'center' });
         doc.moveDown(2);
+        doc.fontSize(9).font('Helvetica').fillColor('#64748b').text('Pending classification entries need MHO review. Inclusion does not confirm a diagnosis or official reporting eligibility.');
+        doc.moveDown();
         
         if (rows.length === 0) {
             doc.fontSize(12).font('Helvetica-Oblique').fillColor('#94a3b8').text("No health records found for " + month + " " + year + ".", { align: 'center' });
@@ -127,6 +129,8 @@ app.get('/api/mho/reports/pidsr', async (req, res) => {
         doc.fontSize(14).font('Helvetica-Bold').fillColor('#0f172a').text("WEEKLY SURVEILLANCE REPORT", { align: 'center' });
         doc.fontSize(11).font('Helvetica').fillColor('#64748b').text("Week " + weekNum + ", " + period.year + " (Monday-Sunday)", { align: 'center' });
         doc.moveDown(2);
+        doc.fontSize(9).font('Helvetica').fillColor('#64748b').text('Pending classification entries need MHO review. Inclusion does not confirm a diagnosis or official reporting eligibility.');
+        doc.moveDown();
         
         if (rows.length === 0) {
             doc.fontSize(12).font('Helvetica-Oblique').fillColor('#10b981').text("No case records found for the selected week. Reporting completeness is not established.", { align: 'center' });

@@ -9,6 +9,7 @@
           actBody.innerHTML = "";
           let actBodyHtmlBuffer = "";
           if (actData.success) {
+            window.adminRegistryChoices=actData.data;refreshAdminDiseaseFilter();
             actData.data.forEach((d) => {
               let classificationClass = d.classification === "High Risk" ? "admin-classification-high" : "admin-classification-standard";
               actBodyHtmlBuffer += `

@@ -1,3 +1,4 @@
+const { encodingClassification } = require('../services/disease-review');
 const { validatePatient, ageOnDate, todayInManila } = require('../services/patient-validation');
 const { monthlyPeriod } = require('../services/report-periods');
 const { respond } = require('../services/qa-fixes');
@@ -31,12 +32,8 @@ app.get('/api/bhw/context', async (req, res) => {
 
 // CREATE PATIENT
 async function encodingChoices() {
-    const [registered]=await db.execute("SELECT name,status,is_archived FROM disease_registry");
-    const [historical]=await db.execute("SELECT DISTINCT disease as name FROM health_cases WHERE disease IS NOT NULL AND disease<>'' ORDER BY disease");
-    const archived=new Set(registered.filter(row=>row.status==='Archived'||row.is_archived).map(row=>row.name));
-    const active=new Set(registered.filter(row=>row.status==='Active'&&!row.is_archived).map(row=>row.name));
-    const names=new Set([...active,...historical.filter(row=>!archived.has(row.name)).map(row=>row.name)]);
-    return [...names].sort().map(name=>({name,registry_status:active.has(name)?'Active':'Historical name: review pending'}));
+    const [rows]=await db.execute("SELECT id,name FROM disease_registry WHERE status='Active' AND is_archived=0 ORDER BY name");
+    return rows.map(row=>({...row,registry_status:'Active'}));
 }
 app.get('/api/bhw/encoding-options', async (req,res)=>{
     try { res.json({success:true,data:await encodingChoices()}); }
@@ -50,7 +47,7 @@ app.get('/api/mho/walk-in-options', async (req,res)=>{
 });
 app.get('/api/mho/walk-in-cases', async (req,res)=>{
     try {
-        const [rows]=await db.execute(`SELECT h.id,h.patient_name,h.purok,h.disease,h.severity,h.status,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,b.name AS barangay_name
+        const [rows]=await db.execute(`SELECT h.id,h.patient_name,h.purok,h.disease,h.disease_review_status,h.disease_reported,h.severity,h.status,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,b.name AS barangay_name
             FROM health_cases h JOIN barangays b ON b.id=h.barangay_id
             WHERE h.encoded_by=? AND h.is_archived=FALSE ORDER BY h.created_at DESC,h.id DESC LIMIT 25`,[req.user.system_id]);
         res.json({success:true,data:rows});
@@ -81,18 +78,10 @@ async function savePatientCase(req, res, brgy_id, actorRole) {
             await connection.rollback();
             return res.status(400).json({success:false,error:'Select an existing barangay.'});
         }
-        const [registry]=await connection.execute('SELECT name,status,is_archived FROM disease_registry WHERE name=?',[patient.disease]);
-        if (registry.some(row=>row.status==='Archived'||row.is_archived)) {
-            await connection.rollback();
-            return res.status(400).json({success:false,error:'This disease category is archived. Ask the Admin to review it before encoding.'});
-        }
-        const [known]=await connection.execute('SELECT disease FROM health_cases WHERE disease=? LIMIT 1',[patient.disease]);
-        if (!registry.some(row=>row.name===patient.disease && row.status==='Active') && !known.some(row=>row.disease===patient.disease)) {
-            await connection.rollback();
-            return res.status(400).json({success:false,error:'Select an existing disease name. Ask the Admin to register a new category.'});
-        }
-        const [duplicates]=await connection.execute('SELECT id FROM health_cases WHERE barangay_id=? AND first_name=? AND last_name=? AND birthdate=? AND disease=? AND date_recorded=? LIMIT 1',
-            [brgy_id,patient.first_name,patient.last_name,patient.birthdate,patient.disease,patient.date_recorded]);
+        const classification=await encodingClassification(connection,req.body,patient);
+        patient.disease=classification.disease;
+        const [duplicates]=await connection.execute('SELECT id FROM health_cases WHERE barangay_id=? AND first_name=? AND last_name=? AND birthdate=? AND disease=? AND date_recorded=? AND (? IS NULL OR disease_reported=?) LIMIT 1',
+            [brgy_id,patient.first_name,patient.last_name,patient.birthdate,patient.disease,patient.date_recorded,classification.reported,classification.reported]);
         if (duplicates.length) {
             await connection.rollback();
             return res.status(409).json({success:false,code:'POSSIBLE_DUPLICATE',error:'A matching case already exists for this person, disease and date. Review the existing record before encoding again.'});
@@ -109,14 +98,15 @@ async function savePatientCase(req, res, brgy_id, actorRole) {
                 [patient.first_name,patient.last_name,patient.patient_name,patient.birthdate,ageOnDate(patient.birthdate,todayInManila()),patient.purok,brgy_id]);
             resident_id=resident.insertId;
         }
-        const [result]=await connection.execute('INSERT INTO health_cases (resident_id,first_name,last_name,patient_name,birthdate,age,purok,disease,remarks,status,encoded_by,barangay_id,date_recorded,severity) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-            [resident_id,patient.first_name,patient.last_name,patient.patient_name,patient.birthdate,patient.age,patient.purok,patient.disease,patient.remarks,patient.status,req.user.system_id,brgy_id,patient.date_recorded,patient.severity]);
+        const [result]=await connection.execute('INSERT INTO health_cases (resident_id,first_name,last_name,patient_name,birthdate,age,purok,disease,remarks,status,encoded_by,barangay_id,date_recorded,severity,disease_id,disease_review_status,disease_reported,condition_source) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+            [resident_id,patient.first_name,patient.last_name,patient.patient_name,patient.birthdate,patient.age,patient.purok,patient.disease,patient.remarks,patient.status,req.user.system_id,brgy_id,patient.date_recorded,patient.severity,classification.disease_id,classification.review,classification.reported,classification.source]);
         await connection.execute('INSERT INTO system_audit_logs (user_id,role,action,details) VALUES (?,?,?,?)',
-            [req.user.system_id,actorRole,actorRole==='MHO'?'Walk-in Case Encoded':'Patient Encoded',caseAuditDetails(result.insertId, `Created case #REC-${result.insertId} · ${selectedBarangays[0].name} · Case date: ${patient.date_recorded} · Saved.`, { barangay_id:brgy_id })]);
+            [req.user.system_id,actorRole,actorRole==='MHO'?'Walk-in Case Encoded':'Patient Encoded',caseAuditDetails(result.insertId, `Created case #REC-${result.insertId} · ${selectedBarangays[0].name} · Case date: ${patient.date_recorded} · Saved.`, { barangay_id:brgy_id, review_status:classification.review })]);
         await connection.commit();
-        res.status(201).json({success:true,message:'Patient case saved.',id:result.insertId});
-    } catch {
+        res.status(201).json({success:true,message:'Patient case saved.',id:result.insertId,review_status:classification.review});
+    } catch(error) {
         if(connection) await connection.rollback();
+        if(error.status) return respond(res,error,'The case could not be saved.');
         res.status(503).json({success:false,error:'The case could not be saved. No partial record was kept. Please try again.'});
     } finally { if(connection) connection.release(); }
 }
@@ -278,7 +268,8 @@ app.get('/api/heatmap-data', async (req, res) => {
                 COUNT(h.id) as cases,
                 SUM(CASE WHEN h.severity = 'Mild' THEN 1 ELSE 0 END) as mild,
                 SUM(CASE WHEN h.severity = 'Monitored' THEN 1 ELSE 0 END) as monitored,
-                SUM(CASE WHEN h.severity = 'High Risk' THEN 1 ELSE 0 END) as high_risk
+                SUM(CASE WHEN h.severity = 'High Risk' THEN 1 ELSE 0 END) as high_risk,
+                SUM(CASE WHEN h.disease_review_status IN ('Pending','Clarification') THEN 1 ELSE 0 END) as pending_classification
             FROM barangays b
             LEFT JOIN health_cases h ON h.barangay_id = b.id AND h.status = 'Active' AND h.is_archived = FALSE AND (? = '' OR h.disease = ?)
             GROUP BY b.id, b.name, b.latitude, b.longitude
@@ -338,6 +329,7 @@ app.get('/api/heatmap-data', async (req, res) => {
                 lat: parseFloat(r.latitude),
                 lng: parseFloat(r.longitude),
                 cases,
+                pending_classification: Number(r.pending_classification),
                 severity_counts: severityCounts,
                 diseases_by_severity: diseasesByBarangay.get(String(r.barangay_id)) || { mild: [], monitored: [], high_risk: [] },
                 high_risk_diseases: diseasesByBarangay.get(String(r.barangay_id))?.high_risk || [],

@@ -18,6 +18,9 @@ const rules = [
     ['POST', /^\/superadmin\/(approve-admin|backup)$/, ['superadmin']],
     ['GET', /^\/bhw\/context$/, ['bhw']],
     ['GET', /^\/bhw\/(encoding-options|puroks)$/, ['bhw']],
+    ['GET', /^\/mho\/disease-reviews$/, ['mho']],
+    ['PUT', /^\/mho\/disease-reviews\/\d+$/, ['mho']],
+    ['PUT', /^\/patients\/\d+\/condition-clarification$/, ['bhw']],
     ['GET', /^\/mho\/walk-in-(options|cases)$/, ['mho']],
     ['POST', /^\/mho\/walk-in-cases$/, ['mho']],
     ['GET', /^\/(patients(?:\/archived)?|residents(?:\/\d+\/dossier)?|bhw-trend|bhw-stats)$/, ['bhw', 'admin']],
@@ -112,7 +115,7 @@ function createAccessControl(db, secret) {
                 if (req.method === 'POST' && req.path === '/patients' && req.body.encoded_by && req.body.encoded_by !== user.system_id) {
                     return deny(res, 403, 'The encoder must be the signed-in health worker.', 'ACCESS_DENIED');
                 }
-                const caseMatch = /^\/patients\/(\d+)\/(status|archive|restore|correction)$/.exec(req.path);
+                const caseMatch = /^\/patients\/(\d+)\/(status|archive|restore|correction|condition-clarification)$/.exec(req.path);
                 const residentMatch = /^\/residents\/(\d+)\/dossier$/.exec(req.path);
                 if (caseMatch || residentMatch) {
                     const table = caseMatch ? 'health_cases' : 'residents';

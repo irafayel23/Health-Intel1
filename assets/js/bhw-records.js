@@ -108,7 +108,7 @@
           let filtered = allPatients.filter(p => {
               const patientName = p.patient_name || p.first_name + " " + p.last_name || p.name || "";
               const nameMatch = patientName.toLowerCase().includes(query);
-              const diseaseMatch = p.disease ? p.disease.toLowerCase().includes(query) : false;
+              const diseaseMatch = HealthIntelEncoding.conditionLabel(p).toLowerCase().includes(query);
               return nameMatch || diseaseMatch;
           });
           renderPatientsTable(filtered);
@@ -158,12 +158,13 @@
                   <tr class="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] transition-colors">
                     <td class="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">${escapeText(fullName)}</td>
                     <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${escapeText(record.purok || 'Not recorded')}</td>
-                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${escapeText(record.disease)}</td>
+                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${HealthIntelEncoding.conditionCell(record)}</td>
                     <td class="px-6 py-4 font-semibold ${statusColor}">${record.status || (isViewingArchive ? "Archived" : "")}</td>
                     <td class="px-6 py-4">
                         <div class="patient-row-actions">
                             <button onclick="${residentId ? `viewPatientProfile(${residentId})` : `viewUnlinkedCase(${record.id})`}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-xs shadow-sm transition-colors">${residentId ? 'Profile' : 'Case details'}</button>
                             ${!isViewingArchive ? `<button onclick="updatePatientStatus(${record.id})" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md font-medium text-xs shadow-sm transition-colors">Update Status</button>` : ""}
+                            ${!isViewingArchive && record.disease_review_status==='Clarification' ? `<button onclick="supplyConditionClarification(${record.id})" class="hi-review-actions">Clarify</button>` : ""}
                             ${!isViewingArchive ? `<button onclick="HealthIntelCorrections.open(${record.id})" class="px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-md font-medium text-xs transition-colors">Correct</button>` : ""}
                             <button onclick="toggleArchiveStatus(${record.id})" class="px-3 py-1.5 ${isViewingArchive ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white rounded-md font-medium text-xs shadow-sm transition-colors">${isViewingArchive ? "Restore" : "Archive"}</button>
                         </div>
@@ -316,7 +317,7 @@
                                 #REC-${record.id}<br>${dateStr}
                               </td>
                               <td class="px-5 py-4 font-semibold text-[hsl(var(--foreground))]">
-                                ${escapeText(record.disease)} <br>${severityBadge}
+                                ${HealthIntelEncoding.conditionCell(record)} <br>${severityBadge}
                               </td>
                               <td class="px-5 py-4 text-[hsl(var(--muted-foreground))] text-sm">${escapeText(record.remarks || "No remarks")}</td>
                               <td class="px-5 py-4 ${statusColor} font-bold text-sm">
@@ -338,7 +339,7 @@
           if(!record)return Swal.fire({icon:'info',title:'Case unavailable',text:'Refresh Patient Records and try again.'});
           const name=record.patient_name || `${record.first_name || ''} ${record.last_name || ''}`.trim() || 'Not recorded';
           Swal.fire({title:'Recorded case details',customClass:{popup:'hi-dialog'},confirmButtonText:'Close',
-              html:`<div class="hi-case-details"><div><strong>Name on case:</strong> ${escapeText(name)}</div><div><strong>Barangay:</strong> ${escapeText(window.currentBrgyName || 'Assigned barangay')}</div><div><strong>Purok / Zone:</strong> ${escapeText(record.purok || 'Not recorded')}</div><div><strong>Case date:</strong> ${escapeText(window.HealthIntelDate.formatCaseDate(record.date_recorded))}</div><div><strong>Disease / case:</strong> ${escapeText(record.disease || 'Not recorded')}</div><div><strong>Case status:</strong> ${escapeText(record.status || 'Not recorded')}</div><div><strong>Recorded severity:</strong> ${escapeText(record.severity || 'Not recorded')}</div><div><strong>Remarks:</strong> ${escapeText(record.remarks || 'None recorded')}</div><p>This historical case has no verified resident-profile link. Review its source before linking it to a person.</p></div>`});
+              html:`<div class="hi-case-details"><div><strong>Name on case:</strong> ${escapeText(name)}</div><div><strong>Barangay:</strong> ${escapeText(window.currentBrgyName || 'Assigned barangay')}</div><div><strong>Purok / Zone:</strong> ${escapeText(record.purok || 'Not recorded')}</div><div><strong>Case date:</strong> ${escapeText(window.HealthIntelDate.formatCaseDate(record.date_recorded))}</div><div><strong>Disease / case:</strong> ${HealthIntelEncoding.conditionCell(record)}</div><div><strong>Case status:</strong> ${escapeText(record.status || 'Not recorded')}</div><div><strong>Recorded severity:</strong> ${escapeText(record.severity || 'Not recorded')}</div><div><strong>Remarks:</strong> ${escapeText(record.remarks || 'None recorded')}</div><p>This historical case has no verified resident-profile link. Review its source before linking it to a person.</p></div>`});
       }
 
       function closeProfileModal() {

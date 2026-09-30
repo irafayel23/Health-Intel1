@@ -6,6 +6,7 @@ const vm = require('node:vm');
 const script = name => fs.readFileSync(path.join(__dirname,'../../assets/js',name),'utf8');
 const {caseIdForAudit} = require('../services/case-audit');
 function loadAdminScripts(sandbox) {
+    vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
     const html = fs.readFileSync(path.join(__dirname,'../../admin.html'),'utf8');
     for(const [,name] of html.matchAll(/<script src="assets\/js\/(admin-[^"]+\.js)"><\/script>/g)) {
         vm.runInNewContext(script(name),sandbox,{filename:name});
@@ -100,6 +101,7 @@ test('resident directory reloads after saved case changes and when its real side
     const sandbox = { lucide:{createIcons(){}}, console, window:{ currentBrgyId:1, addEventListener:(name,fn)=>{events[name]=fn;} },
         document:{ querySelectorAll:selector=>selector.includes('nav-menu')?[button]:[], addEventListener(){}, getElementById:id=>id==='directory-search'?{value:''}:id==='resident-grid'?grid:null },
         escapeText:value=>String(value), fetch:async url=>{requests.push(url);return {json:async()=>({success:true,data:residents})};} };
+    vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
     vm.runInNewContext(script('bhw-records.js'),sandbox);
     await sandbox.loadResidentDirectory();
     assert.match(grid.innerHTML,/No residents found/);
@@ -120,6 +122,7 @@ test('BHW PDFs explain empty periods and preserve surveillance location filters'
         const sandbox = { console, URLSearchParams, Intl, Date, document:{getElementById:id=>elements[id],addEventListener(){}},
             window:{currentBrgyId:1,currentBrgyName:'Fixture Barangay',jspdf:{jsPDF:class {setFontSize(){} text(){} autoTable(value){table=value;} save(value){filename=value;}}}},
             Swal:{fire:(...args)=>alerts.push(args)},fetch:async url=>{requested=url;return {json:async()=>({success:true,data:type==='SURVEILLANCE'?[{purok:'Other Zone'}]:[]})};} };
+        sandbox.window=sandbox.window || {};vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
         vm.runInNewContext(script('bhw-dialogs.js'),sandbox);
         await sandbox.generateBHWReport(type);
         assert.match(requested,/month=October&year=2026/);

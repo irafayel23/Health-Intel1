@@ -1,4 +1,4 @@
-const CASE_ACTIONS = ['Patient Encoded', 'Walk-in Case Encoded', 'Case Corrected', 'Status Updated', 'Record Archived', 'Record Restored'];
+const CASE_ACTIONS = ['Patient Encoded', 'Walk-in Case Encoded', 'Case Corrected', 'Status Updated', 'Record Archived', 'Record Restored', 'Disease Classification Reviewed', 'Disease Clarification Requested', 'Condition Clarification Supplied', 'Registry Updated'];
 
 // Use explicit references only. Disease/date/name matches cannot prove a link.
 function caseIdForAudit(log) {

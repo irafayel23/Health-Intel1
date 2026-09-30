@@ -49,6 +49,7 @@ before(async () => {
     assert.deepEqual(restored, baseline, 'Restoring the dump must reproduce every source table and row.');
     await originalDump.cleanup();
     originalDump = null;
+    await require('../services/disease-review').migrateDiseaseReview(connection);
     const [barangays] = await connection.query('SELECT id FROM barangays ORDER BY id LIMIT 2');
     assert.equal(barangays.length, 2);
     ownBarangay = barangays[0].id;

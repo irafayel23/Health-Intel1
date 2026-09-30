@@ -167,6 +167,7 @@ if (mapContainer) {
                 ${counts.unknown > 0 ? `<dt>Unknown severity</dt><dd>${counts.unknown}</dd>` : ''}
             </dl>
             ${breakdown}
+              ${brgy.pending_classification>0?`<p class="heatmap-details-reason">${Number(brgy.pending_classification)} active case(s) need classification review. They remain included in the totals above.</p>`:""}
             ${brgy.cases > 0 ? '<div class="heatmap-details-categories"><small>Mild, Monitored and High Risk are recorded case severities, not ratings of the disease.</small></div>' : ''}
             <div class="heatmap-details-reason"><strong>Color reason:</strong> ${escapeMapText(brgy.color_reason)}</div>
             ${counts.unknown > 0 ? '<div>Severity information is incomplete.</div>' : ''}

@@ -7,6 +7,7 @@ Municipal health recording, descriptive analytics, barangay maps and demonstrati
 - [Setup and private configuration](docs/SETUP.md)
 - [Current architecture](docs/ARCHITECTURE.md)
 - [Active database schema](docs/DATABASE.md)
+- [Disease encoding, MHO review and recovery](docs/DISEASE_REGISTRY.md)
 - [Verification](docs/TESTING_GUIDE.md)
 - [Phase 2 changes and undo](analysis/phase_two/CHANGES.txt)
 

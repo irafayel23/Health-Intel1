@@ -102,6 +102,9 @@ app.get('/api/mho/stats', async (req, res) => {
 // ==========================================
 app.get('/api/predict', async (req, res) => {
     const { disease, barangay } = req.query;
+    if (typeof disease === 'string' && disease.trim().toLowerCase() === 'pending classification') {
+        return res.status(400).json({success:false,error:'Conditions awaiting MHO classification cannot be forecast.'});
+    }
     if (typeof disease !== 'string' || typeof barangay !== 'string' || !disease || !barangay || disease.length > 255 || barangay.length > 255) {
         return res.status(400).json({ success: false, error: 'Select a disease and barangay.' });
     }

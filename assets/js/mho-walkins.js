@@ -34,35 +34,7 @@
         select.append(option);
     }
 
-    function renderCategories() {
-        const select = field('walkin-disease');
-        const search = field('walkin-disease-search').value.trim().toLocaleLowerCase();
-        const includeHistory = field('walkin-show-history').checked || Boolean(search);
-        const selected = select.value;
-        select.replaceChildren();
-        addOption(select, '', 'Select diagnosed disease / case');
-        const groups = [
-            { title: 'Current registry', items: categories.filter(item => item.registry_status === 'Active') },
-            { title: 'Historical names — verify diagnosis', items: includeHistory ? categories.filter(item => item.registry_status !== 'Active') : [] }
-        ];
-        let count = 0;
-        for (const group of groups) {
-            const matches = group.items.filter(item => item.name.toLocaleLowerCase().includes(search));
-            if (!matches.length) continue;
-            const optgroup = document.createElement('optgroup');
-            optgroup.label = group.title;
-            for (const item of matches) addOption(optgroup, item.name, item.name);
-            select.append(optgroup);
-            count += matches.length;
-        }
-        if (!count) addOption(select, '', 'No matching category');
-        if ([...select.options].some(option => option.value === selected && option.value)) select.value = selected;
-        const current = categories.filter(item => item.registry_status === 'Active').length;
-        const historical = categories.length - current;
-        field('walkin-disease-note').textContent = search
-            ? `${count} matching ${count === 1 ? 'category' : 'categories'}. Clear search to see current registry choices.`
-            : `${current} current registry ${current === 1 ? 'choice' : 'choices'}${historical ? `; ${historical} historical ${historical === 1 ? 'name' : 'names'} available through search or the checkbox` : ''}. Ask the Admin to register a new category.`;
-    }
+    function renderCategories() { HealthIntelEncoding.populateConditions('walkin',categories); }
 
     async function loadOptions() {
         const response = await fetch(`${api}/api/mho/walk-in-options`);
@@ -75,7 +47,7 @@
         categories = result.data.diseases;
         renderCategories();
         field('walkin-retry-options').hidden = true;
-        field('walkin-save').disabled = !result.data.barangays.length || !result.data.diseases.length;
+        field('walkin-save').disabled = !result.data.barangays.length;
         showStatus('');
     }
 
@@ -108,7 +80,7 @@
             }
             for (const item of result.data) {
                 const row = body.insertRow();
-                for (const value of [window.HealthIntelDate.formatCaseDate(item.date_recorded), item.patient_name || 'Not recorded', item.barangay_name, item.disease, item.status || 'Not recorded']) {
+                for (const value of [window.HealthIntelDate.formatCaseDate(item.date_recorded), item.patient_name || 'Not recorded', item.barangay_name, HealthIntelEncoding.conditionLabel(item), item.status || 'Not recorded']) {
                     row.insertCell().textContent = value ?? 'Not recorded';
                 }
             }
@@ -129,8 +101,10 @@
         date.value = date.max;
         field('walkin-birthdate').addEventListener('input', updateAge);
         date.addEventListener('change', updateAge);
-        field('walkin-disease-search').addEventListener('input', renderCategories);
-        field('walkin-show-history').addEventListener('change', renderCategories);
+        HealthIntelEncoding.bindCondition('walkin');
+        HealthIntelEncoding.enhanceSelect(field('walkin-barangay'),{searchable:true});
+        HealthIntelEncoding.enhanceSelect(field('walkin-severity'));
+        window.addEventListener('health-intel:classification-reviewed',()=>{loadOptions().catch(optionsFailed);loadRecent();});
         field('walkin-retry-options').addEventListener('click', () => loadOptions().catch(optionsFailed));
         loadOptions().catch(optionsFailed);
         loadRecent();
@@ -142,6 +116,9 @@
             const birthdate = window.HealthIntelDate.parseBirthdate(field('walkin-birthdate').value);
             if (!birthdate) { showStatus('Enter a real birthdate as MM/DD/YYYY.', 'error'); return; }
             if (!field('walkin-age').value) { showStatus('Check the birthdate and case date.', 'error'); return; }
+            let condition;
+            try { condition=HealthIntelEncoding.conditionPayload('walkin'); } catch(error) { showStatus(error.message,'error');return; }
+            if(!field('walkin-barangay').value||!field('walkin-severity').value){showStatus('Select the barangay and recorded severity.','error');return;}
             const payload = {
                 first_name: field('walkin-first').value.trim(),
                 last_name: field('walkin-last').value.trim(),
@@ -149,7 +126,7 @@
                 date_recorded: date.value,
                 barangay_id: Number(field('walkin-barangay').value),
                 purok: field('walkin-purok').value.trim(),
-                disease: field('walkin-disease').value,
+                ...condition,
                 severity: field('walkin-severity').value,
                 remarks: field('walkin-remarks').value,
                 status: 'Active'
@@ -163,10 +140,12 @@
                 const result = await response.json();
                 if (!result.success) throw new Error(result.error || 'The case could not be saved.');
                 form.reset();
+                field('walkin-unlisted').hidden=true;
+                for(const id of ['walkin-disease','walkin-severity','walkin-barangay'])field(id).dispatchEvent(new Event('change',{bubbles:true}));
                 date.value = todayInManila();
                 updateAge();
                 renderCategories();
-                showStatus(`Walk-in case #${result.id} was saved. It is assigned to the selected barangay.`, 'success');
+                showStatus(`Case #REC-${result.id} saved.${result.review_status==='Pending'?' The condition needs MHO review.':' It is assigned to the selected barangay.'}`, 'success');
                 await loadRecent();
                 window.dispatchEvent(new Event('health-intel:cases-changed'));
                 if (typeof window.updateDynamicChart === 'function') window.updateDynamicChart();

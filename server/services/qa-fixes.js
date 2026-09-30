@@ -68,6 +68,7 @@ function handlers(db){return {
     }catch(e){respond(res,e,'Registration is temporarily unavailable. Please try again.');}},
     async disease(req,res){try{
         const name=plain(req.body.name,'disease name',255),classification=plain(req.body.classification,'classification',50);const category=req.body.category;
+        if(name.toLowerCase()==='pending classification')throw invalid('This name is reserved for unclassified cases. Enter an actual condition name.');
         if(!['morbidity','mortality'].includes(category))throw invalid('Select morbidity or mortality.');
         await transaction(db,async connection=>{
             const [rows]=await connection.execute('SELECT id FROM disease_registry WHERE LOWER(TRIM(name))=LOWER(?)',[name]);if(rows.length)throw invalid('This disease name already exists. Review the active or archived registry.',409);
