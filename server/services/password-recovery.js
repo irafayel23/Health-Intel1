@@ -1,6 +1,6 @@
 const crypto = require('node:crypto');
 const bcrypt = require('bcrypt');
-const { normalizeEmail, validPassword } = require('./security-config');
+const { normalizeEmail, validPassword } = require('../config/security-config');
 const genericMessage = 'If this email belongs to an approved account, check its inbox for a reset code. If no code arrives, contact the administrator.';
 
 function codeHash(email, code, secret) {

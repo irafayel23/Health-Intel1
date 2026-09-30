@@ -1,7 +1,7 @@
-const { validatePatient, ageOnDate, todayInManila } = require('./patient-validation');
-const { monthlyPeriod } = require('./report-periods');
-const { respond } = require('./qa-fixes');
-const { CASE_ACTIONS, withCaseReference, caseAuditDetails } = require('./case-audit');
+const { validatePatient, ageOnDate, todayInManila } = require('../services/patient-validation');
+const { monthlyPeriod } = require('../services/report-periods');
+const { respond } = require('../services/qa-fixes');
+const { CASE_ACTIONS, withCaseReference, caseAuditDetails } = require('../services/case-audit');
 
 function registerCaseRoutes(app, db, qa, corrections) {
 // ==========================================

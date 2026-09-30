@@ -1,8 +1,8 @@
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { normalizeEmail, validPassword, sessionVersion, emailConfigured, sendEmail } = require('./security-config');
-const { createPasswordRecovery } = require('./password-recovery');
+const { normalizeEmail, validPassword, sessionVersion, emailConfigured, sendEmail } = require('../config/security-config');
+const { createPasswordRecovery } = require('../services/password-recovery');
 
 function registerAuthRoutes(app, db, qa, JWT_SECRET) {
 const loginLimiter = rateLimit({

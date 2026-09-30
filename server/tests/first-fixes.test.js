@@ -9,8 +9,8 @@ const vm = require('node:vm');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { createDatabaseDump } = require('../database-backup');
-const { sessionVersion } = require('../security-config');
+const { createDatabaseDump } = require('../services/database-backup');
+const { sessionVersion } = require('../config/security-config');
 
 const sourceConfig = { host: process.env.DB_HOST || '127.0.0.1', port: Number(process.env.DB_PORT || 3306),
     user: process.env.DB_USER || 'root', password: process.env.DB_PASSWORD || '', database: process.env.DB_NAME || 'health_intel' };
@@ -103,11 +103,11 @@ async function request(route, role, options = {}) {
 test('real SQL backup restores all tables and rows without altering the source', () => assert.deepEqual(restored, baseline));
 
 test('all protected routes reject anonymous requests', async () => {
-    const routeFiles = fs.readdirSync(path.join(__dirname, '..'))
-        .filter(file => file === 'server.js' || file === 'mho-reports.js' || file.endsWith('-routes.js'));
+    const routeFiles = ['server.js', ...fs.readdirSync(path.join(__dirname, '../routes'))
+        .filter(file => file.endsWith('.js')).map(file => 'routes/' + file)];
     const source = routeFiles
         .map(file => fs.readFileSync(path.join(__dirname, '..', file), 'utf8')).join('\n');
-    const { publicEndpoints } = require('../access-control');
+    const { publicEndpoints } = require('../middleware/access-control');
     for (const match of source.matchAll(/app\.(get|post|put)\('([^']+)'/g)) {
         const method = match[1].toUpperCase();
         const route = match[2].replace(':id', String(ownCase));

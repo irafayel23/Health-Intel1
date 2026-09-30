@@ -1,6 +1,6 @@
 const PDFDocument = require('pdfkit');
-const { monthlyPeriod, isoWeekPeriod } = require('./report-periods');
-const { respond } = require('./qa-fixes');
+const { monthlyPeriod, isoWeekPeriod } = require('../services/report-periods');
+const { respond } = require('../services/qa-fixes');
 
 function registerMhoReportRoutes(app, db) {
 // ==========================================

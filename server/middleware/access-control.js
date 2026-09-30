@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
-const { sessionVersion } = require('./security-config');
+const { sessionVersion } = require('../config/security-config');
 
 const publicEndpoints = new Set([
     'POST /login', 'POST /register', 'POST /get-next-id', 'POST /check-email',
@@ -41,7 +41,7 @@ function loadJwtSecret() {
         return process.env.JWT_SECRET;
     }
     if (process.env.NODE_ENV === 'production') throw new Error('Set JWT_SECRET before running in production.');
-    const current = path.join(__dirname, '.local-jwt-secret');
+    const current = path.join(__dirname, '..', '.local-jwt-secret');
     try {
         fs.writeFileSync(current, crypto.randomBytes(64).toString('hex'), { flag: 'wx', mode: 0o600 });
     } catch (error) {

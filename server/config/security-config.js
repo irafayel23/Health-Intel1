@@ -3,7 +3,7 @@ const crypto = require('node:crypto');
 const nodemailer = require('nodemailer');
 
 function loadEnvironment() {
-    require('dotenv').config({ path: path.join(__dirname, '.env'), quiet: true });
+    require('dotenv').config({ path: path.join(__dirname, '..', '.env'), quiet: true });
 }
 function normalizeEmail(value) {
     if (typeof value !== 'string') return null;

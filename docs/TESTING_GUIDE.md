@@ -3,12 +3,14 @@
 From `proposal/server`, run:
 
 ```text
-npm run test:phase-two
+npm test
 ```
 
 The suite creates uniquely named temporary databases, restores a real SQL dump, adds disposable fixtures, starts an ephemeral API and drops only the guarded temporary databases afterward. It fingerprints every production table before and after and asserts that source records did not change. MySQL must be running and test credentials must permit temporary database creation. Tests never send external emails.
 
-The earlier 13 checks cover anonymous/role/barangay protection, session state, encrypted backup restore, PDF endpoints, forecast availability without fabricated accuracy, page script parsing, API session behavior and MHO analytics filters.
+The full suite currently has 56 checks, including anonymous/role/barangay protection, session state, encrypted backup restore, PDF endpoints, forecast availability without fabricated accuracy, page script parsing, API session behavior and MHO analytics filters. `npm run test:phase-two` remains available as a smaller subset.
+
+Admin UI checks load its feature scripts in the actual HTML order, exercise view initialization, Case ID searching and audit links, and check current/archived case navigation. The old hidden `approvalModal` still contains an unused `submitApproval()` hook with no implementation; current pending-user buttons use `approveUserDirectly()` instead. This pre-existing unused dialog is excluded from active-hook checks and should be reviewed before ever enabling it.
 
 Phase 2 checks cover explicit case dates, computed ages, severity, resident links, repeated/concurrent duplicate submissions, archived/unknown categories, date validation, email injection, password byte limits, hashed reset codes, expiry, failed-attempt persistence, single use under concurrency, old-session revocation, public reset routes, rate limits, mocked mail failures and aggregate CSV provenance/missing-report/review behavior.
 

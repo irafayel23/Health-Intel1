@@ -1,4 +1,4 @@
-const { createDatabaseDump, sendEncryptedBackup } = require('./database-backup');
+const { createDatabaseDump, sendEncryptedBackup } = require('../services/database-backup');
 
 function registerBackupRoutes(app, db, dbConfig) {
 // ==========================================

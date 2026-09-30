@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const script = name => fs.readFileSync(path.join(__dirname,'../../assets/js',name),'utf8');
-const {caseIdForAudit} = require('../case-audit');
+const {caseIdForAudit} = require('../services/case-audit');
 function loadAdminScripts(sandbox) {
     const html = fs.readFileSync(path.join(__dirname,'../../admin.html'),'utf8');
     for(const [,name] of html.matchAll(/<script src="assets\/js\/(admin-[^"]+\.js)"><\/script>/g)) {

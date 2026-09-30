@@ -8,8 +8,8 @@
     "start": "node server.js",
     "test:first-fixes": "node --test tests/first-fixes.test.js",
     "test:phase-two": "node --test tests/first-fixes.test.js tests/phase-two.test.js",
-    "data:review": "node prepare-forecast-data.js --review",
-    "data:prepare": "node prepare-forecast-data.js"
+    "data:review": "node scripts/prepare-forecast-data.js --review",
+    "data:prepare": "node scripts/prepare-forecast-data.js"
   },
   "dependencies": {
     "archiver": "^7.0.1",

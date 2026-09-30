@@ -2,7 +2,7 @@
 // No service-account private key is needed; only Google's fixed public certificate URL is fetched.
 const jwt = require('jsonwebtoken');
 const crypto = require('node:crypto');
-const { normalizeEmail } = require('./security-config');
+const { normalizeEmail } = require('../config/security-config');
 const CERTIFICATE_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
 // Firebase and the local server may differ by a few seconds at sign-in.
 const CLOCK_SKEW_SECONDS = 30;

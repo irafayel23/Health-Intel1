@@ -4,7 +4,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { parse } = require('csv-parse/sync');
 const { stringify } = require('csv-stringify/sync');
-const { validDate, todayInManila } = require('./patient-validation');
+const { validDate, todayInManila } = require('../services/patient-validation');
 
 const columns = ['Month','Barangay','Disease','Cases','SourceType','SourceReference','ReportingStatus'];
 const csv = (rows, headers) => stringify(rows, { header:true, columns:headers, escape_formulas:true });
@@ -66,9 +66,9 @@ function prepare(rows, { barangays, registry, aliases=[], sourceType, sourceRefe
     return { prepared,review,coverage,metadata:{ sourceType,sourceReference,sourceVerification:'User-declared; verify against source documents',inputRows:rows.length,preparedMonths:prepared.length,heldRows:review.length,missingMonths:coverage.filter(r=>r.ReportingStatus==='missing report').length,eligibleForRealDataEvaluation:sourceType==='real' && review.length===0 && coverage.length>0 && coverage.every(r=>r.ReportingStatus==='complete'),note:'Eligibility here is a data-quality check, not proof of sufficient history or model accuracy. Missing reports remain blank. Synthetic results are demonstrations.'} };
 }
 async function main() {
-    require('./security-config').loadEnvironment();
+    require('../config/security-config').loadEnvironment();
     const args=process.argv.slice(2), option=key=>{const i=args.indexOf(key);return i<0?undefined:args[i+1];};
-    const out=path.resolve(option('--output') || path.join(__dirname,'../analysis/data_preparation',new Date().toISOString().replace(/[:.]/g,'-')));
+    const out=path.resolve(option('--output') || path.join(__dirname,'../../analysis/data_preparation',new Date().toISOString().replace(/[:.]/g,'-')));
     const mysql=require('mysql2/promise');
     const db=await mysql.createConnection({host:process.env.DB_HOST||'localhost',port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER||'root',password:process.env.DB_PASSWORD||'',database:process.env.DB_NAME||'health_intel'});
     let files;

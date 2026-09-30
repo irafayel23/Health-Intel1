@@ -1,6 +1,6 @@
 const crypto=require('node:crypto');
 const bcrypt=require('bcrypt');
-const {normalizeEmail,validPassword}=require('./security-config');
+const {normalizeEmail,validPassword}=require('../config/security-config');
 const {createFirebaseVerifier}=require('./firebase-verification');
 const {caseAuditDetails}=require('./case-audit');
 const verifyGoogle=createFirebaseVerifier();

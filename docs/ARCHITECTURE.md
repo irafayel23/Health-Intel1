@@ -8,13 +8,54 @@ The role portals use HTML, Tailwind, vanilla JavaScript and section navigation. 
 
 ## Application
 
-`server/server.js` configures the Express app, database pool, and access-control middleware, then registers routes from `auth-routes.js`, `identity-routes.js`, `case-routes.js`, `analytics-routes.js`, `mho-reports.js`, and `backup-routes.js`. `access-control.js` checks database role/status on protected requests and enforces BHW barangay scope. Tokens contain a password-hash-derived session version; resetting or changing a password revokes older tokens. Public onboarding/recovery endpoints still require their own validation and rate limits.
+`server/server.js` configures the Express app, database pool, and access-control middleware, then registers the six modules in `server/routes/`. `server/middleware/access-control.js` checks database role/status on protected requests and enforces BHW barangay scope. Tokens contain a password-hash-derived session version; resetting or changing a password revokes older tokens. Public onboarding/recovery endpoints still require their own validation and rate limits.
 
-`password-recovery.js` implements transaction-protected, hashed OTP recovery. `security-config.js` reads private environment configuration and handles email. Approval and mail delivery are separate outcomes. `patient-validation.js` validates explicit case date, severity and age; case creation links a resident and audit action in one transaction and blocks possible same-person/same-disease/same-date duplicates.
+`server/services/password-recovery.js` implements transaction-protected, hashed OTP recovery. `server/config/security-config.js` reads private environment configuration and handles email. Approval and mail delivery are separate outcomes. `server/services/patient-validation.js` validates explicit case date, severity and age; case creation links a resident and audit action in one transaction and blocks possible same-person/same-disease/same-date duplicates.
 
 The MHO Walk-in Patients page can create a case for a resident of one of the configured barangays through a separate MHO-only endpoint. It reuses BHW case validation and resident linking, attributes the case and audit entry to the signed-in MHO, and shows that MHO's recent entries. MHO cannot use BHW patient-editing routes; BHW records remain restricted to their assigned barangay.
 
-`mho-analytics.js` supplies year/age/barangay filtering. GIS colors summarize the highest recorded severity among active cases; they do not establish outbreak status. The map's explanation panel stays within the visible map area. Forecast summaries and rules-based planning suggestions appear below the chart; these are not independent clinical or AI-generated decisions.
+`server/services/mho-analytics.js` supplies year/age/barangay filtering. GIS colors summarize the highest recorded severity among active cases; they do not establish outbreak status. The map's explanation panel stays within the visible map area. Forecast summaries and rules-based planning suggestions appear below the chart; these are not independent clinical or AI-generated decisions.
+
+## Folder layout and recovery
+
+```text
+proposal/
+  admin.html, bhw.html, mho.html, index.html, superadmin.html
+  assets/
+    css/
+    js/              # Shared helpers and feature scripts
+      admin-shell.js
+      admin-users.js
+      admin-records.js
+      admin-registry.js
+      admin-audit.js
+  server/
+    server.js        # Entry point: npm start
+    config/          # Environment and email configuration
+    middleware/      # Authentication and role/barangay access
+    routes/          # HTTP endpoints and report delivery
+    services/        # Validation, case/account operations and backups
+    scripts/         # Explicit maintenance/data-review commands
+    data/            # Existing CSV files; not automatically imported
+    tests/           # Disposable database integration and UI checks
+    analytics.py     # Unchanged demonstration model
+    package.json, package-lock.json, requirements.txt
+    .env, .local-jwt-secret, .venv/, node_modules/  # Private/ignored
+  docs/
+  datasets/
+  analysis/          # Local QA output; ignored
+  PROJECT_CONTEXT.md
+```
+
+Admin scripts are classic scripts loaded in shell → users → records → registry → audit order. Their existing globals keep HTML event handlers and cross-feature calls working. Load all five scripts when testing the Admin page; `DOMContentLoaded` initializes views after loading finishes. No framework or frontend build step was added.
+
+The local tag `pre-folder-structure-20260930` points to tested commit `1ce6193`, before the Admin split and backend moves. The completed folder refactor is tagged `folder-structure-20260930`. To undo only these two structure commits while keeping the resident/map/audit fixes, first preserve any newer work, then run from the repository root:
+
+```text
+git revert --no-edit folder-structure-20260930 b58df60
+```
+
+This creates reversal commits; it does not restore a database, erase saved patients, or replace private configuration. Review conflicts if later work changed the same files. Restart the backend and refresh browser tabs after either refactoring or reverting. These tags and commits are local until pushed.
 
 ## Prediction
 

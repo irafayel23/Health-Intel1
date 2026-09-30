@@ -1,5 +1,5 @@
 const { spawn } = require('child_process');
-const { analyticsFilters, caseWhere, sendAnalyticsError } = require('./mho-analytics');
+const { analyticsFilters, caseWhere, sendAnalyticsError } = require('../services/mho-analytics');
 
 function registerAnalyticsRoutes(app, db, qa, pythonExecutable) {
 // ==========================================
@@ -112,7 +112,7 @@ app.get('/api/predict', async (req, res) => {
     } catch {return res.status(503).json({success:false,error:'Forecast selections could not be checked. Please try again.'});}
     let pythonProcess;
     try {
-        pythonProcess = spawn(pythonExecutable, [__dirname + '/analytics.py', disease, barangay], { windowsHide: true });
+        pythonProcess = spawn(pythonExecutable, [__dirname + '/../analytics.py', disease, barangay], { windowsHide: true });
     } catch {
         return res.status(503).json({ success: false, error: 'Forecast engine could not start. Check the Python installation.' });
     }

@@ -1,6 +1,6 @@
-const { normalizeEmail, escapeHtml, emailConfigured, sendEmail } = require('./security-config');
-const { respond, accountStatus } = require('./qa-fixes');
-const { withCaseReference } = require('./case-audit');
+const { normalizeEmail, escapeHtml, emailConfigured, sendEmail } = require('../config/security-config');
+const { respond, accountStatus } = require('../services/qa-fixes');
+const { withCaseReference } = require('../services/case-audit');
 
 function registerIdentityRoutes(app, db, dbConfig) {
 // ==========================================

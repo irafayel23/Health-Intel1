@@ -1,7 +1,7 @@
 // Test-only trusted-key substitution. Production never imports this module.
 const crypto = require('node:crypto');
 const jwt = require('jsonwebtoken');
-const { CERTIFICATE_URL } = require('../firebase-verification');
+const { CERTIFICATE_URL } = require('../services/firebase-verification');
 const pair = crypto.generateKeyPairSync('rsa', { modulusLength: 2048 });
 const publicKey = pair.publicKey.export({type:'spki',format:'pem'});
 const projectId = 'health-intel-2a0ed';

@@ -43,7 +43,7 @@ async function seedTopTen(db) {
 }
 
 if (require.main === module) {
-    const { db } = require('./server');
+    const { db } = require('../server');
     seedTopTen(db).then(result => console.log(JSON.stringify(result, null, 2)))
         .catch(error => { console.error(error.code || error.message); process.exitCode = 1; })
         .finally(() => db.end());
