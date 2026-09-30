@@ -163,6 +163,22 @@ git revert --no-edit route-services-20261001
 
 Restart using `npm start` from `server/` after updating or reverting. No database restore is needed. Both checkpoint tags and this commit are local until pushed. Original route/service snapshots, extraction scripts and the local comparison harness are retained in ignored `analysis/route-services-20261001/`. Manual browser testing remains deferred; the automated checks mock email delivery. Frontend assets and predictive-model/data files were not edited.
 
+### Shared frontend helpers (1 October)
+
+`assets/js/shared/safe-text.js` is the common five-character HTML escaping implementation. BHW and Admin keep their existing global `escapeText(value)` hooks as wrappers around `window.HealthIntelText.escape`. Shared correction dialogs and encoding controls reference that same implementation instead of maintaining copies. Superadmin already used the shared helper. BHW and MHO now load `safe-text.js` in the head before dependent scripts; Admin/Superadmin already did so. When reusing `case-corrections.js` or `encoding-controls.js`, load `safe-text.js` first.
+
+`assets/js/shared/date-format.js` now also owns `todayInManila()`, used by the BHW new-case dialog and MHO walk-in form for the default/max case date. Existing date parsing and case-date display remain unchanged. Map text serialization and other timestamp/month/report formatting were deliberately kept separate because their behavior is different. Page-specific sidebar/theme functions also remain separate.
+
+The full suite passed **69 tests, 0 failures**, with unchanged source database fingerprints. A supplemental local audit matched **80 old/new text/date results** and verified helper ordering on BHW, MHO, Admin and Superadmin; BHW/MHO HTML changes consist only of the added script reference. Existing HTML hooks and layouts are preserved. Frontend test fixtures now load the shared escaping dependency before encoding controls, matching the pages. No backend, database, model or private configuration change was made; manual browser testing remains deferred.
+
+Checkpoint `pre-frontend-helpers-20261001` preserves `ceac063`. The completed cleanup is tagged `frontend-helpers-20261001`. To reverse only this cleanup, preserve newer work and run from `proposal`:
+
+```text
+git revert --no-edit frontend-helpers-20261001
+```
+
+Refresh the portal tabs after updating or reverting. This frontend-only checkpoint needs no backend restart or database rollback. Tags/commit remain local until pushed. Original files and the parity audit are retained in ignored `analysis/frontend-helpers-20261001/`.
+
 ## Disease encoding and review
 
 `assets/js/shared/encoding-controls.js` and `assets/css/shared/encoding-controls.css` provide shared searchable dropdowns and pending-condition display. `assets/js/mho/mho-disease-review.js` implements the MHO review screen. `server/routes/disease-review-routes.js` exposes protected review/clarification endpoints through `server/services/condition-review.js`. `server/services/disease-review.js` validates catalog selection and contains the explicit additive migration used by `server/scripts/apply-disease-review.js`. Case creation is dispatched by `server/routes/case-routes.js` to `server/services/case-encoding.js`, which owns resident/case/audit transactions. See [DISEASE_REGISTRY.md](DISEASE_REGISTRY.md) for the workflow and recovery limits.

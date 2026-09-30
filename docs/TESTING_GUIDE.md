@@ -26,4 +26,6 @@ After extracting database operations from all seven route files, the full suite 
 
 Browser verification uses a disposable database and fake accounts. Do not use real patient identities or reset real credentials for demonstration tests. Real SMTP delivery must be checked separately with a deliberately chosen recipient; the automated tests do not establish inbox delivery.
 
+The frontend helper cleanup again passed all **69 tests** on 1 October. `ui-workflow.test.js` loads `safe-text.js` before `encoding-controls.js`, following the actual pages' dependency order. A separate ignored local parity audit compared 80 escaping/date results, including null/undefined, HTML delimiters, Philippine midnight/year transitions and leap-day boundaries. It also checked helper ordering in all four role pages and that the BHW/MHO HTML changes only add the helper script. The map's DOM-based escaping and distinct timestamp formats were not consolidated; appearance still needs the deferred browser check.
+
 Data review commands are read-only. Verify output labels and review held rows before any future import or model evaluation. Demonstration data results do not measure real Murcia forecasting accuracy.

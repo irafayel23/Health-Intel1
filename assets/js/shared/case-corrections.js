@@ -1,5 +1,5 @@
 (() => {
-    const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const escape = window.HealthIntelText.escape;
     let busy = false;
     async function open(id) {
         if (busy) return;

@@ -16,8 +16,7 @@
           confirmButtonText:'Save case',confirmButtonColor:'#2563eb',showCancelButton:true,showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
           didOpen:()=>{
             const field=id=>document.getElementById(id),date=field('swal-case-date'),bd=field('swal-birthdate');
-            const todayParts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
-            date.max=['year','month','day'].map(type=>todayParts.find(part=>part.type===type).value).join('-');date.value=date.max;
+            date.max=window.HealthIntelDate.todayInManila();date.value=date.max;
             field('swal-assigned-barangay').textContent=window.currentBrgyName || 'Your assigned barangay';
             const age=()=>{const b=HealthIntelDate.parseBirthdate(bd.value);let value='';if(b&&date.value&&b<=date.value){const [by,bm,day]=b.split('-').map(Number),[cy,cm,cd]=date.value.split('-').map(Number);const n=cy-by-(cm<bm||(cm===bm&&cd<day)?1:0);if(n<=130)value=n;}field('swal-age').value=value;};
             bd.addEventListener('input',age);date.addEventListener('change',age);

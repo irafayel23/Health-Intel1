@@ -1,5 +1,5 @@
 (() => {
-    const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const escape = window.HealthIntelText.escape;
     const UNLISTED = '__condition_not_listed__';
     function enhanceSelect(select, {searchable=false}={}) {
         if (select._hiSelect) return select._hiSelect;

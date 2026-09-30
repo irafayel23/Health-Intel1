@@ -1,5 +1,5 @@
 
-      function escapeText(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+      function escapeText(value) { return window.HealthIntelText.escape(value); }
 
       lucide.createIcons();
       function toggleAdminTheme() {

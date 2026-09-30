@@ -8,12 +8,7 @@
         status.dataset.state = state;
         status.hidden = !message;
     }
-    const todayInManila = () => {
-        const parts = new Intl.DateTimeFormat('en-CA', {
-            timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit'
-        }).formatToParts(new Date());
-        return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type).value).join('-');
-    };
+    const todayInManila = () => window.HealthIntelDate.todayInManila();
 
     function updateAge() {
         const birthdate = window.HealthIntelDate.parseBirthdate(field('walkin-birthdate').value);

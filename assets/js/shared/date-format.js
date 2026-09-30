@@ -1,4 +1,10 @@
 window.HealthIntelDate = {
+    todayInManila() {
+        const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit'
+        }).formatToParts(new Date());
+        return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type).value).join('-');
+    },
     parseBirthdate(value) {
         if (typeof value !== 'string') return null;
         const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value.trim());
