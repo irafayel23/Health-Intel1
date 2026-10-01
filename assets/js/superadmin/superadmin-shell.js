@@ -18,6 +18,8 @@
 
         document.querySelectorAll(".view-section").forEach(sec => sec.classList.remove("active"));
         document.getElementById(viewId).classList.add("active");
+        const title=document.getElementById('superadmin-view-title');
+        if(title) title.textContent=({'view-dashboard':'Overview','view-users':'Admin Access','view-audit':'Master Ledger','view-db':'Database Backup'})[viewId] || 'Overview';
 
         if (window.lucide) lucide.createIcons();
       }

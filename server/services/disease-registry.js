@@ -29,13 +29,13 @@ function createDiseaseRegistryHandlers(db) {
                                 'This disease name already exists. Review the active or archived registry.',
                                 409
                             );
-                        await connection.execute(
+                        const [created] = await connection.execute(
                             'INSERT INTO disease_registry(name,category,classification) VALUES(?,?,?)',
                             [name, category, classification]
                         );
                         await connection.execute(
                             "INSERT INTO system_audit_logs(user_id,role,action,details) VALUES(?,'Admin','Registry Updated',?)",
-                            [req.user.system_id, `Added disease ${name} (${classification}).`]
+                            [req.user.system_id, JSON.stringify({summary:`Added disease ${name} (${classification}).`,target_type:'Registry entry',target_id:String(created.insertId),outcome:'Succeeded',after:{name,category,classification}})]
                         );
                     },
                     'disease-registry'

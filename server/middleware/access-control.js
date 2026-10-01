@@ -18,6 +18,7 @@ const rules = [
     ['POST', /^\/superadmin\/(approve-admin|backup)$/, ['superadmin']],
     ['GET', /^\/bhw\/context$/, ['bhw']],
     ['GET', /^\/bhw\/(encoding-options|puroks)$/, ['bhw']],
+    ['GET', /^\/bhw\/report-data$/, ['bhw']],
     ['GET', /^\/mho\/disease-reviews$/, ['mho']],
     ['PUT', /^\/mho\/disease-reviews\/\d+$/, ['mho']],
     ['PUT', /^\/patients\/\d+\/condition-clarification$/, ['bhw']],

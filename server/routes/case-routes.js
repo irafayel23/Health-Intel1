@@ -4,12 +4,21 @@ const { createCaseRecords } = require('../services/case-records');
 const { validatePatient } = require('../services/patient-validation');
 const { respond } = require('../services/service-errors');
 const { createCaseLifecycleHandlers } = require('../services/case-lifecycle');
+const { createReportExport } = require('../services/report-export');
 
 function registerCaseRoutes(app, db, corrections) {
     const encoding = createCaseEncoding(db);
     const mapData = createCaseMapData(db);
     const records = createCaseRecords(db);
     const cases = createCaseLifecycleHandlers(db);
+    const exports = createReportExport(db);
+    app.get('/api/bhw/report-data', async (req,res) => {
+        try { const rows = await exports.bhw(req.user,req.query); res.json({success:true,data:rows}); }
+        catch(error) {
+            try { await exports.failed(req.user,'BHW report',error); } catch { console.error('BHW report audit unavailable.'); }
+            respond(res,error,'Report data could not be exported.');
+        }
+    });
     // ==========================================
     // 7. PATIENT RECORDS (DATA ENTRY & PROVENANCE)
     // ==========================================

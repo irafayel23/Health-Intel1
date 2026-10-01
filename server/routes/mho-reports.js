@@ -2,9 +2,11 @@ const { createReportData } = require('../services/report-data');
 const PDFDocument = require('pdfkit');
 const { monthlyPeriod, isoWeekPeriod } = require('../services/report-periods');
 const { respond } = require('../services/service-errors');
+const { createReportExport } = require('../services/report-export');
 
 function registerMhoReportRoutes(app, db) {
     const reports = createReportData(db);
+    const exports = createReportExport(db);
     // ==========================================
     // MHO REPORTS: FHSIS PDF
     // ==========================================
@@ -28,6 +30,7 @@ function registerMhoReportRoutes(app, db) {
             const period = monthlyPeriod(month, year);
 
             const rows = await reports.monthly(period);
+            await exports.prepared(req.user,'FHSIS',period,rows.reduce((sum,row)=>sum+Number(row.count),0));
             const doc = new PDFDocument({ margin: 50, size: 'A4' });
             res.setHeader(
                 'Content-disposition',
@@ -161,6 +164,7 @@ function registerMhoReportRoutes(app, db) {
 
             doc.end();
         } catch (error) {
+            try { await exports.failed(req.user,'FHSIS',error); } catch { console.error('FHSIS report audit unavailable.'); }
             if (!error.status) console.error('FHSIS Report Error:', error.code || error.name);
             respond(res, error, 'Report generation failed.');
         }
@@ -175,6 +179,7 @@ function registerMhoReportRoutes(app, db) {
             const weekNum = period.week;
 
             const rows = await reports.weekly(period);
+            await exports.prepared(req.user,'PIDSR',period,rows.length);
             const doc = new PDFDocument({ margin: 50, size: 'A4' });
             res.setHeader(
                 'Content-disposition',
@@ -289,6 +294,7 @@ function registerMhoReportRoutes(app, db) {
 
             doc.end();
         } catch (error) {
+            try { await exports.failed(req.user,'PIDSR',error); } catch { console.error('PIDSR report audit unavailable.'); }
             if (!error.status) console.error('PIDSR Report Error:', error.code || error.name);
             respond(res, error, 'Report generation failed.');
         }

@@ -61,12 +61,12 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-grow flex flex-col h-screen overflow-y-auto bg-slate-100 dark:bg-neutral-950 px-8 py-6 rounded-tl-[2.5rem] shadow-[-10px_0_30px_rgba(0,0,0,0.5)] border-l border-t border-slate-300 dark:border-neutral-800">
+    <main class="min-w-0 flex-grow flex flex-col h-screen overflow-y-auto bg-slate-100 dark:bg-neutral-950 px-8 py-6 rounded-tl-[2.5rem] shadow-[-10px_0_30px_rgba(0,0,0,0.5)] border-l border-t border-slate-300 dark:border-neutral-800">
       
       <!-- Top Nav -->
       <header class="h-16 flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
-            <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Overview</h1>
+            <h1 id="superadmin-view-title" class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Overview</h1>
         </div>
         <button id="theme-toggle-btn" onclick="toggleSuperTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-600 dark:text-neutral-300 transition-colors"><i data-lucide="sun" class="w-5 h-5"></i></button>
       </header>
@@ -198,22 +198,33 @@
                 <div class="flex justify-between items-center mb-8">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Master Ledger</h2>
-                        <p class="text-slate-500 dark:text-neutral-500 text-sm mt-1">Recorded system actions and changes</p>
+                        <p class="text-slate-500 dark:text-neutral-500 text-sm mt-1">Recorded activity across every role, including Superadmin</p>
                     </div>
                     <button onclick="loadAuditLogs()" class="px-5 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:bg-neutral-700 text-slate-900 dark:text-white rounded-full text-sm font-medium transition flex items-center gap-2">
                         <i data-lucide="refresh-ccw" class="w-4 h-4"></i> Sync
                     </button>
                 </div>
 
-                <div class="w-full overflow-hidden rounded-2xl border border-slate-300 dark:border-neutral-800 flex-grow">
-                    <table class="w-full text-left text-sm">
+                <div class="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
+                    <label class="text-xs text-slate-600 dark:text-neutral-400">Actor or record ID<input id="ledger-search" type="search" oninput="filterLedger()" placeholder="BHW-001 or REC-5257" class="mt-1 w-full rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-white"></label>
+                    <label class="text-xs text-slate-600 dark:text-neutral-400">Role<select id="ledger-role" onchange="filterLedger()" class="mt-1 w-full rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-white"><option value="">All roles</option></select></label>
+                    <label class="text-xs text-slate-600 dark:text-neutral-400">Action<select id="ledger-action" onchange="filterLedger()" class="mt-1 w-full rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-white"><option value="">All actions</option></select></label>
+                    <label class="text-xs text-slate-600 dark:text-neutral-400">From (Philippine date)<input id="ledger-from" type="date" onchange="filterLedger()" class="mt-1 w-full rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-white"></label>
+                    <label class="text-xs text-slate-600 dark:text-neutral-400">Through (Philippine date)<input id="ledger-to" type="date" onchange="filterLedger()" class="mt-1 w-full rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-white"></label>
+                    <button onclick="clearLedgerFilters()" class="self-end rounded-xl border border-slate-300 dark:border-neutral-700 px-3 py-2 text-sm text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800">Clear filters</button>
+                </div>
+                <p id="ledger-status" role="status" class="mb-4 text-sm text-slate-500 dark:text-neutral-400">Read-only history. Activities appear when the server records them.</p>
+                <div class="w-full overflow-x-auto rounded-2xl border border-slate-300 dark:border-neutral-800 flex-grow">
+                    <table class="w-full min-w-[1060px] text-left text-sm">
                         <thead class="bg-slate-100 dark:bg-neutral-950 border-b border-slate-300 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 font-medium">
                             <tr>
                                 <th class="p-4 w-40">Timestamp</th>
                                 <th class="p-4 w-32">Actor</th>
                                 <th class="p-4 w-24">Role</th>
-                                <th class="p-4 w-64">Executed Action</th>
-                                <th class="p-4">System Payload</th>
+                                <th class="p-4 w-48">Executed Action</th>
+                                <th class="p-4">Affected record</th>
+                                <th class="p-4">Outcome</th>
+                                <th class="p-4 min-w-56">Details</th>
                             </tr>
                         </thead>
                         <tbody id="audit-table-body" class="divide-y divide-neutral-800"></tbody>

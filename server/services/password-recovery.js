@@ -1,6 +1,7 @@
 const crypto = require('node:crypto');
 const bcrypt = require('bcrypt');
 const { normalizeEmail, validPassword } = require('../config/security-config');
+const { createSystemAudit } = require('./system-audit');
 const genericMessage = 'If this email belongs to an approved account, check its inbox for a reset code. If no code arrives, contact the administrator.';
 
 function codeHash(email, code, secret) {
@@ -53,7 +54,7 @@ function createPasswordRecovery(db, secret, sendEmail, emailConfigured) {
             try {
                 connection = await db.getConnection();
                 await connection.beginTransaction();
-                const [users] = await connection.execute('SELECT system_id,status FROM users WHERE LOWER(email)=? FOR UPDATE', [email]);
+                const [users] = await connection.execute('SELECT system_id,status,role FROM users WHERE LOWER(email)=? FOR UPDATE', [email]);
                 const [records] = await connection.execute('SELECT id,token,(expires_at>NOW()) as valid FROM password_resets WHERE LOWER(email)=? ORDER BY id DESC LIMIT 1 FOR UPDATE', [email]);
                 const record = records[0];
                 const stored = record && /^v1:([a-f0-9]{64}):([0-5])$/.exec(record.token);
@@ -71,6 +72,7 @@ function createPasswordRecovery(db, secret, sendEmail, emailConfigured) {
                 }
                 const hash = await bcrypt.hash(req.body.new_password,10);
                 await connection.execute('UPDATE users SET password_hash=? WHERE system_id=?', [hash,users[0].system_id]);
+                await createSystemAudit(connection).record(users[0],'Password Reset',{summary:`Password reset for ${users[0].system_id}; previous sessions revoked.`,target_type:'Account',target_id:users[0].system_id,outcome:'Succeeded',attribution:'Password reset code verified'});
                 await connection.execute('DELETE FROM password_resets WHERE LOWER(email)=?', [email]);
                 await connection.commit();
                 res.json({ success:true, message:'Password updated. Sign in with your new password.' });

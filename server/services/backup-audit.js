@@ -7,7 +7,7 @@ function createBackupAudit(db) {
                     systemId,
                     'Superadmin',
                     'Database Backup Generated',
-                    'Generated a complete AES-256 encrypted database dump.'
+                    JSON.stringify({summary:'Generated a complete AES-256 encrypted database dump.',target_type:'Backup',target_id:'Database dump',outcome:'Succeeded',delivery:'Backup prepared on the server; file saving is not verified.'})
                 ]
             );
         }

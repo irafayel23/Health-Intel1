@@ -3,6 +3,7 @@ const { normalizeEmail, escapeHtml, emailConfigured, sendEmail } = require('../c
 const { respond } = require('../services/service-errors');
 const { accountStatus } = require('../services/account-status');
 const { withCaseReference } = require('../services/case-audit');
+const { auditMetadata } = require('../services/system-audit');
 
 function registerIdentityRoutes(app, db, dbConfig) {
     const directory = createAccountDirectory(db);
@@ -187,7 +188,7 @@ function registerIdentityRoutes(app, db, dbConfig) {
         try {
             const rows = await directory.masterAudit();
 
-            res.json({ success: true, data: rows });
+            res.json({ success: true, data: rows.map(auditMetadata) });
         } catch (error) {
             console.error('Audit Error:', error);
             res.status(500).json({ success: false, error: 'Database error' });

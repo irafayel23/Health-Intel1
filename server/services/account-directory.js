@@ -1,3 +1,4 @@
+const { MASTER_ONLY_ACTIONS } = require('./system-audit');
 function createAccountDirectory(db) {
     return {
         async pendingUsers() {
@@ -32,14 +33,14 @@ function createAccountDirectory(db) {
 
         async adminAudit() {
             const query =
-                "SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs WHERE role != 'SUPERADMIN' AND role != 'Superadmin' AND role != 'Super Admin' ORDER BY timestamp DESC,id DESC";
-            const [rows] = await db.execute(query);
+                `SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs WHERE role != 'SUPERADMIN' AND role != 'Superadmin' AND role != 'Super Admin' AND action NOT IN (${MASTER_ONLY_ACTIONS.map(()=>'?').join(',')}) ORDER BY timestamp DESC,id DESC`;
+            const [rows] = await db.execute(query, MASTER_ONLY_ACTIONS);
             return rows;
         },
 
         async masterAudit() {
             const query =
-                'SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs ORDER BY timestamp DESC';
+                'SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs ORDER BY timestamp DESC,id DESC';
             const [rows] = await db.execute(query);
             return rows;
         },

@@ -30,6 +30,77 @@ before(async()=>{
 after(async()=>{if(server)await new Promise(r=>server.close(r));if(appDb)await appDb.end();if(db)await db.end();if(dump)await dump.cleanup();if(root){try{if(created){assert.match(name,/^health_intel_qa_fixes_verify_\d+$/);assert.notEqual(name,source.database);await root.query('DROP DATABASE `'+name+'`');}assert.equal(await fingerprint(),beforeHash,'Original database records must remain unchanged');}finally{await root.end();}}});
 async function request(route,role,body,method){if(body&&['/api/register','/api/check-email'].includes(route))body={...body,firebase_id_token:firebaseFixture.token(body.email)};return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
 const registration={role:'bhw',first_name:'QA',last_name:'Registration',assigned_barangay:null,password:'Regression-only-2026',employee_id:'QA-EMP'};
+
+test('Master Ledger records access outcomes without credentials or false attribution; Admin retains operational scope',async()=>{
+    assert.equal((await request('/api/login',null,{system_id:'QA-BHW',password:'wrong-private-fixture'})).status,401);
+    assert.equal((await request('/api/login',null,{system_id:{unsafe:true},password:'wrong-private-fixture'})).status,401);
+    const success=await request('/api/login',null,{system_id:'QA-BHW',password:'Regression-only-2026'});
+    assert.equal(success.status,200);const signed=await success.json();
+    const master=await (await request('/api/superadmin/audit-logs','superadmin')).json();
+    const failed=master.data.find(row=>row.action==='Login Failed' && row.target_id==='QA-BHW');
+    assert.equal(failed.user_id,'Unauthenticated');assert.equal(failed.role,'Unauthenticated');assert.equal(failed.outcome,'Failed');
+    assert.match(JSON.parse(failed.details).attribution,/not proof/);
+    const logged=master.data.find(row=>row.action==='Login Succeeded' && row.user_id==='QA-BHW');assert.equal(logged.outcome,'Succeeded');
+    const serialized=JSON.stringify(master.data);assert.ok(!serialized.includes('wrong-private-fixture'));assert.ok(!serialized.includes('Regression-only-2026'));assert.ok(!serialized.includes(signed.token));
+    await db.query('RENAME TABLE system_audit_logs TO qa_login_audit_hold');
+    try {
+        const blocked=await request('/api/login',null,{system_id:'QA-BHW',password:'Regression-only-2026'});assert.equal(blocked.status,500);assert.ok(!(await blocked.json()).token);
+    } finally {await db.query('RENAME TABLE qa_login_audit_hold TO system_audit_logs');}
+    const admin=await (await request('/api/admin/audit-logs','admin')).json();assert.ok(!admin.data.some(row=>['Login Succeeded','Login Failed'].includes(row.action)));
+    for(const role of ['bhw','mho','admin'])assert.equal((await request('/api/superadmin/audit-logs',role)).status,403);
+    for(let i=0;i<8;i++)await request('/api/login',null,{system_id:'QA-BHW',password:'wrong-private-fixture'});
+    const [limited]=await db.query("SELECT user_id,details FROM system_audit_logs WHERE action='Login Rate Limited'");assert.ok(limited.length);assert.equal(limited[0].user_id,'Unauthenticated');
+});
+
+test('password changes commit with redacted audit; missing audit storage rolls back the password',async()=>{
+    const [[original]]=await db.query("SELECT password_hash FROM users WHERE system_id='QA-BHW'");
+    await db.query('RENAME TABLE system_audit_logs TO qa_password_audit_hold');
+    try {
+        assert.equal((await request('/api/change-password','bhw',{current_password:'Regression-only-2026',new_password:'Changed-fixture-2026'})).status,500);
+        const [[row]]=await db.query("SELECT password_hash FROM users WHERE system_id='QA-BHW'");assert.equal(row.password_hash,original.password_hash);
+    } finally {await db.query('RENAME TABLE qa_password_audit_hold TO system_audit_logs');}
+    try {
+        assert.equal((await request('/api/change-password','bhw',{current_password:'Regression-only-2026',new_password:'Changed-fixture-2026'})).status,200);
+        const [[log]]=await db.query("SELECT details FROM system_audit_logs WHERE action='Password Changed' AND user_id='QA-BHW' ORDER BY id DESC LIMIT 1");
+        assert.equal(JSON.parse(log.details).target_id,'QA-BHW');assert.ok(!log.details.includes('Changed-fixture-2026'));assert.ok(!log.details.includes(original.password_hash));
+        assert.equal((await request('/api/session','bhw')).status,401);
+    } finally {await db.execute("UPDATE users SET password_hash=? WHERE system_id='QA-BHW'",[original.password_hash]);}
+});
+
+test('password reset and single-use code commit only with a credential-free audit entry',async()=>{
+    const [[original]]=await db.query("SELECT password_hash,email FROM users WHERE system_id='QA-BHW'");
+    const email='qa-ledger-reset@example.invalid',code='812345';
+    await db.execute("UPDATE users SET email=? WHERE system_id='QA-BHW'",[email]);
+    await db.execute("INSERT INTO password_resets(email,token,expires_at) VALUES(?,?,DATE_ADD(NOW(),INTERVAL 15 MINUTE))",[email,`v1:${require('../services/password-recovery').codeHash(email,code,secret)}:0`]);
+    try {
+        await db.query('RENAME TABLE system_audit_logs TO qa_reset_audit_hold');
+        try {
+            assert.equal((await request('/api/reset-password',null,{email,token:code,new_password:'Reset-fixture-2026'})).status,503);
+            const [[row]]=await db.query("SELECT password_hash FROM users WHERE system_id='QA-BHW'");assert.equal(row.password_hash,original.password_hash);
+            const [codes]=await db.execute('SELECT id FROM password_resets WHERE email=?',[email]);assert.equal(codes.length,1);
+        } finally {await db.query('RENAME TABLE qa_reset_audit_hold TO system_audit_logs');}
+        assert.equal((await request('/api/reset-password',null,{email,token:code,new_password:'Reset-fixture-2026'})).status,200);
+        const [[log]]=await db.query("SELECT details FROM system_audit_logs WHERE action='Password Reset' AND user_id='QA-BHW' ORDER BY id DESC LIMIT 1");
+        assert.equal(JSON.parse(log.details).target_id,'QA-BHW');for(const sensitive of [email,code,'Reset-fixture-2026',original.password_hash])assert.ok(!log.details.includes(sensitive));
+        assert.equal((await request('/api/reset-password',null,{email,token:code,new_password:'Reset-fixture-2026'})).status,400);
+    } finally {await db.execute("UPDATE users SET password_hash=?,email=? WHERE system_id='QA-BHW'",[original.password_hash,original.email]);}
+});
+
+test('report exports are server-attributed, scoped and honest about browser delivery',async()=>{
+    const exported=await request('/api/bhw/report-data?month=January&year=2090&type=SURVEILLANCE&purok=No%20such%20zone','bhw');
+    assert.equal(exported.status,200);assert.deepEqual((await exported.json()).data,[]);
+    assert.equal((await request('/api/bhw/report-data?month=January&year=2090&type=MONTHLY&barangay_id=999999','bhw')).status,403);
+    assert.equal((await request('/api/bhw/report-data?month=Wrong&year=2090&type=MONTHLY','bhw')).status,400);
+    for(const role of ['mho','admin','superadmin'])assert.equal((await request('/api/bhw/report-data?month=January&year=2090&type=MONTHLY',role)).status,403);
+    const pdf=await request('/api/mho/reports/fhsis?month=January&year=2090','mho');assert.equal(pdf.status,200);await pdf.arrayBuffer();
+    assert.equal((await request('/api/mho/reports/pidsr?week=0&year=2090','mho')).status,400);
+    const master=await (await request('/api/superadmin/audit-logs','superadmin')).json();
+    const data=JSON.parse(master.data.find(row=>row.action==='Report Data Exported'&&row.user_id==='QA-BHW').details);
+    assert.equal(data.barangay_id,barangay);assert.equal(data.purok,'No such zone');assert.equal(data.record_count,0);assert.match(data.delivery,/not verified/);
+    assert.ok(master.data.some(row=>row.action==='Report Export Prepared'&&row.user_id==='QA-MHO'&&row.outcome==='Prepared'));
+    assert.ok(master.data.some(row=>row.action==='Report Export Failed'&&row.outcome==='Failed'));
+    const admin=await (await request('/api/admin/audit-logs','admin')).json();assert.ok(!admin.data.some(row=>row.action.startsWith('Report Export')||row.action==='Report Data Exported'));
+});
 test('registration rejects markup and allocates numeric IDs atomically despite stale previews',async()=>{
     const data={...registration,assigned_barangay:barangayName,email:'qa-invalid@example.invalid',employee_id:'<b>unsafe</b>'};assert.equal((await request('/api/register',null,data)).status,400);
     const preview=await request('/api/get-next-id',null,{role:'bhw'});assert.equal((await preview.json()).next_id,'BHW-100000000');
@@ -58,7 +129,7 @@ test('failed audit writes roll back patient edits; archive/restore records the r
     const [[old]]=await db.query('SELECT status,remarks FROM health_cases WHERE id=?',[caseId]);await db.query('RENAME TABLE system_audit_logs TO qa_audit_hold');
     try{assert.equal((await request('/api/patients/'+caseId+'/status','bhw',{new_status:'Deceased',remarks:'Must not be saved'},'PUT')).status,503);const [[now]]=await db.query('SELECT status,remarks FROM health_cases WHERE id=?',[caseId]);assert.deepEqual(now,old);}finally{await db.query('RENAME TABLE qa_audit_hold TO system_audit_logs');}
     assert.equal((await request('/api/patients/'+caseId+'/archive','bhw',{},'PUT')).status,200);assert.equal((await request('/api/patients/'+caseId+'/status','bhw',{new_status:'Active'},'PUT')).status,404);assert.equal((await request('/api/patients/'+caseId+'/restore','admin',{},'PUT')).status,200);
-    const [logs]=await db.query("SELECT action,role FROM system_audit_logs WHERE details LIKE ? AND action IN ('Record Archived','Record Restored') ORDER BY id",['%#'+caseId+'.']);assert.deepEqual(logs.map(r=>[r.action,r.role]),[['Record Archived','BHW'],['Record Restored','Admin']]);
+    const [logs]=await db.query("SELECT action,role,details FROM system_audit_logs WHERE action IN ('Record Archived','Record Restored') ORDER BY id");const linked=logs.filter(log=>require('../services/case-audit').caseIdForAudit(log)===caseId);assert.deepEqual(linked.map(r=>[r.action,r.role]),[['Record Archived','BHW'],['Record Restored','Admin']]);
 });
 test('account actions and their audit entry commit together with accurate Superadmin attribution',async()=>{
     assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-MHO'})).status,200);const [[log]]=await db.query("SELECT role FROM system_audit_logs WHERE user_id='QA-SUPERADMIN' ORDER BY id DESC LIMIT 1");assert.equal(log.role,'Superadmin');

@@ -70,7 +70,7 @@ function handlers(db) {
                     await connection.execute('UPDATE health_cases SET disease_id=?,disease_review_status=?,date_recorded=?,disease=?,severity=?,age=? WHERE id=?', [diseaseId,reviewStatus,input.date_recorded,disease,input.severity,age,row.id]);
                     const before = { date_recorded: row.date_recorded, disease: row.disease, severity: row.severity, age: row.age };
                     const after = { date_recorded: input.date_recorded, disease, severity: input.severity, age };
-                    await connection.execute('INSERT INTO system_audit_logs(user_id,role,action,details) VALUES(?,?,?,?)', [req.user.system_id, req.user.role === 'bhw' ? 'BHW' : 'Admin', 'Case Corrected', JSON.stringify({ case_id: row.id, reason, before, after })]);
+                    await connection.execute('INSERT INTO system_audit_logs(user_id,role,action,details) VALUES(?,?,?,?)', [req.user.system_id, req.user.role === 'bhw' ? 'BHW' : 'Admin', 'Case Corrected', JSON.stringify({ case_id: row.id, target_type:'Case',target_id:`REC-${row.id}`,outcome:'Succeeded', reason, before, after })]);
                     return { age, age_preserved: !row.birthdate };
                 });
                 res.json({ success: true, ...result, message: 'Correction saved with its reason and previous values in the audit trail.' });

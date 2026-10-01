@@ -51,8 +51,9 @@
           const year=document.getElementById('bhw-report-year').value;
           const brgy_id = window.currentBrgyId;
           if(!brgy_id)throw new Error('Your assigned barangay is still loading. Please try again.');
-          const params=new URLSearchParams({barangay_id:brgy_id,month,year,include_archived:'true'});
-          const res = await fetch('http://localhost:3000/api/patients?' + params);
+          const chosenPurok=document.getElementById('bhw-purok-filter').value;
+          const params=new URLSearchParams({month,year,type,purok:chosenPurok});
+          const res = await fetch('http://localhost:3000/api/bhw/report-data?' + params);
           const result = await res.json();
 
           if(!result.success) throw new Error("DB Error");
@@ -67,7 +68,6 @@
           doc.setFontSize(12);
           doc.text(type === 'MONTHLY' ? `Barangay Monthly Case List (${month} ${year})` : `Barangay Surveillance Case Log (${month} ${year})`, 14, 30);
 
-          const chosenPurok=document.getElementById('bhw-purok-filter').value;
           const records=type==='SURVEILLANCE' && chosenPurok!=='All Puroks' ? result.data.filter(p=>p.purok===chosenPurok) : result.data;
           if(type==='SURVEILLANCE' && chosenPurok!=='All Puroks') doc.text(`Purok / Zone: ${chosenPurok}`,14,37);
           const data = records.map(p => [

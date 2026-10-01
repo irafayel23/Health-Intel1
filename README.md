@@ -8,6 +8,8 @@ Municipal health recording, descriptive analytics, barangay maps and demonstrati
 - [Current architecture](docs/ARCHITECTURE.md)
 - [Active database schema](docs/DATABASE.md)
 - [Disease encoding, MHO review and recovery](docs/DISEASE_REGISTRY.md)
+- [Admin audit and Superadmin Master Ledger](docs/AUDIT_LEDGER.md)
+- [Git exclusions and historical credential finding](docs/GIT_REVIEW.md)
 - [Verification](docs/TESTING_GUIDE.md)
 - [Phase 2 changes and undo](analysis/phase_two/CHANGES.txt)
 
@@ -17,7 +19,7 @@ Backend endpoints live in `server/routes/`, operations and validation in `server
 
 Registration, account status, disease registry and case lifecycle now have separate service modules. Shared transaction and validation/error helpers replace the former mixed `qa-fixes.js`; API behavior and database schema are preserved. Service ownership and code-only rollback checkpoints are documented in `docs/ARCHITECTURE.md`.
 
-All route files now delegate database queries/transactions to services for encoding, resident/case records, maps, accounts, analytics, review, reports and backup auditing. Routes retain HTTP handling, rate limits and delivery/process control. The full suite has 69 checks, including rollback of new resident/case rows when encoding audit persistence fails.
+All route files now delegate database queries/transactions to services for encoding, resident/case records, maps, accounts, analytics, review, reports and backup auditing. Routes retain HTTP handling, rate limits and delivery/process control. The full suite has 74 checks, including audit rollback, authentication activity, report export scope and ledger filters.
 
 Connected page behavior is split into feature scripts in `assets/js/admin/`, `bhw/`, `mho/`, `index/` and `superadmin/`. Reused browser helpers live in `assets/js/shared/`. Styles follow role folders under `assets/css/`, with common styles in `shared/`. Unused older styles and local library copies live under the separate `legacy/` archive. Each HTML page defines its required script order. See [architecture and recovery instructions](docs/ARCHITECTURE.md) before changing paths or undoing a refactor. No frontend build command is required.
 

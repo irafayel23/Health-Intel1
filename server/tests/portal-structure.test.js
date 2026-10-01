@@ -107,6 +107,22 @@ test('Superadmin startup, ledger Sync and canceled backup survive script separat
     p.s.toggleSuperTheme();assert.equal(p.s.document.documentElement.classList.contains('dark'),true);
 });
 
+test('Master Ledger filters combine actor, role, action and Philippine dates; details escape text and retain recorded changes',async()=>{
+    const p=page('superadmin.html');p.load();
+    p.s.response=()=>({success:true,data:[
+        {id:1,user_id:'QA-BHW',role:'BHW',action:'Status Updated',target_type:'Case',target_id:'REC-5257',case_id:5257,outcome:'Succeeded',created_at:'2026-09-30T16:00:00Z',details:JSON.stringify({summary:'Changed <unsafe>',before:{status:'Active'},after:{status:'Cleared'}})},
+        {id:2,user_id:'QA-SUP',role:'Superadmin',action:'Database Backup Generated',target_type:'Backup',target_id:'Database dump',created_at:'2026-09-30T15:59:59Z',details:'Legacy details'}]});
+    await p.s.loadAuditLogs();
+    p.elements['ledger-search'].value='REC-5257';p.elements['ledger-role'].value='BHW';p.elements['ledger-action'].value='Status Updated';p.elements['ledger-from'].value=p.elements['ledger-to'].value='2026-10-01';p.s.filterLedger();
+    assert.match(p.elements['audit-table-body'].innerHTML,/QA-BHW/);assert.doesNotMatch(p.elements['audit-table-body'].innerHTML,/QA-SUP/);
+    assert.match(p.elements['audit-table-body'].innerHTML,/Changed &lt;unsafe&gt;/);assert.doesNotMatch(p.elements['audit-table-body'].innerHTML,/<unsafe>/);
+    let dialog;p.s.Swal.fire=async value=>{dialog=value;};await p.s.viewLedgerEvent(1);
+    assert.match(dialog.html,/Previous values/);assert.match(dialog.html,/Active/);assert.match(dialog.html,/Cleared/);assert.match(dialog.html,/Changed &lt;unsafe&gt;/);
+    p.elements['ledger-to'].value='2026-09-30';p.s.filterLedger();assert.match(p.elements['ledger-status'].textContent,/on or after/);assert.ok(p.elements['audit-pagination'].classList.contains('hidden'));
+    p.s.clearLedgerFilters();assert.match(p.elements['audit-table-body'].innerHTML,/QA-SUP/);assert.match(p.elements['audit-table-body'].innerHTML,/Not recorded/);
+    p.s.fetch=async()=>{throw Error('Offline');};await p.s.loadAuditLogs();assert.match(p.elements['ledger-status'].textContent,/Previously loaded/);
+});
+
 test('Access-page scripts retain Google verification, registration and login handoffs',async()=>{
     const p=page('index.html');
     p.s.response=url=>url.endsWith('/check-email')?{exists:false}:url.endsWith('/get-next-id')?{success:true,next_id:'FIXTURE-BHW'}:

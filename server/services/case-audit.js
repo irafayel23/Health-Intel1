@@ -19,6 +19,6 @@ function caseIdForAudit(log) {
 }
 function withCaseReference(log) { return { ...log, case_id: caseIdForAudit(log) }; }
 function caseAuditDetails(caseId, summary, extra = {}) {
-    return JSON.stringify({ ...extra, case_id: caseId, summary });
+    return JSON.stringify({outcome:'Succeeded',target_type:'Case',target_id:`REC-${caseId}`, ...extra, case_id: caseId, summary });
 }
 module.exports = { CASE_ACTIONS, caseIdForAudit, withCaseReference, caseAuditDetails };
