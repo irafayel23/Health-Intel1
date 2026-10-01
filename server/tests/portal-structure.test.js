@@ -139,14 +139,18 @@ test('Access-page recovery continues across the screen helper and reset scripts'
     assert.equal(p.elements['form-subtitle'].innerText,'Welcome back');assert.deepEqual(p.errors,[]);
 });
 
-test('connected and prototype pages resolve all local script, style and image paths after asset moves',()=>{
-    for(const file of ['index.html','bhw.html','mho.html','admin.html','superadmin.html','municipal.html','register.html']){
-        const html=fs.readFileSync(path.join(root,file),'utf8');
-        const paths=[...html.matchAll(/\b(?:src|href)="(assets\/[^"]+)"/g)].map(m=>m[1]);
+test('connected and archived pages resolve local scripts, styles, images and page links',()=>{
+    for(const file of ['index.html','bhw.html','mho.html','admin.html','superadmin.html','legacy/prototypes/municipal.html','legacy/prototypes/register.html']){
+        const html=fs.readFileSync(path.join(root,file),'utf8').replace(/<!--[\s\S]*?-->/g,'');
+        const paths=[...html.matchAll(/\b(?:src|href)="([^"]+)"/g)].map(m=>m[1])
+            .filter(value=>!value.startsWith('#') && !/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(value));
         for(const asset of paths){
-            assert.ok(fs.existsSync(path.join(root,asset)),`${file}: ${asset}`);
-            if(asset.endsWith('.js'))new vm.Script(fs.readFileSync(path.join(root,asset),'utf8'),{filename:asset});
-            if(asset.endsWith('.css'))assert.ok(fs.statSync(path.join(root,asset)).size>0,asset);
+            const pathname=asset.split(/[?#]/)[0];
+            const target=pathname.startsWith('/')?path.resolve(root,`.${pathname}`):path.resolve(root,path.dirname(file),pathname);
+            assert.ok(target.startsWith(root+path.sep),`${file}: ${asset} stays in the project`);
+            assert.ok(fs.existsSync(target),`${file}: ${asset}`);
+            if(pathname.endsWith('.js'))new vm.Script(fs.readFileSync(target,'utf8'),{filename:asset});
+            if(pathname.endsWith('.css'))assert.ok(fs.statSync(target).size>0,asset);
         }
     }
 });

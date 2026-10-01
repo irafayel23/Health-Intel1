@@ -86,7 +86,6 @@ test('Admin scripts load in HTML order and initialize all feature views with exi
     const html = fs.readFileSync(path.join(__dirname,'../../admin.html'),'utf8');
     for(const [,handler] of html.matchAll(/\bon(?:click|keyup|change)="([a-zA-Z_$][\w$]*)\(/g)) {
         if(handler==='logout')continue; // Shared session script owns this handler.
-        if(handler==='submitApproval')continue; // Pre-existing unused approvalModal; live buttons use approveUserDirectly.
         assert.equal(typeof sandbox[handler],'function',handler);
     }
 });

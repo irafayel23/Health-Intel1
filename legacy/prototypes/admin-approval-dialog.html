@@ -1,0 +1,14 @@
+    <div id="approvalModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h3 class="admin-approval-heading">Approve Employee Account</h3>
+        <input type="hidden" id="modal_temp_id" />
+        <select id="modal_role" class="login-input admin-approval-role">
+          <option value="bhw">Barangay Health Worker (BHW)</option>
+          <option value="mho">Municipal Health Officer (MHO)</option>
+        </select>
+        <div class="admin-approval-actions">
+          <button onclick="submitApproval()" class="login-btn admin-approval-submit">Approve & Save</button>
+          <button onclick="closeModal('approvalModal')" class="login-btn admin-approval-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>

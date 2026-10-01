@@ -23,11 +23,6 @@
 .admin-add-disease { background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .admin-add-disease-icon { width: 18px }
 .admin-refresh-icon { width: 16px }
-.admin-approval-heading { margin-top: 0; color: #0f172a }
-.admin-approval-role { margin-top: 15px; margin-bottom: 20px }
-.admin-approval-actions { display: flex; gap: 10px }
-.admin-approval-submit { margin-top: 0 }
-.admin-approval-cancel { margin-top: 0; background: #e2e8f0; color: #475569 }
 .admin-badge-pending { background:#fef08a; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#854d0e; font-weight:bold; }
 .admin-button-approve { background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
 .admin-button-deny { background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px; }

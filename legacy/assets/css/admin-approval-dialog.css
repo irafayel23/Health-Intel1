@@ -1,0 +1,5 @@
+.admin-approval-heading { margin-top: 0; color: #0f172a }
+.admin-approval-role { margin-top: 15px; margin-bottom: 20px }
+.admin-approval-actions { display: flex; gap: 10px }
+.admin-approval-submit { margin-top: 0 }
+.admin-approval-cancel { margin-top: 0; background: #e2e8f0; color: #475569 }

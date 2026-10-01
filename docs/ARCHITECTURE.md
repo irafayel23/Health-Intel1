@@ -25,7 +25,6 @@ proposal/
     css/
       admin/, bhw/, index/, mho/, superadmin/ # Page-specific styles
       shared/        # Common portal theme, dialogs, maps and encoding controls
-      legacy/        # Preserved older styles and municipal prototype
     js/
       admin/         # Shell, accounts, records, registry, audit
       bhw/           # Shell, cases, residents, dashboard, startup, dialogs
@@ -33,8 +32,12 @@ proposal/
       index/         # Firebase, screens, recovery, registration, login
       superadmin/    # Shell, health, users, ledger, backup, startup
       shared/        # API sessions, dates, text, maps, corrections, encoding
-      vendor/        # Preserved local third-party bundles
     img/             # Existing images
+  legacy/
+    README.md        # Archive inventory, limitations and recovery
+    prototypes/      # Disconnected registration, municipal and approval fragments
+    assets/css/      # Unused older styles and prototype styles
+    assets/js/vendor/ # Unused local libraries; active pages still use CDNs
   server/
     server.js        # Entry point: npm start
     config/          # Environment and email configuration
@@ -92,7 +95,7 @@ Then refresh the role/login tabs. Backend startup remains `npm start` from `serv
 
 All 52 existing script/style files were moved into the folders above, with their byte hashes preserved. The six pages with local references now use the new paths; HTML hooks, script order and behavior remain unchanged. `register.html` has no affected local references. Tests and current documentation follow the new paths. `server/tests/helpers/frontend-assets.js` resolves moved scripts for the frontend test harnesses. The full suite passed **68 checks**, including local script/style/image references on every connected and prototype page; source database fingerprints again remained unchanged.
 
-The shared `mho.css` is the existing base theme used by both MHO and Admin, so it lives in `assets/css/shared/`. The original unused `admin.css`, `index.css` and `style.css` are preserved in `assets/css/legacy/`; `municipal.css` remains the disconnected prototype's stylesheet. Local Chart.js/Lucide copies live in `assets/js/vendor/`; connected pages retain their existing CDN library loads. This move does not switch library versions or establish offline operation.
+The shared `mho.css` is the existing base theme used by both MHO and Admin, so it lives in `assets/css/shared/`. At this checkpoint, older styles were preserved in `assets/css/legacy/` and local Chart.js/Lucide copies in `assets/js/vendor/`. The subsequent legacy cleanup moves those unused files into the separate root `legacy/` archive. Connected pages retain their existing CDN library loads. These moves do not switch library versions or establish offline operation.
 
 Checkpoint `pre-assets-layout-20261001` preserves `053e3d7`, after the feature split. The completed folder move is tagged `assets-layout-20261001`. To undo only this latest folder move, preserve newer changes and run from `proposal`:
 
@@ -179,6 +182,22 @@ git revert --no-edit frontend-helpers-20261001
 
 Refresh the portal tabs after updating or reverting. This frontend-only checkpoint needs no backend restart or database rollback. Tags/commit remain local until pushed. Original files and the parity audit are retained in ignored `analysis/frontend-helpers-20261001/`.
 
+### Legacy frontend archive (1 October)
+
+The disconnected `register.html` and `municipal.html` prototypes now live in `legacy/prototypes/`. Four older stylesheets and two unused local library copies live under `legacy/assets/`. Moved assets retain their original bytes; municipal HTML has only three local-path changes. See [archive inventory](../legacy/README.md) for each file's limitations.
+
+The unreachable Admin approval dialog and its five styles are preserved as separate archive fragments. Current approval buttons still use `approveUserDirectly()`; the live Disease Registry dialog is unchanged. The active Admin handler check no longer skips the missing `submitApproval()` hook. `assets/js/shared/app.js` stays in place because MHO still loads it. No active portal script, backend, database, model, configuration or library version was changed.
+
+The path check covers local scripts, styles, images and page links in connected and archived pages, including root-relative paths. All **69 tests passed, 0 failures**, after MySQL was started; source database fingerprint assertions passed. The standalone frontend run also passed all 12 checks. Details are recorded in `TESTING_GUIDE.md`; visual testing remains deferred. Original snapshots and the move/hash audit are in ignored `analysis/legacy-cleanup-20261001/`.
+
+Checkpoint `pre-legacy-cleanup-20261001` preserves `49619bd`; the completed cleanup is tagged `legacy-cleanup-20261001`. Preserve newer work, then undo only this cleanup from `proposal`:
+
+```text
+git revert --no-edit legacy-cleanup-20261001
+```
+
+Refresh portal tabs afterward. No backend restart, database restore or dependency reinstall is needed. These checkpoints remain local until pushed.
+
 ## Disease encoding and review
 
 `assets/js/shared/encoding-controls.js` and `assets/css/shared/encoding-controls.css` provide shared searchable dropdowns and pending-condition display. `assets/js/mho/mho-disease-review.js` implements the MHO review screen. `server/routes/disease-review-routes.js` exposes protected review/clarification endpoints through `server/services/condition-review.js`. `server/services/disease-review.js` validates catalog selection and contains the explicit additive migration used by `server/scripts/apply-disease-review.js`. Case creation is dispatched by `server/routes/case-routes.js` to `server/services/case-encoding.js`, which owns resident/case/audit transactions. See [DISEASE_REGISTRY.md](DISEASE_REGISTRY.md) for the workflow and recovery limits.
@@ -193,4 +212,4 @@ The `predictions` table exists, but the current forecast route does not save its
 
 MySQL-compatible storage contains the eight tables described in DATABASE.md. Important actions generate audit entries; the database does not enforce an immutable ledger and not every click is logged. Superadmin backups use a complete SQL dump in an AES-256 encrypted ZIP. Access controls and backup restore tests use disposable database copies.
 
-The municipal/Mayor HTML file is disconnected. There is no municipal/Mayor account role. The Admin role governs accounts and the disease registry; it is distinct from the MHO role.
+The archived `legacy/prototypes/municipal.html` is disconnected. There is no municipal/Mayor account role. The Admin role governs accounts and the disease registry; it is distinct from the MHO role.
