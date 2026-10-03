@@ -24,13 +24,16 @@
       }
     </script>
     <link rel="stylesheet" href="assets/css/superadmin/superadmin-page.css" />
+    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261003">
   </head>
-  <body class="flex h-screen w-full bg-slate-100 dark:bg-neutral-950 text-slate-900 dark:text-neutral-100">
+  <body class="hi-portal flex h-screen w-full bg-slate-100 dark:bg-neutral-950 text-slate-900 dark:text-neutral-100">
     
     <!-- Sidebar -->
-    <aside class="w-64 bg-slate-100 dark:bg-neutral-950 flex flex-col shrink-0">
+    <aside id="superadmin-sidebar" class="w-64 bg-slate-100 dark:bg-neutral-950 flex flex-col shrink-0">
       <div class="h-20 flex items-center px-6 gap-3 mt-4">
-        <img src="assets/img/Logo-Health-Intel.png" alt="Logo" class="w-10 h-10 object-contain rounded-md bg-white dark:bg-neutral-900 p-1">
+        <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="w-10 h-10 shrink-0 rounded-lg bg-white p-1" overflow="hidden">
+          <image href="assets/img/Logo-Health-Intel.png?v=concept-06" width="1280" height="1280" />
+        </svg>
         <div class="flex flex-col">
             <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white">HEALTH-INTEL</span>
             <span class="text-xs text-slate-700 dark:text-neutral-400 font-medium">Superadmin Active</span>
@@ -55,7 +58,7 @@
 
       <div class="p-4 mt-auto mb-4">
         <button onclick="logout()" class="w-full bg-slate-200 dark:bg-neutral-800 text-slate-800 dark:text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-300 dark:hover:bg-neutral-700 transition-colors flex justify-center items-center gap-2">
-          Logout <span class="text-slate-500 dark:text-neutral-500 font-normal ml-2">
+          Logout
         </button>
       </div>
     </aside>
@@ -66,6 +69,7 @@
       <!-- Top Nav -->
       <header class="h-16 flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
+            <button id="sidebar-toggle" data-portal-menu onclick="toggleSidebar()" aria-label="Open navigation" class="hi-mobile-menu rounded-lg"><i data-lucide="menu" class="w-5 h-5"></i></button>
             <h1 id="superadmin-view-title" class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Overview</h1>
         </div>
         <button id="theme-toggle-btn" onclick="toggleSuperTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-600 dark:text-neutral-300 transition-colors"><i data-lucide="sun" class="w-5 h-5"></i></button>
@@ -118,7 +122,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                 <!-- Large Panel -->
                 <div class="lg:col-span-2 bg-white dark:bg-neutral-900 rounded-3xl p-8">
-                    <div class="flex justify-between items-center mb-8">
+                    <div class="hi-wrap-actions flex justify-between items-center mb-8">
                         <h3 class="text-lg font-bold text-slate-900 dark:text-white">System Actions</h3>
                         <div class="flex gap-2">
                             <button class="w-8 h-8 rounded-full bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:text-white"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
@@ -127,12 +131,12 @@
                     </div>
                     
                     <div class="space-y-4">
-                        <div class="bg-slate-100 dark:bg-neutral-950 p-5 rounded-2xl border border-slate-300 dark:border-neutral-800/50 flex items-center justify-between">
+                        <div class="bg-slate-100 dark:bg-neutral-950 p-5 hi-stack-small rounded-2xl border border-slate-300 dark:border-neutral-800/50 flex items-center justify-between">
                             <div>
                                 <p class="text-slate-600 dark:text-neutral-400 font-bold text-xs mb-1">NODE SERVER</p>
-                                <p class="text-slate-900 dark:text-white font-medium">Restart Core Services</p>
+                                <p class="text-slate-900 dark:text-white font-medium">Manual Server Restart</p>
                             </div>
-                            <button onclick="restartServices()" class="px-6 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:bg-neutral-700 text-slate-900 dark:text-white font-medium rounded-full text-sm transition">Execute</button>
+                            <button onclick="restartServices()" class="px-6 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:bg-neutral-700 text-slate-900 dark:text-white font-medium rounded-full text-sm transition">View instructions</button>
                         </div>
                         
                     </div>
@@ -168,25 +172,39 @@
         <!-- USERS VIEW -->
         <div id="view-users" class="view-section space-y-6">
             <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8">
-                <div class="flex justify-between items-center mb-8">
+                <div class="hi-wrap-actions flex justify-between items-center mb-8">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Access Control</h2>
-                        <p class="text-slate-500 dark:text-neutral-500 text-sm mt-1">Manage LGU Admin & MHO privileges</p>
+                        <p class="text-slate-500 dark:text-neutral-500 text-sm mt-1">Review LGU Admin accounts and manage their access</p>
                     </div>
                 </div>
 
-                <div class="w-full overflow-hidden rounded-2xl border border-slate-300 dark:border-neutral-800">
-                    <table class="w-full text-left text-sm">
+                <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                    <div class="flex-1">
+                        <label for="admin-search" class="block text-xs text-slate-600 dark:text-neutral-400 mb-2">Search Admin accounts</label>
+                        <input id="admin-search" type="search" oninput="renderAdmins()" placeholder="Name, email, account ID or employee ID" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="sm:w-48">
+                        <label for="admin-status-filter" class="block text-xs text-slate-600 dark:text-neutral-400 mb-2">Account status</label>
+                        <select id="admin-status-filter" onchange="renderAdmins()" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="">All statuses</option><option value="approved">Active</option><option value="pending">Pending</option><option value="suspended">Suspended</option><option value="denied">Denied</option>
+                        </select>
+                    </div>
+                    <button onclick="loadAdmins()" class="sm:self-end px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-neutral-800">Refresh</button>
+                </div>
+                <p id="admin-list-status" role="status" class="text-sm text-slate-600 dark:text-neutral-400 mb-4">Loading Admin accounts…</p>
+                <div class="w-full overflow-x-auto rounded-2xl border border-slate-300 dark:border-neutral-800" role="region" aria-label="Admin accounts" tabindex="0">
+                    <table class="w-full min-w-[760px] text-left text-sm">
                         <thead class="bg-slate-100 dark:bg-neutral-950 border-b border-slate-300 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 font-medium">
                             <tr>
-                                <th class="p-4">Identity ID</th>
-                                <th class="p-4">Clearance Role</th>
+                                <th class="p-4">Admin account</th>
+                                <th class="p-4">Email</th>
                                 <th class="p-4">Status</th>
                                 <th class="p-4">Registered</th>
-                                <th class="p-4 text-right">Action</th>
+                                <th class="sticky right-0 z-10 bg-slate-100 dark:bg-neutral-950 p-4 border-l border-slate-300 dark:border-neutral-800 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="user-table-body" class="divide-y divide-neutral-800"></tbody>
+                        <tbody id="user-table-body" class="divide-y divide-slate-200 dark:divide-neutral-800"></tbody>
                     </table>
                 </div>
             </div>
@@ -195,7 +213,7 @@
         <!-- AUDIT VIEW -->
         <div id="view-audit" class="view-section space-y-6">
             <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8 flex flex-col h-full">
-                <div class="flex justify-between items-center mb-8">
+                <div class="hi-wrap-actions flex justify-between items-center mb-8">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Master Ledger</h2>
                         <p class="text-slate-500 dark:text-neutral-500 text-sm mt-1">Recorded activity across every role, including Superadmin</p>
@@ -214,17 +232,17 @@
                     <button onclick="clearLedgerFilters()" class="self-end rounded-xl border border-slate-300 dark:border-neutral-700 px-3 py-2 text-sm text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800">Clear filters</button>
                 </div>
                 <p id="ledger-status" role="status" class="mb-4 text-sm text-slate-500 dark:text-neutral-400">Read-only history. Activities appear when the server records them.</p>
-                <div class="w-full overflow-x-auto rounded-2xl border border-slate-300 dark:border-neutral-800 flex-grow">
-                    <table class="w-full min-w-[1060px] text-left text-sm">
+                <div class="w-full overflow-x-auto rounded-2xl border border-slate-300 dark:border-neutral-800 flex-grow" role="region" aria-label="Master Ledger entries" tabindex="0">
+                    <table class="w-full min-w-[900px] table-fixed text-left text-sm">
                         <thead class="bg-slate-100 dark:bg-neutral-950 border-b border-slate-300 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 font-medium">
                             <tr>
-                                <th class="p-4 w-40">Timestamp</th>
-                                <th class="p-4 w-32">Actor</th>
-                                <th class="p-4 w-24">Role</th>
-                                <th class="p-4 w-48">Executed Action</th>
-                                <th class="p-4">Affected record</th>
-                                <th class="p-4">Outcome</th>
-                                <th class="p-4 min-w-56">Details</th>
+                                <th class="p-3 w-36">Timestamp</th>
+                                <th class="p-3 w-28">Actor</th>
+                                <th class="p-3 w-28">Role</th>
+                                <th class="p-3">Executed Action / Summary</th>
+                                <th class="p-3 w-32">Affected record</th>
+                                <th class="p-3 w-28">Outcome</th>
+                                <th class="sticky right-0 z-10 bg-slate-100 dark:bg-neutral-950 p-3 w-32 text-center border-l border-slate-300 dark:border-neutral-800">Details</th>
                             </tr>
                         </thead>
                         <tbody id="audit-table-body" class="divide-y divide-neutral-800"></tbody>
@@ -245,7 +263,7 @@
                 <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Database Extraction</h2>
                 <p class="text-slate-500 dark:text-neutral-500 text-sm mb-8">Download an encrypted backup containing the database tables and records.</p>
                 
-                <div class="bg-slate-100 dark:bg-neutral-950 rounded-2xl border border-slate-300 dark:border-neutral-800 p-6 flex items-center justify-between mb-6">
+                <div class="bg-slate-100 dark:bg-neutral-950 rounded-2xl border border-slate-300 dark:border-neutral-800 p-6 hi-stack-small flex items-center justify-between mb-6">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 bg-white dark:bg-neutral-900 rounded-xl flex items-center justify-center border border-slate-300 dark:border-neutral-800">
                             <i data-lucide="database" class="w-6 h-6 text-slate-900 dark:text-white"></i>
@@ -271,5 +289,6 @@
     <script src="assets/js/superadmin/superadmin-ledger.js"></script>
     <script src="assets/js/superadmin/superadmin-backup.js"></script>
     <script src="assets/js/superadmin/superadmin-startup.js"></script>
+    <script src="assets/js/shared/portal-navigation.js"></script>
   </body>
 </html>

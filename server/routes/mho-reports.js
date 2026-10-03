@@ -4,6 +4,73 @@ const { monthlyPeriod, isoWeekPeriod } = require('../services/report-periods');
 const { respond } = require('../services/service-errors');
 const { createReportExport } = require('../services/report-export');
 
+function renderWeeklyCases(doc, rows, period) {
+    const bottom = () => doc.page.height - doc.page.margins.bottom;
+    const columns = [
+        { label: 'Date Recorded', x: 60, width: 110, font: 'Helvetica', color: '#0f172a' },
+        { label: 'Target Disease', x: 180, width: 150, font: 'Helvetica-Bold', color: '#ef4444' },
+        { label: 'Recorded Severity', x: 340, width: 100, font: 'Helvetica-Oblique', color: '#ea580c' },
+        { label: 'Status', x: 450, width: 85, font: 'Helvetica-Bold', color: '#ef4444' }
+    ];
+    const header = () => {
+        const y = doc.y;
+        doc.rect(50, y - 5, 495, 25).fill('#fef2f2');
+        doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11);
+        for (const column of columns) doc.text(column.label, column.x, y, { width: column.width });
+        doc.y = y + 30;
+    };
+    const nextPage = () => {
+        doc.addPage();
+        doc.font('Helvetica-Bold').fillColor('#0f172a').fontSize(11)
+            .text(`Weekly surveillance report - Week ${period.week}, ${period.year} (continued)`, 50, doc.y, { width: 495 });
+        doc.moveDown();
+        header();
+    };
+    header();
+    for (const row of rows) {
+        const severity = row.severity || 'Not recorded';
+        const values = [new Date(row.date_recorded).toLocaleDateString(), row.disease, severity, row.status];
+        const height = Math.max(...columns.map((column, index) => {
+            doc.font(column.font).fontSize(10);
+            return doc.heightOfString(values[index], { width: column.width });
+        })) + 12;
+        if (doc.y + height > bottom() - 5) nextPage();
+        const y = doc.y;
+        doc.moveTo(50, y - 5).lineTo(545, y - 5).lineWidth(0.5).strokeColor('#fecaca').stroke();
+        columns.forEach((column, index) => {
+            doc.font(column.font).fontSize(10)
+                .fillColor(index === 2 && severity === 'High Risk' ? '#dc2626' : column.color)
+                .text(values[index], column.x, y, { width: column.width });
+        });
+        doc.y = y + height;
+    }
+    if (doc.y + 32 > bottom()) nextPage();
+    const y = doc.y;
+    doc.moveTo(50, y - 5).lineTo(545, y - 5).lineWidth(1.5).strokeColor('#ef4444').stroke();
+    doc.rect(50, y, 495, 25).fill('#fff1f2');
+    doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11)
+        .text('TOTAL RECORDED CASES', 60, y + 7, { width: 370 });
+    doc.text(rows.length.toString(), 450, y + 7, { width: 85 });
+    doc.y = y + 32;
+}
+
+function renderWeeklySignature(doc) {
+    doc.font('Helvetica-Bold').fontSize(11);
+    const caption = 'Epidemiology Surveillance Officer';
+    const height = 56 + doc.heightOfString(caption, { width: 195 });
+    const bottom = doc.page.height - doc.page.margins.bottom;
+    let gap = 60;
+    if (doc.y + gap + height > bottom) gap = 20;
+    if (doc.y + gap + height > bottom) {
+        doc.addPage();
+        gap = 0;
+    }
+    const y = doc.y + gap;
+    doc.fillColor('#0f172a').text('PREPARED BY:', 50, y, { width: 195 });
+    doc.moveTo(50, y + 50).lineTo(245, y + 50).lineWidth(1).strokeColor('#0f172a').stroke();
+    doc.text(caption, 50, y + 56, { align: 'center', width: 195 });
+}
+
 function registerMhoReportRoutes(app, db) {
     const reports = createReportData(db);
     const exports = createReportExport(db);
@@ -216,6 +283,12 @@ function registerMhoReportRoutes(app, db) {
                 .font('Helvetica')
                 .fillColor('#64748b')
                 .text('Week ' + weekNum + ', ' + period.year + ' (Monday-Sunday)', { align: 'center' });
+            const lastDay = new Date(period.end + 'T00:00:00Z');
+            lastDay.setUTCDate(lastDay.getUTCDate() - 1);
+            const reportDate = value => new Intl.DateTimeFormat('en-PH', {
+                timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric'
+            }).format(new Date(value + 'T00:00:00Z'));
+            doc.fontSize(10).text(`Recorded dates: ${reportDate(period.start)} to ${reportDate(lastDay.toISOString().slice(0, 10))}`, { align: 'center' });
             doc.moveDown(2);
             doc.fontSize(9)
                 .font('Helvetica')
@@ -234,63 +307,10 @@ function registerMhoReportRoutes(app, db) {
                         { align: 'center' }
                     );
             } else {
-                let startY = doc.y;
-                doc.rect(50, startY - 5, 495, 25).fill('#fef2f2');
-
-                doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11);
-                doc.text('Date Recorded', 60, startY);
-                doc.text('Target Disease', 180, startY);
-                doc.text('Recorded Severity', 340, startY);
-                doc.text('Status', 450, startY);
-
-                doc.moveDown(1.5);
-
-                doc.font('Helvetica').fillColor('#0f172a').fontSize(10);
-
-                rows.forEach((r, index) => {
-                    let currentY = doc.y;
-                    doc.moveTo(50, currentY - 5)
-                        .lineTo(545, currentY - 5)
-                        .lineWidth(0.5)
-                        .strokeColor('#fecaca')
-                        .stroke();
-
-                    const dateStr = new Date(r.date_recorded).toLocaleDateString();
-                    doc.text(dateStr, 60, currentY);
-                    doc.font('Helvetica-Bold').fillColor('#ef4444').text(r.disease, 180, currentY);
-
-                    let actionLevel = r.severity || 'Not recorded';
-
-                    doc.font('Helvetica-Oblique')
-                        .fillColor(actionLevel === 'High Risk' ? '#dc2626' : '#ea580c')
-                        .text(actionLevel, 340, currentY);
-                    doc.font('Helvetica-Bold').fillColor('#ef4444').text(r.status, 450, currentY);
-
-                    doc.moveDown(1.2);
-                });
-
-                let finalY = doc.y;
-                doc.moveTo(50, finalY - 5)
-                    .lineTo(545, finalY - 5)
-                    .lineWidth(1.5)
-                    .strokeColor('#ef4444')
-                    .stroke();
-                doc.rect(50, finalY, 495, 25).fill('#fff1f2');
-                doc.font('Helvetica-Bold')
-                    .fillColor('#7f1d1d')
-                    .fontSize(11)
-                    .text('TOTAL RECORDED CASES', 60, finalY + 7);
-                doc.text(rows.length.toString(), 450, finalY + 7);
+                renderWeeklyCases(doc, rows, period);
             }
 
-            doc.moveDown(6);
-            doc.font('Helvetica-Bold').fillColor('#0f172a').fontSize(11).text('PREPARED BY:', 50, doc.y);
-            doc.moveDown(2.5);
-            doc.moveTo(50, doc.y).lineTo(245, doc.y).lineWidth(1).strokeColor('#0f172a').stroke();
-            doc.moveDown(0.5);
-            doc.font('Helvetica-Bold')
-                .fillColor('#0f172a')
-                .text('Epidemiology Surveillance Officer', 50, doc.y, { align: 'center', width: 195 });
+            renderWeeklySignature(doc);
 
             doc.end();
         } catch (error) {

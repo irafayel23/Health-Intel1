@@ -174,6 +174,16 @@ function registerIdentityRoutes(app, db, dbConfig) {
         }
     });
 
+    app.get('/api/superadmin/admins/:id/history', async (req, res) => {
+        try {
+            const history = await directory.adminHistory(req.params.id);
+            if (!history) return res.status(404).json({success:false,error:'Admin account not found.'});
+            res.json({success:true,data:{...history,events:history.events.map(auditMetadata)}});
+        } catch (error) {
+            res.status(503).json({success:false,error:'Account history could not be loaded. Please try again.'});
+        }
+    });
+
     app.get('/api/admin/audit-logs', async (req, res) => {
         try {
             const rows = await directory.adminAudit();

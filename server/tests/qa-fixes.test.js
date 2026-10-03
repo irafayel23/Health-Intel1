@@ -136,6 +136,37 @@ test('account actions and their audit entry commit together with accurate Supera
     await db.query('RENAME TABLE system_audit_logs TO qa_audit_hold');try{assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:'QA-MHO'})).status,503);const [[row]]=await db.query("SELECT status FROM users WHERE system_id='QA-MHO'");assert.equal(row.status,'suspended');}finally{await db.query('RENAME TABLE qa_audit_hold TO system_audit_logs');}
     assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:'QA-MHO'})).status,200);
 });
+
+test('Superadmin Admin access enforces current states, saves reasons atomically and scopes account history',async()=>{
+    const [[fixtureUser]]=await db.query("SELECT password_hash FROM users WHERE system_id='QA-ADMIN'");
+    for(const [id,status] of [['QA-ACCESS-A','approved'],['QA-ACCESS-P','pending'],['QA-ACCESS-D','denied']])await db.execute("INSERT INTO users(system_id,first_name,last_name,email,employee_id,role,password_hash,status) VALUES(?,'Access','Fixture',?,'QA-ACCESS-EMP','admin',?,?)",[id,id.toLowerCase()+'@example.invalid',fixtureUser.password_hash,status]);
+    const route='/api/superadmin/admins/QA-ACCESS-A/history';
+    for(const role of ['admin','mho','bhw'])assert.equal((await request(route,role)).status,403);
+    assert.equal((await request(route,null)).status,401);
+    for(const id of ['QA-MHO','no-such-admin'])assert.equal((await request('/api/superadmin/admins/'+id+'/history','superadmin')).status,404);
+    const initial=await (await request(route,'superadmin')).json();assert.equal(initial.data.account.employee_id,'QA-ACCESS-EMP');assert.deepEqual(initial.data.events,[]);assert.ok(!JSON.stringify(initial).includes(fixtureUser.password_hash));
+    const baseline=async()=>{const [[row]]=await db.query("SELECT status,(SELECT COUNT(*) FROM system_audit_logs) AS events FROM users WHERE system_id='QA-ACCESS-A'");return row;};
+    const old=await baseline();
+    for(const reason of [undefined,'   ',{},'x'.repeat(501),'<b>markup</b>'])assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-ACCESS-A',reason})).status,400);
+    assert.deepEqual(await baseline(),old,'Invalid reasons must not change status or create events');
+    assert.equal((await request('/api/admin/suspend-user','admin',{system_id:'QA-ACCESS-A',reason:'Denied role'})).status,403);
+    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-A'})).status,409);
+    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-D'})).status,409);
+    assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-ACCESS-P',reason:'Wrong state'})).status,409);
+    await db.query('RENAME TABLE system_audit_logs TO qa_access_audit_hold');
+    try{assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-ACCESS-A',reason:'Must roll back'})).status,503);const [[row]]=await db.query("SELECT status FROM users WHERE system_id='QA-ACCESS-A'");assert.equal(row.status,'approved');}finally{await db.query('RENAME TABLE qa_access_audit_hold TO system_audit_logs');}
+    assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-ACCESS-A',reason:'  Access review\nWaiting for confirmation  '})).status,200);
+    assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-ACCESS-A',reason:'Repeated request'})).status,409);
+    let history=(await (await request(route,'superadmin')).json()).data;
+    const suspension=history.events[0],metadata=JSON.parse(suspension.details);assert.equal(suspension.user_id,'QA-SUPERADMIN');assert.equal(metadata.reason,'Access review\nWaiting for confirmation');assert.deepEqual(metadata.before,{status:'approved'});assert.deepEqual(metadata.after,{status:'suspended'});
+    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-A'})).status,409,'Restore must use the restoration action');
+    assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:'QA-ACCESS-A'})).status,200);
+    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-P'})).status,200);
+    for(const [action,details] of [['User Suspended','User Suspended: QA-ACCESS-A.'],['User Suspended','User Suspended: QA-ACCESS-A-extra.'],['Case Corrected','Patient QA-ACCESS-A'],['User Suspended','{bad JSON}']])await db.execute("INSERT INTO system_audit_logs(user_id,role,action,details) VALUES('QA-ACCESS-A','Admin',?,?)",[action,details]);
+    history=(await (await request(route,'superadmin')).json()).data;assert.equal(history.account.status,'approved');assert.equal(history.events.length,3);assert.ok(history.events.every(row=>row.target_type==='Account'&&row.target_id==='QA-ACCESS-A'));assert.ok(history.events.some(row=>row.action==='Access Restored'));assert.equal(history.has_more,false);
+    const records=Array.from({length:101},()=>['QA-ACCESS-A','Admin','Login Succeeded',JSON.stringify({summary:'Synthetic login',target_type:'Account',target_id:'QA-ACCESS-A',outcome:'Succeeded'})]);await db.query('INSERT INTO system_audit_logs(user_id,role,action,details) VALUES ?',[records]);
+    history=(await (await request(route,'superadmin')).json()).data;assert.equal(history.events.length,100);assert.equal(history.has_more,true);assert.ok(history.events.every(row=>row.target_id==='QA-ACCESS-A'));
+});
 test('BHW and MHO encoding roll back new residents and cases when their audit cannot be saved',async()=>{
     const [[category]]=await db.query("SELECT name FROM disease_registry WHERE status='Active' AND is_archived=0 ORDER BY name LIMIT 1");
     assert.ok(category,'An active condition is required for the encoding fixture');

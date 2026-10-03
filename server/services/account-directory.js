@@ -31,6 +31,21 @@ function createAccountDirectory(db) {
             return rows;
         },
 
+        async adminHistory(id) {
+            const [accounts] = await db.execute('SELECT system_id,first_name,last_name,email,employee_id,status,created_at FROM users WHERE system_id=? AND role=\'admin\'', [id]);
+            if (!accounts.length) return null;
+            const account = accounts[0];
+            // Only explicit Account references or exact legacy access-change messages.
+            // A matching actor alone does not establish which account was affected.
+            const [events] = await db.execute(`SELECT id,user_id,role,action,details,timestamp AS created_at FROM system_audit_logs
+                WHERE (JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(details),details,'{}'),'$.target_type'))='Account'
+                    AND JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(details),details,'{}'),'$.target_id'))=?)
+                OR (action IN ('Admin Approved','User Approved','User Suspended','Access Restored','User Request Denied','Denial Undone')
+                    AND details=CONCAT(action,': ',?,'.'))
+                ORDER BY timestamp DESC,id DESC LIMIT 101`, [account.system_id,account.system_id]);
+            return {account,events:events.slice(0,100),has_more:events.length>100};
+        },
+
         async adminAudit() {
             const query =
                 `SELECT id, user_id, action, timestamp as created_at, role, details FROM system_audit_logs WHERE role != 'SUPERADMIN' AND role != 'Superadmin' AND role != 'Super Admin' AND action NOT IN (${MASTER_ONLY_ACTIONS.map(()=>'?').join(',')}) ORDER BY timestamp DESC,id DESC`;

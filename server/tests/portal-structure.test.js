@@ -7,6 +7,23 @@ const {scriptPath} = require('./helpers/frontend-assets');
 const root = path.resolve(__dirname, '../..');
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
+test('Configured API origins clear localhost ports and retain explicit deployment ports',async()=>{
+    const script=fs.readFileSync(path.join(root,'assets/js/shared/api-session.js'),'utf8');
+    for(const origin of ['https://demo.example.test','https://demo.example.test:8443','http://127.0.0.1:3107']){
+        const calls=[];
+        const browser={HEALTH_INTEL_API_ORIGIN:origin,location:{href:origin+'/index.html',pathname:'/index.html'},fetch:async(input,options)=>{calls.push({url:input instanceof Request?input.url:String(input),options});return {ok:true};}};
+        const context={window:browser,URL,Request,Headers,localStorage:{getItem:()=> 'fixture-token',removeItem(){}},document:{addEventListener(){}},console};
+        vm.runInNewContext(script,context);
+        const options={method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_id:'FIXTURE-USER',password:'fixture-only'})};
+        await browser.fetch('http://localhost:3000/api/login?test=1',options);
+        assert.equal(calls[0].url,origin+'/api/login?test=1');assert.equal(calls[0].options.body,options.body);
+        await browser.fetch('http://localhost:3000/api/patients');
+        assert.equal(calls[1].url,origin+'/api/patients');assert.equal(calls[1].options.headers.get('Authorization'),'Bearer fixture-token');
+        await browser.fetch('https://unrelated.example.test/image.svg');assert.equal(calls[2].url,'https://unrelated.example.test/image.svg');
+        assert.equal(browser.HealthIntel.apiOrigin,origin);
+    }
+});
+
 // These tests exercise script order, startup and cross-feature calls from real HTML.
 // API, Firebase, charts and dialogs are mocked: no patient records or mail are created.
 function page(file) {
@@ -42,11 +59,11 @@ function page(file) {
     const authInstance={currentUser:authUser,signInWithPopup:async()=>({user:authUser})};
     const auth=()=>authInstance;auth.GoogleAuthProvider=function(){this.setCustomParameters=()=>{};};
     const s = {URLSearchParams,Intl,Date,TextEncoder,Event,console:{error:(...args)=>errors.push(args)},
-        document:{getElementById:id=>elements[id] || null,createElement:()=>element(),addEventListener:on,documentElement:element(),
-            querySelectorAll:selector=>selector.includes('nav-item')?navigation:[],querySelector:selector=>selector.includes('data-target')?navigation.find(n=>selector.includes(n.getAttribute('data-target'))):element()},
+        document:{readyState:'loading',body:element(),getElementById:id=>elements[id] || null,createElement:()=>element(),addEventListener:on,documentElement:element(),
+            querySelectorAll:selector=>selector.includes('nav-item')?navigation:[],querySelector:selector=>selector==='#sidebar, #main-sidebar, #superadmin-sidebar'?(elements.sidebar || elements['main-sidebar'] || elements['superadmin-sidebar']):selector==='[data-portal-menu]'?elements['sidebar-toggle']:selector.includes('data-target')?navigation.find(n=>selector.includes(n.getAttribute('data-target'))):element()},
         localStorage:{getItem:k=>storage.get(k) || null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
         lucide:{createIcons(){}},firebase:{initializeApp(){},auth},location:{href:'',replace(value){this.href=value;}},
-        addEventListener:on,dispatchEvent(event){for(const fn of events[event.type] || [])fn(event);},setInterval(){},setTimeout(){},
+        addEventListener:on,dispatchEvent(event){for(const fn of events[event.type] || [])fn(event);},setInterval(){},setTimeout(){},matchMedia:()=>({matches:false,addEventListener(){}}),
         Swal:{fire:async()=>({isConfirmed:false}),showLoading(){},close(){},isLoading:()=>false,showValidationMessage(){}},
         HealthIntel:{download:async(...args)=>downloads.push(args),clearSession(){}},
         HealthIntelEncoding:{escape:value=>String(value),conditionLabel:r=>r.disease || '',conditionCell:r=>r.disease || '',bindCondition(){},enhanceSelect(){},populateConditions(){}},
@@ -62,7 +79,7 @@ function page(file) {
     const prefix=file==='index.html'?'index-':file.split('.')[0]+'-';
     const names=[...html.matchAll(/<script src="assets\/js\/([^"]+\.js)"><\/script>/g)].map(m=>m[1]).filter(name=>path.basename(name).startsWith(prefix));
     function load() {
-        for(const name of ['safe-text.js','date-format.js',...names])vm.runInNewContext(fs.readFileSync(scriptPath(name),'utf8'),s,{filename:name});
+        for(const name of ['safe-text.js','date-format.js',...names,...(html.includes('portal-navigation.js')?['portal-navigation.js']:[])])vm.runInNewContext(fs.readFileSync(scriptPath(name),'utf8'),s,{filename:name});
     }
     async function start(){for(const fn of events.DOMContentLoaded || [])await fn();await settle();await settle();}
     function hooks(){for(const [,name] of html.matchAll(/\bon(?:click|keyup|change|submit)="([a-zA-Z_$][\w$]*)\(/g))assert.equal(typeof s[name],'function',`${file}: ${name}`);}
@@ -96,6 +113,33 @@ test('MHO split scripts retain API charts, filter refresh and report downloads',
     assert.equal(p.downloads.length,1);assert.match(p.downloads[0][0],/\/api\/mho\/reports\/fhsis\?/);
 });
 
+test('MHO navigation keeps the requested workflow order and defaults to Philippine month and ISO week',async()=>{
+    const p=page('mho.html');p.load();
+    assert.deepEqual(p.navigation.map(node=>node.getAttribute('data-target')),['view-analytics','view-history','view-disease-review','view-predictive','view-heatmap','view-reports']);
+    for(const [day,month,year,week,isoYear] of [
+        ['2026-10-02','October','2026','40','2026'],
+        ['2025-12-29','December','2025','1','2026'],
+        ['2027-01-01','January','2027','53','2026'],
+        ['2027-01-04','January','2027','1','2027']
+    ]){
+        p.s.initializeMhoReportPeriods(day);
+        assert.equal(p.elements['fhsis-month'].value,month);assert.equal(p.elements['fhsis-year'].value,year);
+        assert.equal(p.elements['pidsr-week'].value,week);assert.equal(p.elements['pidsr-year'].value,isoYear);
+    }
+    p.s.HealthIntelDate.todayInManila=()=> '2026-10-02';await p.start();
+    assert.equal(p.elements['fhsis-month'].value,'October');assert.equal(p.elements['pidsr-week'].value,'40');
+    p.elements['pidsr-week'].value='1';p.elements['pidsr-year'].value='2026';await p.s.generateOfficialPDF('PIDSR');
+    assert.match(p.downloads.at(-1)[0],/week=1&year=2026/,'Explicit older period choices must remain usable');
+});
+
+test('Superadmin logout uses clear wording, respects cancel and clears the session on confirmation',async()=>{
+    const p=page('superadmin.html');p.load();let dialog,cleared=false;
+    p.s.HealthIntel.clearSession=()=>{cleared=true;};p.s.Swal.fire=async options=>{dialog=options;return {isConfirmed:false};};
+    p.s.logout();await settle();assert.equal(dialog.title,'Log out?');assert.equal(dialog.confirmButtonText,'Log out');assert.equal(cleared,false);
+    p.s.Swal.fire=async()=>({isConfirmed:true});p.s.logout();await settle();
+    assert.equal(cleared,true);assert.equal(p.s.location.href,'index.html');
+});
+
 test('Superadmin startup, ledger Sync and canceled backup survive script separation',async()=>{
     const p=page('superadmin.html');p.load();await p.start();p.hooks();
     assert.deepEqual(p.errors,[]);
@@ -105,6 +149,74 @@ test('Superadmin startup, ledger Sync and canceled backup survive script separat
     await p.s.loadAuditLogs();assert.match(p.elements['audit-table-body'].innerHTML,/FIXTURE-BHW/);
     await p.s.backupDB();assert.equal(p.elements['backup-download-button'].disabled,false);assert.equal(p.downloads.length,0);
     p.s.toggleSuperTheme();assert.equal(p.s.document.documentElement.classList.contains('dark'),true);
+});
+
+test('Superadmin distinguishes account states and never treats a denied account as suspended',async()=>{
+    const p=page('superadmin.html');p.load();
+    p.elements['stat-active-admins'].innerText=9;
+    p.s.response=()=>({success:true,data:['approved','pending','suspended','denied','unexpected'].map(status=>({system_id:'QA-'+status,role:'admin',status,created_at:'2026-10-02'}))});
+    await p.s.loadAdmins();
+    const rows=p.elements['user-table-body'].innerHTML.match(/<tr\b[\s\S]*?<\/tr>/g);
+    for(const [index,label,action] of [[0,'Active','Suspend'],[1,'Pending','Approve'],[2,'Suspended','Restore'],[3,'Denied',null],[4,'Unknown',null]]){
+        assert.match(rows[index],new RegExp('>'+label+'<'));
+        if(action) assert.match(rows[index],new RegExp('>'+action+'<'));
+        else assert.doesNotMatch(rows[index],/toggleAdminStatus/);
+    }
+    assert.equal(p.elements['stat-active-admins'].innerText,9,'Loading Admin accounts must not overwrite the all-personnel health count');
+    p.s.Swal.fire=async()=>({isConfirmed:true});
+    await p.s.toggleAdminStatus('QA-pending','approved');
+    const update=p.requests.find(r=>r.url.endsWith('/approve-admin'));
+    assert.equal(JSON.parse(update.options.body).system_id,'QA-pending');
+    let errorDialog;p.s.Swal.fire=async options=>{errorDialog=options;return {isConfirmed:true};};
+    p.s.response=()=>({success:false,error:'Account update refused'});
+    await p.s.toggleAdminStatus('QA-suspended','approved');
+    assert.equal(errorDialog.title,'Account update failed');
+    assert.equal(errorDialog.text,'Account update refused');
+});
+
+test('Admin Access searches identity fields, filters status and requires a confirmed suspension reason',async()=>{
+    const p=page('superadmin.html');p.load();
+    const accounts=[{system_id:'QA-A',first_name:'Ada',last_name:'Tester',email:'ada@example.invalid',employee_id:'EMP-42',role:'admin',status:'approved'},
+        {system_id:'QA-P',first_name:'Other',last_name:'Reviewer',email:'other@example.invalid',role:'admin',status:'pending'}];
+    p.s.response=url=>({success:true,data:url.endsWith('/users')?accounts:[]});await p.s.loadAdmins();
+    for(const search of ['ada tester','ADA@EXAMPLE','EMP-42','qa-a']){
+        p.elements['admin-search'].value=search;p.s.renderAdmins();assert.match(p.elements['user-table-body'].innerHTML,/QA-A/);assert.doesNotMatch(p.elements['user-table-body'].innerHTML,/QA-P/);
+    }
+    p.elements['admin-search'].value='';p.elements['admin-status-filter'].value='pending';p.s.renderAdmins();assert.match(p.elements['user-table-body'].innerHTML,/QA-P/);assert.doesNotMatch(p.elements['user-table-body'].innerHTML,/QA-A/);
+    p.elements['admin-search'].value='not found';p.s.renderAdmins();assert.match(p.elements['user-table-body'].innerHTML,/No Admin accounts match/);
+    const before=p.requests.length;
+    p.s.Swal.fire=async()=>({isConfirmed:false});await p.s.toggleAdminStatus('QA-A','suspended');assert.equal(p.requests.length,before);
+    let prompt;p.s.Swal.fire=async options=>{prompt=options;return {isConfirmed:true,value:'   '};};await p.s.toggleAdminStatus('QA-A','suspended');assert.equal(p.requests.length,before);
+    assert.ok(prompt.inputValidator(''));assert.ok(prompt.inputValidator('x'.repeat(501)));assert.ok(prompt.inputValidator('<b>reason</b>'));
+    p.s.Swal.fire=async()=>({isConfirmed:true,value:'  Account access review\nAwaiting confirmation  '});await p.s.toggleAdminStatus('QA-A','suspended');
+    const request=p.requests.find(row=>row.url.endsWith('/suspend-user'));
+    assert.deepEqual(JSON.parse(request.options.body),{system_id:'QA-A',reason:'Account access review\nAwaiting confirmation'});
+    assert.ok(p.requests.some(row=>row.url.endsWith('/audit-logs')),'Account actions refresh Master Ledger');
+    accounts[0].status='suspended';await p.s.loadAdmins();await p.s.toggleAdminStatus('QA-A','approved');assert.ok(p.requests.some(row=>row.url.endsWith('/restore-suspended')));
+});
+
+test('Admin account details escape saved identity/reasons and report missing history without inventing it',async()=>{
+    const p=page('superadmin.html');p.load();let dialog;
+    p.s.Swal.fire=async options=>{dialog=options;};
+    p.s.response=()=>({success:true,data:{account:{system_id:'QA-A',first_name:'<unsafe>',last_name:'Tester',email:'qa@example.invalid',status:'suspended'},has_more:true,events:[
+        {action:'User Suspended',outcome:'Succeeded',user_id:'QA-SUP',role:'Superadmin',created_at:'2026-10-02T00:00:00Z',details:JSON.stringify({summary:'Saved suspension',reason:'<script>bad</script>',before:{status:'approved'},after:{status:'suspended'}})},
+        {action:'User Suspended',user_id:'QA-SUP',role:'Superadmin',details:'Legacy event'}]}});
+    await p.s.viewAdminAccount('QA-A');assert.match(p.requests[0].url,/\/superadmin\/admins\/QA-A\/history$/);
+    assert.match(dialog.html,/&lt;unsafe&gt;/);assert.match(dialog.html,/&lt;script&gt;bad/);assert.doesNotMatch(dialog.html,/<script>|<unsafe>/);
+    assert.match(dialog.html,/Active → Suspended/);assert.match(dialog.html,/Suspension reason was not recorded/);assert.match(dialog.html,/latest 100/);
+    p.s.response=()=>({success:true,data:{account:{system_id:'QA-A'},events:[],has_more:false}});await p.s.viewAdminAccount('QA-A');assert.match(dialog.html,/No linked access events/);
+    p.s.response=()=>({success:false,error:'Try later'});await p.s.viewAdminAccount('QA-A');assert.equal(dialog.title,'Account history unavailable');assert.equal(dialog.text,'Try later');
+});
+
+test('Superadmin restart control gives manual instructions without a request or false success',async()=>{
+    const p=page('superadmin.html');p.load();let dialog;
+    p.s.Swal.fire=async options=>{dialog=options;return {isConfirmed:true};};
+    await p.s.restartServices();
+    assert.match(p.html,/View instructions/);
+    assert.equal(dialog.title,'Manual server restart');
+    assert.match(dialog.text,/Ctrl\+C/);assert.match(dialog.text,/npm start/);
+    assert.equal(dialog.icon,'info');assert.equal(p.requests.length,0);
+    assert.doesNotMatch(JSON.stringify(dialog),/Services Restarted|Force Restart/);
 });
 
 test('Master Ledger filters combine actor, role, action and Philippine dates; details escape text and retain recorded changes',async()=>{

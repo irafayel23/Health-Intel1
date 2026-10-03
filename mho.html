@@ -47,13 +47,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
       <link rel="stylesheet" href="assets/css/shared/encoding-controls.css">
     <script src="assets/js/shared/encoding-controls.js"></script>
+    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261003">
   </head>
-  <body class="h-screen flex overflow-hidden antialiased selection:bg-emerald-500/30 bg-slate-100 dark:bg-neutral-950">
+  <body class="hi-portal h-screen flex overflow-hidden antialiased selection:bg-emerald-500/30 bg-slate-100 dark:bg-neutral-950">
     <!-- Sidebar -->
     <aside id="sidebar" class="w-64 bg-transparent flex flex-col transition-all duration-300 relative z-10 shrink-0">
       <!-- Logo Area -->
       <div class="h-16 flex items-center px-6 group cursor-default pt-4">
-        <img src="assets/img/Logo-Health-Intel.png" alt="Logo" class="w-8 h-8 mr-3 object-contain hover:scale-110 transition-transform duration-300">
+        <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="w-8 h-8 mr-3 shrink-0 rounded-lg bg-white hover:scale-110 transition-transform duration-300" overflow="hidden">
+          <image href="assets/img/Logo-Health-Intel.png?v=concept-06" width="1280" height="1280" />
+        </svg>
         <h2 id="sidebar-text" class="font-bold text-lg tracking-tight whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent group-hover:tracking-wider">HEALTH-INTEL</h2>
       </div>
 
@@ -63,19 +66,19 @@
           <i data-lucide="bar-chart-2" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Mun. Analytics</span>
         </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-heatmap" aria-label="View Heatmap">
-          <i data-lucide="map" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
-          <span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
-        </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-predictive" aria-label="View Predictive Models">
-          <i data-lucide="brain-circuit" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
-          <span class="sidebar-label whitespace-nowrap">Predictions</span>
-        </button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-history" aria-label="Record walk-in patients">
           <i data-lucide="user-plus" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Walk-in Patients</span>
         </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400" data-target="view-disease-review" aria-label="Review unlisted conditions"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="label">Disease Review</span><span id="disease-review-count" class="hi-review-count" hidden>0</span></button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400" data-target="view-disease-review" aria-label="Review unlisted conditions"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Disease Review</span><span id="disease-review-count" class="hi-review-count" hidden>0</span></button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-predictive" aria-label="View Predictive Models">
+          <i data-lucide="brain-circuit" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Predictions</span>
+        </button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-heatmap" aria-label="View Heatmap">
+          <i data-lucide="map" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
+        </button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-reports" aria-label="Export Reports">
           <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Export Reports</span>
@@ -101,7 +104,7 @@
       <header class="h-16 flex items-center justify-between px-6 z-20 bg-transparent">
         <div class="flex items-center gap-4">
           <!-- Sidebar Toggle -->
-          <button id="sidebar-toggle" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-emerald-500 transition-colors">
+          <button id="sidebar-toggle" data-portal-menu aria-label="Toggle sidebar" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-emerald-500 transition-colors">
             <i data-lucide="panel-left-close" id="sidebar-icon" class="w-5 h-5"></i>
           </button>
           <div id="dynamic-portal-title" class="text-sm font-semibold text-slate-900 dark:text-slate-300">
@@ -125,7 +128,7 @@
       </header>
 
       <!-- Scrollable Content Area -->
-      <div class="flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
+      <div class="mho-page-scroll flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
         <div id="view-analytics" class="view-section">
           <div class="analytics-header mho-analytics-heading">
             <div>
@@ -550,6 +553,7 @@
     <script src="assets/js/mho/mho-analytics.js"></script>
     <script src="assets/js/mho/mho-reports.js"></script>
   <script src="assets/js/mho/mho-account.js"></script>
+    <script src="assets/js/shared/portal-navigation.js"></script>
   </body>
 </html>
 

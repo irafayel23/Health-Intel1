@@ -6,6 +6,8 @@ Verified against the active implementation on 1 October 2026.
 
 The role portals use HTML, Tailwind, vanilla JavaScript and section navigation. Connected pages load feature scripts from role folders under `assets/js/`, alongside helpers in `assets/js/shared/`. Styles use role folders and `assets/css/shared/`; Tailwind configuration remains inline. Chart.js draws descriptive and forecast charts; Leaflet shows barangay summaries. `assets/js/shared/api-session.js` attaches the stored JWT only to the configured API and handles session expiry. MHO reports use backend PDFKit; BHW reports use scoped API data and browser PDF generation.
 
+The four portals also load `portal-navigation.js` after their role scripts and `portal-responsive.css` after their role styles. At widths up to 900px they provide an accessible overlay navigation drawer, full-width content and local table scrolling. Desktop collapse handlers remain role-owned. See [verified layouts and device-testing limits](RESPONSIVE_LAYOUT.md).
+
 ## Application
 
 `server/server.js` configures the Express app, database pool, and access-control middleware, then registers the modules in `server/routes/`. `server/middleware/access-control.js` checks database role/status on protected requests and enforces BHW barangay scope. Tokens contain a password-hash-derived session version; resetting or changing a password revokes older tokens. Public onboarding/recovery endpoints still require their own validation and rate limits.

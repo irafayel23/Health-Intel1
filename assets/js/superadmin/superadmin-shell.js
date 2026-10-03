@@ -26,11 +26,11 @@
 
       function logout() {
         Swal.fire({
-          title: "System Disconnect",
-          text: "Are you sure you want to terminate session?",
-          icon: "warning",
+          title: "Log out?",
+          text: "Do you want to log out of Health-Intel?",
+          icon: "question",
           showCancelButton: true,
-          confirmButtonText: "Terminate"
+          confirmButtonText: "Log out"
         }).then((result) => {
           if (result.isConfirmed) { HealthIntel.clearSession(); window.location.href = "index.html"; }
         });

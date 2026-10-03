@@ -1,4 +1,4 @@
-// Superadmin health overview and existing service dialog.
+// Superadmin health overview and manual service-restart guidance.
 // Classic script: load through superadmin.html; cross-feature functions share its page scope.
       async function loadSystemHealth() {
           try {
@@ -49,15 +49,10 @@
 
 
       function restartServices() {
-        Swal.fire({
-          title: "Restart Services",
-          text: "This will momentarily disconnect all active sessions. Proceed?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "Force Restart"
-        }).then((result) => {
-          if (result.isConfirmed) {
-            Swal.fire({title: "Services Restarted", icon: "success", timer: 1500, showConfirmButton: false});
-          }
+        return Swal.fire({
+          title: "Manual server restart",
+          text: "Restarting from this dashboard is unavailable. On the server computer, stop the backend with Ctrl+C in its terminal, then run npm start from the server folder. Current requests will be interrupted while the backend restarts.",
+          icon: "info",
+          confirmButtonText: "Understood"
         });
       }

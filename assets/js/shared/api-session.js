@@ -21,6 +21,7 @@
             const configured = new URL(apiOrigin);
             url.protocol = configured.protocol;
             url.host = configured.host;
+            url.port = configured.port;
             target = input instanceof Request ? new Request(url.href, input) : url.href;
         }
         if (!isApiUrl(url) || publicPaths.has(url.pathname)) return originalFetch(target, options);

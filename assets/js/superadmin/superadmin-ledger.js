@@ -74,13 +74,13 @@ function renderAuditTable() {
         const outcome=log.outcome || 'Not recorded';
         const color=outcome==='Failed'?'text-red-600 dark:text-red-400':outcome==='Succeeded'?'text-emerald-700 dark:text-emerald-400':'text-slate-600 dark:text-neutral-400';
         return `<tr class="border-b border-slate-200 dark:border-neutral-800">
-            <td class="p-4 whitespace-nowrap text-xs">${escapeText(ledgerTime(log.created_at))}</td>
-            <td class="p-4 whitespace-nowrap">${escapeText(log.user_id)}</td>
-            <td class="p-4 whitespace-nowrap">${escapeText(log.role)}</td>
-            <td class="p-4">${escapeText(log.action)}</td>
-            <td class="p-4 text-xs">${escapeText(log.target_type?`${log.target_type}: ${log.target_id || 'Not recorded'}`:'Not recorded')}</td>
-            <td class="p-4 text-xs whitespace-nowrap ${color}">${escapeText(outcome)}</td>
-            <td class="p-4 text-xs"><p class="mb-2 whitespace-pre-line">${escapeText(HealthIntelText.auditDetails(log))}</p>${validId?`<button onclick="viewLedgerEvent(${id})" class="rounded-lg border border-slate-300 dark:border-neutral-700 px-3 py-2 hover:bg-slate-100 dark:hover:bg-neutral-800">View details</button>`:''}</td>
+            <td class="p-3 text-xs break-words">${escapeText(ledgerTime(log.created_at))}</td>
+            <td class="p-3 break-words">${escapeText(log.user_id)}</td>
+            <td class="p-3 break-words">${escapeText(log.role)}</td>
+            <td class="p-3 [overflow-wrap:anywhere]"><p class="font-medium">${escapeText(log.action)}</p><p class="mt-2 text-xs text-slate-600 dark:text-neutral-400 whitespace-pre-line line-clamp-3">${escapeText(HealthIntelText.auditDetails(log))}</p></td>
+            <td class="p-3 text-xs [overflow-wrap:anywhere]">${escapeText(log.target_type?`${log.target_type}: ${log.target_id || 'Not recorded'}`:'Not recorded')}</td>
+            <td class="p-3 text-xs break-words ${color}">${escapeText(outcome)}</td>
+            <td class="sticky right-0 z-10 bg-white dark:bg-neutral-900 p-3 text-xs text-center border-l border-slate-300 dark:border-neutral-800">${validId?`<button onclick="viewLedgerEvent(${id})" class="whitespace-nowrap rounded-lg border border-slate-300 dark:border-neutral-700 px-3 py-2 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-neutral-800">View details</button>`:''}</td>
         </tr>`;
     }).join('');
     pagination.classList.remove('hidden');

@@ -15,6 +15,7 @@ const rules = [
     ['GET', /^\/admin\/cases\/\d+$/, ['admin']],
     ['POST', /^\/admin\/(approve-user|deny-user|undo-deny|suspend-user|restore-suspended)$/, ['admin', 'superadmin']],
     ['GET', /^\/superadmin\/(pending-admins|health|users|audit-logs)$/, ['superadmin']],
+    ['GET', /^\/superadmin\/admins\/[^/]+\/history$/, ['superadmin']],
     ['POST', /^\/superadmin\/(approve-admin|backup)$/, ['superadmin']],
     ['GET', /^\/bhw\/context$/, ['bhw']],
     ['GET', /^\/bhw\/(encoding-options|puroks)$/, ['bhw']],

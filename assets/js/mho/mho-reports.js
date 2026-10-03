@@ -4,8 +4,33 @@
 
 
       // ==========================================
-      // OFFICIAL DOH PDF GENERATOR (Backend)
+      // MHO report summaries (Backend); official mappings remain unvalidated.
       // ==========================================
+      function initializeMhoReportPeriods(today = HealthIntelDate.todayInManila()) {
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const date = new Date(today + 'T00:00:00Z');
+        const selectYear = (id, year) => {
+          const select = document.getElementById(id);
+          const value = String(year);
+          if (![...select.options].some(option => option.value === value)) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = value;
+            select.prepend(option);
+          }
+          select.value = value;
+        };
+        document.getElementById('fhsis-month').value = months[date.getUTCMonth()];
+        selectYear('fhsis-year', date.getUTCFullYear());
+        const thursday = new Date(date);
+        thursday.setUTCDate(thursday.getUTCDate() + 3 - ((thursday.getUTCDay() + 6) % 7));
+        const isoYear = thursday.getUTCFullYear();
+        const week = Math.ceil(((thursday - Date.UTC(isoYear, 0, 1)) / 86400000 + 1) / 7);
+        document.getElementById('pidsr-week').value = String(week);
+        selectYear('pidsr-year', isoYear);
+      }
+      document.addEventListener('DOMContentLoaded', () => initializeMhoReportPeriods());
+
       async function generateOfficialPDF(reportType) {
         let url;
         if (reportType === 'FHSIS') {
