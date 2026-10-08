@@ -19,9 +19,9 @@
                   if (up < 60) document.getElementById("stat-uptime").innerText = "< 1m";
 
                   document.getElementById("status-db").innerText = "Connected";
-                  document.getElementById("status-db").className = "text-emerald-500 font-bold";
+                  document.getElementById("status-db").className = "text-emerald-700 dark:text-emerald-400 font-bold";
                   document.getElementById("status-api").innerText = "Connected";
-                  document.getElementById("status-api").className = "text-emerald-500 font-bold";
+                  document.getElementById("status-api").className = "text-emerald-700 dark:text-emerald-400 font-bold";
 
                   const st = document.getElementById("sys-status-text");
                   if(st) st.innerText = "All core modules operational";
@@ -30,19 +30,19 @@
               }
           } catch (e) {
               const st = document.getElementById("sys-status-text");
-              if(st) { st.innerText = "CRITICAL: Database connection lost"; st.className = "text-red-500 font-bold text-sm mb-8"; }
+              if(st) { st.innerText = "CRITICAL: Database connection lost"; st.className = "text-red-700 dark:text-red-400 font-bold text-sm mb-8"; }
               const sb = document.getElementById("sys-status-bar");
               if(sb) sb.className = "h-full bg-red-500";
 
               const sdb = document.getElementById("status-db");
               if (sdb) {
                   sdb.innerText = "Disconnected";
-                  sdb.className = "text-red-500 font-bold";
+                  sdb.className = "text-red-700 dark:text-red-400 font-bold";
               }
               const sapi = document.getElementById("status-api");
               if (sapi) {
                   sapi.innerText = "Offline";
-                  sapi.className = "text-red-500 font-bold";
+                  sapi.className = "text-red-700 dark:text-red-400 font-bold";
               }
           }
       }

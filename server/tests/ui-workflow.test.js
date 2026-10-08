@@ -124,7 +124,7 @@ test('BHW PDFs explain empty periods and preserve surveillance location filters'
     for (const type of ['MONTHLY','SURVEILLANCE']) {
         const alerts = [], elements = { 'bhw-report-month':{value:'October'}, 'bhw-report-year':{value:'2026'}, 'bhw-purok-filter':{value:'QA Zone'} };
         let table, filename, requested;
-        const sandbox = { console, URLSearchParams, Intl, Date, document:{getElementById:id=>elements[id],addEventListener(){}},
+        const sandbox = { console, URLSearchParams, Intl, Date, HealthIntelPDF:{ensure:async()=>{}}, document:{getElementById:id=>elements[id],addEventListener(){}},
             window:{currentBrgyId:1,currentBrgyName:'Fixture Barangay',jspdf:{jsPDF:class {setFontSize(){} text(){} autoTable(value){table=value;} save(value){filename=value;}}}},
             Swal:{fire:(...args)=>alerts.push(args)},fetch:async url=>{requested=url;return {json:async()=>({success:true,data:type==='SURVEILLANCE'?[{purok:'Other Zone'}]:[]})};} };
         sandbox.window=sandbox.window || {};vm.runInNewContext(script('safe-text.js'),sandbox);vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
@@ -137,4 +137,66 @@ test('BHW PDFs explain empty periods and preserve surveillance location filters'
         assert.equal(alerts.at(-1)[0],'No matching cases');
         assert.equal(alerts.at(-1)[2],'info');
     }
+});
+
+test('Admin archive and restore keep failed saves in the dialog instead of claiming success', async () => {
+    for (const action of ['archive','restore']) {
+        for (const failure of ['http','network']) {
+            const notices=[];let validation, refreshed=0;
+            const sandbox={console,window:{addEventListener(){}},document:{getElementById(){return null;}},lucide:{createIcons(){}},
+                fetch:async()=>{if(failure==='network')throw Error('Connection lost');return {ok:false,json:async()=>({success:false,error:'Save rejected'})};},
+                Swal:{isLoading:()=>false,showValidationMessage:message=>{validation=message;},fire:async options=>{notices.push(options);if(options.preConfirm){const value=await options.preConfirm();return {isConfirmed:value!==false,value};}return {};}}};
+            loadAdminScripts(sandbox);
+            sandbox.fetchPatientRecords=()=>{refreshed++;};sandbox.loadArchivedPatients=()=>{refreshed++;};
+            await sandbox[action==='archive'?'archivePatient':'restorePatient'](42);
+            assert.equal(validation,failure==='http'?'Save rejected':'Connection lost');
+            assert.equal(notices.length,1);assert.equal(refreshed,0);
+        }
+    }
+});
+
+test('PDF loading retries a failed plugin without downloading the core library again', async () => {
+    const tags=[];const sandbox={window:{},document:{createElement:()=>({remove(){}}),head:{append:tag=>tags.push(tag)}}};
+    vm.runInNewContext(script('pdf-export.js'),sandbox);
+    const first=sandbox.window.HealthIntelPDF.ensure();
+    assert.equal(tags.length,1);
+    sandbox.window.jspdf={jsPDF:{API:{}}};tags[0].onload();
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(tags.length,2);tags[1].onerror();
+    await assert.rejects(first,/PDF tools could not load/);
+    const retry=sandbox.window.HealthIntelPDF.ensure();
+    assert.equal(tags.length,3);assert.match(tags[2].src,/autotable/);
+    sandbox.window.jspdf.jsPDF.API.autoTable=()=>{};tags[2].onload();await retry;
+    await sandbox.window.HealthIntelPDF.ensure();assert.equal(tags.length,3);
+});
+
+test('account and registry failures show errors without refreshing or reporting success', async () => {
+    for (const failure of ['http','network','rejected']) {
+        const notices=[];let refreshes=0;
+        const sandbox={console,window:{addEventListener(){}},document:{getElementById(){return null;}},lucide:{createIcons(){}},
+            fetch:async()=>{if(failure==='network')throw Error('Connection lost');return {ok:failure==='rejected',json:async()=>({success:false,error:'Change rejected'})};},
+            Swal:{fire:async (...args)=>{notices.push(args);return {isConfirmed:true};}}};
+        loadAdminScripts(sandbox);sandbox.loadUsers=()=>{refreshes++;};sandbox.loadDiseases=()=>{refreshes++;};
+        await sandbox.denyUser('QA-PENDING');await sandbox.undoDeny('QA-PENDING');
+        await sandbox.suspendUser('QA-BHW');await sandbox.restoreSuspended('QA-BHW');
+        await sandbox.archiveDisease(42);await sandbox.restoreDisease(42);
+        await new Promise(resolve=>setImmediate(resolve));
+        assert.equal(refreshes,0);
+        const errors=notices.filter(args=>args[2]==='error');assert.equal(errors.length,6);
+        assert.ok(errors.every(args=>args[1]===(failure==='network'?'Connection lost':'Change rejected')));
+        assert.ok(!notices.some(args=>args[2]==='success'||args[0]?.icon==='success'));
+    }
+});
+
+test('Google verification prevents competing popups and restores its button after failure', async () => {
+    const elements={},dialogs=[];let requests=0,rejectPopup;
+    const element=id=>elements[id] ||= {checked:true,disabled:false,style:{},listeners:{},attributes:{},addEventListener(name,handler){this.listeners[name]=handler;},setAttribute(name,value){this.attributes[name]=value;},removeAttribute(name){delete this.attributes[name];}};
+    const sandbox={document:{getElementById:element},firebase:{auth:{GoogleAuthProvider:class {setCustomParameters(){}}}},
+        auth:{signInWithPopup(){requests++;return new Promise((_,reject)=>{rejectPopup=reject;});}},Swal:{fire:value=>dialogs.push(value)}};
+    vm.runInNewContext(script('index-registration.js'),sandbox);
+    const button=element('btn-google-login'),click=()=>button.listeners.click({preventDefault(){}});
+    click();click();assert.equal(requests,1);assert.equal(button.disabled,true);assert.equal(button.attributes['aria-busy'],'true');
+    rejectPopup({code:'auth/popup-blocked'});await new Promise(resolve=>setImmediate(resolve));
+    assert.match(dialogs.at(-1).text,/blocked the Google window/);assert.equal(button.disabled,false);assert.equal(button.attributes['aria-busy'],undefined);
+    element('privacy-checkbox').checked=false;click();assert.equal(requests,1);
 });

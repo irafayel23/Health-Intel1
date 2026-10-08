@@ -1,19 +1,10 @@
 
       function escapeText(value) { return window.HealthIntelText.escape(value); }
 
-      let isDarkMode = false; 
       function toggleDarkMode() {
-        isDarkMode = !isDarkMode;
-        if(isDarkMode) {
-          document.documentElement.classList.add('dark');
-          document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
-        } else {
-          document.documentElement.classList.remove('dark');
-          document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
-        }
-        lucide.createIcons();
+        HealthIntelTheme.toggle();
       }
-      
+
       let sidebarOpen = true;
       function toggleSidebar() {
         sidebarOpen = !sidebarOpen;
@@ -21,7 +12,7 @@
         const icon = document.getElementById('sidebar-icon');
         const labels = document.querySelectorAll('.sidebar-label');
         const text = document.getElementById('sidebar-text');
-        
+
         if (sidebarOpen) {
           sidebar.classList.remove('w-20');
           sidebar.classList.add('w-64');
@@ -40,4 +31,4 @@
           setTimeout(() => map.invalidateSize(), 300);
         }
       }
-    
+

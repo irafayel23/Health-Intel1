@@ -3,9 +3,10 @@
       const privacyCheckbox = document.getElementById("privacy-checkbox");
       const googleBtn = document.getElementById("btn-google-login");
       let userEmail = "";
+      let googleVerificationPending = false;
 
       privacyCheckbox.addEventListener("change", function () {
-        if (this.checked) {
+        if (this.checked && !googleVerificationPending) {
           googleBtn.disabled = false;
           googleBtn.style.opacity = "1";
           googleBtn.style.cursor = "pointer";
@@ -18,6 +19,10 @@
 
       googleBtn.addEventListener("click", function (e) {
         e.preventDefault();
+        if (googleVerificationPending || !privacyCheckbox.checked) return;
+        googleVerificationPending = true;
+        googleBtn.disabled = true;
+        googleBtn.setAttribute('aria-busy', 'true');
         const provider = new firebase.auth.GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
 
@@ -58,7 +63,20 @@
             }
             toggleForms("profile");
           }).catch((error) => {
-            Swal.fire({ icon: "error", title: "Authentication Failed", text: "Google Sign-In failed." });
+            const messages = {
+              'auth/popup-blocked': 'Your browser blocked the Google window. Allow popups for this site, then try again.',
+              'auth/popup-closed-by-user': 'The Google window closed before verification finished. Try again and complete the sign-in.',
+              'auth/cancelled-popup-request': 'Another Google sign-in is already open. Complete it, or close it and try again.',
+              'auth/unauthorized-domain': 'This website address is not authorized in Firebase. Ask the project administrator to add this domain.',
+              'auth/operation-not-allowed': 'Google sign-in is not enabled for this project. Contact the project administrator.',
+              'auth/network-request-failed': 'Google could not be reached. Check your connection and try again.'
+            };
+            const code = /^auth\/[a-z-]+$/.test(error?.code || '') ? error.code : '';
+            Swal.fire({ icon: 'error', title: 'Authentication Failed', text: messages[code] || `Google verification could not finish${code ? ` (${code})` : ''}. Try again or contact the project administrator.` });
+          }).finally(() => {
+            googleVerificationPending = false;
+            googleBtn.disabled = !privacyCheckbox.checked;
+            googleBtn.removeAttribute('aria-busy');
           });
       });
 

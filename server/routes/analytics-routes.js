@@ -1,9 +1,11 @@
 const { createDashboardData } = require('../services/dashboard-data');
 const { spawn } = require('child_process');
+const { createForecastCapacity } = require('../services/forecast-capacity');
 const { createDiseaseRegistryHandlers, createDiseaseRegistryData } = require('../services/disease-registry');
 const { analyticsFilters, caseWhere, sendAnalyticsError } = require('../services/mho-analytics');
 
 function registerAnalyticsRoutes(app, db, pythonExecutable) {
+    const forecastCapacity = createForecastCapacity(Number(process.env.FORECAST_MAX_CONCURRENT || 1));
     const dashboard = createDashboardData(db);
     const registry = createDiseaseRegistryHandlers(db);
     const catalog = createDiseaseRegistryData(db);
@@ -144,12 +146,21 @@ function registerAnalyticsRoutes(app, db, pythonExecutable) {
                     error: 'Forecast selections could not be checked. Please try again.'
                 });
         }
+        const releaseCapacity = forecastCapacity.acquire();
+        if (!releaseCapacity) {
+            return res.set('Retry-After', '5').status(503).json({
+                success: false,
+                code: 'FORECAST_BUSY',
+                error: 'Another forecast is running. Please try again shortly.'
+            });
+        }
         let pythonProcess;
         try {
             pythonProcess = spawn(pythonExecutable, [__dirname + '/../analytics.py', disease, barangay], {
                 windowsHide: true
             });
         } catch {
+            releaseCapacity();
             return res
                 .status(503)
                 .json({
@@ -190,6 +201,8 @@ function registerAnalyticsRoutes(app, db, pythonExecutable) {
             console.error(`Python Error: ${data}`);
         });
         pythonProcess.on('close', (code) => {
+            // Hold the slot until the worker actually exits, even after a timeout or disconnect.
+            releaseCapacity();
             if (code !== 0) {
                 return finish(503, {
                     success: false,

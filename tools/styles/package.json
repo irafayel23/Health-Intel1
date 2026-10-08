@@ -1,0 +1,9 @@
+{
+  "name": "health-intel-styles",
+  "private": true,
+  "scripts": {
+    "build:mho": "tailwindcss --config tailwind.config.cjs --input mho.css --output ../../assets/css/mho/mho-utilities.css --minify",
+    "build:portals": "node build-portals.cjs"
+  },
+  "devDependencies": { "tailwindcss": "3.4.17" }
+}

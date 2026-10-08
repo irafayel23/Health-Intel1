@@ -2,7 +2,7 @@ require('./config/security-config').loadEnvironment();
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const cors = require('cors');
+const { readDeploymentConfig, configureDeployment } = require('./config/deployment-config');
 const mysql = require('mysql2/promise');
 const { createAccessControl, loadJwtSecret } = require('./middleware/access-control');
 const { handlers: correctionHandlers } = require('./services/case-corrections');
@@ -17,8 +17,8 @@ const JWT_SECRET = loadJwtSecret();
 const projectPython = path.join(__dirname, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
 const pythonExecutable = process.env.PYTHON_PATH || (fs.existsSync(projectPython) ? projectPython : 'python');
 const app = express();
-
-app.use(cors());
+const deployment = readDeploymentConfig();
+configureDeployment(app, deployment);
 app.use(express.json());
 
 // ==========================================
@@ -45,8 +45,21 @@ registerMhoReportRoutes(app, db);
 registerBackupRoutes(app, db, dbConfig);
 
 if (require.main === module) {
-    app.listen(Number(process.env.PORT || 3000), () => {
+    const listener = app.listen(deployment.port, deployment.host, () => {
         console.log('HEALTH-INTEL server is ready.');
     });
+    let stopping = false;
+    const stop = () => {
+        if (stopping) return;
+        stopping = true;
+        const deadline = setTimeout(() => process.exit(1), 30000);
+        deadline.unref();
+        listener.close(async () => {
+            try { await db.end(); clearTimeout(deadline); process.exit(0); }
+            catch { process.exit(1); }
+        });
+    };
+    process.on('SIGTERM', stop);
+    process.on('SIGINT', stop);
 }
 module.exports = { app, db, dbConfig };

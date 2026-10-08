@@ -21,5 +21,5 @@ function toggleSidebar() {
 }
 
 function toggleDarkMode() {
-    document.documentElement.classList.toggle('dark');
+    HealthIntelTheme.toggle();
 }

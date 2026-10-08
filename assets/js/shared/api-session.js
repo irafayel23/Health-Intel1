@@ -1,6 +1,7 @@
 (() => {
     const originalFetch = window.fetch.bind(window);
-    const apiOrigin = window.HEALTH_INTEL_API_ORIGIN || 'http://localhost:3000';
+    const apiOrigin = window.HEALTH_INTEL_API_ORIGIN ||
+        (window.location.protocol === 'https:' ? window.location.origin : 'http://localhost:3000');
     const tokenKey = 'health_intel_token';
     const publicPaths = new Set(['/api/login', '/api/register', '/api/get-next-id', '/api/check-email',
         '/api/forgot-password', '/api/reset-password']);

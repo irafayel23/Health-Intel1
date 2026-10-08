@@ -1,0 +1,24 @@
+[Unit]
+Description=HEALTH-INTEL web and API service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=healthintel
+Group=healthintel
+WorkingDirectory=/opt/health-intel/server
+Environment=NODE_ENV=production
+# Private server/.env is loaded by dotenv; do not embed credentials here.
+ExecStart=/usr/bin/node /opt/health-intel/server/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=35
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

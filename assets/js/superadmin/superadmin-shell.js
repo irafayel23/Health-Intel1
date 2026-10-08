@@ -3,12 +3,7 @@
 
       const escapeText = value => HealthIntelText.escape(value);
       function toggleSuperTheme() {
-          const html = document.documentElement;
-          html.classList.toggle("dark");
-          const isDark = html.classList.contains("dark");
-          const btn = document.getElementById("theme-toggle-btn");
-          if(btn) btn.innerHTML = isDark ? `<i data-lucide="sun" class="w-5 h-5"></i>` : `<i data-lucide="moon" class="w-5 h-5"></i>`;
-          lucide.createIcons();
+          HealthIntelTheme.toggle();
       }
 
 

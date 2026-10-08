@@ -24,6 +24,22 @@ test('Configured API origins clear localhost ports and retain explicit deploymen
     }
 });
 
+test('HTTPS pages use their own origin by default while local HTTP keeps the existing API origin', async () => {
+    const script = fs.readFileSync(path.join(root, 'assets/js/shared/api-session.js'), 'utf8');
+    for (const [location, expected] of [
+        [{ href: 'https://health.example.test/index.html', protocol: 'https:', origin: 'https://health.example.test', pathname: '/index.html' }, 'https://health.example.test'],
+        [{ href: 'https://health.example.test:8443/index.html', protocol: 'https:', origin: 'https://health.example.test:8443', pathname: '/index.html' }, 'https://health.example.test:8443'],
+        [{ href: 'http://localhost:5500/index.html', protocol: 'http:', origin: 'http://localhost:5500', pathname: '/index.html' }, 'http://localhost:3000']
+    ]) {
+        const calls = [];
+        const browser = { location, fetch: async url => { calls.push(String(url)); return { ok: true }; } };
+        vm.runInNewContext(script, { window: browser, URL, Request, Headers, localStorage: { getItem: () => 'fixture-token' }, document: { addEventListener() {} }, console });
+        await browser.fetch('http://localhost:3000/api/login');
+        assert.equal(calls[0], expected + '/api/login');
+        assert.equal(browser.HealthIntel.apiOrigin, expected);
+    }
+});
+
 // These tests exercise script order, startup and cross-feature calls from real HTML.
 // API, Firebase, charts and dialogs are mocked: no patient records or mail are created.
 function page(file) {
@@ -39,6 +55,7 @@ function page(file) {
             setAttribute:(k,v)=>{attributes[k]=v;},removeAttribute:k=>{delete attributes[k];},getAttribute:k=>attributes[k],
             append(...nodes){e.children.push(...nodes);},prepend(node){e.children.unshift(node);},replaceChildren(...nodes){e.children=nodes;},reset(){},
             insertRow(){const row=element();row.insertCell=()=>{const cell=element();row.append(cell);return cell;};e.append(row);return row;},
+            querySelector:()=>null,querySelectorAll:()=>[],
             getContext:()=>({createLinearGradient:()=>({addColorStop(){}})}),focus(){},scrollIntoView(){}};
         Object.defineProperty(e,'options',{get:()=>e.children});
         return e;
@@ -58,12 +75,12 @@ function page(file) {
     const authUser={email:'fixture@example.invalid',displayName:'Fixture User',getIdToken:async()=> 'fixture-google-token'};
     const authInstance={currentUser:authUser,signInWithPopup:async()=>({user:authUser})};
     const auth=()=>authInstance;auth.GoogleAuthProvider=function(){this.setCustomParameters=()=>{};};
-    const s = {URLSearchParams,Intl,Date,TextEncoder,Event,console:{error:(...args)=>errors.push(args)},
+    const s = {URLSearchParams,Intl,Date,TextEncoder,Event,AbortController,console:{error:(...args)=>errors.push(args)},
         document:{readyState:'loading',body:element(),getElementById:id=>elements[id] || null,createElement:()=>element(),addEventListener:on,documentElement:element(),
             querySelectorAll:selector=>selector.includes('nav-item')?navigation:[],querySelector:selector=>selector==='#sidebar, #main-sidebar, #superadmin-sidebar'?(elements.sidebar || elements['main-sidebar'] || elements['superadmin-sidebar']):selector==='[data-portal-menu]'?elements['sidebar-toggle']:selector.includes('data-target')?navigation.find(n=>selector.includes(n.getAttribute('data-target'))):element()},
         localStorage:{getItem:k=>storage.get(k) || null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
         lucide:{createIcons(){}},firebase:{initializeApp(){},auth},location:{href:'',replace(value){this.href=value;}},
-        addEventListener:on,dispatchEvent(event){for(const fn of events[event.type] || [])fn(event);},setInterval(){},setTimeout(){},matchMedia:()=>({matches:false,addEventListener(){}}),
+        addEventListener:on,dispatchEvent(event){for(const fn of events[event.type] || [])fn(event);},setInterval(){},setTimeout(){},clearTimeout(){},matchMedia:()=>({matches:false,addEventListener(){}}),
         Swal:{fire:async()=>({isConfirmed:false}),showLoading(){},close(){},isLoading:()=>false,showValidationMessage(){}},
         HealthIntel:{download:async(...args)=>downloads.push(args),clearSession(){}},
         HealthIntelEncoding:{escape:value=>String(value),conditionLabel:r=>r.disease || '',conditionCell:r=>r.disease || '',bindCondition(){},enhanceSelect(){},populateConditions(){}},
@@ -75,16 +92,35 @@ function page(file) {
         response:()=>({success:true,data:[],summary:{total_cases:0},total:0,active:0,cleared:0,recovered:0,high_risk:0,highRisk:0,mild:0,monitored:0,
             previous_year:2025,current_year:2026,total_logs:0,total_users:0,db_size:1,uptime:1})};
     s.window=s;
-    s.Chart=class {constructor(_ctx,config){this.data=config.data;this.options=config.options;}update(){}destroy(){}};
+    s.Chart=class {static register(){} constructor(_ctx,config){this.data=config.data;this.options=config.options;}update(){}destroy(){}};
     const prefix=file==='index.html'?'index-':file.split('.')[0]+'-';
-    const names=[...html.matchAll(/<script src="assets\/js\/([^"]+\.js)"><\/script>/g)].map(m=>m[1]).filter(name=>path.basename(name).startsWith(prefix));
+    // Ordered deferred scripts keep the same page scope; allow attributes around src.
+    const names=[...html.matchAll(/<script\b[^>]*\bsrc="assets\/js\/([^"]+\.js)"[^>]*>\s*<\/script>/g)].map(m=>m[1]).filter(name=>path.basename(name).startsWith(prefix));
     function load() {
-        for(const name of ['safe-text.js','date-format.js',...names,...(html.includes('portal-navigation.js')?['portal-navigation.js']:[])])vm.runInNewContext(fs.readFileSync(scriptPath(name),'utf8'),s,{filename:name});
+        const shared = ['theme.js','accessible-modal.js','chart-theme.js'].filter(name=>html.includes('/'+name));
+        for(const name of ['safe-text.js','date-format.js',...shared,...names,...(html.includes('portal-navigation.js')?['portal-navigation.js']:[])])vm.runInNewContext(fs.readFileSync(scriptPath(name),'utf8'),s,{filename:name});
     }
     async function start(){for(const fn of events.DOMContentLoaded || [])await fn();await settle();await settle();}
     function hooks(){for(const [,name] of html.matchAll(/\bon(?:click|keyup|change|submit)="([a-zA-Z_$][\w$]*)\(/g))assert.equal(typeof s[name],'function',`${file}: ${name}`);}
     return {s,html,elements,events,requests,errors,downloads,navigation,load,start,hooks,storage};
 }
+
+test('newborn age zero survives the BHW dossier and both Admin record views',async()=>{
+    const bhw=page('bhw.html');bhw.load();
+    bhw.s.response=()=>({success:true,resident:{age:0,patient_name:'Newborn Fixture',purok:'QA'},history:[]});
+    await bhw.s.viewPatientProfile(1);
+    assert.equal(bhw.elements['profile-age'].innerText,0);
+    assert.deepEqual(bhw.errors,[]);
+    const admin=page('admin.html');admin.load();
+    const records=[{id:1,age:0,patient_name:'Newborn Fixture',date_recorded:'2026-10-04',status:'Active'},
+        {id:2,age:null,patient_name:'Missing age Fixture',date_recorded:'2026-10-04',status:'Active'}];
+    admin.s.renderPatientTable(records);
+    assert.match(admin.elements['patient-table-body'].innerHTML,/<td>0<\/td>/);
+    assert.match(admin.elements['patient-table-body'].innerHTML,/<td>N\/A<\/td>/);
+    admin.s.renderArchivedPatientTable(records);
+    assert.match(admin.elements['patient-archived-table-body'].innerHTML,/<td>0<\/td>/);
+    assert.match(admin.elements['patient-archived-table-body'].innerHTML,/<td>N\/A<\/td>/);
+});
 
 test('BHW feature scripts initialize context, records, residents and charts in HTML order',async()=>{
     const p=page('bhw.html'),base=p.s.response;
@@ -93,11 +129,19 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.deepEqual(p.errors,[]);
     assert.equal(p.s.currentBrgyId,1);
     assert.match(p.elements['dynamic-portal-title'].innerText,/Fixture Barangay/);
-    for(const endpoint of ['bhw/context','bhw-stats','bhw-trend','patients','residents','bhw/puroks'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
+    for(const endpoint of ['bhw/context','bhw-stats','bhw-trend'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
+    for(const endpoint of ['patients','residents','bhw/puroks'])assert.ok(!p.requests.some(r=>r.url.includes('/api/'+endpoint)),`${endpoint} must wait for its view`);
+    await p.navigation.find(n=>n.getAttribute('data-target')==='view-patients').emit('click');await settle();
+    for(const endpoint of ['patients','bhw/puroks'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
+    await p.navigation.find(n=>n.getAttribute('data-target')==='view-resident-profiles').emit('click');await settle();
+    assert.ok(p.requests.some(r=>r.url.includes('/api/residents')));
     p.s.dispatchEvent(new Event('health-intel:cases-changed'));await settle();
     assert.ok(p.requests.filter(r=>r.url.includes('/api/residents')).length>=2);
     await p.s.toggleArchiveView();await settle();
     assert.ok(p.requests.some(r=>r.url.includes('/api/patients/archived')));
+    const before=p.requests.length;
+    await p.navigation.find(n=>n.getAttribute('data-target')==='view-patients').emit('click');await settle();
+    assert.ok(p.requests.slice(before).some(r=>r.url.includes('/api/patients/archived')),'returning to the archive keeps its data source');
 });
 
 test('MHO split scripts retain API charts, filter refresh and report downloads',async()=>{

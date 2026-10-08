@@ -1,5 +1,7 @@
 # Current architecture
 
+Deployment preparation adds `server/config/deployment-config.js` before route registration: production setting validation, limited origins, optional public-page/asset serving and a minimal liveness endpoint. It does not expose the repository root. `server/scripts/check-deployment.js` checks settings/tools without DB access. See `deployment_guide.md` and `MHO_REPORT_REVIEW.md` for target-specific acceptance and report approval boundaries.
+
 Verified against the active implementation on 1 October 2026.
 
 ## Browser

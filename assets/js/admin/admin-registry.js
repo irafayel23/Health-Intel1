@@ -11,19 +11,19 @@
           if (actData.success) {
             window.adminRegistryChoices=actData.data;refreshAdminDiseaseFilter();
             actData.data.forEach((d) => {
-              let classificationClass = d.classification === "High Risk" ? "admin-classification-high" : "admin-classification-standard";
+              let classificationClass = d.classification === "High Risk" ? "admin-classification-high" : "admin-classification-standard bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200";
               actBodyHtmlBuffer += `
                 <tr>
                   <td class="font-bold text-slate-900 dark:text-slate-100">${escapeText(d.name)}</td>
                   <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.category)}</td>
                   <td><span class="admin-classification ${classificationClass}">${escapeText(d.classification)}</span></td>
-                  <td class="text-emerald-500 dark:text-emerald-400 font-bold">Active</td>
-                  <td><button onclick="archiveDisease(${d.id})" class="admin-button-archive-disease">Archive</button></td>
+                  <td class="text-emerald-700 dark:text-emerald-400 font-bold">Active</td>
+                  <td><button onclick="archiveDisease(${d.id})" class="admin-button-archive-disease !text-red-700 dark:!text-red-300">Archive</button></td>
                 </tr>
               `;
             });
           if (actBodyHtmlBuffer === "") {
-              actBodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-400 italic">
+              actBodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
 <div class="flex flex-col items-center justify-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
 <span>No records found in the database.</span>
@@ -51,7 +51,7 @@
               `;
             });
           if (arcBodyHtmlBuffer === "") {
-              arcBodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-400 italic">
+              arcBodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
 <div class="flex flex-col items-center justify-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
 <span>No records found in the database.</span>
@@ -65,7 +65,7 @@
 
       function openDiseaseModal() {
         document.getElementById("new_disease_name").value = "";
-        document.getElementById("diseaseModal").classList.remove("hidden");
+        HealthIntelModal.open(document.getElementById("diseaseModal"));
       }
 
       async function saveNewDisease() {
@@ -100,7 +100,7 @@
           confirmButtonText: "Yes, archive it!"
         }).then(async (result) => {
           if (result.isConfirmed) {
-            await fetch(`http://localhost:3000/api/diseases/${id}/archive`, { method: "PUT" });
+            if (!await saveRegistryAction(id, 'archive')) return;
             loadDiseases();
             Swal.fire({title: "Archived!", text: "Disease has been archived.", icon: "success", timer: 1500, showConfirmButton: false});
           }
@@ -118,10 +118,22 @@
           confirmButtonText: "Yes, restore it!"
         }).then(async (result) => {
           if (result.isConfirmed) {
-            await fetch(`http://localhost:3000/api/diseases/${id}/restore`, { method: "PUT" });
+            if (!await saveRegistryAction(id, 'restore')) return;
             loadDiseases();
             Swal.fire({title: "Restored!", text: "Disease is active again.", icon: "success", timer: 1500, showConfirmButton: false});
           }
         });
+      }
+
+      async function saveRegistryAction(id, action) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/diseases/${id}/${action}`, { method: 'PUT' });
+          const data = await response.json();
+          if (!response.ok || !data.success) throw new Error(data.error || 'Disease change could not be saved.');
+          return true;
+        } catch (error) {
+          await Swal.fire('Disease not updated', error.message || 'Please try again.', 'error');
+          return false;
+        }
       }
 

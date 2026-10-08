@@ -16,6 +16,7 @@
 
           const targetId = button.getAttribute("data-target");
           if (targetId === 'view-resident-profiles') loadResidentDirectory();
+          if (targetId === 'view-patients') { isViewingArchive ? loadArchivedPatients({ coalesce: true }) : loadPatients({ coalesce: true }); loadPurokChoices(); }
           viewSections.forEach((view) => {
             view.classList.add("hidden"); view.classList.remove("block"); view.classList.remove("flex");
           });
@@ -72,7 +73,5 @@
 
         loadDashboardStats();
         loadTrendChart();
-        loadPatients();
-        loadPurokChoices();
-        loadResidentDirectory();
+        // Hidden record and resident views load when opened.
       });

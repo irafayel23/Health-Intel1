@@ -47,13 +47,13 @@
                 <div class="w-16 h-16 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex justify-center items-center text-2xl font-bold mb-4 group-hover:scale-110 transition-transform">
                   ${escapeText(initials.toUpperCase())}
                 </div>
-                <h3 class="font-bold text-lg mb-1 text-[hsl(var(--foreground))]">${escapeText(patientName)}</h3>
+                <h2 class="font-bold text-lg mb-1 text-[hsl(var(--foreground))]">${escapeText(patientName)}</h2>
                 ${isSenior ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 rounded text-xs font-bold mb-2 inline-block">Senior Citizen</span>' : ''}
                 <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${escapeText(res.purok)} | ${res.age} yrs</p>
 
                 <button onclick="viewPatientProfile('${res.id}')" class="w-full mt-auto py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors">
                   View Medical Dossier<br>
-                  <small class="opacity-80">(${res.case_count || 0} Records)</small>
+                  <small>(${res.case_count || 0} Records)</small>
                 </button>
               </div>
             `;
@@ -80,7 +80,7 @@
                   document.getElementById("profile-initials").innerText = initials.toUpperCase();
                   document.getElementById("profile-name").innerText = patientName;
                   document.getElementById("profile-purok").innerText = data.purok || "Unknown";
-                  document.getElementById("profile-age").innerText = data.age || "N/A";
+                  document.getElementById("profile-age").innerText = data.age ?? "N/A";
 
                                       const tbody = document.getElementById("profile-history-body");
                     tbody.innerHTML = "";
@@ -121,8 +121,7 @@
                       });
                   }
                   const modal = document.getElementById("patientProfileModal");
-                  modal.classList.remove("hidden");
-                  modal.style.display = "flex";
+                  HealthIntelModal.open(modal);
               }
           } catch(e) { console.error("Error opening dossier", e); Swal.fire('Dossier unavailable',e.message || 'Please try again later.','error'); }
       }
@@ -130,6 +129,5 @@
 
       function closeProfileModal() {
         const modal = document.getElementById("patientProfileModal");
-        modal.classList.add("hidden");
-        modal.style.display = "none";
+        HealthIntelModal.close(modal);
       }

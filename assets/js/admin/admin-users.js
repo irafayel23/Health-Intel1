@@ -18,14 +18,14 @@
                   <td>${escapeText(u.employee_id || 'N/A')}</td>
                   <td><span class="admin-badge-pending">PENDING</span></td>
                   <td>
-                    <button onclick="approveUserDirectly(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-approve">Approve</button>
-                    <button onclick="denyUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-deny">Deny</button>
+                    <button onclick="approveUserDirectly(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-approve bg-blue-700 hover:bg-blue-800 text-white">Approve</button>
+                    <button onclick="denyUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-deny bg-red-700 hover:bg-red-800 text-white">Deny</button>
                   </td>
                 </tr>
               `;
             });
           if (pTableHtmlBuffer === "") {
-              pTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-400 italic">
+              pTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
 <div class="flex flex-col items-center justify-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
 <span>No records found in the database.</span>
@@ -49,15 +49,15 @@
                   <td>${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
                   <td class="admin-uppercase-role">${u.role}</td>
                   <td>${u.assigned_barangay || 'Municipality'}</td>
-                  <td><span class="admin-badge-active">ACTIVE</span></td>
+                  <td><span class="admin-badge-active bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200">ACTIVE</span></td>
                   <td>
-                    <button onclick="suspendUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-suspend">Suspend Access</button>
+                    <button onclick="suspendUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-suspend bg-red-700 hover:bg-red-800 text-white">Suspend Access</button>
                   </td>
                 </tr>
               `;
             });
           if (aTableHtmlBuffer === "") {
-              aTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-400 italic">
+              aTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
 <div class="flex flex-col items-center justify-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
 <span>No records found in the database.</span>
@@ -96,7 +96,7 @@
               `;
             });
           if (dTableHtmlBuffer === "") {
-              dTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-400 italic">
+              dTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
 <div class="flex flex-col items-center justify-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
 <span>No records found in the database.</span>
@@ -136,13 +136,11 @@
       }
 
       async function denyUser(id) {
-        await fetch("http://localhost:3000/api/admin/deny-user", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temp_system_id: id }) });
-        loadUsers();
+        if (await saveUserAction('deny-user', { temp_system_id: id })) loadUsers();
       }
       
       async function undoDeny(id) {
-        await fetch("http://localhost:3000/api/admin/undo-deny", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ temp_system_id: id }) });
-        loadUsers();
+        if (await saveUserAction('undo-deny', { temp_system_id: id })) loadUsers();
       }
 
       async function suspendUser(id) {
@@ -151,7 +149,7 @@
           showCancelButton: true, confirmButtonColor: "#ef4444", confirmButtonText: "Yes, Suspend"
         }).then(async (result) => {
           if(result.isConfirmed) {
-            await fetch("http://localhost:3000/api/admin/suspend-user", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system_id: id }) });
+            if (!await saveUserAction('suspend-user', { system_id: id })) return;
             loadUsers();
             Swal.fire("Suspended", "User access revoked.", "success");
           }
@@ -164,10 +162,24 @@
           showCancelButton: true, confirmButtonColor: "#0ea5e9", confirmButtonText: "Yes, Restore"
         }).then(async (result) => {
           if(result.isConfirmed) {
-            await fetch("http://localhost:3000/api/admin/restore-suspended", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ system_id: id }) });
+            if (!await saveUserAction('restore-suspended', { system_id: id })) return;
             loadUsers();
             Swal.fire("Restored", "User access restored.", "success");
           }
         });
+      }
+
+      async function saveUserAction(action, payload) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/admin/${action}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+          });
+          const data = await response.json();
+          if (!response.ok || !data.success) throw new Error(data.error || 'Account change could not be saved.');
+          return true;
+        } catch (error) {
+          await Swal.fire('Account not updated', error.message || 'Please try again.', 'error');
+          return false;
+        }
       }
 

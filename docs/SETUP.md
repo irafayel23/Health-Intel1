@@ -15,6 +15,8 @@ For a fresh database, restore a trusted SQL backup containing the eight document
 
 ## Private configuration
 
+For a future shared host, use [deployment preparation](deployment_guide.md) and its reviewed templates. `npm run deploy:check` performs a read-only production configuration/tool check; it does not establish public deployment readiness. MHO exports remain review copies until the [MHO report review](MHO_REPORT_REVIEW.md) is completed.
+
 `.env.example` lists DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME, PORT, JWT_SECRET and SMTP settings. Existing process environment variables take priority over `.env`.
 
 Set a strong, stable JWT_SECRET for a shared deployment. Local development otherwise uses the ignored `server/.local-jwt-secret`. Changing this key invalidates sessions and pending reset codes. Password changes and resets also invalidate existing login sessions; sign in again.
@@ -39,6 +41,20 @@ Run real, synthetic and unverified source batches separately. Source declaration
 Every run creates a new output folder under `analysis/data_preparation` unless --output is supplied. It contains previews, coverage, review items and provenance. These are read-only preparation tools and do not feed the current forecast automatically.
 
 ## QA fixes and verification
+
+### Portal utility stylesheets
+
+MHO, BHW, Admin and Superadmin load bundled Tailwind CSS instead of compiling utilities in each user's browser. The original classes, colors and dark-mode settings remain in use. After changing Tailwind classes in a portal or its scripts, rebuild from the `proposal` directory:
+
+```text
+npm --prefix tools/styles ci --ignore-scripts --no-audit --no-fund
+npm --prefix tools/styles run build:mho
+npm --prefix tools/styles run build:portals
+```
+
+`build:mho` builds MHO; `build:portals` builds BHW, Admin and Superadmin. Admin's former inline Tailwind utility rules are maintained in `tools/styles/admin.css`. Include each generated `assets/css/<role>/<role>-utilities.css` when deploying and update its cache version in the corresponding HTML when rebuilding. Hosting needs no CSS build process. The login page retains its existing style loading.
+
+The BHW patient table shows loading feedback, retains the previous list during same-view refreshes, and exposes Retry after a failed or timed-out request (20 seconds). Switching between active and archived records clears the old view; late responses cannot replace the newer view. Repeated navigation can share a pending request, while refreshes after saving request fresh data. Failed reads do not mean zero patients.
 
 Run `npm test` from `server` while MySQL is running. The integration suites restore disposable databases, mock email delivery, and compare original database records before and after their checks. The database user needs permission to create/drop test schemas. Never run tests against a public/shared production database account.
 

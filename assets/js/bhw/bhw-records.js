@@ -5,41 +5,89 @@
       let isViewingArchive = false;
       let currentPage = 1;
       const rowsPerPage = 10;
+      let displayedPatientView = null;
+      let pendingPatientLoad = null;
+      let patientLoadRequestId = 0;
 
 
-      // 2. DATA FETCHING (FIXED TO MATCH BACKEND)
-      async function loadPatients() {
-        try {
-          const url = window.currentBrgyId ? `http://localhost:3000/api/patients?barangay_id=${window.currentBrgyId}` : 'http://localhost:3000/api/patients';
-          const response = await fetch(url);
-          const result = await response.json();
-          if (result.success) {
-            allPatients = result.data;
-            filterTable();
-          }
-        } catch (e) {
-          console.error("Error loading patients:", e);
-        }
+      function patientListMessage(message) {
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.colSpan = 5;
+        cell.className = 'px-6 py-8 text-center text-slate-700 dark:text-slate-300';
+        cell.textContent = message;
+        row.append(cell);
+        document.getElementById('patients-table-body').replaceChildren(row);
+        document.getElementById('patients-pagination')?.replaceChildren();
       }
 
-
-      async function loadArchivedPatients() {
-        try {
-          const url = window.currentBrgyId ? `http://localhost:3000/api/patients/archived?barangay_id=${window.currentBrgyId}` : 'http://localhost:3000/api/patients/archived';
-          const response = await fetch(url);
-          const result = await response.json();
-          if (result.success) {
-            allPatients = result.data;
-            filterTable();
-          }
-        } catch (error) {
-          console.error("Failed to load archived", error);
-        }
+      function patientLoadStatus(state, message) {
+        const table = document.getElementById('main-patient-table');
+        table?.setAttribute('aria-busy', String(state === 'loading'));
+        const status = document.getElementById('patient-load-status');
+        if (!status) return;
+        status.dataset.state = state;
+        status.classList.toggle('hidden', state === 'ready');
+        status.classList.toggle('flex', state !== 'ready');
+        const label = document.getElementById('patient-load-message');
+        label.textContent = message;
+        label.className = state === 'error'
+          ? 'min-w-0 flex-1 text-rose-700 dark:text-rose-300'
+          : 'min-w-0 flex-1 text-slate-700 dark:text-slate-300';
+        document.getElementById('patient-load-spinner').hidden = state !== 'loading';
+        document.getElementById('patient-load-retry').hidden = state !== 'error';
       }
 
+      function loadPatientList(archived, { coalesce = false } = {}) {
+        const view = archived ? 'archived' : 'active';
+        if (coalesce && pendingPatientLoad?.view === view) return pendingPatientLoad.promise;
+        pendingPatientLoad?.controller.abort();
+        const request = { id: ++patientLoadRequestId, view, controller: new AbortController() };
+        pendingPatientLoad = request;
+        const noun = archived ? 'archived records' : 'patient records';
+        const hasPreviousList = displayedPatientView === view;
+        if (!hasPreviousList) {
+          allPatients = [];
+          displayedPatientView = null;
+          currentPage = 1;
+          patientListMessage(`Loading ${noun}…`);
+        }
+        patientLoadStatus('loading', hasPreviousList ? `Refreshing ${noun}…` : `Loading ${noun}…`);
+        const timeout = setTimeout(() => request.controller.abort(), 20000);
+        request.promise = (async () => {
+          try {
+            const base = `http://localhost:3000/api/patients${archived ? '/archived' : ''}`;
+            const url = window.currentBrgyId ? `${base}?barangay_id=${window.currentBrgyId}` : base;
+            const response = await fetch(url, { signal: request.controller.signal });
+            const result = await response.json();
+            if (request.id !== patientLoadRequestId) return;
+            if (!response.ok || !result.success || !Array.isArray(result.data)) throw new Error('Patient list unavailable');
+            allPatients = result.data;
+            displayedPatientView = view;
+            filterTable();
+            patientLoadStatus('ready', 'Records loaded.');
+          } catch (error) {
+            if (request.id !== patientLoadRequestId) return;
+            const message = hasPreviousList
+              ? `Could not refresh ${noun}. Showing the last loaded list. Please retry.`
+              : `Could not load ${noun}. Check your connection and try again.`;
+            if (!hasPreviousList) patientListMessage('Records are unavailable. Use Retry above to load them.');
+            patientLoadStatus('error', message);
+          } finally {
+            clearTimeout(timeout);
+            if (pendingPatientLoad === request) pendingPatientLoad = null;
+          }
+        })();
+        return request.promise;
+      }
+
+      function loadPatients(options) { return loadPatientList(isViewingArchive, options); }
+      function loadArchivedPatients(options) { return loadPatientList(true, options); }
+      function retryPatientLoad() { return loadPatientList(isViewingArchive); }
 
       // 3. RENDER PATIENTS TABLE & PAGINATION
       function filterTable() {
+          if (displayedPatientView !== (isViewingArchive ? 'archived' : 'active')) return;
           if (typeof event !== 'undefined' && event && event.type === 'keyup') currentPage = 1;
           const searchInput = document.getElementById("patient-search-input");
           const query = searchInput ? searchInput.value.toLowerCase() : "";
@@ -61,13 +109,13 @@
           if (isViewingArchive) {
               btn.innerHTML = "<i data-lucide='arrow-left' class='w-4 h-4'></i> Back to Active Records";
               btn.classList.remove("bg-[hsl(var(--card))]", "text-[hsl(var(--foreground))]");
-              btn.classList.add("bg-orange-500", "text-white", "border-orange-500", "hover:bg-orange-600");
+              btn.classList.add("bg-orange-700", "text-white", "border-orange-700", "hover:bg-orange-800");
               title.innerText = "Archived Patient Records";
               loadArchivedPatients();
           } else {
               btn.innerHTML = "<i data-lucide='archive' class='w-4 h-4'></i> View Archived";
               btn.classList.add("bg-[hsl(var(--card))]", "text-[hsl(var(--foreground))]");
-              btn.classList.remove("bg-orange-500", "text-white", "border-orange-500", "hover:bg-orange-600");
+              btn.classList.remove("bg-orange-700", "text-white", "border-orange-700", "hover:bg-orange-800");
               title.innerText = "Patient Records Profiling";
               loadPatients();
           }
@@ -76,8 +124,6 @@
 
       function renderPatientsTable(data) {
         const tbody = document.getElementById("patients-table-body");
-        tbody.innerHTML = "";
-
         const totalPages = Math.ceil(data.length / rowsPerPage);
         currentPage = Math.max(1,Math.min(currentPage,totalPages || 1));
         const startIndex = (currentPage - 1) * rowsPerPage;
@@ -87,13 +133,13 @@
         if (pageData.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-[hsl(var(--muted-foreground))]">No records found.</td></tr>';
         } else {
-            pageData.forEach((record) => {
-                let statusColor = record.status === "Cleared" ? "text-green-600 dark:text-green-400" : (record.status === "Deceased" ? "text-slate-500 dark:text-slate-400" : "text-orange-600 dark:text-orange-400");
+            tbody.innerHTML = pageData.map((record) => {
+                let statusColor = record.status === "Cleared" ? "text-green-700 dark:text-green-400" : (record.status === "Deceased" ? "text-slate-600 dark:text-slate-400" : "text-orange-700 dark:text-orange-400");
                 let fullName = record.patient_name || record.first_name + " " + record.last_name || record.name;
 
                 const residentId = Number.isSafeInteger(Number(record.resident_id)) && Number(record.resident_id)>0 ? Number(record.resident_id) : null;
 
-                tbody.innerHTML += `
+                return `
                   <tr class="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] transition-colors">
                     <td class="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">${escapeText(fullName)}</td>
                     <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${escapeText(record.purok || 'Not recorded')}</td>
@@ -102,15 +148,15 @@
                     <td class="px-6 py-4">
                         <div class="patient-row-actions">
                             <button onclick="${residentId ? `viewPatientProfile(${residentId})` : `viewUnlinkedCase(${record.id})`}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-xs shadow-sm transition-colors">${residentId ? 'Profile' : 'Case details'}</button>
-                            ${!isViewingArchive ? `<button onclick="updatePatientStatus(${record.id})" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-md font-medium text-xs shadow-sm transition-colors">Update Status</button>` : ""}
+                            ${!isViewingArchive ? `<button onclick="updatePatientStatus(${record.id})" class="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white rounded-md font-medium text-xs shadow-sm transition-colors">Update Status</button>` : ""}
                             ${!isViewingArchive && record.disease_review_status==='Clarification' ? `<button onclick="supplyConditionClarification(${record.id})" class="hi-review-actions">Clarify</button>` : ""}
                             ${!isViewingArchive ? `<button onclick="HealthIntelCorrections.open(${record.id})" class="px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-md font-medium text-xs transition-colors">Correct</button>` : ""}
-                            <button onclick="toggleArchiveStatus(${record.id})" class="px-3 py-1.5 ${isViewingArchive ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'} text-white rounded-md font-medium text-xs shadow-sm transition-colors">${isViewingArchive ? "Restore" : "Archive"}</button>
+                            <button onclick="toggleArchiveStatus(${record.id})" class="px-3 py-1.5 ${isViewingArchive ? 'bg-green-700 hover:bg-green-800' : 'bg-red-700 hover:bg-red-800'} text-white rounded-md font-medium text-xs shadow-sm transition-colors">${isViewingArchive ? "Restore" : "Archive"}</button>
                         </div>
                     </td>
                   </tr>
                 `;
-            });
+            }).join('');
         }
         renderPaginationControls(totalPages);
       }

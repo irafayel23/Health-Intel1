@@ -20,15 +20,15 @@
 .admin-patient-search-input { flex: 2; min-width: 220px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-size: 0.95rem; }
 .admin-table-highlight { color: #0284c7; }
 .admin-section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-.admin-add-disease { background: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.admin-add-disease {   padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .admin-add-disease-icon { width: 18px }
 .admin-refresh-icon { width: 16px }
 .admin-badge-pending { background:#fef08a; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#854d0e; font-weight:bold; }
-.admin-button-approve { background:#0ea5e9; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
-.admin-button-deny { background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px; }
+.admin-button-approve {   border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
+.admin-button-deny {   border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px; }
 .admin-uppercase-role { text-transform: uppercase; }
-.admin-badge-active { background:#dcfce7; color:#16a34a; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
-.admin-button-suspend { background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
+.admin-badge-active {   padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
+.admin-button-suspend {   border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
 .admin-badge-suspended { background:#fee2e2; color:#b91c1c; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
 .admin-button-restore-access { background:#e0f2fe; color:#0369a1; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold; }
 .admin-badge-denied { background:#fef3c7; color:#b45309; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
@@ -42,11 +42,11 @@
 .admin-status-resolved { color: #10b981; }
 .admin-classification, .admin-audit-role { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
 .admin-classification-high { color: #ef4444; background: #fee2e2; }
-.admin-classification-standard { color: #0284c7; background: #e0f2fe; }
+.admin-classification-standard {   }
 .admin-audit-role { text-transform: uppercase; }
 .admin-audit-role-default { background: #e2e8f0; color: #475569; }
-.admin-audit-role-bhw { background: #dcfce7; color: #16a34a; }
-.admin-audit-role-admin { background: #e0f2fe; color: #0284c7; }
+.admin-audit-role-bhw {   }
+.admin-audit-role-admin {   }
 .admin-case-view-button { display:inline-block; margin:3px 6px 3px 0; padding:5px 9px; border:1px solid #0284c7; border-radius:6px; color:#0369a1; background:#f0f9ff; font-weight:600; cursor:pointer; }
 .admin-case-view-button:hover { background:#e0f2fe; }
 .admin-case-view-button:focus-visible { outline:2px solid #0284c7; outline-offset:2px; }

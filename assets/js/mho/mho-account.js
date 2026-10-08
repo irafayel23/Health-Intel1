@@ -18,12 +18,12 @@
                   <p class="m-0 text-sm font-medium text-emerald-700 dark:text-emerald-400">Role: ${userId.startsWith('MHO') ? 'Municipal Health Officer' : 'Barangay Health Worker'}</p>
                 </div>
               </div>
-              
+
               <div class="border-t border-slate-200 dark:border-slate-700 pt-5">
-                <h4 class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 uppercase tracking-wider">
+                <h3 class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 uppercase tracking-wider">
                   <i data-lucide="key" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i> Change Password
-                </h4>
-                
+                </h3>
+
                 <div class="space-y-4">
                   <div>
                     <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase">Current Password</label>
@@ -41,17 +41,17 @@
           width: '450px',
           showCancelButton: true,
           confirmButtonText: 'Update Password',
-          confirmButtonColor: isDark ? '#10b981' : '#0f172a',
+          confirmButtonColor: isDark ? '#047857' : '#0f172a',
           preConfirm: async () => {
             const current_password = document.getElementById('current-pass').value;
             const new_password = document.getElementById('new-pass').value;
             const system_id = localStorage.getItem('active_user_id');
-            
+
             if(!current_password || !new_password) {
               Swal.showValidationMessage('Please fill in both password fields to update, or cancel to close.');
               return false;
             }
-            
+
             try {
               const res = await fetch('http://localhost:3000/api/change-password', {
                 method: 'POST',
@@ -92,7 +92,7 @@
             <p><strong>Real records.</strong> The responsible LGU and project team need to review how existing real records are handled and provide a complete privacy notice before operational use. It should identify who controls the data, contact details, purposes, lawful basis, recipients, retention, and how people can exercise their rights.</p>
             <p><strong>Project recognitions.</strong> This capstone uses Tailwind CSS, Leaflet.js, Chart.js, and SweetAlert2.</p>
           </div>`,
-          confirmButtonColor: isDark ? '#3b82f6' : '#0f172a'
+          confirmButtonColor: isDark ? '#1d4ed8' : '#0f172a'
           });
         }
 
@@ -105,4 +105,4 @@
           if (nameEl) nameEl.innerText = userId;
         }
       });
-    
+

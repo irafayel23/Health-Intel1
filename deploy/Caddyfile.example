@@ -1,0 +1,6 @@
+# Set HEALTH_INTEL_DOMAIN to the real DNS hostname before validating this template.
+# The API listens only on loopback; Caddy is the sole public ingress.
+{$HEALTH_INTEL_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:3000
+}

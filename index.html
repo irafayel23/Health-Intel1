@@ -1,58 +1,36 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <script src="assets/js/shared/api-session.js"></script>
+    <script defer src="assets/js/shared/api-session.js"></script>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="assets/img/Health-Intel-Symbol.png?v=20261003" />
     <title>HEALTH-INTEL | Secure Access</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Firebase & SweetAlert -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- Icons & Fonts -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="assets/css/index/access.css?v=health-map-fit-20261002" />
+    <link rel="stylesheet" href="assets/css/index/access.css?v=satin-flow-contrast-20261004" />
   </head>
   <body>
     
   <div class="intelligence-background" aria-hidden="true">
-    <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dcefeb"/><stop offset="1" stop-color="#edf5f5"/></linearGradient>
-        <pattern id="mapping-grid" width="44" height="44" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#5a9f9a" opacity=".19"/></pattern>
-        <linearGradient id="route-fade" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#6aa8a2" stop-opacity=".45"/><stop offset="1" stop-color="#6aa8a2" stop-opacity=".1"/></linearGradient>
-      </defs>
-      <path d="M0 0H770L523 482 650 900H0Z" fill="url(#waveGrad)"/>
-      <path d="M0 0H240L0 430Z" fill="#d1e7e3" opacity=".4"/>
-      <path d="M1440 0h-205l205 345Z" fill="#e6eeef"/>
-      <path d="M1205 900h235V635Z" fill="#e6f1ee"/>
-      <path d="M0 0H106v900H0ZM620 0h165v900H620ZM1250 0h190v900h-190Z" fill="url(#mapping-grid)"/>
-      <g fill="none" stroke="#3a8f87" stroke-width="1.15" opacity=".12">
-        <path d="M-95 194C15 176 94 69 178-42M-95 225C39 208 123 105 208-42M-95 255C62 240 149 132 238-42M-95 286C85 272 176 164 268-42"/>
-        <path d="M578 957c12-103-32-148-11-217 26-85 131-91 161-165 28-68-12-120 33-181 46-62 103-69 111-162M614 957c12-103-32-146-9-209 29-78 125-81 157-161 33-81-7-121 31-172 44-59 105-81 118-183M650 957c15-107-27-145-4-202 29-71 119-72 149-150 35-93 2-120 31-168 39-62 111-87 128-207M686 957c16-114-17-147 4-198 27-63 110-64 142-143 37-93 9-124 26-158 37-67 113-105 138-229"/>
-      </g>
-      <g fill="none" stroke="url(#route-fade)" stroke-width="1.4">
-        <path d="M-20 782h170l69-57h129l70 57h167l77 54h146"/>
-        <path d="M73 900v-56l77-62M348 725v-59M585 782l60-65h145M662 836v64"/>
-      </g>
-      <g fill="#f5f8fa" stroke="#54968f" stroke-width="1.5" opacity=".55">
-        <circle cx="150" cy="782" r="5"/><circle cx="348" cy="725" r="5"/><circle cx="585" cy="782" r="5"/><circle cx="662" cy="836" r="5"/>
-      </g>
-      <g fill="none" stroke="#377d80" stroke-width="1" opacity=".14"><path d="M1352 162l88-51M1327 184l113-66M1302 206l138-81M1277 228l163-95"/></g>
-    </svg>
+    <img src="assets/img/login-satin-flow.webp?v=20261004" alt="" decoding="async" fetchpriority="high" />
   </div>
 
-    <div class="split-layout">
+    <main class="split-layout">
       <!-- ============================================== -->
       <!-- LEFT SIDE (INFO & BRANDING) -->
       <!-- ============================================== -->
       <div class="info-side">
         <div class="brand">
-          <svg role="img" aria-label="HEALTH-INTEL symbol" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="access-brand-symbol" overflow="hidden"><image href="/assets/img/Logo-Health-Intel.png?v=concept-06" width="1280" height="1280" /></svg>
+          <svg role="img" aria-label="HEALTH-INTEL symbol" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="access-brand-symbol" overflow="hidden"><image href="/assets/img/login-logo.webp?v=20261007" width="1280" height="1280" /></svg>
           <div class="brand-text">
             <h1>HEALTH-INTEL</h1>
             <p>Community health intelligence</p>
@@ -74,21 +52,21 @@
           <div class="feature-item">
             <div class="feature-icon"><i data-lucide="clipboard-list" class="access-icon-18"></i></div>
             <div class="feature-text">
-              <h4>Patient information</h4>
+              <h2>Patient information</h2>
               <p>Organized records for everyday health work.</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="feature-icon"><i data-lucide="chart-no-axes-combined" class="access-icon-18"></i></div>
             <div class="feature-text">
-              <h4>Disease surveillance</h4>
+              <h2>Disease surveillance</h2>
               <p>Follow recorded cases and community trends.</p>
             </div>
           </div>
           <div class="feature-item">
             <div class="feature-icon access-dark-text"><i data-lucide="map" class="access-icon-18"></i></div>
             <div class="feature-text">
-              <h4 class="access-dark-text">Mapping &amp; analytics</h4>
+              <h2 class="access-dark-text">Mapping &amp; analytics</h2>
               <p>Explore geographic patterns and forecasts.</p>
             </div>
           </div>
@@ -103,7 +81,7 @@
         <div class="login-card">
           
           <div class="notch">
-            <img src="/assets/img/Logo-Health-Intel.png?v=concept-06" alt="HEALTH-INTEL logo" class="access-card-logo" width="1254" height="1254">
+            <img src="/assets/img/login-logo.webp?v=20261007" alt="HEALTH-INTEL logo" class="access-card-logo" width="1254" height="1254">
           </div>
 
           <div class="form-header">
@@ -168,7 +146,7 @@
               <span>Sign in with Google</span>
             </button>
 
-            <a onclick="toggleForms('login')" class="access-cancel-gateway">Cancel and return to Login</a>
+            <button type="button" onclick="toggleForms('login')" class="access-cancel-gateway">Cancel and return to Login</button>
           </div>
 
           <!-- ============================================== -->
@@ -230,7 +208,7 @@
             </div>
 
             <button type="submit" class="btn-primary access-submit">Submit Request</button>
-            <a onclick="toggleForms('login')" class="access-cancel-profile">Cancel</a>
+            <button type="button" onclick="toggleForms('login')" class="access-cancel-profile access-cancel-gateway">Cancel and return to Login</button>
           </form>
 
           <!-- ============================================== -->
@@ -277,15 +255,15 @@
         </div>
         <p class="access-login-note">For authorized health personnel</p>
       </div>
-    </div>
+    </main>
 
     <!-- ============================================== -->
     <!-- JAVASCRIPT LOGIC (100% INTACT) -->
     <!-- ============================================== -->
-    <script src="assets/js/index/index-firebase.js"></script>
-    <script src="assets/js/index/index-shell.js"></script>
-    <script src="assets/js/index/index-recovery.js"></script>
-    <script src="assets/js/index/index-registration.js"></script>
-    <script src="assets/js/index/index-login.js"></script>
+    <script defer src="assets/js/index/index-firebase.js"></script>
+    <script defer src="assets/js/index/index-shell.js"></script>
+    <script defer src="assets/js/index/index-recovery.js"></script>
+    <script defer src="assets/js/index/index-registration.js"></script>
+    <script defer src="assets/js/index/index-login.js"></script>
   </body>
 </html>

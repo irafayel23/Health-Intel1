@@ -58,6 +58,7 @@
 
           if(!result.success) throw new Error("DB Error");
 
+          await HealthIntelPDF.ensure();
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
 
@@ -130,9 +131,9 @@
               </div>
 
               <div class="border-t border-slate-200 dark:border-slate-700 pt-5">
-                <h4 class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 uppercase tracking-wider">
+                <h3 class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 mb-4 uppercase tracking-wider">
                   <i data-lucide="key" class="w-4 h-4 text-slate-400 dark:text-slate-500"></i> Change Password
-                </h4>
+                </h3>
 
                 <div class="space-y-4">
                   <div>
@@ -151,7 +152,7 @@
           width: '450px',
           showCancelButton: true,
           confirmButtonText: 'Update Password',
-          confirmButtonColor: isDark ? '#3b82f6' : '#0f172a',
+          confirmButtonColor: isDark ? '#1d4ed8' : '#0f172a',
           preConfirm: async () => {
             const current_password = document.getElementById('current-pass').value;
             const new_password = document.getElementById('new-pass').value;

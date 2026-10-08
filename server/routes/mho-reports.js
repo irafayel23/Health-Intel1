@@ -4,11 +4,77 @@ const { monthlyPeriod, isoWeekPeriod } = require('../services/report-periods');
 const { respond } = require('../services/service-errors');
 const { createReportExport } = require('../services/report-export');
 
+function reviewNotice(doc) {
+    doc.font('Helvetica-Bold').fontSize(9).fillColor('#9a3412')
+        .text('ACADEMIC SAMPLE - NOT FOR OFFICIAL SUBMISSION', { width: 495, align: 'center' });
+}
+
+function renderMonthlyCases(doc, rows, period) {
+    const bottom = () => doc.page.height - doc.page.margins.bottom;
+    const columns = [
+        { label: 'No.', x: 60, width: 30 },
+        { label: 'Recorded condition', x: 100, width: 175 },
+        { label: 'Registry category', x: 285, width: 85 },
+        { label: 'Case status', x: 380, width: 70 },
+        { label: 'Entries', x: 465, width: 70 }
+    ];
+    const header = () => {
+        doc.font('Helvetica-Bold').fontSize(10);
+        const height = Math.max(...columns.map(c => doc.heightOfString(c.label, { width: c.width }))) + 12;
+        const y = doc.y;
+        doc.rect(50, y - 5, 495, height).fill('#f1f5f9');
+        for (const c of columns) doc.fillColor('#334155').text(c.label, c.x, y, { width: c.width });
+        doc.y = y + height + 5;
+    };
+    const nextPage = () => {
+        doc.addPage();
+        reviewNotice(doc);
+        doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f172a')
+            .text(`Monthly recorded-case summary - ${period.month} ${period.year} (continued)`, 50, doc.y + 10, { width: 495 });
+        doc.moveDown();
+        header();
+    };
+    header();
+    let total = 0;
+    rows.forEach((row, index) => {
+        const category = row.category === 'mortality' ? 'Mortality' : row.category === 'morbidity' ? 'Morbidity' : 'Unclassified';
+        const values = [String(index + 1), row.disease, category, row.status || 'Not recorded', String(row.count)];
+        doc.font('Helvetica').fontSize(10);
+        const height = Math.max(...columns.map((c, i) => doc.heightOfString(values[i], { width: c.width }))) + 12;
+        if (doc.y + height > bottom() - 5) nextPage();
+        const y = doc.y;
+        doc.moveTo(50, y - 5).lineTo(545, y - 5).lineWidth(0.5).strokeColor('#e2e8f0').stroke();
+        columns.forEach((c, i) => doc.font('Helvetica').fontSize(10).fillColor('#0f172a').text(values[i], c.x, y, { width: c.width }));
+        doc.y = y + height;
+        total += Number(row.count);
+    });
+    if (doc.y + 32 > bottom()) nextPage();
+    const y = doc.y;
+    doc.rect(50, y, 495, 25).fill('#f1f5f9');
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f172a').text('TOTAL RECORDED ENTRIES', 60, y + 7, { width: 380 });
+    doc.text(String(total), 465, y + 7, { width: 70 });
+    doc.y = y + 35;
+}
+
+function renderMonthlyReview(doc) {
+    if (doc.y + 110 > doc.page.height - doc.page.margins.bottom) {
+        doc.addPage();
+        reviewNotice(doc);
+    }
+    doc.moveDown();
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#0f172a').text('MHO REVIEW', 50, doc.y, { width: 495 });
+    doc.moveDown(0.5);
+    doc.font('Helvetica').fontSize(9).fillColor('#475569')
+        .text('For review of recorded entries only. Registry category and case status are not verified diagnoses, official morbidity/mortality classifications, or reporting eligibility. This copy does not certify completeness or accuracy.', { width: 495 });
+    doc.moveDown();
+    doc.text('Reviewed by: __________________________    Date: ______________', { width: 495 });
+}
+
 function renderWeeklyCases(doc, rows, period) {
     const bottom = () => doc.page.height - doc.page.margins.bottom;
     const columns = [
         { label: 'Date Recorded', x: 60, width: 110, font: 'Helvetica', color: '#0f172a' },
-        { label: 'Target Disease', x: 180, width: 150, font: 'Helvetica-Bold', color: '#ef4444' },
+        { label: 'Recorded condition', x: 180, width: 150, font: 'Helvetica-Bold', color: '#ef4444' },
         { label: 'Recorded Severity', x: 340, width: 100, font: 'Helvetica-Oblique', color: '#ea580c' },
         { label: 'Status', x: 450, width: 85, font: 'Helvetica-Bold', color: '#ef4444' }
     ];
@@ -21,8 +87,9 @@ function renderWeeklyCases(doc, rows, period) {
     };
     const nextPage = () => {
         doc.addPage();
+        reviewNotice(doc);
         doc.font('Helvetica-Bold').fillColor('#0f172a').fontSize(11)
-            .text(`Weekly surveillance report - Week ${period.week}, ${period.year} (continued)`, 50, doc.y, { width: 495 });
+            .text(`Weekly recorded-case summary - Week ${period.week}, ${period.year} (continued)`, 50, doc.y + 10, { width: 495 });
         doc.moveDown();
         header();
     };
@@ -63,10 +130,11 @@ function renderWeeklySignature(doc) {
     if (doc.y + gap + height > bottom) gap = 20;
     if (doc.y + gap + height > bottom) {
         doc.addPage();
+        reviewNotice(doc);
         gap = 0;
     }
     const y = doc.y + gap;
-    doc.fillColor('#0f172a').text('PREPARED BY:', 50, y, { width: 195 });
+    doc.fillColor('#0f172a').text('PREPARED FOR REVIEW BY:', 50, y, { width: 245 });
     doc.moveTo(50, y + 50).lineTo(245, y + 50).lineWidth(1).strokeColor('#0f172a').stroke();
     doc.text(caption, 50, y + 56, { align: 'center', width: 195 });
 }
@@ -110,16 +178,13 @@ function registerMhoReportRoutes(app, db) {
             doc.fontSize(16)
                 .font('Helvetica-Bold')
                 .fillColor('#0f172a')
-                .text('REPUBLIC OF THE PHILIPPINES', { align: 'center' });
-            doc.fontSize(14)
-                .font('Helvetica-Bold')
-                .fillColor('#0284c7')
-                .text('DEPARTMENT OF HEALTH', { align: 'center' });
+                .text('HEALTH-INTEL', { align: 'center' });
+            reviewNotice(doc);
             doc.moveDown(0.5);
             doc.fontSize(11)
                 .font('Helvetica')
                 .fillColor('#475569')
-                .text('Field Health Services Information System (FHSIS)', { align: 'center' });
+                .text('Monthly recorded-case summary for MHO review', { align: 'center' });
             doc.fontSize(10).text('Municipal Health Office - Murcia, Negros Occidental', { align: 'center' });
 
             doc.moveDown(1.5);
@@ -129,7 +194,7 @@ function registerMhoReportRoutes(app, db) {
             doc.fontSize(14)
                 .font('Helvetica-Bold')
                 .fillColor('#0f172a')
-                .text('MONTHLY CONSOLIDATION REPORT', { align: 'center' });
+                .text('MONTHLY RECORDED-CASE SUMMARY', { align: 'center' });
             doc.fontSize(11)
                 .font('Helvetica')
                 .fillColor('#64748b')
@@ -149,85 +214,9 @@ function registerMhoReportRoutes(app, db) {
                     .fillColor('#94a3b8')
                     .text('No health records found for ' + month + ' ' + year + '.', { align: 'center' });
             } else {
-                let startY = doc.y;
-                doc.rect(50, startY - 5, 495, 25).fill('#f1f5f9');
-
-                doc.font('Helvetica-Bold').fillColor('#334155').fontSize(11);
-                doc.text('No.', 60, startY);
-                doc.text('Disease / Indicator', 110, startY);
-                doc.text('Category', 300, startY);
-                doc.text('Status', 390, startY);
-                doc.text('Total Cases', 470, startY);
-
-                doc.moveDown(1.5);
-                let total = 0;
-
-                doc.font('Helvetica').fillColor('#0f172a').fontSize(10);
-
-                rows.forEach((r, index) => {
-                    let currentY = doc.y;
-                    doc.moveTo(50, currentY - 5)
-                        .lineTo(545, currentY - 5)
-                        .lineWidth(0.5)
-                        .strokeColor('#e2e8f0')
-                        .stroke();
-
-                    doc.text((index + 1).toString(), 60, currentY);
-                    doc.font('Helvetica-Bold').fillColor('#0284c7').text(r.disease, 110, currentY);
-                    doc.font('Helvetica')
-                        .fillColor('#475569')
-                        .text(
-                            r.category
-                                ? r.category === 'mortality'
-                                    ? 'Mortality'
-                                    : 'Morbidity'
-                                : 'Unclassified',
-                            300,
-                            currentY
-                        );
-                    doc.text(r.status, 390, currentY);
-                    doc.font('Helvetica-Bold').fillColor('#0f172a').text(r.count.toString(), 470, currentY);
-
-                    total += r.count;
-                    doc.moveDown(1.2);
-                });
-
-                let finalY = doc.y;
-                doc.moveTo(50, finalY - 5)
-                    .lineTo(545, finalY - 5)
-                    .lineWidth(1.5)
-                    .strokeColor('#0284c7')
-                    .stroke();
-                doc.rect(50, finalY, 495, 25).fill('#f8fafc');
-                doc.font('Helvetica-Bold')
-                    .fillColor('#0f172a')
-                    .fontSize(11)
-                    .text('GRAND TOTAL', 60, finalY + 7);
-                doc.text(total.toString(), 470, finalY + 7);
+                renderMonthlyCases(doc, rows, { month, year });
             }
-
-            doc.moveDown(6);
-            doc.font('Helvetica-Bold').fillColor('#0f172a').fontSize(11).text('CERTIFICATION:', 50, doc.y);
-            doc.moveDown(0.5);
-            doc.font('Helvetica')
-                .fillColor('#475569')
-                .fontSize(10)
-                .text(
-                    'I hereby certify that the above data is true and correct based on the consolidated reports submitted by the Barangay Health Stations.',
-                    50,
-                    doc.y,
-                    { width: 495 }
-                );
-
-            doc.moveDown(4);
-            doc.moveTo(350, doc.y).lineTo(545, doc.y).lineWidth(1).strokeColor('#0f172a').stroke();
-            doc.moveDown(0.5);
-            doc.font('Helvetica-Bold')
-                .fillColor('#0f172a')
-                .text('Municipal Health Officer', 350, doc.y, { align: 'center', width: 195 });
-            doc.font('Helvetica')
-                .fillColor('#64748b')
-                .text('Signature over Printed Name', 350, doc.y, { align: 'center', width: 195 });
+            renderMonthlyReview(doc);
 
             doc.end();
         } catch (error) {
@@ -259,16 +248,13 @@ function registerMhoReportRoutes(app, db) {
             doc.fontSize(16)
                 .font('Helvetica-Bold')
                 .fillColor('#0f172a')
-                .text('REPUBLIC OF THE PHILIPPINES', { align: 'center' });
-            doc.fontSize(14)
-                .font('Helvetica-Bold')
-                .fillColor('#ef4444')
-                .text('DEPARTMENT OF HEALTH', { align: 'center' });
+                .text('HEALTH-INTEL', { align: 'center' });
+            reviewNotice(doc);
             doc.moveDown(0.5);
             doc.fontSize(11)
                 .font('Helvetica')
                 .fillColor('#475569')
-                .text('Philippine Integrated Disease Surveillance and Response (PIDSR)', { align: 'center' });
+                .text('Weekly recorded-case summary for MHO review', { align: 'center' });
             doc.fontSize(10).text('Municipal Health Office - Murcia, Negros Occidental', { align: 'center' });
 
             doc.moveDown(1.5);
@@ -278,7 +264,7 @@ function registerMhoReportRoutes(app, db) {
             doc.fontSize(14)
                 .font('Helvetica-Bold')
                 .fillColor('#0f172a')
-                .text('WEEKLY SURVEILLANCE REPORT', { align: 'center' });
+                .text('WEEKLY RECORDED-CASE SUMMARY', { align: 'center' });
             doc.fontSize(11)
                 .font('Helvetica')
                 .fillColor('#64748b')

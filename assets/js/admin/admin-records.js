@@ -27,7 +27,7 @@
         slicedData.forEach((p) => {
           let diseaseClass = (p.disease || "").toLowerCase().includes("bite") ? "admin-disease-alert" : "";
           let statusText = p.status || "Active";
-          let statusClass = statusText.toLowerCase() === "active" ? "admin-status-active" : "admin-status-resolved";
+          let statusClass = statusText.toLowerCase() === "active" ? "admin-status-active !text-orange-700 dark:!text-orange-300" : "admin-status-resolved !text-emerald-700 dark:!text-emerald-300";
 
           let dateObj = p.updated_at ? new Date(p.updated_at) : (p.created_at ? new Date(p.created_at) : new Date());
           let timeString = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -37,24 +37,24 @@
             <tr id="admin-case-row-${p.id}">
               <td class="font-bold">#REC-${p.id}</td>
               <td><strong>${escapeText(p.patient_name || p.first_name + " " + p.last_name)}</strong></td>
-              <td>${p.age || "N/A"}</td>
+              <td>${p.age ?? "N/A"}</td>
               <td class="admin-disease-name ${diseaseClass}">${HealthIntelEncoding.conditionCell(p)}</td>
               <td>${escapeText(p.barangay_name || p.purok || "Unknown")}</td>
               <td><span class="admin-case-status ${statusClass}">${escapeText(statusText)}</span></td>
               
-              <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${escapeText(encodedBy)}</td>
+              <td class="text-sky-700 dark:text-sky-400 font-bold text-[0.9rem]">${escapeText(encodedBy)}</td>
               <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${timeString}</td>
               
               <td>
                 <button onclick="viewAdminCase(${p.id})" class="admin-case-view-button">View case</button>
-                <button onclick="archivePatient(${p.id})" class="admin-button-archive-patient">Archive</button>
-                <button class="rounded border border-sky-600 px-2 py-1 text-sky-600" onclick="HealthIntelCorrections.open(${p.id})">Correct</button>
+                <button onclick="archivePatient(${p.id})" class="admin-button-archive-patient !text-red-700 dark:!text-red-300">Archive</button>
+                <button class="rounded border border-sky-600 px-2 py-1 text-sky-700 dark:text-sky-300" onclick="HealthIntelCorrections.open(${p.id})">Correct</button>
               </td>
             </tr>
           `;
         });
         if (tbodyHtmlBuffer === "") {
-            tbodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-400 italic">
+            tbodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
 <div class="flex flex-col items-center justify-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
 <span>No records found in the database.</span>
@@ -120,12 +120,12 @@
                 <tr id="admin-case-row-${p.id}">
                   <td class="font-bold">#REC-${p.id}</td>
                   <td><strong>${escapeText(p.patient_name || p.first_name + " " + p.last_name)}</strong></td>
-                  <td>${p.age || "N/A"}</td>
+                  <td>${p.age ?? "N/A"}</td>
                   <td class="font-bold">${HealthIntelEncoding.conditionCell(p)}</td>
                   <td>${escapeText(p.barangay_name || p.purok || "Unknown")}</td>
                   <td><span class="admin-badge-archived">Archived</span></td>
                   
-                  <td class="text-sky-600 dark:text-sky-400 font-bold text-[0.9rem]">${escapeText(encodedBy)}</td>
+                  <td class="text-sky-700 dark:text-sky-400 font-bold text-[0.9rem]">${escapeText(encodedBy)}</td>
                   <td class="font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${timeString}</td>
 
                   <td><button onclick="viewAdminCase(${p.id})" class="admin-case-view-button">View case</button><button onclick="restorePatient(${p.id})" class="admin-button-reevaluate">Restore</button></td>
@@ -133,7 +133,7 @@
               `;
             });
           if (tbodyHtmlBuffer === "") {
-              tbodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-400 italic">
+              tbodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
 <div class="flex flex-col items-center justify-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
 <span>No records found in the database.</span>
@@ -184,41 +184,55 @@
       }
 
       async function archivePatient(id) {
-        Swal.fire({
+        const result = await Swal.fire({
           title: "Archive Patient?",
           text: "This record will be moved to the archives.",
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "#ef4444",
           cancelButtonColor: "#94a3b8",
-          confirmButtonText: "Yes, archive it!"
-        }).then(async (result) => {
+          confirmButtonText: "Yes, archive it!",
+          showLoaderOnConfirm: true,
+          allowOutsideClick: () => !Swal.isLoading(),
+          preConfirm: () => saveArchiveAction(id, 'archive')
+        });
           if (result.isConfirmed) {
-            await fetch(`http://localhost:3000/api/patients/${id}/archive`, { method: "PUT" });
             fetchPatientRecords();
             loadArchivedPatients();
             Swal.fire({title: "Archived!", text: "Record has been archived.", icon: "success", timer: 1500, showConfirmButton: false});
           }
-        });
       }
 
       async function restorePatient(id) {
-        Swal.fire({
+        const result = await Swal.fire({
           title: "Restore Patient?",
           text: "This record will be moved back to active records.",
           icon: "question",
           showCancelButton: true,
           confirmButtonColor: "#10b981",
           cancelButtonColor: "#94a3b8",
-          confirmButtonText: "Yes, restore it!"
-        }).then(async (result) => {
+          confirmButtonText: "Yes, restore it!",
+          showLoaderOnConfirm: true,
+          allowOutsideClick: () => !Swal.isLoading(),
+          preConfirm: () => saveArchiveAction(id, 'restore')
+        });
           if (result.isConfirmed) {
-            await fetch(`http://localhost:3000/api/patients/${id}/restore`, { method: "PUT" });
             fetchPatientRecords();
             loadArchivedPatients();
             Swal.fire({title: "Restored!", text: "Record is active again.", icon: "success", timer: 1500, showConfirmButton: false});
           }
-        });
+      }
+
+      async function saveArchiveAction(id, action) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/patients/${id}/${action}`, { method: 'PUT' });
+          const data = await response.json();
+          if (!response.ok || !data.success) throw new Error(data.error || 'The record could not be updated.');
+          return data;
+        } catch (error) {
+          Swal.showValidationMessage(error.message || 'The record could not be updated. Try again.');
+          return false;
+        }
       }
 
 

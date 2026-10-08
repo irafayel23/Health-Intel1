@@ -3,12 +3,7 @@
 
       lucide.createIcons();
       function toggleAdminTheme() {
-          const html = document.documentElement;
-          html.classList.toggle("dark");
-          const isDark = html.classList.contains("dark");
-          const btn = document.getElementById("theme-toggle-btn");
-          if(btn) btn.innerHTML = isDark ? `<i data-lucide="sun" class="w-4 h-4"></i>` : `<i data-lucide="moon" class="w-4 h-4"></i>`;
-          lucide.createIcons();
+          HealthIntelTheme.toggle();
       }
 
       window.addEventListener('DOMContentLoaded', () => {
@@ -46,7 +41,7 @@
       }
 
       function closeModal(modalId) {
-        document.getElementById(modalId).classList.add("hidden");
+        HealthIntelModal.close(document.getElementById(modalId));
       }
 
         function toggleSidebar() {

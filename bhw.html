@@ -1,34 +1,17 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script src="assets/js/shared/theme.js"></script>
+    <script src="assets/js/shared/accessible-modal.js"></script>
     <script src="assets/js/shared/api-session.js"></script>
     <script src="assets/js/shared/safe-text.js"></script>
     <script src="assets/js/shared/case-corrections.js"></script>
     <script src="assets/js/shared/date-format.js"></script>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="assets/img/Health-Intel-Symbol.png?v=20261003" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BHW Portal | HEALTH-INTEL</title>
 
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              border: "hsl(var(--border))",
-              background: "hsl(var(--background))",
-              foreground: "hsl(var(--foreground))",
-              card: "hsl(var(--card))",
-              "card-foreground": "hsl(var(--card-foreground))",
-              muted: "hsl(var(--muted))",
-              "muted-foreground": "hsl(var(--muted-foreground))",
-            }
-          }
-        }
-      }
-    </script>
     
     <!-- Separated CSS -->
     <link rel="stylesheet" href="assets/css/bhw/bhw.css" />
@@ -36,16 +19,15 @@
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css" />
 
     <!-- Map Libraries -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="assets/js/shared/chart-theme.js"></script>
       <link rel="stylesheet" href="assets/css/shared/encoding-controls.css">
     <script src="assets/js/shared/encoding-controls.js"></script>
     <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261003">
+    <!-- Match the former runtime Tailwind cascade after the custom styles. -->
+    <link rel="stylesheet" href="assets/css/bhw/bhw-utilities.css?v=20261008" />
   </head>
   <body class="hi-portal h-screen flex overflow-hidden antialiased selection:bg-blue-500/30 bg-slate-100 dark:bg-neutral-950">
     
@@ -61,23 +43,23 @@
 
       <!-- Navigation Menu -->
       <nav class="nav-menu flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-        <button class="nav-item active group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-dashboard">
+        <button class="nav-item active group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-semibold transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-dashboard">
           <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Dashboard</span>
         </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-patients">
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-patients">
           <i data-lucide="users" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Patient Records</span>
         </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-resident-profiles">
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-resident-profiles">
           <i data-lucide="contact" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Resident Profiles</span>
         </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-heatmap">
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-heatmap">
           <i data-lucide="map" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
         </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-600 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-reports">
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-reports">
           <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Brgy Reports</span>
         </button>
@@ -85,9 +67,9 @@
 
       <!-- Bottom Sign Out -->
       <div class="p-4">
-        <a href="index.html" class="nav-item sign-out group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:translate-x-1 transition-all duration-300">
+        <a href="index.html" class="nav-item sign-out group w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium text-red-700 dark:text-red-400 hover:bg-red-500/10 hover:translate-x-1 transition-all duration-300">
           <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:-translate-x-1"></i>
-          <span class="sidebar-label whitespace-nowrap">Log Out</span></a><div class="mt-4 text-center flex justify-center"><a href="#" onclick="showTerms(event)" class="sidebar-label text-[10px] text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors whitespace-nowrap">&copy; 2026 Health-Intel &bull; Terms &amp; Recognitions</a></div>
+          <span class="sidebar-label whitespace-nowrap">Log Out</span></a><div class="mt-4 text-center flex justify-center"><a href="#" onclick="showTerms(event)" class="sidebar-label text-[10px] text-slate-600 dark:text-slate-400 hover:text-[hsl(var(--foreground))] transition-colors whitespace-nowrap">&copy; 2026 Health-Intel &bull; Terms &amp; Recognitions</a></div>
       </div>
     </aside>
 
@@ -108,16 +90,16 @@
 
         <div class="flex items-center gap-4">
           <!-- Dark Mode Toggle -->
-          <button onclick="toggleDarkMode()" class="p-2 rounded-full border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] hover:rotate-12 transition-all duration-300 text-[hsl(var(--foreground))] hover:shadow-sm">
+          <button data-theme-toggle aria-label="Switch to dark mode" onclick="toggleDarkMode()" class="p-2 rounded-full border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] hover:rotate-12 transition-all duration-300 text-[hsl(var(--foreground))] hover:shadow-sm">
             <i data-lucide="moon" id="theme-icon" class="w-4 h-4"></i>
           </button>
           
           <!-- Profile Avatar -->
           <div class="flex items-center gap-3">
             <span id="dropdown-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-300">BHW-001</span>
-            <div id="dropdown-user-initial" onclick="showAccountSettings()" class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center overflow-hidden cursor-pointer hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300 text-white shadow-sm ring-2 ring-transparent hover:ring-blue-500/50 font-bold text-lg">
+            <button type="button" aria-label="Account settings" id="dropdown-user-initial" onclick="showAccountSettings()" class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center overflow-hidden cursor-pointer hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300 text-white shadow-sm ring-2 ring-transparent hover:ring-blue-500/50 font-bold text-lg">
               <i data-lucide="user" class="w-5 h-5"></i>
-            </div>
+            </button>
           </div>
         </div>
       </header>
@@ -179,9 +161,9 @@
           <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
             
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm flex flex-col hover:shadow-md transition-shadow">
-              <h3 class="font-semibold mb-6 text-[hsl(var(--foreground))] flex items-center gap-2 text-lg">
+              <h2 class="font-semibold mb-6 text-[hsl(var(--foreground))] flex items-center gap-2 text-lg">
                 <i data-lucide="pie-chart" class="w-5 h-5 text-blue-500"></i> Case Status &amp; Recorded Severity
-              </h3>
+              </h2>
               <div class="hi-grid-small grid grid-cols-2 gap-4 flex-1">
                 <div class="rounded-xl border border-[hsl(var(--border))] p-5 flex flex-col justify-center items-center text-center hover:bg-[hsl(var(--muted))] hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md">
                   <div id="bd-cleared" class="text-3xl font-bold text-[hsl(var(--foreground))]">...</div>
@@ -189,27 +171,27 @@
                   <div class="text-xs text-[hsl(var(--muted-foreground))] mt-1">Marked Cleared</div>
                 </div>
                 <div class="rounded-xl border border-green-500/20 bg-green-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-green-500/10 hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md hover:shadow-green-500/10">
-                  <div id="bd-mild" class="text-3xl font-bold text-green-600 dark:text-green-400">...</div>
-                  <div class="text-sm font-semibold mt-2 text-green-600 dark:text-green-400">Mild Cases</div>
-                  <div class="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Recorded Mild</div>
+                  <div id="bd-mild" class="text-3xl font-bold text-green-800 dark:text-green-400">...</div>
+                  <div class="text-sm font-semibold mt-2 text-green-800 dark:text-green-400">Mild Cases</div>
+                  <div class="text-xs text-green-800 dark:text-green-300 mt-1">Recorded Mild</div>
                 </div>
                 <div class="rounded-xl border border-blue-500/20 bg-blue-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-blue-500/10 hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md hover:shadow-blue-500/10">
                   <div id="bd-monitored" class="text-3xl font-bold text-blue-600 dark:text-blue-400">...</div>
                   <div class="text-sm font-semibold mt-2 text-blue-600 dark:text-blue-400">Monitored</div>
-                  <div class="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Recorded Monitored</div>
+                  <div class="text-xs text-blue-800 dark:text-blue-300 mt-1">Recorded Monitored</div>
                 </div>
                 <div class="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5 flex flex-col justify-center items-center text-center hover:bg-orange-500/10 hover:scale-[1.02] transition-all cursor-default shadow-sm hover:shadow-md hover:shadow-orange-500/10">
-                  <div id="bd-high" class="text-3xl font-bold text-orange-600 dark:text-orange-400">...</div>
-                  <div class="text-sm font-semibold mt-2 text-orange-600 dark:text-orange-400">High Risk</div>
-                  <div class="text-xs text-orange-600/70 dark:text-orange-400/70 mt-1">Recorded High Risk</div>
+                  <div id="bd-high" class="text-3xl font-bold text-orange-800 dark:text-orange-400">...</div>
+                  <div class="text-sm font-semibold mt-2 text-orange-800 dark:text-orange-400">High Risk</div>
+                  <div class="text-xs text-orange-800 dark:text-orange-300 mt-1">Recorded High Risk</div>
                 </div>
               </div>
             </div>
 
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow group">
-              <h3 class="font-semibold mb-6 text-[hsl(var(--foreground))] flex items-center gap-2 text-lg">
+              <h2 class="font-semibold mb-6 text-[hsl(var(--foreground))] flex items-center gap-2 text-lg">
                  <i data-lucide="trending-up" class="w-5 h-5 text-cyan-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></i> Disease Trend
-              </h3>
+              </h2>
               <div class="relative h-[250px] w-full">
                 <canvas id="bhwChart"></canvas>
               </div>
@@ -237,14 +219,19 @@
             
             <div class="relative w-full md:w-80 group">
               <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-[hsl(var(--muted-foreground))] group-focus-within:text-blue-500 transition-colors"></i>
-              <input type="text" id="patient-search-input" onkeyup="filterTable()" placeholder="Search patient name..." class="w-full pl-9 pr-4 py-2.5 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
+              <input type="text" id="patient-search-input" aria-label="Search patient records" onkeyup="filterTable()" placeholder="Search patient name..." class="w-full pl-9 pr-4 py-2.5 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
             </div>
           </div>
 
+          <div id="patient-load-status" role="status" aria-live="polite" aria-atomic="true" class="hidden flex-wrap items-center gap-3 mb-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3 text-sm">
+            <span id="patient-load-spinner" hidden aria-hidden="true" class="h-4 w-4 shrink-0 rounded-full border-2 border-blue-600 dark:border-blue-400 border-t-transparent dark:border-t-transparent animate-spin motion-reduce:animate-none"></span>
+            <span id="patient-load-message" class="min-w-0 flex-1"></span>
+            <button id="patient-load-retry" hidden type="button" onclick="retryPatientLoad()" class="min-h-11 shrink-0 rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-400">Retry</button>
+          </div>
           <div class="border border-[hsl(var(--border))] rounded-2xl overflow-hidden bg-[hsl(var(--card))] shadow-sm hover:shadow-md transition-shadow">
             <div class="overflow-x-auto">
               <table id="main-patient-table" class="w-full text-sm text-left">
-                <thead class="bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]">
+                <thead class="bg-[hsl(var(--muted))] text-slate-600 dark:text-slate-300">
                   <tr>
                     <th class="px-6 py-4 font-semibold">Name</th>
                     <th class="px-6 py-4 font-semibold">Purok</th>
@@ -272,7 +259,7 @@
           
           <div class="relative w-full max-w-md mb-8 group">
             <i data-lucide="search" class="absolute left-3 top-3.5 w-5 h-5 text-[hsl(var(--muted-foreground))] group-focus-within:text-blue-500 transition-colors"></i>
-            <input type="text" id="directory-search" onkeyup="filterDirectory()" placeholder="Search resident name..." class="w-full pl-10 pr-4 py-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
+            <input type="text" id="directory-search" aria-label="Search resident profiles" onkeyup="filterDirectory()" placeholder="Search resident name..." class="w-full pl-10 pr-4 py-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
           </div>
 
           <div id="resident-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -308,14 +295,14 @@
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-8 shadow-sm border-t-4 border-t-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all group">
-              <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
+              <h2 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
                 <div class="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-colors"><i data-lucide="file-spreadsheet" class="w-6 h-6 text-blue-500 group-hover:text-white"></i></div>
                 Monthly Case List
-              </h3>
+              </h2>
               <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Recorded cases for the month and year you select below. This list needs review before use as an official report.</p>
               
               <div class="flex gap-4 mb-6">
-                <select id="bhw-report-month" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-blue-500/50 hover:border-blue-500/50 transition-colors">
+                <select id="bhw-report-month" aria-label="Case report month" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-blue-500/50 hover:border-blue-500/50 transition-colors">
 <option value="January">January</option>
 <option value="February">February</option>
 <option value="March">March</option>
@@ -329,7 +316,7 @@
 <option value="November">November</option>
 <option value="December">December</option>
 </select>
-                <select id="bhw-report-year" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-blue-500/50 hover:border-blue-500/50 transition-colors">
+                <select id="bhw-report-year" aria-label="Case report year" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-blue-500/50 hover:border-blue-500/50 transition-colors">
 <option value="2026">2026</option>
 <option value="2025">2025</option>
 <option value="2024">2024</option>
@@ -342,19 +329,19 @@
             </div>
             
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-8 shadow-sm border-t-4 border-t-orange-500 hover:shadow-xl hover:-translate-y-1 transition-all group">
-              <h3 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
+              <h2 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
                 <div class="p-2 bg-orange-500/10 rounded-lg group-hover:bg-orange-500 group-hover:text-white transition-colors"><i data-lucide="shield-alert" class="w-6 h-6 text-orange-500 group-hover:text-white"></i></div>
                 Surveillance Case Log
-              </h3>
+              </h2>
               <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Recorded cases for the month and year selected on the left, optionally limited to one purok in your assigned barangay.</p>
               
               <div class="mb-6">
-                <select id="bhw-purok-filter" class="w-full bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-orange-500/50 hover:border-orange-500/50 transition-colors">
+                <select id="bhw-purok-filter" aria-label="Surveillance report purok" class="w-full bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-orange-500/50 hover:border-orange-500/50 transition-colors">
                   <option value="All Puroks">All Puroks / Zones in your barangay</option>
                 </select>
                 <p class="mt-2 text-xs text-[hsl(var(--muted-foreground))]">Puroks are local areas inside your assigned barangay. Choices come from recorded locations.</p>
               </div>
-              <button onclick="generateBHWReport('SURVEILLANCE')" class="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-orange-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
+              <button onclick="generateBHWReport('SURVEILLANCE')" class="w-full py-3 bg-orange-700 hover:bg-orange-800 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-orange-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
                 <i data-lucide="download" class="w-5 h-5"></i> Generate Surveillance Log PDF
               </button>
             </div>
@@ -366,7 +353,7 @@
     </main>
 
     <!-- PATIENT PROFILE MODAL -->
-    <div id="patientProfileModal" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center items-center p-4 animate-in fade-in duration-200">
+    <div id="patientProfileModal" role="dialog" aria-modal="true" aria-labelledby="profile-name" tabindex="-1" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center items-center p-4 animate-in fade-in duration-200">
       <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
         
         <div class="p-6 border-b border-[hsl(var(--border))] flex items-center justify-between bg-[hsl(var(--muted))]">
@@ -381,7 +368,7 @@
               </p>
             </div>
           </div>
-          <button onclick="closeProfileModal()" class="w-10 h-10 rounded-full flex items-center justify-center bg-[hsl(var(--background))] border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/10 transition-all hover:rotate-90">
+          <button aria-label="Close medical dossier" onclick="closeProfileModal()" class="w-10 h-10 rounded-full flex items-center justify-center bg-[hsl(var(--background))] border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/10 transition-all hover:rotate-90">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
@@ -391,24 +378,24 @@
             <div class="grid grid-cols-3 gap-4 mb-6">
               <div class="bg-[hsl(var(--muted))] p-4 rounded-xl border border-[hsl(var(--border))]">
                 <p class="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-1">Total Cases</p>
-                <h4 id="dossier-total" class="text-2xl font-black text-[hsl(var(--foreground))]">0</h4>
+                <h3 id="dossier-total" class="text-2xl font-black text-[hsl(var(--foreground))]">0</h3>
               </div>
               <div class="bg-orange-500/10 p-4 rounded-xl border border-orange-500/20">
-                <p class="text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-1">Active Cases</p>
-                <h4 id="dossier-active" class="text-2xl font-black text-orange-600 dark:text-orange-400">0</h4>
+                <p class="text-xs font-semibold text-orange-800 dark:text-orange-400 uppercase tracking-wider mb-1">Active Cases</p>
+                <h3 id="dossier-active" class="text-2xl font-black text-orange-800 dark:text-orange-400">0</h3>
               </div>
               <div class="bg-red-500/10 p-4 rounded-xl border border-red-500/20">
-                <p class="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">High Risk</p>
-                <h4 id="dossier-risk" class="text-2xl font-black text-red-600 dark:text-red-400">0</h4>
+                <p class="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wider mb-1">High Risk</p>
+                <h3 id="dossier-risk" class="text-2xl font-black text-red-700 dark:text-red-400">0</h3>
               </div>
             </div>
 
-            <h3 class="font-bold text-[hsl(var(--foreground))] mb-4 text-lg flex items-center gap-2">
+            <h2 class="font-bold text-[hsl(var(--foreground))] mb-4 text-lg flex items-center gap-2">
               <i data-lucide="activity" class="w-5 h-5 text-blue-500"></i> Medical History
-            </h3>
+            </h2>
             <div class="border border-[hsl(var(--border))] rounded-xl overflow-hidden shadow-sm">
             <table class="w-full text-sm text-left">
-              <thead class="bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))]">
+              <thead class="bg-[hsl(var(--muted))] text-slate-600 dark:text-slate-300">
                 <tr>
                   <th class="px-5 py-3 font-semibold">System ID</th>
                   <th class="px-5 py-3 font-semibold">Diagnosed Disease</th>
@@ -432,8 +419,9 @@
     <script src="assets/js/bhw/bhw-residents.js"></script>
     <script src="assets/js/bhw/bhw-dashboard.js"></script>
     <script src="assets/js/bhw/bhw-startup.js"></script>
+  <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/bhw/bhw-dialogs.js"></script>
-    <script src="assets/js/shared/health-map.js"></script>
+    <script src="assets/js/shared/lazy-heatmap.js"></script>
     <script src="assets/js/shared/portal-navigation.js"></script>
   </body>
 </html>
