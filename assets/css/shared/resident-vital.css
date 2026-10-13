@@ -1,0 +1,18 @@
+.hi-vital-badge{display:inline-block;width:fit-content;margin:5px 0;padding:5px 9px;border-radius:7px;font-size:12px;font-weight:650;line-height:1.5;}
+.hi-vital-deceased{background:#64748b15;color:#475569;border:1px solid #64748b40;}
+.hi-vital-pending{background:#f59e0b15;color:#92400e;border:1px solid #f59e0b40;}
+.dark .hi-vital-deceased{color:#cbd5e1;background:#64748b25;}
+.dark .hi-vital-pending{color:#fcd34d;background:#f59e0b15;}
+#profile-vital-status{display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid hsl(var(--border));background:hsl(var(--muted)/.5);border-radius:12px;padding:18px;margin:0 0 20px;}
+#profile-vital-status strong{font-size:15px;color:hsl(var(--foreground));}
+#profile-vital-status p{margin:6px 0 0;font-size:13px;line-height:1.6;color:hsl(var(--muted-foreground));}
+.hi-vital-button{min-height:44px;flex-shrink:0;padding:10px 14px;border:1px solid hsl(var(--border));border-radius:9px;background:hsl(var(--card));color:hsl(var(--foreground));font-size:14px;font-weight:600;cursor:pointer;}
+.hi-vital-button:focus-visible{outline:3px solid #14b8a6;outline-offset:2px;}
+.hi-vital-toolbar{display:flex;flex-wrap:wrap;align-items:end;gap:16px;margin:20px 0;}
+.hi-vital-toolbar label{display:grid;gap:7px;color:hsl(var(--foreground));font-size:14px;font-weight:600;}
+.hi-vital-toolbar select{min-height:48px;padding:10px 14px;border:1px solid hsl(var(--border));border-radius:9px;background:hsl(var(--card));color:hsl(var(--foreground));font-size:15px;}
+.hi-vital-count,.hi-vital-note{color:hsl(var(--muted-foreground));font-size:14px;line-height:1.7;margin:12px 0;}
+.hi-vital-pagination{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:18px;font-size:14px;color:hsl(var(--foreground));}
+.hi-vital-button:disabled{opacity:.5;cursor:not-allowed;}
+.dark .hi-review-dialog input[type=date]{color-scheme:dark;}
+@media(max-width:600px){#profile-vital-status{align-items:stretch;flex-direction:column}.hi-vital-toolbar{align-items:stretch;flex-direction:column}.hi-vital-toolbar select{width:100%}}

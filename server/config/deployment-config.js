@@ -56,6 +56,17 @@ function configureDeployment(app, config, projectRoot = path.join(__dirname, '..
     // Liveness only: no database, account, configuration or patient information.
     app.get('/healthz', (_req, res) => res.set('Cache-Control', 'no-store').json({ status: 'ok' }));
     if (!config.serveFrontend) return;
+    // Express accepts trailing slashes by default, but relative assets do not.
+    // Normalize known page URLs before HTML can bypass its scripts/styles.
+    app.use((req, res, next) => {
+        const page = /^\/(index|bhw|mho|admin|superadmin)\.html\/*$/i.exec(req.path);
+        if (!page || !['GET', 'HEAD'].includes(req.method)) return next();
+        const canonical = page[1].toLowerCase() === 'index' ? '/' : '/' + page[1].toLowerCase() + '.html';
+        if (req.path === canonical) return next();
+        const queryStart = req.url.indexOf('?');
+        res.set('Cache-Control', 'no-store');
+        return res.redirect(302, canonical + (queryStart < 0 ? '' : req.url.slice(queryStart)));
+    });
     app.get('/', (_req, res) => {
         res.set('Cache-Control', 'no-store');
         res.sendFile(path.join(projectRoot, 'index.html'), { dotfiles: 'deny' });

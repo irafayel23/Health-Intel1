@@ -172,7 +172,7 @@ test('BHW and MHO encoding roll back new residents and cases when their audit ca
     assert.ok(category,'An active condition is required for the encoding fixture');
     const [[beforeCounts]]=await db.query('SELECT (SELECT COUNT(*) FROM residents) AS residents,(SELECT COUNT(*) FROM health_cases) AS cases');
     for(const role of ['bhw','mho']){
-        const body={first_name:'QA Atomic '+role,last_name:'Encoding',birthdate:'2000-01-01',date_recorded:'2025-01-02',purok:'QA Zone',disease:category.name,severity:'Mild',barangay_id:barangay};
+        const body=require('./helpers/consultation-fixture').withConsultation({first_name:'QA Atomic '+role,last_name:'Encoding',birthdate:'2000-01-01',date_recorded:'2025-01-02',purok:'QA Zone',disease:category.name,severity:'Mild',barangay_id:barangay});
         const route=role==='bhw'?'/api/patients':'/api/mho/walk-in-cases';
         await db.query('RENAME TABLE system_audit_logs TO qa_encoding_audit_hold');
         try{

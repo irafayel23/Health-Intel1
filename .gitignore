@@ -24,4 +24,7 @@ private-backups/
 *firebase-adminsdk*.json
 credentials*.json
 /analysis/
+/output/
+*.dpapi
+/deploy/.private/
 /datasets/datasets/

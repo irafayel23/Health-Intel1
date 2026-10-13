@@ -16,7 +16,8 @@
 
           const targetId = button.getAttribute("data-target");
           if (targetId === 'view-resident-profiles') loadResidentDirectory();
-          if (targetId === 'view-patients') { isViewingArchive ? loadArchivedPatients({ coalesce: true }) : loadPatients({ coalesce: true }); loadPurokChoices(); }
+          if (targetId === 'view-patients') { isViewingArchive ? loadArchivedPatients({ coalesce: true }) : loadPatients({ coalesce: true }); }
+          if (targetId === 'view-reports') loadPurokChoices();
           viewSections.forEach((view) => {
             view.classList.add("hidden"); view.classList.remove("block"); view.classList.remove("flex");
           });
@@ -45,10 +46,19 @@
         }catch(error){console.error('Purok choices unavailable',error);}
       }
 
+      function refreshBHWSupportingViews() {
+          // Opening a tab always reads fresh data; hidden views need no background rebuild.
+          const residents = document.getElementById('view-resident-profiles');
+          const reports = document.getElementById('view-reports');
+          if (residents && !residents.classList.contains('hidden')) loadResidentDirectory();
+          if (reports && !reports.classList.contains('hidden')) loadPurokChoices();
+      }
+
       window.addEventListener('health-intel:case-corrected', () => {
-          loadPatients(); loadDashboardStats(); loadTrendChart(); loadResidentDirectory();
+          // The correction dialog also emits cases-changed for supporting views.
+          loadPatients(); loadDashboardStats(); loadTrendChart();
       });
-      window.addEventListener('health-intel:cases-changed', loadResidentDirectory);
+      window.addEventListener('health-intel:cases-changed', refreshBHWSupportingViews);
 
 
       document.addEventListener("DOMContentLoaded", async () => {

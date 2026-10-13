@@ -22,6 +22,7 @@ function textField(value, label, max, required=true) {
 function validatePatient(body) {
     const first_name=textField(body.first_name,'First name',100);
     const last_name=textField(body.last_name,'Last name',100);
+    const suffix=validateSuffix(body.suffix);
     const purok=textField(body.purok,'Purok / zone',100);
     const disease=body.condition_not_listed === true ? 'Pending classification' : textField(body.disease,'Disease category',255);
     const remarks=textField(body.remarks,'Remarks',4000,false);
@@ -36,6 +37,11 @@ function validatePatient(body) {
     if (!['Mild','Monitored','High Risk'].includes(body.severity)) throw new Error('Select the recorded severity: Mild, Monitored or High Risk.');
     const status=body.status === undefined ? 'Active' : body.status;
     if (!['Active','Cleared','Deceased'].includes(status)) throw new Error('Select a valid case status.');
-    return {first_name,last_name,patient_name:first_name+' '+last_name,birthdate,age,purok,disease,remarks,date_recorded,severity:body.severity,status};
+    return {first_name,last_name,suffix,patient_name:first_name+' '+last_name+(suffix?' '+suffix:''),birthdate,age,purok,disease,remarks,date_recorded,severity:body.severity,status};
 }
-module.exports = { todayInManila, validDate, ageOnDate, validatePatient };
+function validateSuffix(value) {
+    const suffix=value === undefined ? '' : textField(value,'Suffix',20,false);
+    if (!['','Jr.','Sr.','I','II','III','IV','V','VI','VII','VIII','IX','X'].includes(suffix)) throw new Error('Select a valid name suffix, or leave it blank.');
+    return suffix;
+}
+module.exports = { todayInManila, validDate, ageOnDate, validatePatient, textField, validateSuffix };

@@ -35,7 +35,7 @@ async function request(route,body,auth=true){return fetch(base+route,{method:bod
 async function invoke(fn,body){let status=200,data;const res={status(s){status=s;return this;},json(d){data=d;return this;}};await fn({body},res);return {status,data};}
 function recovery(){return createPasswordRecovery(db,secret,async m=>{sent.push(m);if(failMail)throw new Error('mock');},()=>true);}
 async function issue(){await invoke(recovery().forgot,{email});return /code is (\d{6})/.exec(sent.at(-1).text)[1];}
-const patient={first_name:'Disposable',last_name:'PhaseTwo',birthdate:'2000-10-01',date_recorded:'2025-09-20',purok:'Zone Test',disease:'Phase2 Test Disease',severity:'Monitored',remarks:'Literal <img src=x onerror=alert(1)> test text',age:99};
+const patient=require('./helpers/consultation-fixture').withConsultation({first_name:'Disposable',last_name:'PhaseTwo',birthdate:'2000-10-01',date_recorded:'2025-09-20',purok:'Zone Test',disease:'Phase2 Test Disease',severity:'Monitored',remarks:'Literal <img src=x onerror=alert(1)> test text',age:99});
 
 test('patient encoding stores explicit date, severity, computed age and resident link; duplicates are blocked',async()=>{
     const response=await request('/api/patients',patient);assert.equal(response.status,201,JSON.stringify(await response.clone().json()));

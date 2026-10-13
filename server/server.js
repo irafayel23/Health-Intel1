@@ -11,6 +11,8 @@ const { registerIdentityRoutes } = require('./routes/identity-routes');
 const { registerCaseRoutes } = require('./routes/case-routes');
 const { registerAnalyticsRoutes } = require('./routes/analytics-routes');
 const { registerMhoReportRoutes } = require('./routes/mho-reports');
+const { registerDailyReportRoutes } = require('./routes/daily-reports');
+const { registerResidentVitalRoutes } = require('./routes/resident-vital-routes');
 const { registerBackupRoutes } = require('./routes/backup-routes');
 const { registerDiseaseReviewRoutes } = require('./routes/disease-review-routes');
 const JWT_SECRET = loadJwtSecret();
@@ -42,6 +44,8 @@ registerCaseRoutes(app, db, corrections);
 registerDiseaseReviewRoutes(app, db);
 registerAnalyticsRoutes(app, db, pythonExecutable);
 registerMhoReportRoutes(app, db);
+registerDailyReportRoutes(app, db);
+registerResidentVitalRoutes(app, db);
 registerBackupRoutes(app, db, dbConfig);
 
 if (require.main === module) {

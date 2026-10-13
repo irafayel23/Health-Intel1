@@ -38,6 +38,8 @@
           url = 'http://localhost:3000/api/mho/reports/fhsis?' + params;
         } else if (reportType === 'PIDSR') {
           url = 'http://localhost:3000/api/mho/reports/pidsr?' + new URLSearchParams({week:document.getElementById('pidsr-week').value,year:document.getElementById('pidsr-year').value});
+        } else if (reportType === 'TODAY') {
+          url = 'http://localhost:3000/api/mho/reports/today';
         } else return;
         Swal.fire({ title: 'Generating report...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         try {

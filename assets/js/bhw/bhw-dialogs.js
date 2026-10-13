@@ -1,41 +1,59 @@
       function openAddPatientModal() {
         const controls=[];
-        Swal.fire({title:'New patient case',width:720,customClass:{popup:'hi-dialog hi-encode-dialog'},
-          html:`<div class="hi-encode"><p class="hi-encode-intro">Record the patient details, then choose the reported condition. Fields marked * are required.</p>
+        let visitControl, wizard;
+        Swal.fire({title:'Patient case / visit',width:940,customClass:{popup:'hi-dialog hi-encode-dialog'},
+          html:`<div class="hi-encode"><p class="hi-encode-intro">Record a disease case or a visit linked to an existing case. Fields marked * are required.</p><div id="hi-visit-progress"></div>
           <section><h3>1. Patient details</h3><div class="hi-encode-grid">
+          <div class="hi-encode-wide hi-patient-name-grid"><div><label for="swal-lname">Family name *</label><input id="swal-lname" maxlength="100" autocomplete="family-name" placeholder="Family name"></div>
           <div><label for="swal-fname">First name *</label><input id="swal-fname" maxlength="100" autocomplete="given-name" placeholder="First name"></div>
-          <div><label for="swal-lname">Last name *</label><input id="swal-lname" maxlength="100" autocomplete="family-name" placeholder="Last name"></div>
-          <div><label for="swal-birthdate">Birthdate *</label><input id="swal-birthdate" inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY"></div>
-          <div><label for="swal-age">Age on case date</label><input id="swal-age" readonly placeholder="Calculated from birthdate"></div>
+          <div class="hi-suffix-field"><label for="swal-suffix">Suffix</label><select id="swal-suffix" aria-describedby="swal-suffix-help"><option value="">None</option><option>Jr.</option><option>Sr.</option><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option><option>IX</option><option>X</option></select><p id="swal-suffix-help" class="hi-field-help">Choose None if not applicable.</p></div></div>
+          <div><label for="swal-birthdate">Birthdate *</label><input id="swal-birthdate" type="text" inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" aria-describedby="swal-birthdate-help"><p id="swal-birthdate-help" class="hi-field-help">MM/DD/YYYY · Enter 8 numbers; / separators are added automatically.</p></div>
+          <div><label for="swal-age">Age on consultation date</label><input id="swal-age" readonly placeholder="Calculated from birthdate"></div>
           <div class="hi-encode-wide"><label for="swal-purok">Purok / zone *</label><input id="swal-purok" maxlength="100" placeholder="Enter the purok or zone"><p class="hi-field-help">Assigned barangay: <span id="swal-assigned-barangay"></span></p></div></div></section>
-          <section><h3>2. Case details</h3><div class="hi-encode-grid">
-          <div><label for="swal-case-date">Case date *</label><input id="swal-case-date" type="date" min="1900-01-01"></div>
-          <div><label for="swal-severity">Recorded severity *</label><select id="swal-severity"><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></div>
-          <div class="hi-encode-wide">${HealthIntelEncoding.conditionMarkup('swal')}</div>
+          ${HealthIntelVisits.markup()}
+          <section><h3>4. Disease and visit notes</h3><div class="hi-encode-grid">
+          <p id="hi-visit-save-summary" class="hi-encode-wide hi-save-summary"></p>
+          <div class="hi-encode-wide" id="swal-condition-fields">${HealthIntelEncoding.conditionMarkup('swal')}</div>
+          <div class="hi-encode-wide"><label for="swal-severity">Recorded severity *</label><select id="swal-severity"><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></div>
           <div class="hi-encode-wide"><label for="swal-remarks">Symptoms / remarks</label><textarea id="swal-remarks" maxlength="4000" rows="3" placeholder="Optional follow-up information"></textarea><p class="hi-field-help">Severity describes this case. It does not declare an outbreak.</p></div></div></section></div>`,
-          confirmButtonText:'Save case',confirmButtonColor:'#2563eb',showCancelButton:true,showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
+          confirmButtonText:'Save record',confirmButtonColor:'#2563eb',showCancelButton:true,showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
           didOpen:()=>{
             const field=id=>document.getElementById(id),date=field('swal-case-date'),bd=field('swal-birthdate');
             date.max=window.HealthIntelDate.todayInManila();date.value=date.max;
             field('swal-assigned-barangay').textContent=window.currentBrgyName || 'Your assigned barangay';
+            controls.push(HealthIntelDate.bindNumericBirthdate(bd));
             const age=()=>{const b=HealthIntelDate.parseBirthdate(bd.value);let value='';if(b&&date.value&&b<=date.value){const [by,bm,day]=b.split('-').map(Number),[cy,cm,cd]=date.value.split('-').map(Number);const n=cy-by-(cm<bm||(cm===bm&&cd<day)?1:0);if(n<=130)value=n;}field('swal-age').value=value;};
             bd.addEventListener('input',age);date.addEventListener('change',age);
             controls.push(HealthIntelEncoding.enhanceSelect(field('swal-severity')),HealthIntelEncoding.bindCondition('swal'));
+            visitControl=HealthIntelVisits.bind(controls);controls.push(visitControl);
+            wizard=HealthIntelVisits.wizard(visitControl);controls.push(wizard);
             field('swal-disease').disabled=true;
             fetch('http://localhost:3000/api/bhw/encoding-options').then(r=>r.json()).then(result=>{if(!result.success)throw Error();if(field('swal-disease'))HealthIntelEncoding.populateConditions('swal',result.data);}).catch(()=>{if(field('swal-disease-note'))field('swal-disease-note').textContent='Choices could not be loaded. Close and reopen the form to retry.';});
           },
           willClose:()=>controls.forEach(control=>control.destroy()),
           preConfirm:async()=>{
             try{
+              if(wizard.advance())return false;
               const value=id=>document.getElementById(id).value.trim(),birthdate=HealthIntelDate.parseBirthdate(value('swal-birthdate'));
               if(!birthdate)throw Error('Enter a real birthdate as MM/DD/YYYY.');
               if(!value('swal-fname')||!value('swal-lname')||!value('swal-purok')||!value('swal-case-date')||!value('swal-severity')||value('swal-age')==='')throw Error('Complete the required patient details, case date and severity.');
-              const payload={first_name:value('swal-fname'),last_name:value('swal-lname'),birthdate,purok:value('swal-purok'),date_recorded:value('swal-case-date'),severity:value('swal-severity'),remarks:value('swal-remarks'),status:'Active',...HealthIntelEncoding.conditionPayload('swal')};
+              const details=visitControl.payload();
+              const payload={first_name:value('swal-fname'),last_name:value('swal-lname'),suffix:value('swal-suffix'),birthdate,purok:value('swal-purok'),date_recorded:value('swal-case-date'),severity:value('swal-severity'),remarks:value('swal-remarks'),status:'Active',visit:details.visit,...details.condition};
               const response=await fetch('http://localhost:3000/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}),result=await response.json();
               if(!response.ok||!result.success)throw Error(result.error||'The case could not be saved.');return result;
-            }catch(error){Swal.showValidationMessage(error.message);return false;}
+            }catch(error){Swal.showValidationMessage(error.message);if(error.field)document.getElementById(error.field)?.focus();return false;}
           }
-        }).then(result=>{if(result.isConfirmed){Swal.fire({icon:'success',title:`Case #REC-${result.value.id} saved`,text:result.value.review_status==='Pending'?'The reported condition is awaiting MHO review.':'The patient case was recorded.'});isViewingArchive?loadArchivedPatients():loadPatients();loadDashboardStats();loadTrendChart();loadPurokChoices();window.dispatchEvent(new Event('health-intel:cases-changed'));}});
+        }).then(result=>{if(result.isConfirmed){Swal.fire({icon:'success',title:result.value.new_case===false?`Visit saved · Case #REC-${result.value.id}`:`Case #REC-${result.value.id} saved`,text:result.value.new_case===false?'The visit was added to the original disease case. Disease totals are unchanged.':result.value.review_status==='Pending'?'The reported condition is awaiting MHO review.':'The patient case and consultation were recorded.'});isViewingArchive?loadArchivedPatients():loadPatients();loadDashboardStats();loadTrendChart();window.dispatchEvent(new Event('health-intel:cases-changed'));}});
+      }
+
+      async function generateBHWTodayReport() {
+        Swal.fire({title:'Preparing today’s report...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
+        try {
+          await HealthIntel.download('http://localhost:3000/api/bhw/reports/today',{},'BHW_Today_Report.pdf');
+          Swal.fire({icon:'success',title:'Download started',text:'Today’s case and consultation summary is ready.'});
+        } catch(error) {
+          Swal.fire({icon:'error',title:'Report unavailable',text:error.message});
+        }
       }
 
       async function generateBHWReport(type) {

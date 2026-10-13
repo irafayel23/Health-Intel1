@@ -1,6 +1,9 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const express = require('express');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
 const { readDeploymentConfig, configureDeployment } = require('../config/deployment-config');
 
 const fixture = {
@@ -50,6 +53,15 @@ test('single-origin host exposes only public pages/assets and never repository/p
             assert.equal(response.status, 200); assert.match(await response.text(), /api-session\.js/);
             assert.equal(response.headers.get('cache-control'), 'no-store');
             assert.equal(response.headers.get('x-powered-by'), null);
+            for (const suffix of ['/', '///']) {
+                const malformed = await fetch(base + '/' + page + '.html' + suffix + '?view=records', { redirect: 'manual' });
+                assert.equal(malformed.status, 302);
+                assert.equal(malformed.headers.get('location'), (page === 'index' ? '/' : '/' + page + '.html') + '?view=records');
+                assert.equal(malformed.headers.get('cache-control'), 'no-store');
+                assert.doesNotMatch(await malformed.text(), /Dashboard Overview/);
+            }
+            const uppercase = await fetch(base + '/' + page.toUpperCase() + '.HTML/', { redirect: 'manual' });
+            assert.equal(uppercase.headers.get('location'), page === 'index' ? '/' : '/' + page + '.html');
         }
         assert.equal((await fetch(base + '/assets/js/shared/api-session.js')).status, 200);
         assert.equal((await fetch(base + '/assets/css/shared/portal-responsive.css')).status, 200);
@@ -73,6 +85,25 @@ test('single-origin host exposes only public pages/assets and never repository/p
         const ip = await (await fetch(base + '/proxy-check', { headers: { 'X-Forwarded-For': '192.0.2.123, 198.51.100.9' } })).json();
         assert.equal(ip.ip, '198.51.100.9');
     } finally { await new Promise(resolve => server.close(resolve)); }
+});
+
+test('separate static frontends normalize portal paths before loading relative scripts', () => {
+    for (const role of ['bhw', 'mho', 'admin', 'superadmin']) {
+        const html = fs.readFileSync(path.join(__dirname, '..', '..', role + '.html'), 'utf8');
+        const guard = /<head>\s*<script>([\s\S]*?)<\/script>/.exec(html);
+        assert.ok(guard, role + ' must normalize before external scripts');
+        for (const prefix of ['', '/proposal']) {
+            for (const suffix of ['/', '///']) {
+                let redirected;
+                const location = { pathname: prefix + '/' + role.toUpperCase() + '.HTML' + suffix, search: '?view=records', hash: '#patients', replace: value => { redirected = value; } };
+                vm.runInNewContext(guard[1], { location });
+                assert.equal(redirected, prefix + '/' + role + '.html?view=records#patients');
+            }
+        }
+        let redirected = false;
+        vm.runInNewContext(guard[1], { location: { pathname: '/' + role + '.html', search: '', hash: '', replace: () => { redirected = true; } } });
+        assert.equal(redirected, false, 'canonical URLs must not reload');
+    }
 });
 
 test('local API-only mode keeps the existing separate frontend behavior', async () => {

@@ -1,4 +1,6 @@
 /* Shared portal sizing. Existing desktop themes and sidebar widths are retained. */
+.hi-sidebar-logo {background:transparent;}
+.dark .hi-sidebar-logo {filter:brightness(2.2) saturate(.9);}
 .hi-portal, .hi-portal #dashboard-section { height:100vh; height:100dvh; }
 .hi-portal main { min-width:0; min-height:0; }
 .hi-portal main > header { flex-shrink:0; }

@@ -13,4 +13,11 @@ function isoWeekPeriod(week,year){
     const end=new Date(jan4);end.setUTCDate(end.getUTCDate()+7);
     return {year:y,week:n,start:jan4.toISOString().slice(0,10),end:end.toISOString().slice(0,10)};
 }
-module.exports={months,monthlyPeriod,isoWeekPeriod};
+function todayPeriod(now=new Date()) {
+    const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
+    const part=name=>parts.find(item=>item.type===name).value;
+    const start=`${part('year')}-${part('month')}-${part('day')}`;
+    const end=new Date(start+'T00:00:00Z');end.setUTCDate(end.getUTCDate()+1);
+    return {start,end:end.toISOString().slice(0,10),timeZone:'Asia/Manila'};
+}
+module.exports={months,monthlyPeriod,isoWeekPeriod,todayPeriod};

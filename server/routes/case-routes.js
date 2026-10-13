@@ -5,6 +5,7 @@ const { validatePatient } = require('../services/patient-validation');
 const { respond } = require('../services/service-errors');
 const { createCaseLifecycleHandlers } = require('../services/case-lifecycle');
 const { createReportExport } = require('../services/report-export');
+const { caseVisits } = require('../services/case-visits');
 
 function registerCaseRoutes(app, db, corrections) {
     const encoding = createCaseEncoding(db);
@@ -58,10 +59,14 @@ function registerCaseRoutes(app, db, corrections) {
     app.get('/api/mho/walk-in-cases', async (req, res) => {
         try {
             const rows = await records.recentWalkIns(req.user.system_id);
-            res.json({ success: true, data: rows });
+            res.json({ success: true, data: rows, visits: await records.recentMhoVisits(req.user.system_id) });
         } catch {
             res.status(503).json({ success: false, error: 'Walk-in cases could not be loaded.' });
         }
+    });
+    app.post('/api/mho/walk-in-matches',async(req,res)=>{
+        try {res.json({success:true,data:await records.matchingWalkIns(req.body)});}
+        catch(error){respond(res,error,'Matching cases could not be loaded. Please try again.');}
     });
 
     app.get('/api/bhw/puroks', async (req, res) => {
@@ -77,6 +82,7 @@ function registerCaseRoutes(app, db, corrections) {
         let patient;
         try {
             patient = validatePatient(req.body);
+            if (req.body.visit === undefined) throw new Error('Complete the consultation details and all four measurements before saving this record.');
         } catch (error) {
             return res.status(400).json({ success: false, error: error.message });
         }
@@ -96,6 +102,10 @@ function registerCaseRoutes(app, db, corrections) {
         }
     }
     app.post('/api/patients', (req, res) => savePatientCase(req, res, Number(req.user.barangay_id), 'BHW'));
+    app.get('/api/patients/:id/visits', async (req,res) => {
+        try { res.json({success:true,data:await caseVisits(db, Number(req.params.id), req.user)}); }
+        catch(error) { respond(res,error,'Visit history could not be loaded.'); }
+    });
     app.post('/api/mho/walk-in-cases', (req, res) =>
         savePatientCase(req, res, Number(req.body.barangay_id), 'MHO')
     );
@@ -151,7 +161,8 @@ function registerCaseRoutes(app, db, corrections) {
 
             // Fetch their full health history from health_cases
             const historyRows = await records.residentHistory(residentId, req.user);
-            res.json({ success: true, resident: residentRows[0], history: historyRows });
+            const visits = await records.residentVisits(residentId, req.user);
+            res.json({ success: true, resident: residentRows[0], history: historyRows, visits });
         } catch (error) {
             console.error('Dossier error:', error);
             res.status(500).json({ success: false, error: 'Database error' });

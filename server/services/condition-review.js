@@ -122,7 +122,7 @@ function createConditionReview(db) {
                     }
                     const [duplicates] = await connection.execute(
                         `SELECT id FROM health_cases WHERE id<>? AND barangay_id=? AND disease=? AND date_recorded=? AND
-                                (resident_id=? OR (first_name=? AND last_name=? AND birthdate=?)) LIMIT 1`,
+                                (resident_id=? OR (first_name=? AND last_name=? AND birthdate=? AND suffix=?)) LIMIT 1`,
                         [
                             id,
                             row.barangay_id,
@@ -131,7 +131,8 @@ function createConditionReview(db) {
                             row.resident_id,
                             row.first_name,
                             row.last_name,
-                            row.birthdate
+                            row.birthdate,
+                            row.suffix
                         ]
                     );
                     if (duplicates.length)

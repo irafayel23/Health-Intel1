@@ -61,6 +61,10 @@ function page(file) {
         return e;
     }
     for(const [,id] of html.matchAll(/\bid="([^"]+)"/g)) elements[id] = element(id);
+    for(const [tag,id] of html.matchAll(/<[^>]*\bid="([^"]+)"[^>]*>/g)) {
+        const classes=/\bclass="([^"]*)"/.exec(tag)?.[1];
+        if(classes)elements[id].classList.add(...classes.split(/\s+/));
+    }
     for(const [,id,body] of html.matchAll(/<select\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/select>/g)) {
         for(const [,tag,value,label] of body.matchAll(/(<option\b[^>]*value="([^"]*)"[^>]*>)([\s\S]*?)<\/option>/g)) {
             const option=element();option.value=value;option.textContent=label;elements[id].append(option);
@@ -77,13 +81,14 @@ function page(file) {
     const auth=()=>authInstance;auth.GoogleAuthProvider=function(){this.setCustomParameters=()=>{};};
     const s = {URLSearchParams,Intl,Date,TextEncoder,Event,AbortController,console:{error:(...args)=>errors.push(args)},
         document:{readyState:'loading',body:element(),getElementById:id=>elements[id] || null,createElement:()=>element(),addEventListener:on,documentElement:element(),
-            querySelectorAll:selector=>selector.includes('nav-item')?navigation:[],querySelector:selector=>selector==='#sidebar, #main-sidebar, #superadmin-sidebar'?(elements.sidebar || elements['main-sidebar'] || elements['superadmin-sidebar']):selector==='[data-portal-menu]'?elements['sidebar-toggle']:selector.includes('data-target')?navigation.find(n=>selector.includes(n.getAttribute('data-target'))):element()},
+            querySelectorAll:selector=>selector.includes('nav-item')?navigation:selector==='.view-section'?Object.values(elements).filter(e=>e.classList.contains('view-section')):[],querySelector:selector=>selector==='#sidebar, #main-sidebar, #superadmin-sidebar'?(elements.sidebar || elements['main-sidebar'] || elements['superadmin-sidebar']):selector==='[data-portal-menu]'?elements['sidebar-toggle']:selector.includes('data-target')?navigation.find(n=>selector.includes(n.getAttribute('data-target'))):element()},
         localStorage:{getItem:k=>storage.get(k) || null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
         lucide:{createIcons(){}},firebase:{initializeApp(){},auth},location:{href:'',replace(value){this.href=value;}},
         addEventListener:on,dispatchEvent(event){for(const fn of events[event.type] || [])fn(event);},setInterval(){},setTimeout(){},clearTimeout(){},matchMedia:()=>({matches:false,addEventListener(){}}),
         Swal:{fire:async()=>({isConfirmed:false}),showLoading(){},close(){},isLoading:()=>false,showValidationMessage(){}},
         HealthIntel:{download:async(...args)=>downloads.push(args),clearSession(){}},
         HealthIntelEncoding:{escape:value=>String(value),conditionLabel:r=>r.disease || '',conditionCell:r=>r.disease || '',bindCondition(){},enhanceSelect(){},populateConditions(){}},
+        HealthIntelVisits:{validateMeasurements(){},formatTime:()=> 'Time not recorded',renderResidentHistory(){}},
         fetch:async(url,options)=>{
             requests.push({url:String(url),options});
             const result=s.response(String(url),options);
@@ -132,7 +137,10 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     for(const endpoint of ['bhw/context','bhw-stats','bhw-trend'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
     for(const endpoint of ['patients','residents','bhw/puroks'])assert.ok(!p.requests.some(r=>r.url.includes('/api/'+endpoint)),`${endpoint} must wait for its view`);
     await p.navigation.find(n=>n.getAttribute('data-target')==='view-patients').emit('click');await settle();
-    for(const endpoint of ['patients','bhw/puroks'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
+    assert.ok(p.requests.some(r=>r.url.includes('/api/patients')));
+    assert.ok(!p.requests.some(r=>r.url.includes('/api/bhw/puroks')),'patient navigation must not fetch hidden report options');
+    await p.navigation.find(n=>n.getAttribute('data-target')==='view-reports').emit('click');await settle();
+    assert.ok(p.requests.some(r=>r.url.includes('/api/bhw/puroks')),'report options load when their view opens');
     await p.navigation.find(n=>n.getAttribute('data-target')==='view-resident-profiles').emit('click');await settle();
     assert.ok(p.requests.some(r=>r.url.includes('/api/residents')));
     p.s.dispatchEvent(new Event('health-intel:cases-changed'));await settle();
@@ -142,6 +150,77 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     const before=p.requests.length;
     await p.navigation.find(n=>n.getAttribute('data-target')==='view-patients').emit('click');await settle();
     assert.ok(p.requests.slice(before).some(r=>r.url.includes('/api/patients/archived')),'returning to the archive keeps its data source');
+});
+
+test('BHW case changes refresh visible supporting views and defer hidden directories until opened',async()=>{
+    const p=page('bhw.html');p.load();await p.start();
+    const navigate=async target=>{await p.navigation.find(n=>n.getAttribute('data-target')===target).emit('click');await settle();};
+    await navigate('view-patients');
+    const before=p.requests.length;
+    p.s.dispatchEvent(new Event('health-intel:cases-changed'));await settle();
+    assert.equal(p.requests.length,before,'case saves must not fetch hidden residents or report filters');
+    await navigate('view-resident-profiles');
+    const residentReads=p.requests.filter(r=>r.url.includes('/api/residents')).length;
+    p.s.dispatchEvent(new Event('health-intel:cases-changed'));await settle();
+    assert.equal(p.requests.filter(r=>r.url.includes('/api/residents')).length,residentReads+1);
+    p.s.dispatchEvent(new Event('health-intel:case-corrected'));await settle();
+    assert.equal(p.requests.filter(r=>r.url.includes('/api/residents')).length,residentReads+1,'paired correction events must not load the directory twice');
+    await navigate('view-reports');
+    const reportReads=p.requests.filter(r=>r.url.includes('/api/bhw/puroks')).length;
+    p.s.dispatchEvent(new Event('health-intel:cases-changed'));await settle();
+    assert.equal(p.requests.filter(r=>r.url.includes('/api/bhw/puroks')).length,reportReads+1);
+    assert.equal(p.requests.filter(r=>r.url.includes('/api/residents')).length,residentReads+1);
+    await navigate('view-resident-profiles');
+    assert.equal(p.requests.filter(r=>r.url.includes('/api/residents')).length,residentReads+2,'reopening loads fresh records');
+});
+
+test('BHW resident rendering preserves escaped cards, newborn age, search and dossier hooks',()=>{
+    const p=page('bhw.html');p.load();
+    const residents=Array.from({length:750},(_,i)=>({id:i+1,patient_name:'Synthetic Resident '+i,purok:'QA',age:i%80,case_count:1}));
+    residents[0].patient_name='<script>fixture</script>';residents[0].purok='<b>QA</b>';
+    p.s.allResidents=residents;
+    p.s.renderDirectory(residents);
+    const html=p.elements['resident-grid'].innerHTML;
+    assert.equal((html.match(/View Medical Dossier/g)||[]).length,12);
+    assert.match(html,/viewPatientProfile\('12'\)/);
+    assert.equal(p.elements['resident-page-count'].textContent,'Showing 1–12 of 750 residents');
+    assert.match(html,/&lt;script&gt;fixture&lt;\/script&gt;/);
+    assert.match(html,/&lt;b&gt;QA&lt;\/b&gt; \| 0 yrs/);
+    p.elements['directory-search'].value='Resident 749';p.s.filterDirectory();
+    assert.equal((p.elements['resident-grid'].innerHTML.match(/View Medical Dossier/g)||[]).length,1);
+    assert.match(p.elements['resident-grid'].innerHTML,/viewPatientProfile\('750'\)/);
+    assert.equal(p.elements['resident-page-count'].textContent,'Showing 1–1 of 1 residents');
+    p.elements['directory-search'].value='no matching fixture';p.s.filterDirectory();
+    assert.match(p.elements['resident-grid'].innerHTML,/No residents found/);
+    assert.equal(p.elements['resident-page-count'].textContent,'Showing 0 of 0 residents');
+    assert.equal(p.elements['resident-pagination'].children.length,0);
+});
+
+test('Resident pagination bounds controls, keeps patient paging independent and resets search to the first page',()=>{
+    const p=page('bhw.html');p.load();
+    vm.runInNewContext('currentPage = 4',p.s);
+    p.s.allResidents=Array.from({length:750},(_,i)=>({id:i+1,patient_name:'Synthetic Resident '+i,purok:'QA',age:20,case_count:1}));
+    p.s.filterDirectory();
+    const controls=()=>p.elements['resident-pagination'].children;
+    assert.equal(controls().find(b=>b.textContent==='Previous').disabled,true);
+    controls().find(b=>b.textContent==='Next').onclick();
+    assert.equal(p.elements['resident-page-count'].textContent,'Showing 13–24 of 750 residents');
+    assert.equal(vm.runInNewContext('currentPage',p.s),4,'resident paging must not change patient state');
+    controls().find(b=>b.textContent==='63').onclick();
+    assert.equal(p.elements['resident-page-count'].textContent,'Showing 745–750 of 750 residents');
+    assert.equal((p.elements['resident-grid'].innerHTML.match(/View Medical Dossier/g)||[]).length,6);
+    assert.equal(controls().find(b=>b.textContent==='Next').disabled,true);
+    controls().find(b=>b.textContent==='61').onclick();
+    assert.ok(controls().filter(b=>b.type==='button').length<=9);
+    assert.equal(controls().filter(b=>b.getAttribute('aria-current')==='page').length,1);
+    p.elements['directory-search'].value='Resident 1';p.s.filterDirectory();
+    assert.match(p.elements['resident-page-count'].textContent,/^Showing 1–12 of /);
+    p.elements['directory-search'].value='';p.s.filterDirectory();
+    controls().find(b=>b.textContent==='63').onclick();
+    p.s.allResidents=p.s.allResidents.slice(0,13);p.s.filterDirectory();
+    assert.equal(p.elements['resident-page-count'].textContent,'Showing 13–13 of 13 residents');
+    p.s.allResidents=[];p.s.filterDirectory();
+    assert.equal(p.elements['resident-page-count'].textContent,'Showing 0 of 0 residents');
 });
 
 test('MHO split scripts retain API charts, filter refresh and report downloads',async()=>{
@@ -159,7 +238,7 @@ test('MHO split scripts retain API charts, filter refresh and report downloads',
 
 test('MHO navigation keeps the requested workflow order and defaults to Philippine month and ISO week',async()=>{
     const p=page('mho.html');p.load();
-    assert.deepEqual(p.navigation.map(node=>node.getAttribute('data-target')),['view-analytics','view-history','view-disease-review','view-predictive','view-heatmap','view-reports']);
+    assert.deepEqual(p.navigation.map(node=>node.getAttribute('data-target')),['view-analytics','view-history','view-disease-review','view-vital-review','view-predictive','view-heatmap','view-reports']);
     for(const [day,month,year,week,isoYear] of [
         ['2026-10-02','October','2026','40','2026'],
         ['2025-12-29','December','2025','1','2026'],

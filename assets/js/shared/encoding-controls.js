@@ -1,7 +1,7 @@
 (() => {
     const escape = window.HealthIntelText.escape;
     const UNLISTED = '__condition_not_listed__';
-    function enhanceSelect(select, {searchable=false}={}) {
+    function enhanceSelect(select, {searchable=false,allowEmpty=false}={}) {
         if (select._hiSelect) return select._hiSelect;
         const events=new AbortController(), on=(el,name,fn)=>el.addEventListener(name,fn,{signal:events.signal});
         const wrap=document.createElement('div');wrap.className='hi-select';
@@ -10,6 +10,7 @@
         const label=select.getAttribute('aria-label') || [...(select.labels?.[0]?.childNodes || [])].filter(node=>node.nodeType===Node.TEXT_NODE).map(node=>node.textContent).join('').trim() || 'Choose an option';
         const button=document.createElement('button');button.type='button';button.className='hi-select-trigger';
         button.setAttribute('role','combobox');button.setAttribute('aria-label',label);button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');
+        if(select.hasAttribute('aria-describedby'))button.setAttribute('aria-describedby',select.getAttribute('aria-describedby'));
         const menu=document.createElement('div');menu.className='hi-select-menu';menu.hidden=true;
         const list=document.createElement('div');list.id=select.id+'-list';list.setAttribute('role','listbox');list.setAttribute('aria-label',label);list.className='hi-select-list';
         button.setAttribute('aria-controls',list.id);
@@ -23,7 +24,7 @@
             button.replaceChildren();const text=document.createElement('span');text.textContent=select.selectedOptions[0]?.textContent || 'Select';button.append(text);
             const arrow=document.createElement('span');arrow.className='hi-select-arrow';arrow.setAttribute('aria-hidden','true');arrow.textContent='⌄';button.append(arrow);button.disabled=select.disabled;
             const query=(search?.value||'').trim().toLocaleLowerCase();
-            options=[...select.options].filter(o=>!o.disabled&&o.value&&(!query||o.textContent.toLocaleLowerCase().includes(query)||o.value===UNLISTED));
+            options=[...select.options].filter(o=>!o.disabled&&(allowEmpty||o.value)&&(!query||o.textContent.toLocaleLowerCase().includes(query)||o.value===UNLISTED));
             list.replaceChildren();active=-1;
             options.forEach((option,i)=>{const item=document.createElement('div');item.id=list.id+'-'+i;item.className='hi-select-option';item.setAttribute('role','option');item.setAttribute('aria-selected',String(option.selected));item.textContent=option.textContent;if(option.value===UNLISTED)item.classList.add('hi-select-unlisted');item.addEventListener('click',()=>choose(option));list.append(item);});
             if(!options.length){const empty=document.createElement('p');empty.className='hi-select-empty';empty.textContent='No matching choices';list.append(empty);}

@@ -98,9 +98,10 @@ test('resident directory reloads after saved case changes and when its real side
     const events = {}, clicks = {}, requests = [];
     const button = { classList:{contains:()=>false,remove(){},add(){}}, getAttribute:()=>target, addEventListener:(name,fn)=>{clicks[name]=fn;} };
     const grid = {innerHTML:''};
+    const residentView = {classList:{contains:()=>false,add(){},remove(){}}};
     let residents = [];
     const sandbox = { lucide:{createIcons(){}}, console, window:{ currentBrgyId:1, addEventListener:(name,fn)=>{events[name]=fn;} },
-        document:{ querySelectorAll:selector=>selector.includes('nav-menu')?[button]:[], addEventListener(){}, getElementById:id=>id==='directory-search'?{value:''}:id==='resident-grid'?grid:null },
+        document:{ querySelectorAll:selector=>selector.includes('nav-menu')?[button]:[], addEventListener(){}, getElementById:id=>id==='directory-search'?{value:''}:id==='resident-grid'?grid:id==='view-resident-profiles'?residentView:null },
         escapeText:value=>String(value), fetch:async url=>{requests.push(url);return {json:async()=>({success:true,data:residents})};} };
     vm.runInNewContext(script('safe-text.js'),sandbox);
     vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
@@ -112,6 +113,7 @@ test('resident directory reloads after saved case changes and when its real side
     assert.match(grid.innerHTML,/No residents found/);
     residents = [{id:42,patient_name:'Disposable Directory',age:26,purok:'QA Zone',case_count:1}];
     await events['health-intel:cases-changed']();
+    await new Promise(resolve=>setImmediate(resolve));
     assert.match(grid.innerHTML,/Disposable Directory/);
     const before = requests.length;
     clicks.click();

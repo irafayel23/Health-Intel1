@@ -1,6 +1,11 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      // Also normalize URLs when the frontend is served separately (Live Server/XAMPP).
+      const portalPath = location.pathname.replace(/\/(bhw|mho|admin|superadmin)\.html\/*$/i, (_, role) => '/' + role.toLowerCase() + '.html');
+      if (portalPath !== location.pathname) location.replace(portalPath + location.search + location.hash);
+    </script>
     <script src="assets/js/shared/theme.js"></script>
     <script src="assets/js/shared/accessible-modal.js"></script>
     <script src="assets/js/shared/api-session.js"></script>
@@ -25,6 +30,8 @@
     <script src="assets/js/shared/chart-theme.js"></script>
       <link rel="stylesheet" href="assets/css/shared/encoding-controls.css">
     <script src="assets/js/shared/encoding-controls.js"></script>
+    <link rel="stylesheet" href="assets/css/shared/resident-vital.css">
+    <script src="assets/js/shared/resident-vital.js"></script>
     <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261003">
     <!-- Match the former runtime Tailwind cascade after the custom styles. -->
     <link rel="stylesheet" href="assets/css/bhw/bhw-utilities.css?v=20261008" />
@@ -35,7 +42,7 @@
     <aside id="sidebar" class="w-64 bg-transparent flex flex-col transition-all duration-300 relative z-10 shrink-0">
       <!-- Logo Area -->
       <div class="h-16 flex items-center px-6 group cursor-default pt-4">
-        <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="w-8 h-8 mr-3 shrink-0 rounded-lg bg-white hover:scale-110 transition-transform duration-300" overflow="hidden">
+        <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="hi-sidebar-logo w-8 h-8 mr-3 shrink-0 hover:scale-110 transition-transform duration-300" overflow="hidden">
           <image href="assets/img/Logo-Health-Intel.png?v=concept-06" width="1280" height="1280" />
         </svg>
         <h2 id="sidebar-text" class="font-bold text-lg tracking-tight whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent group-hover:tracking-wider">HEALTH-INTEL</h2>
@@ -262,8 +269,14 @@
             <input type="text" id="directory-search" aria-label="Search resident profiles" onkeyup="filterDirectory()" placeholder="Search resident name..." class="w-full pl-10 pr-4 py-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
           </div>
 
+          <div class="hi-vital-toolbar"><label for="directory-vital-filter">Resident status<select id="directory-vital-filter" onchange="filterDirectory()"><option value="all">All residents</option><option value="living">Living</option><option value="deceased">Deceased · confirmed</option></select></label><button type="button" class="hi-vital-button" onclick="loadResidentDirectory()">Refresh residents</button></div>
+          <p class="hi-vital-note">Living includes residents not confirmed deceased. Pending death reports require MHO review; case outcomes remain separate.</p>
           <div id="resident-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <!-- JS Injected -->
+          </div>
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p id="resident-page-count" role="status" aria-live="polite" aria-atomic="true" class="text-sm text-[hsl(var(--muted-foreground))]"></p>
+            <nav id="resident-pagination" aria-label="Resident profiles pagination" class="flex flex-wrap items-center justify-end gap-2"></nav>
           </div>
         </div>
 
@@ -289,8 +302,14 @@
         <div id="view-reports" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="mb-8">
             <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Report Generation</h1>
-            <p class="text-[hsl(var(--muted-foreground))] mt-1">Download recorded case lists for your assigned barangay.</p>
+            <p class="text-[hsl(var(--muted-foreground))] mt-1">Download case lists and today’s consultation summary for your assigned barangay.</p>
           </div>
+          <section class="hi-today-report" aria-labelledby="bhw-today-title">
+            <div><span class="hi-today-report-badge">Today · Philippines date</span><h2 id="bhw-today-title">Today’s barangay report</h2>
+              <p>Disease cases and consultations dated today, grouped by condition. Includes today’s admissions and follow-ups in a separate visit section, without adding to disease case totals. Your assigned barangay only.</p>
+              <small>Today so far · Download again after saving new records.</small></div>
+            <button type="button" onclick="generateBHWTodayReport()"><i data-lucide="download" aria-hidden="true"></i> Download today’s PDF</button>
+          </section>
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
@@ -354,7 +373,7 @@
 
     <!-- PATIENT PROFILE MODAL -->
     <div id="patientProfileModal" role="dialog" aria-modal="true" aria-labelledby="profile-name" tabindex="-1" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center items-center p-4 animate-in fade-in duration-200">
-      <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+      <div class="hi-dossier bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl shadow-2xl w-full overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
         
         <div class="p-6 border-b border-[hsl(var(--border))] flex items-center justify-between bg-[hsl(var(--muted))]">
           <div class="flex items-center gap-5">
@@ -375,7 +394,9 @@
 
                   <div class="p-6 overflow-y-auto">
             <!-- DOSSIER STATS -->
-            <div class="grid grid-cols-3 gap-4 mb-6">
+            <p class="hi-dossier-intro">Resident record · Disease cases and their consultation history</p>
+            <div id="profile-vital-status"></div>
+            <div class="hi-dossier-stats">
               <div class="bg-[hsl(var(--muted))] p-4 rounded-xl border border-[hsl(var(--border))]">
                 <p class="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-1">Total Cases</p>
                 <h3 id="dossier-total" class="text-2xl font-black text-[hsl(var(--foreground))]">0</h3>
@@ -388,17 +409,21 @@
                 <p class="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wider mb-1">High Risk</p>
                 <h3 id="dossier-risk" class="text-2xl font-black text-red-700 dark:text-red-400">0</h3>
               </div>
+              <div class="hi-dossier-visit-stat">
+                <p>Consultations</p><h3 id="dossier-visits">0</h3>
+              </div>
             </div>
+            <p class="hi-dossier-explanation">Case totals count disease records. Admissions and follow-ups add consultations to the original case. High Risk reflects recorded case severity.</p>
 
             <h2 class="font-bold text-[hsl(var(--foreground))] mb-4 text-lg flex items-center gap-2">
-              <i data-lucide="activity" class="w-5 h-5 text-blue-500"></i> Medical History
+              <i data-lucide="activity" class="w-5 h-5 text-blue-500"></i> Disease case history
             </h2>
-            <div class="border border-[hsl(var(--border))] rounded-xl overflow-hidden shadow-sm">
+            <div class="hi-table-scroll border border-[hsl(var(--border))] rounded-xl overflow-hidden shadow-sm">
             <table class="w-full text-sm text-left">
               <thead class="bg-[hsl(var(--muted))] text-slate-600 dark:text-slate-300">
                 <tr>
                   <th class="px-5 py-3 font-semibold">System ID</th>
-                  <th class="px-5 py-3 font-semibold">Diagnosed Disease</th>
+                  <th class="px-5 py-3 font-semibold">Reported condition</th>
                   <th class="px-5 py-3 font-semibold">Remarks</th>
                   <th class="px-5 py-3 font-semibold">Status</th>
                 </tr>
@@ -408,6 +433,11 @@
               </tbody>
             </table>
           </div>
+          <section class="hi-consultation-history" aria-labelledby="dossier-consultations-title">
+            <div class="hi-history-heading"><h2 id="dossier-consultations-title">Consultation history</h2><span id="dossier-visit-summary"></span></div>
+            <p class="hi-dossier-explanation">Each visit shows its date, nature, measurements and notes. This includes new consultations, admissions and follow-ups.</p>
+            <div id="profile-visits-list" class="hi-visit-list"></div>
+          </section>
         </div>
       </div>
     </div>
@@ -420,6 +450,7 @@
     <script src="assets/js/bhw/bhw-dashboard.js"></script>
     <script src="assets/js/bhw/bhw-startup.js"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
+  <script src="assets/js/shared/patient-visits.js"></script>
   <script src="assets/js/bhw/bhw-dialogs.js"></script>
     <script src="assets/js/shared/lazy-heatmap.js"></script>
     <script src="assets/js/shared/portal-navigation.js"></script>

@@ -12,8 +12,9 @@ const {
 const { createPasswordRecovery } = require('../services/password-recovery');
 const { createRegistrationHandlers } = require('../services/registration');
 const { createSystemAudit } = require('../services/system-audit');
+const { createLoginThrottle } = require('../services/login-throttle');
 
-function registerAuthRoutes(app, db, JWT_SECRET) {
+function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) {
     const credentials = createAccountCredentials(db);
     const audit = createSystemAudit(db);
     const attemptedId = req => typeof req.body?.system_id==='string' && /^[A-Za-z0-9_-]{1,64}$/.test(req.body.system_id) ? req.body.system_id : null;
@@ -22,13 +23,15 @@ function registerAuthRoutes(app, db, JWT_SECRET) {
         attribution:user?'Credentials verified; access refused':'Unverified account identifier; not proof the account owner made this attempt'
     });
     const registration = createRegistrationHandlers(db);
+    const loginThrottle = createLoginThrottle(db, loginThrottleOptions);
     const loginLimiter = rateLimit({
         windowMs: 1 * 60 * 1000,
         max: 10,
         message: { success: false, error: 'Too many login attempts. Please wait 60 seconds.' },
         handler: async (req,res) => {
             try { await failedLogin(req,'Login attempt blocked by rate limit.',null,'Login Rate Limited');
-                res.status(429).json({success:false,error:'Too many login attempts. Please wait 60 seconds.'});
+                const seconds = Math.max(1, Math.ceil((Number(req.rateLimit.resetTime) - Date.now()) / 1000) || 60);
+                res.set('Retry-After', String(seconds)).status(429).json({success:false,error:`Too many login attempts from this connection. Please wait ${seconds} seconds.`,retry_after_seconds:seconds});
             } catch { console.error('Login audit unavailable.'); res.status(503).json({success:false,error:'Unable to record the login attempt. Please try again later.'}); }
         }
     });
@@ -125,35 +128,37 @@ function registerAuthRoutes(app, db, JWT_SECRET) {
                 await failedLogin(req,'Login rejected: invalid credentials.');
                 return res.status(401).json({success:false,error:'Invalid System ID or Password.'});
             }
-            const rows = await credentials.find(system_id);
+            const outcome = await loginThrottle.attempt(system_id, async connection => {
+            const loginAudit = createSystemAudit(connection);
+            const recordFailure = (reason,user=null) => loginAudit.record(user,'Login Failed',{
+                summary:reason,outcome:'Failed',target_type:'Account',target_id:attemptedId(req),
+                attribution:user?'Credentials verified; access refused':'Unverified account identifier; not proof the account owner made this attempt'
+            });
+            const rows = await createAccountCredentials(connection).find(system_id);
 
             if (rows.length === 0) {
-                await failedLogin(req,'Login rejected: invalid credentials.');
-                return res.status(401).json({ success: false, error: 'Invalid System ID or Password.' });
+                await recordFailure('Login rejected: invalid credentials.');
+                return {status:401,wrongCredentials:true,body:{ success: false, error: 'Invalid System ID or Password.' }};
             }
 
             const user = rows[0];
             const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
             if (!isPasswordValid) {
-                await failedLogin(req,'Login rejected: invalid credentials.');
-                return res.status(401).json({ success: false, error: 'Invalid System ID or Password.' });
+                await recordFailure('Login rejected: invalid credentials.');
+                return {status:401,wrongCredentials:true,body:{ success: false, error: 'Invalid System ID or Password.' }};
             }
             if (user.status === 'pending') {
-                await failedLogin(req,'Login rejected: account pending approval.',user);
-                return res
-                    .status(403)
-                    .json({ success: false, error: 'Account pending. Please wait for MHO Admin approval.' });
+                await recordFailure('Login rejected: account pending approval.',user);
+                return {status:403,body:{ success: false, error: 'Account pending. Please wait for MHO Admin approval.' }};
             }
             if (user.status === 'denied') {
-                await failedLogin(req,'Login rejected: account denied.',user);
-                return res.status(403).json({ success: false, error: 'Account access denied by HR.' });
+                await recordFailure('Login rejected: account denied.',user);
+                return {status:403,body:{ success: false, error: 'Account access denied by HR.' }};
             }
             if (user.status === 'suspended') {
-                await failedLogin(req,'Login rejected: account suspended.',user);
-                return res
-                    .status(403)
-                    .json({ success: false, error: 'Account suspended. Please contact MHO HR.' });
+                await recordFailure('Login rejected: account suspended.',user);
+                return {status:403,body:{ success: false, error: 'Account suspended. Please contact MHO HR.' }};
             }
 
             const token = jwt.sign(
@@ -166,15 +171,19 @@ function registerAuthRoutes(app, db, JWT_SECRET) {
                 { expiresIn: '8h', algorithm: 'HS256' }
             );
 
-            await audit.record(user,'Login Succeeded',{summary:`Signed in as ${user.system_id}.`,target_type:'Account',target_id:user.system_id,outcome:'Succeeded'});
+            await loginAudit.record(user,'Login Succeeded',{summary:`Signed in as ${user.system_id}.`,target_type:'Account',target_id:user.system_id,outcome:'Succeeded'});
             console.log(`➔ LOGIN SUCCESS: ${user.system_id}`);
-            res.json({
+            return {status:200,body:{
                 success: true,
                 token: token,
                 role: user.role,
                 system_id: user.system_id,
                 redirect: `/${user.role}.html`
+            }};
             });
+            if (outcome.alreadyBlocked) await failedLogin(req,'Login attempt blocked by account cooldown.',null,'Login Rate Limited');
+            if (outcome.retryAfter) res.set('Retry-After', String(outcome.retryAfter));
+            res.status(outcome.status).json(outcome.body);
         } catch (error) {
             console.error('Login Error:', error);
             res.status(500).json({ success: false, error: 'Internal server error.' });

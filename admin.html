@@ -1,6 +1,10 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      const portalPath = location.pathname.replace(/\/(bhw|mho|admin|superadmin)\.html\/*$/i, (_, role) => '/' + role.toLowerCase() + '.html');
+      if (portalPath !== location.pathname) location.replace(portalPath + location.search + location.hash);
+    </script>
     <script src="assets/js/shared/theme.js"></script>
     <script src="assets/js/shared/accessible-modal.js"></script>
     <script src="assets/js/shared/api-session.js"></script>
@@ -29,7 +33,7 @@
       <!-- SIDEBAR (Always Dark) -->
       <aside id="main-sidebar" class="w-64 bg-transparent text-slate-600 dark:text-slate-300 flex flex-col flex-shrink-0 transition-all duration-300 relative z-10">
         <div class="h-16 flex items-center px-6 pt-4">
-          <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="w-8 h-8 mr-3 shrink-0 rounded-lg bg-white" overflow="hidden">
+          <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="hi-sidebar-logo w-8 h-8 mr-3 shrink-0" overflow="hidden">
             <image href="assets/img/Logo-Health-Intel.png?v=concept-06" width="1280" height="1280" />
           </svg>
           <h2 id="sidebar-text" class="text-slate-800 dark:text-white font-bold tracking-widest text-lg m-0 transition-all duration-300">ADMIN</h2>

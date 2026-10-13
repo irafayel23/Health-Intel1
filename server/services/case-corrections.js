@@ -2,7 +2,8 @@ const crypto = require('node:crypto');
 const { invalid, plain, respond } = require('./service-errors');
 const { transaction } = require('./database-transaction');
 const { validDate, ageOnDate, todayInManila } = require('./patient-validation');
-const fields = "id,barangay_id,resident_id,first_name,last_name,DATE_FORMAT(birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(date_recorded,'%Y-%m-%d') AS date_recorded,disease,disease_review_status,disease_reported,condition_source,disease_id,severity,age,status,remarks,is_archived,updated_at";
+const {guardResidentVisit}=require('./resident-vital');
+const fields = "id,barangay_id,resident_id,first_name,last_name,suffix,DATE_FORMAT(birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(date_recorded,'%Y-%m-%d') AS date_recorded,disease,disease_review_status,disease_reported,condition_source,disease_id,severity,age,status,remarks,is_archived,updated_at";
 const version = row => crypto.createHash('sha256').update(JSON.stringify(row)).digest('hex');
 async function diseases(db, current) {
     const [registry] = await db.query('SELECT name,status,is_archived FROM disease_registry');
@@ -48,6 +49,7 @@ function handlers(db) {
                     if (row.is_archived) throw invalid('Restore this archived record before correcting it.', 409);
                     if (version(row) !== input.version) throw invalid('Someone updated this record. Close and reopen the form before saving your correction.', 409);
                     if (input.date_recorded === null && row.date_recorded !== null) throw invalid('An existing case date cannot be cleared.');
+                    if(input.date_recorded!==null)await guardResidentVisit(connection,row.resident_id,input.date_recorded);
                     if (['Pending','Clarification'].includes(row.disease_review_status) && disease !== row.disease) throw invalid('MHO must review this condition before its disease category can be changed.');
                     if (disease !== row.disease && !(await diseases(connection)).includes(disease)) throw invalid('Select an existing, non-archived disease category.');
                     let age = row.age;
@@ -59,9 +61,9 @@ function handlers(db) {
                     if (input.date_recorded === row.date_recorded && disease === row.disease && input.severity === row.severity) throw invalid('Change the case date, disease or recorded severity before saving.');
                     let duplicateSql = 'SELECT id FROM health_cases WHERE id<>? AND barangay_id=? AND disease=? AND date_recorded=? AND ';
                     let duplicateParams = [row.id, row.barangay_id, disease, input.date_recorded];
-                    if (row.resident_id && row.first_name && row.last_name && row.birthdate) { duplicateSql += '(resident_id=? OR (first_name=? AND last_name=? AND birthdate=?))'; duplicateParams.push(row.resident_id, row.first_name, row.last_name, row.birthdate); }
+                    if (row.resident_id && row.first_name && row.last_name && row.birthdate) { duplicateSql += '(resident_id=? OR (first_name=? AND last_name=? AND birthdate=? AND suffix=?))'; duplicateParams.push(row.resident_id, row.first_name, row.last_name, row.birthdate, row.suffix); }
                     else if (row.resident_id) { duplicateSql += 'resident_id=?'; duplicateParams.push(row.resident_id); }
-                    else if (row.first_name && row.last_name && row.birthdate) { duplicateSql += 'first_name=? AND last_name=? AND birthdate=?'; duplicateParams.push(row.first_name, row.last_name, row.birthdate); }
+                    else if (row.first_name && row.last_name && row.birthdate) { duplicateSql += 'first_name=? AND last_name=? AND birthdate=? AND suffix=?'; duplicateParams.push(row.first_name, row.last_name, row.birthdate, row.suffix); }
                     else if (disease !== row.disease || input.date_recorded !== row.date_recorded) throw invalid('This historical case lacks enough verified identity details for a date or disease correction. Review its source/profile first; severity can still be corrected.', 409);
                     else duplicateSql = null;
                     if (duplicateSql) { const [duplicates] = await connection.execute(duplicateSql + ' AND (? IS NULL OR disease_reported=?) LIMIT 1', [...duplicateParams, ['Pending','Clarification'].includes(row.disease_review_status)?row.disease_reported:null, ['Pending','Clarification'].includes(row.disease_review_status)?row.disease_reported:null]); if (duplicates.length) throw invalid('This correction would match another case for the same resident, disease and date. Review the existing record.', 409); }

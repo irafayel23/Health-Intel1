@@ -26,7 +26,7 @@
           if (!yoy.success || !mortality.success) throw new Error('Comparison charts are unavailable.');
           document.getElementById('yoy-title').textContent = `Recorded Cases: ${yoy.previous_year} vs ${yoy.current_year}`;
           document.getElementById('yoy-context').textContent = `Uses the selected barangay and recorded age. ${filters.year === 'all' ? 'All Years compares the current calendar year with the previous year. ' : ''}Current-year counts may be incomplete; this chart does not establish an increase or decline in community disease incidence.`;
-          document.getElementById('mortality-title').textContent = `Recorded Deaths: ${filters.year === 'all' ? 'All Years' : 'CY ' + filters.year}`;
+          document.getElementById('mortality-title').textContent = `Cases marked Deceased: ${filters.year === 'all' ? 'All Years' : 'CY ' + filters.year}`;
           if (window.yoyChartInst) window.yoyChartInst.destroy();
           if (window.mortChartInst) window.mortChartInst.destroy();
           window.yoyChartInst = new Chart(yoyCanvas.getContext('2d'), {

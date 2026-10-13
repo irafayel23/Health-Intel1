@@ -18,16 +18,25 @@
 .hi-select-option[aria-selected=true] {font-weight:650;color:var(--hi-form-accent);background:#3b82f610;}
 .hi-select-unlisted {border-top:1px solid var(--hi-form-border);margin-top:5px;color:var(--hi-form-accent);font-weight:600;}
 .hi-select-empty {padding:10px;color:var(--hi-form-muted);}
-.hi-encode {text-align:left;color:var(--hi-form-text);font-size:14px;}
+.hi-encode {text-align:left;color:var(--hi-form-text);font-size:16px;line-height:1.5;}
 .hi-encode section {padding:20px 0;border-top:1px solid var(--hi-form-border);}
 .hi-encode h3 {font-size:16px;margin:0 0 6px;font-weight:700;}
-.hi-encode-intro,.hi-field-help {color:var(--hi-form-muted);font-size:12px;line-height:1.6;margin:5px 0 0;}
+.hi-encode-intro,.hi-field-help {color:var(--hi-form-muted);font-size:13px;line-height:1.6;margin:5px 0 0;}
 .hi-encode-grid {display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;}
-.hi-encode label,.hi-condition-field>label,.hi-unlisted-fields label {display:block;font-size:13px;font-weight:600;margin-bottom:7px;}
+.hi-encode label,.hi-condition-field>label,.hi-unlisted-fields label {display:block;font-size:15px;font-weight:600;margin-bottom:8px;}
 .hi-encode input,.hi-encode textarea,.hi-unlisted-fields input,.hi-review-dialog input,.hi-review-dialog textarea {box-sizing:border-box;width:100%;min-height:46px;border:1px solid var(--hi-form-border);border-radius:9px;padding:11px 12px;background:var(--hi-form-bg);color:var(--hi-form-text);font:inherit;}
 .hi-encode input:focus,.hi-encode textarea:focus,.hi-unlisted-fields input:focus,.hi-review-dialog input:focus,.hi-review-dialog textarea:focus {outline:0;border-color:var(--hi-form-accent);box-shadow:0 0 0 3px #3b82f620;}
 .hi-encode input[readonly] {background:var(--hi-form-hover);color:var(--hi-form-muted);}
 .hi-encode-wide {grid-column:1/-1;}
+.hi-patient-name-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 160px;gap:18px;align-items:start;}
+.hi-patient-name-grid>div {min-width:0;}
+.hi-suffix-field {width:100%;max-width:180px;}
+.hi-encode input,.hi-encode .hi-select-trigger {min-height:50px;}
+.hi-consultation-time {display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:8px;min-width:0;}
+.hi-encode [hidden] {display:none!important;}
+.hi-encode input,.hi-encode-grid>div,.hi-consultation-time>* {min-width:0;}
+.hi-encode-dialog.swal2-popup {display:flex!important;flex-direction:column;width:min(940px,calc(100vw - 24px))!important;max-height:min(94dvh,940px)!important;overflow:hidden;}
+.hi-encode-dialog .swal2-html-container {min-height:0;flex:1 1 auto;max-height:none;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;}
 .hi-unlisted-fields {padding:16px;margin-top:12px;border:1px solid #f59e0b50;border-radius:10px;background:#f59e0b08;display:grid;gap:7px;}
 .hi-review-badge {display:block;width:fit-content;background:#f59e0b18;color:#b45309;border:1px solid #f59e0b40;font-size:11px;font-weight:600;border-radius:20px;padding:3px 9px;margin-top:6px;}
 .dark .hi-review-badge {color:#fbbf24;}
@@ -42,4 +51,87 @@
 .hi-encode-dialog .swal2-html-container {margin:0 24px;}
 .hi-encode-dialog .swal2-title {font-size:24px;padding-top:24px;}
 .hi-encode-dialog .swal2-actions {width:calc(100% - 48px);justify-content:flex-end;margin:12px 24px 24px;padding-top:18px;border-top:1px solid var(--hi-form-border);}
-@media(max-width:600px){.hi-encode-grid{grid-template-columns:1fr;gap:13px}.hi-encode-dialog .swal2-html-container{margin:0 16px}.hi-select-trigger{min-height:46px}.hi-encode-dialog .swal2-title{font-size:21px}}
+@media(max-width:700px){.hi-patient-name-grid{grid-template-columns:1fr}.hi-encode-grid{grid-template-columns:1fr;gap:16px}.hi-encode-dialog .swal2-html-container{margin:0 12px}.hi-encode-dialog .swal2-title{font-size:21px}}
+
+/* Guided case/visit entry and resident consultation history. */
+.hi-encode-dialog.swal2-popup {border-radius:24px;padding:22px 18px 18px;box-shadow:0 24px 80px #0f172a35;}
+.hi-encode-dialog .swal2-title {flex-shrink:0;padding:6px 12px 0;font-size:25px;letter-spacing:-.5px;}
+.hi-encode-intro {margin:10px 0 18px;font-size:13px;}
+.hi-encode section {padding:22px;border:1px solid var(--hi-form-border);border-radius:16px;background:var(--hi-form-bg);margin-bottom:8px;}
+.hi-encode h3 {font-size:18px;margin:0 0 8px;letter-spacing:-.2px;}
+.hi-encode-grid {gap:18px;}
+.hi-step-status {font-size:12px;color:var(--hi-form-muted);margin:0 0 12px;font-weight:600;}
+#hi-visit-progress {position:sticky;top:0;z-index:2;background:var(--hi-form-bg);padding:10px 0 1px;}
+.hi-visit-steps {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;margin:0 0 20px;padding:0;}
+.hi-visit-steps li {display:flex;align-items:center;gap:8px;padding:10px 5px;border-bottom:3px solid var(--hi-form-border);color:var(--hi-form-muted);font-size:13px;line-height:1.4;}
+.hi-step-number {display:flex;flex-shrink:0;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--hi-form-hover);color:var(--hi-form-muted);font-size:12px;font-weight:700;}
+.hi-visit-steps [data-stage=current] {border-color:var(--hi-form-accent);color:var(--hi-form-text);font-weight:700;}
+.hi-visit-steps [data-stage=current] .hi-step-number {background:#2563eb;color:#fff;}
+.hi-visit-steps [data-stage=complete] {border-color:#0d9488;}
+.hi-visit-steps [data-stage=complete] .hi-step-number {background:#0d948818;color:#0f766e;}
+.dark .hi-visit-steps [data-stage=complete] .hi-step-number {color:#5eead4;}
+.hi-visit-back {margin-right:auto;border:1px solid var(--hi-form-border);background:var(--hi-form-bg);color:var(--hi-form-text);padding:11px 18px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;}
+.hi-visit-back[hidden] {display:none!important;}
+.hi-visit-back:focus-visible {outline:3px solid var(--hi-form-accent);outline-offset:2px;}
+.hi-encode-dialog .swal2-actions {flex:0 0 auto;margin:16px 24px 6px;padding-top:16px;gap:10px;}
+.hi-encode-dialog .swal2-confirm,.hi-encode-dialog .swal2-cancel {border-radius:10px;min-height:48px;font-size:16px;padding:11px 20px;}
+.hi-encode-dialog .swal2-cancel {background:var(--hi-form-hover)!important;color:var(--hi-form-text)!important;border:1px solid var(--hi-form-border)!important;}
+.hi-save-summary {padding:13px 15px;background:#2563eb0c;border:1px solid #2563eb25;border-radius:10px;font-size:13px;line-height:1.6;}
+.hi-dossier {max-width:880px;}
+.hi-dossier-intro {font-size:12px;letter-spacing:.04em;color:hsl(var(--muted-foreground));margin-bottom:15px;}
+.hi-dossier-stats {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px;}
+.hi-dossier-visit-stat {padding:16px;border:1px solid #0d948840;border-radius:12px;background:#0d94880d;}
+.hi-dossier-visit-stat p {color:#0f766e;font-size:12px;font-weight:650;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.hi-dossier-visit-stat h3 {color:#0f766e;font-size:24px;font-weight:800;}
+.dark .hi-dossier-visit-stat p,.dark .hi-dossier-visit-stat h3 {color:#5eead4;}
+.hi-dossier-explanation {color:hsl(var(--muted-foreground));font-size:12px;line-height:1.7;margin:0 0 20px;}
+.hi-dossier #profile-name {overflow-wrap:anywhere;}
+.hi-dossier [aria-label="Close medical dossier"] {flex-shrink:0;}
+.hi-consultation-history {margin-top:28px;}
+.hi-history-heading {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.hi-history-heading h2 {font-size:18px;font-weight:700;color:hsl(var(--foreground));}
+.hi-history-heading>span {color:hsl(var(--muted-foreground));font-size:12px;}
+.hi-visit-list {display:grid;gap:14px;}
+.hi-visit-card {padding:20px;border:1px solid hsl(var(--border));border-radius:14px;background:hsl(var(--card));box-shadow:0 2px 8px #0f172a03;overflow-wrap:anywhere;}
+.hi-visit-card>header {display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.hi-visit-nature {display:inline-block;padding:5px 10px;border-radius:7px;background:#2563eb10;color:#1d4ed8;font-size:12px;font-weight:650;}
+.dark .hi-visit-nature {background:#60a5fa15;color:#93c5fd;}
+.hi-visit-date,.hi-visit-case-ref {font-size:12px;color:hsl(var(--muted-foreground));margin:8px 0 0;}
+.hi-visit-case-ref {flex-shrink:0;font-family:monospace;}
+.hi-visit-condition {font-weight:650;font-size:14px;margin:14px 0;color:hsl(var(--foreground));}
+.hi-visit-condition>span {font-size:12px;font-weight:400;color:hsl(var(--muted-foreground));}
+.hi-visit-measurements {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:14px;background:hsl(var(--muted)/.6);border-radius:10px;}
+.hi-visit-measurements dt {color:hsl(var(--muted-foreground));font-size:11px;margin-bottom:4px;}
+.hi-visit-measurements dd {color:hsl(var(--foreground));font-size:14px;font-weight:650;margin:0;}
+.hi-visit-notes,.hi-visit-referral {font-size:12px;line-height:1.7;color:hsl(var(--muted-foreground));margin-top:12px;}
+.hi-visit-notes strong,.hi-visit-referral strong {color:hsl(var(--foreground));font-weight:600;}
+.hi-visit-referral {padding:12px 14px;background:#0d94880c;border-left:3px solid #0d9488;border-radius:5px;}
+.hi-history-empty {border:1px dashed hsl(var(--border));border-radius:14px;padding:24px;text-align:center;color:hsl(var(--muted-foreground));font-size:13px;line-height:1.7;}
+.hi-history-empty strong {display:block;color:hsl(var(--foreground));margin-bottom:7px;font-weight:600;}
+.hi-today-report {display:flex;align-items:center;justify-content:space-between;gap:28px;padding:26px;margin:24px 0 32px;background:hsl(var(--card));color:hsl(var(--foreground));border:1px solid hsl(var(--border));border-left:4px solid #0d9488;border-radius:16px;box-shadow:0 3px 14px #0f172a05;}
+.hi-today-report>div {max-width:720px;min-width:0;}
+.hi-today-report-badge {display:inline-block;font-size:12px;font-weight:650;color:#0f766e;background:#0d948812;border-radius:6px;padding:5px 9px;margin-bottom:12px;}
+.dark .hi-today-report-badge {color:#5eead4;background:#0d948820;}
+.hi-today-report h2 {font-size:21px;font-weight:700;line-height:1.4;margin:0 0 8px;}
+.hi-today-report p {font-size:14px;color:hsl(var(--muted-foreground));line-height:1.7;margin:0;}
+.hi-today-report small {display:block;color:hsl(var(--muted-foreground));font-size:12px;margin-top:12px;}
+.hi-today-report>button {display:flex;flex-shrink:0;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:12px 18px;background:#0f766e;color:#fff;border:0;border-radius:10px;font-size:14px;font-weight:650;cursor:pointer;}
+.hi-today-report>button:hover {background:#115e59;}
+.hi-today-report>button:focus-visible {outline:3px solid #14b8a6;outline-offset:3px;}
+.hi-today-report>button svg {width:18px;height:18px;}
+@media(max-width:850px){.hi-today-report{align-items:stretch;flex-direction:column;gap:18px;padding:20px}.hi-today-report>button{align-self:flex-start}}
+@media(max-width:600px){
+    .hi-encode-dialog.swal2-popup{padding:18px 8px 14px;}
+    .hi-encode section{padding:16px;}
+    .hi-encode-dialog .swal2-actions{margin:14px 16px 4px;width:calc(100% - 32px);}
+    .hi-visit-steps{gap:5px;margin-bottom:16px;}
+    .hi-visit-steps li{flex-direction:column;align-items:flex-start;padding:7px 2px;font-size:11px;}
+    .hi-visit-steps .hi-step-label{display:none;}
+    .hi-visit-steps li::after{content:attr(data-short-label);font-size:12px;}
+    .hi-visit-back{padding:10px 12px;}
+    .hi-encode-dialog .swal2-confirm,.hi-encode-dialog .swal2-cancel{padding:10px 12px;}
+    .hi-dossier-stats,.hi-visit-measurements{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .hi-dossier .p-6{padding:16px;}
+    .hi-dossier #profile-name{font-size:20px;}
+    .hi-visit-card{padding:16px;}
+}

@@ -54,7 +54,7 @@ test('MHO can encode a walk-in into the resident barangay without gaining BHW ed
     assert.ok(choices.diseases.some(row=>row.name==='Workflow Disease A'));
     assert.ok(!choices.diseases.some(row=>row.name==='Workflow Archived Disease'));
     for(const role of ['bhw','admin','superadmin'])assert.equal((await request('/api/mho/walk-in-options',role)).status,403);
-    const walkin={first_name:'Walkin',last_name:'Fixture',birthdate:'2001-05-10',date_recorded:'2025-08-12',barangay_id:other.id,purok:'MHO Zone',disease:'Workflow Disease A',severity:'Monitored',remarks:'Disposable walk-in fixture',status:'Active'};
+    const walkin=require('./helpers/consultation-fixture').withConsultation({first_name:'Walkin',last_name:'Fixture',birthdate:'2001-05-10',date_recorded:'2025-08-12',barangay_id:other.id,purok:'MHO Zone',disease:'Workflow Disease A',severity:'Monitored',remarks:'Disposable walk-in fixture',status:'Active'});
     const saved=await request('/api/mho/walk-in-cases','mho',walkin);assert.equal(saved.status,201,JSON.stringify(await saved.clone().json()));
     const id=(await saved.json()).id;
     const [[row]]=await db.execute("SELECT encoded_by,barangay_id,resident_id,age,status FROM health_cases WHERE id=?",[id]);
@@ -101,7 +101,7 @@ test('four-role rehearsal covers login, approved/pending governance, case views,
 });
 
 test('new BHW cases appear in resident directory and Admin sees their saved actions', async () => {
-    const patient = { first_name:'AuditDirectory', last_name:'Fixture', birthdate:'2000-01-01', date_recorded:'2025-09-30', purok:'QA Zone', disease:'Workflow Disease A', severity:'Mild', remarks:'Disposable fixture' };
+    const patient = require('./helpers/consultation-fixture').withConsultation({ first_name:'AuditDirectory', last_name:'Fixture', birthdate:'2000-01-01', date_recorded:'2025-09-30', purok:'QA Zone', disease:'Workflow Disease A', severity:'Mild', remarks:'Disposable fixture' });
     const created = await request('/api/patients','bhw',patient);
     assert.equal(created.status,201);
     const id = (await created.json()).id;

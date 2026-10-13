@@ -20,13 +20,21 @@ const rules = [
     ['GET', /^\/bhw\/context$/, ['bhw']],
     ['GET', /^\/bhw\/(encoding-options|puroks)$/, ['bhw']],
     ['GET', /^\/bhw\/report-data$/, ['bhw']],
+    ['GET', /^\/bhw\/reports\/today$/, ['bhw']],
     ['GET', /^\/mho\/disease-reviews$/, ['mho']],
     ['PUT', /^\/mho\/disease-reviews\/\d+$/, ['mho']],
     ['PUT', /^\/patients\/\d+\/condition-clarification$/, ['bhw']],
     ['GET', /^\/mho\/walk-in-(options|cases)$/, ['mho']],
+    ['POST', /^\/mho\/walk-in-matches$/, ['mho']],
     ['POST', /^\/mho\/walk-in-cases$/, ['mho']],
     ['GET', /^\/(patients(?:\/archived)?|residents(?:\/\d+\/dossier)?|bhw-trend|bhw-stats)$/, ['bhw', 'admin']],
     ['POST', /^\/patients$/, ['bhw']],
+    ['POST', /^\/residents\/\d+\/death-report$/, ['bhw']],
+    ['GET', /^\/mho\/resident-status$/, ['mho']],
+    ['PUT', /^\/mho\/death-reports\/\d+\/review$/, ['mho']],
+    ['PUT', /^\/mho\/residents\/\d+\/vital-status$/, ['mho']],
+    ['GET', /^\/mho\/reports\/deceased-residents$/, ['mho']],
+    ['GET', /^\/patients\/\d+\/visits$/, ['bhw', 'admin']],
     ['PUT', /^\/patients\/\d+\/status$/, ['bhw']],
     ['GET', /^\/patients\/\d+\/correction$/, ['bhw', 'admin']],
     ['PUT', /^\/patients\/\d+\/correction$/, ['bhw', 'admin']],
@@ -37,7 +45,7 @@ const rules = [
     ['POST', /^\/diseases$/, ['admin']],
     ['PUT', /^\/diseases\/\d+\/(archive|restore)$/, ['admin']],
     ['GET', /^\/(mho-stats|analytics\/demographics|get-predictions|predict)$/, ['mho']],
-    ['GET', /^\/mho\/(stats|kpi|yoy|mortality|reports\/(fhsis|pidsr))$/, ['mho']]
+    ['GET', /^\/mho\/(stats|kpi|yoy|mortality|reports\/(fhsis|pidsr|today))$/, ['mho']]
 ];
 
 function loadJwtSecret() {
@@ -117,7 +125,7 @@ function createAccessControl(db, secret) {
                 if (req.method === 'POST' && req.path === '/patients' && req.body.encoded_by && req.body.encoded_by !== user.system_id) {
                     return deny(res, 403, 'The encoder must be the signed-in health worker.', 'ACCESS_DENIED');
                 }
-                const caseMatch = /^\/patients\/(\d+)\/(status|archive|restore|correction|condition-clarification)$/.exec(req.path);
+                const caseMatch = /^\/patients\/(\d+)\/(status|archive|restore|correction|condition-clarification|visits)$/.exec(req.path);
                 const residentMatch = /^\/residents\/(\d+)\/dossier$/.exec(req.path);
                 if (caseMatch || residentMatch) {
                     const table = caseMatch ? 'health_cases' : 'residents';
