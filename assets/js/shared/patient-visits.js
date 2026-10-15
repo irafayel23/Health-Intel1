@@ -20,10 +20,11 @@
         <div><label for="swal-height">Height (cm) *</label><input id="swal-height" required inputmode="decimal" maxlength="6" placeholder="e.g. 165"><p class="hi-field-help">Use centimetres</p></div>
         <div><label for="swal-weight">Weight (kg) *</label><input id="swal-weight" required inputmode="decimal" maxlength="7" placeholder="e.g. 60.5"><p class="hi-field-help">Use kilograms</p></div></div></section>`;
     }
-    function bind(controls) {
+    function bind(controls, returnVisit=null) {
         const events=new AbortController(), field=id=>document.getElementById(id), options={signal:events.signal};
+        const target=returnVisit?.caseId||null,residentId=returnVisit?.residentId||null;
         let cases=[],loaded=false,failed=false,closed=false;
-        const returning=()=>['New admission','Follow-up visit'].includes(field('swal-nature').value);
+        const returning=()=>target!==null||['New admission','Follow-up visit'].includes(field('swal-nature').value);
         const refresh=()=>{
             if(closed)return;
             field('swal-referral-fields').hidden=field('swal-transaction').value!=='Referral';
@@ -33,15 +34,17 @@
             const select=field('swal-existing-case'), previous=select.value, lower=s=>String(s||'').trim().toLocaleLowerCase('en');
             const birthdate=HealthIntelDate.parseBirthdate(field('swal-birthdate').value);
             const consultationDate=field('swal-case-date').value;
-            const identityMatches=cases.filter(row=>lower(row.first_name)===lower(field('swal-fname').value)&&lower(row.last_name)===lower(field('swal-lname').value)&&lower(row.suffix)===lower(field('swal-suffix').value)&&row.birthdate===birthdate);
+            const identityMatches=cases.filter(row=>(target===null||(Number(row.id)===target&&Number(row.resident_id)===residentId))&&lower(row.first_name)===lower(field('swal-fname').value)&&lower(row.last_name)===lower(field('swal-lname').value)&&lower(row.suffix)===lower(field('swal-suffix').value)&&row.birthdate===birthdate);
             const eligible=row=>!row.is_archived&&/^\d{4}-\d{2}-\d{2}$/.test(row.date_recorded||'')&&/^\d{4}-\d{2}-\d{2}$/.test(consultationDate)&&row.date_recorded<=consultationDate&&(!row.is_deceased||(row.death_date&&consultationDate<=row.death_date));
             const matching=identityMatches.filter(eligible);
             select.replaceChildren(new Option(!loaded?'Loading cases…':failed?'Cases unavailable — reopen to retry':matching.length?'Select the original disease case':identityMatches.length?'No eligible case for this consultation date':'No matching case — check name, suffix and birthdate',''));
             matching.forEach(row=>select.add(new Option(`#REC-${row.id} · ${HealthIntelEncoding.conditionLabel(row)} · ${HealthIntelDate.formatCaseDate(row.date_recorded)}`,String(row.id))));
             if(matching.some(row=>String(row.id)===previous))select.value=previous;
+            if(target!==null&&matching.some(row=>Number(row.id)===target))select.value=String(target);
             select.disabled=!loaded||failed||!matching.length;
             select._hiSelect?.refresh();
             field('swal-existing-case-note').textContent=failed?'Cases could not be loaded. Close and reopen the form to retry.':loaded&&identityMatches.length&&!matching.length?'Check the consultation date. It must be on or after the original case date and, for a confirmed deceased resident, on or before the recorded death date. Archived cases are unavailable.':'An admission or follow-up adds a visit to the selected case and does not add another disease case.';
+            if(target!==null&&!failed&&matching.length)field('swal-existing-case-note').textContent=`Linked to #REC-${target}. Choose admission or follow-up and enter fresh details for this visit. The original disease case stays unchanged.`;
         };
         for(const id of ['swal-transaction','swal-nature','swal-existing-case','swal-time-period','swal-suffix'])controls.push(HealthIntelEncoding.enhanceSelect(field(id),{allowEmpty:id==='swal-suffix'}));
         for(const id of ['swal-transaction','swal-nature','swal-suffix'])field(id).addEventListener('change',refresh,options);
@@ -51,11 +54,12 @@
             const input=field(id), allowed=id==='swal-bp'?/[^\d/]/:id.startsWith('swal-time-')?/[^\d]/:/[^\d.]/;
             input.addEventListener('beforeinput',e=>{if(e.inputType==='insertText'&&e.data&&allowed.test(e.data))e.preventDefault();},options);
         }
-        fetch('http://localhost:3000/api/patients').then(async response=>{const result=await response.json();if(!response.ok||!result.success)throw Error();cases=result.data;loaded=true;refresh();}).catch(()=>{failed=true;loaded=true;refresh();});
+        fetch(residentId?'http://localhost:3000/api/residents/'+residentId+'/dossier':'http://localhost:3000/api/patients').then(async response=>{const result=await response.json();if(!response.ok||!result.success)throw Error();cases=residentId?result.history.map(row=>({...row,is_deceased:result.resident.is_deceased,death_date:result.resident.death_date})):result.data;loaded=true;refresh();}).catch(()=>{failed=true;loaded=true;refresh();});
         refresh();
         const consultation=()=>{
             const value=id=>field(id).value.trim(),nature=value('swal-nature');
             if(!value('swal-transaction')||!nature)throw Error('Select the mode of transaction and nature of visit.');
+            if(target!==null&&!['New admission','Follow-up visit'].includes(nature))throw formError('swal-nature','Choose New admission or Follow-up visit for the selected case.');
             const hour=value('swal-time-hour'),minute=value('swal-time-minute'),period=value('swal-time-period');
             let time=null;
             if(hour||minute||period){
@@ -84,9 +88,9 @@
             const raw=value(id);if(!/^\d+(?:\.\d{1,2})?$/.test(raw)||Number(raw)<=0||Number(raw)>max)throw formError(id.replace(/^swal-/,prefix+'-'),`Enter ${label} as a positive number (up to ${max}) with no more than two decimal places.`);
         }
     }
-    function wizard(visitControl) {
+    function wizard(visitControl, {initialStep=0,patientLabel=''}={}) {
         const sections=[...document.querySelectorAll('.hi-encode > section')],events=new AbortController();
-        let step=0;
+        let step=initialStep;
         const labels=['Patient','Consultation','Measurements','Disease & notes'];
         const shortLabels=['Patient','Visit','Vitals','Review'];
         const progress=document.getElementById('hi-visit-progress');
@@ -99,7 +103,7 @@
         const render=()=>{
             sections.forEach((section,i)=>section.hidden=i!==step);
             progress.querySelectorAll('li').forEach((item,i)=>{item.dataset.stage=i===step?'current':i<step?'complete':'pending';if(i===step)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');});
-            document.getElementById('hi-visit-step-status').textContent=`Step ${step+1} of 4 · ${labels[step]}`;
+            document.getElementById('hi-visit-step-status').textContent=`Step ${step+1} of 4 · ${labels[step]}${patientLabel?' · '+patientLabel:''}`;
             back.hidden=step===0;Swal.getConfirmButton().textContent=step===3?'Save record':'Continue';
             document.querySelector('.swal2-html-container').scrollTop=0;
             if(step===3){

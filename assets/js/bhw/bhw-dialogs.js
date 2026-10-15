@@ -1,8 +1,8 @@
-      function openAddPatientModal() {
+      function openAddPatientModal(returnVisit=null) {
         const controls=[];
         let visitControl, wizard;
-        Swal.fire({title:'Patient case / visit',width:940,customClass:{popup:'hi-dialog hi-encode-dialog'},
-          html:`<div class="hi-encode"><p class="hi-encode-intro">Record a disease case or a visit linked to an existing case. Fields marked * are required.</p><div id="hi-visit-progress"></div>
+        return Swal.fire({title:returnVisit?'Record follow-up / admission':'Patient case / visit',width:940,customClass:{popup:'hi-dialog hi-encode-dialog'},
+          html:`<div class="hi-encode"><p class="hi-encode-intro">${returnVisit?`Patient details are filled from the resident profile. This visit stays linked to #REC-${Number(returnVisit.caseId)}. Enter new measurements and notes.`:'Record a disease case or a visit linked to an existing case.'} Fields marked * are required.</p><div id="hi-visit-progress"></div>
           <section><h3>1. Patient details</h3><div class="hi-encode-grid">
           <div class="hi-encode-wide hi-patient-name-grid"><div><label for="swal-lname">Family name *</label><input id="swal-lname" maxlength="100" autocomplete="family-name" placeholder="Family name"></div>
           <div><label for="swal-fname">First name *</label><input id="swal-fname" maxlength="100" autocomplete="given-name" placeholder="First name"></div>
@@ -15,7 +15,7 @@
           <p id="hi-visit-save-summary" class="hi-encode-wide hi-save-summary"></p>
           <div class="hi-encode-wide" id="swal-condition-fields">${HealthIntelEncoding.conditionMarkup('swal')}</div>
           <div class="hi-encode-wide"><label for="swal-severity">Recorded severity *</label><select id="swal-severity"><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></div>
-          <div class="hi-encode-wide"><label for="swal-remarks">Symptoms / remarks</label><textarea id="swal-remarks" maxlength="4000" rows="3" placeholder="Optional follow-up information"></textarea><p class="hi-field-help">Severity describes this case. It does not declare an outbreak.</p></div></div></section></div>`,
+          <div class="hi-encode-wide"><label for="swal-remarks">Symptoms / remarks</label><textarea id="swal-remarks" maxlength="4000" rows="3" placeholder="Optional follow-up information"></textarea><p class="hi-field-help">${returnVisit?'Severity describes this visit; the original case severity stays unchanged.':'Severity describes this case. It does not declare an outbreak.'}</p></div></div></section></div>`,
           confirmButtonText:'Save record',confirmButtonColor:'#2563eb',showCancelButton:true,showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
           didOpen:()=>{
             const field=id=>document.getElementById(id),date=field('swal-case-date'),bd=field('swal-birthdate');
@@ -24,9 +24,17 @@
             controls.push(HealthIntelDate.bindNumericBirthdate(bd));
             const age=()=>{const b=HealthIntelDate.parseBirthdate(bd.value);let value='';if(b&&date.value&&b<=date.value){const [by,bm,day]=b.split('-').map(Number),[cy,cm,cd]=date.value.split('-').map(Number);const n=cy-by-(cm<bm||(cm===bm&&cd<day)?1:0);if(n<=130)value=n;}field('swal-age').value=value;};
             bd.addEventListener('input',age);date.addEventListener('change',age);
+            if(returnVisit){
+              const person=returnVisit.person,[year,month,day]=person.birthdate.split('-');
+              for(const [id,value] of [['swal-fname',person.first_name],['swal-lname',person.last_name],['swal-birthdate',`${month}/${day}/${year}`],['swal-purok',person.purok]]){field(id).value=value;field(id).readOnly=true;}
+              field('swal-suffix').value=person.suffix||'';field('swal-suffix').disabled=true;
+              [...field('swal-nature').options].find(option=>option.value==='New consultation/case').disabled=true;
+              date.nextElementSibling.textContent='Date of this visit; the original case date stays unchanged.';
+              age();
+            }
             controls.push(HealthIntelEncoding.enhanceSelect(field('swal-severity')),HealthIntelEncoding.bindCondition('swal'));
-            visitControl=HealthIntelVisits.bind(controls);controls.push(visitControl);
-            wizard=HealthIntelVisits.wizard(visitControl);controls.push(wizard);
+            visitControl=HealthIntelVisits.bind(controls,returnVisit?{caseId:returnVisit.caseId,residentId:Number(returnVisit.person.id)}:null);controls.push(visitControl);
+            wizard=HealthIntelVisits.wizard(visitControl,{initialStep:returnVisit?1:0,patientLabel:returnVisit?[returnVisit.person.first_name,returnVisit.person.last_name,returnVisit.person.suffix].filter(Boolean).join(' '):''});controls.push(wizard);
             field('swal-disease').disabled=true;
             fetch('http://localhost:3000/api/bhw/encoding-options').then(r=>r.json()).then(result=>{if(!result.success)throw Error();if(field('swal-disease'))HealthIntelEncoding.populateConditions('swal',result.data);}).catch(()=>{if(field('swal-disease-note'))field('swal-disease-note').textContent='Choices could not be loaded. Close and reopen the form to retry.';});
           },
@@ -43,7 +51,7 @@
               if(!response.ok||!result.success)throw Error(result.error||'The case could not be saved.');return result;
             }catch(error){Swal.showValidationMessage(error.message);if(error.field)document.getElementById(error.field)?.focus();return false;}
           }
-        }).then(result=>{if(result.isConfirmed){Swal.fire({icon:'success',title:result.value.new_case===false?`Visit saved · Case #REC-${result.value.id}`:`Case #REC-${result.value.id} saved`,text:result.value.new_case===false?'The visit was added to the original disease case. Disease totals are unchanged.':result.value.review_status==='Pending'?'The reported condition is awaiting MHO review.':'The patient case and consultation were recorded.'});isViewingArchive?loadArchivedPatients():loadPatients();loadDashboardStats();loadTrendChart();window.dispatchEvent(new Event('health-intel:cases-changed'));}});
+        }).then(result=>{if(result.isConfirmed){Swal.fire({icon:'success',title:result.value.new_case===false?`Visit saved · Case #REC-${result.value.id}`:`Case #REC-${result.value.id} saved`,text:result.value.new_case===false?'The visit was added to the original disease case. Disease totals are unchanged.':result.value.review_status==='Pending'?'The reported condition is awaiting MHO review.':'The patient case and consultation were recorded.'});isViewingArchive?loadArchivedPatients():loadPatients();loadDashboardStats();loadTrendChart();window.dispatchEvent(new Event('health-intel:cases-changed'));}else if(returnVisit)viewPatientProfile(returnVisit.person.id);});
       }
 
       async function generateBHWTodayReport() {

@@ -12,13 +12,14 @@ before(async()=>{
 });
 after(async()=>{await fixture?.close();});
 // Execute the current production matching code with actual synthetic API responses.
-async function frontend(rows,nature,changes={}){
+async function frontend(rows,nature,changes={},returnVisit=null){
     const fields=new Map(),field=id=>{if(!fields.has(id))fields.set(id,{value:'',disabled:false,hidden:false,options:[],handlers:{},_hiSelect:{refresh(){}},addEventListener(key,callback){(this.handlers[key]??=[]).push(callback);},replaceChildren(...options){this.options=options;this.value=options[0]?.value||'';},add(option){this.options.push(option);}});return fields.get(id);};
     const values={'swal-fname':patient.first_name,'swal-lname':patient.last_name,'swal-suffix':'','swal-birthdate':'04/10/1975','swal-case-date':'2026-10-14','swal-nature':nature,'swal-transaction':'Walk-in','swal-bp':'120/80','swal-temperature':'36.5','swal-height':'165','swal-weight':'60',...changes};for(const [id,value] of Object.entries(values))field(id).value=value;
-    const context={AbortController,Intl,Date,document:{getElementById:field},Option:class{constructor(text,value){this.text=text;this.value=value;}},HealthIntelEncoding:{escape:String,conditionLabel:r=>r.disease,enhanceSelect:()=>({destroy(){}})},fetch:async()=>({ok:true,json:async()=>({success:true,data:rows})})};context.window=context;vm.createContext(context);
+    const requests=[];
+    const context={AbortController,Intl,Date,document:{getElementById:field},Option:class{constructor(text,value){this.text=text;this.value=value;}},HealthIntelEncoding:{escape:String,conditionLabel:r=>r.disease,enhanceSelect:()=>({destroy(){}})},fetch:async url=>{requests.push(url);return {ok:true,json:async()=>returnVisit?({success:true,history:rows,resident:{is_deceased:0,death_date:null}}):({success:true,data:rows})};}};context.window=context;vm.createContext(context);
     for(const file of ['date-format.js','patient-visits.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared',file),'utf8'),context,{filename:file});
-    const control=context.HealthIntelVisits.bind([]);await new Promise(setImmediate);
-    return {field,control,choices:()=>field('swal-existing-case').options.filter(o=>o.value).map(o=>Number(o.value)),change(id,value){field(id).value=value;for(const fn of field(id).handlers.change||[])fn();}};
+    const control=context.HealthIntelVisits.bind([],returnVisit);await new Promise(setImmediate);
+    return {field,control,context,requests,choices:()=>field('swal-existing-case').options.filter(o=>o.value).map(o=>Number(o.value)),change(id,value){field(id).value=value;for(const fn of field(id).handlers.change||[])fn();}};
 }
 test('BHW patient and resident APIs preserve date-only birthday and original case date',async()=>{
     const rows=(await request('/patients')).data.data,row=rows.find(r=>r.id===caseId);assert.equal(row.birthdate,patient.birthdate);assert.equal(row.date_recorded,patient.date_recorded);
@@ -35,6 +36,42 @@ test('BHW dropdown excludes earlier dates, wrong identities, archives and dates 
     }
     const eligible=await frontend([{...row,is_deceased:1,death_date:'2026-10-10'}],'New admission',{'swal-case-date':'2026-10-10'});assert.ok(eligible.choices().includes(caseId));eligible.control.destroy();
     const form=await frontend([row],'New admission',{'swal-case-date':patient.date_recorded});try{assert.ok(form.choices().includes(caseId));form.field('swal-existing-case').value=String(caseId);form.change('swal-case-date','2026-09-30');assert.equal(form.field('swal-existing-case').value,'');assert.deepEqual(form.choices(),[]);assert.match(form.field('swal-existing-case-note').textContent,/on or after/);}finally{form.control.destroy();}
+});
+test('BHW return shortcut loads only the selected resident and pins the original case across date and nature changes',async()=>{
+    const rows=(await request('/patients')).data.data,row=rows.find(r=>r.id===caseId);
+    const form=await frontend([row,{...row,id:caseId+999}],'',{}, {caseId,residentId});
+    try{
+        assert.deepEqual(form.requests,['http://localhost:3000/api/residents/'+residentId+'/dossier']);
+        assert.deepEqual(form.choices(),[caseId]);assert.equal(form.field('swal-existing-case').value,String(caseId));
+        assert.throws(()=>form.control.consultation(),/nature of visit/);
+        form.change('swal-nature','New consultation/case');assert.throws(()=>form.control.consultation(),/admission or Follow-up/);
+        form.change('swal-nature','Follow-up visit');assert.equal(form.control.consultation().case_id,caseId);
+        form.change('swal-case-date','2026-09-30');assert.deepEqual(form.choices(),[]);assert.throws(()=>form.control.consultation(),/eligible original/);
+        form.change('swal-case-date','2026-10-14');assert.equal(form.control.consultation().case_id,caseId);
+    }finally{form.control.destroy();}
+    const stale=await frontend([{...row,resident_id:residentId+999}],'Follow-up visit',{}, {caseId,residentId});
+    try{assert.deepEqual(stale.choices(),[]);assert.throws(()=>stale.control.consultation(),/eligible original/);}finally{stale.control.destroy();}
+});
+test('BHW history shortcut refuses archives, deceased residents and conflicting or incomplete identities',async()=>{
+    const {resident:person,history}= (await request('/residents/'+residentId+'/dossier')).data,row=history.find(r=>r.id===caseId);
+    const form=await frontend([],'Follow-up visit');
+    try{
+        vm.runInContext(fs.readFileSync(path.join(__dirname,'../../assets/js/bhw/bhw-residents.js'),'utf8'),form.context);
+        const reason=form.context.bhwReturnVisitReason;assert.equal(reason(person,row),'');
+        for(const [p,c] of [[person,{...row,is_archived:1}],[{...person,is_deceased:1},row],[{...person,first_name:''},row],[person,{...row,birthdate:'1975-04-11'}],[person,{...row,resident_id:null}],[person,{...row,barangay_id:fixture.other}],[person,{...row,date_recorded:null}]])assert.notEqual(reason(p,c),'');
+    }finally{form.control.destroy();}
+});
+test('BHW shortcut admission and follow-up save visits without changing original cases or resident counts',async()=>{
+    const [[before]]=await fixture.db.execute('SELECT COUNT(*) AS total FROM residents');
+    const [original]=await fixture.db.execute('SELECT * FROM health_cases ORDER BY id');
+    for(const nature of ['Follow-up visit','New admission']){
+        const saved=await request('/patients',{...patient,date_recorded:'2026-10-05',visit:visit(nature,caseId)});
+        assert.equal(saved.status,201);assert.equal(saved.data.new_case,false);assert.equal(saved.data.id,caseId);
+    }
+    const [current]=await fixture.db.execute('SELECT * FROM health_cases ORDER BY id');assert.deepEqual(current,original);
+    const [[after]]=await fixture.db.execute('SELECT COUNT(*) AS total FROM residents');assert.equal(after.total,before.total);
+    const dossier=(await request('/residents/'+residentId+'/dossier')).data;
+    assert.equal(dossier.visits.filter(v=>v.nature_of_visit==='Follow-up visit').length,1);assert.equal(dossier.visits.filter(v=>v.nature_of_visit==='New admission').length,1);
 });
 test('extra spaces in new or historical purok text reuse one resident and save normalized new addresses',async()=>{
     await fixture.db.execute("UPDATE residents SET purok='  QA  Zone  ' WHERE id=?",[residentId]);

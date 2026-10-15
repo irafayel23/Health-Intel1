@@ -50,8 +50,8 @@ async function createFixture(port=0){
         let preview=application.app;
         if(port){
             preview=require('express')();
-            preview.get(['/','/index.html','/mho.html'],(_req,res)=>{
-                const file=_req.path==='/mho.html'?'mho.html':'index.html';
+            preview.get(['/','/index.html','/mho.html','/bhw.html'],(_req,res)=>{
+                const file=_req.path.endsWith('.html')?_req.path.slice(1):'index.html';
                 const html=require('node:fs').readFileSync(require('node:path').resolve(__dirname,'../../..',file),'utf8');
                 res.set('Cache-Control','no-store').type('html').send(html.replace('<head>','<head><script>window.HEALTH_INTEL_API_ORIGIN=window.location.origin;</script>'));
             });
