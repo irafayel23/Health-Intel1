@@ -43,7 +43,7 @@ function registerCaseRoutes(app, db, corrections) {
     // CREATE PATIENT
     app.get('/api/bhw/encoding-options', async (req, res) => {
         try {
-            res.json({ success: true, data: await records.encodingChoices() });
+            res.json({ success: true, data: await records.encodingChoices(Number(req.user.barangay_id)) });
         } catch {
             res.status(503).json({ success: false, error: 'Disease choices could not be loaded.' });
         }

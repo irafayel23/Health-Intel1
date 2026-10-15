@@ -73,3 +73,20 @@ test('concurrent reviewers have one winner; duplicate or archived cases cannot b
     assert.equal((await review(collision,{action:'new',name:'Collision category'})).status,409);
     const [[rolledBack]]=await db.query("SELECT COUNT(*) n FROM disease_registry WHERE name='Collision category'");assert.equal(rolledBack.n,0);assert.equal((await queue(collision)).disease_review_status,'Pending');
 });
+
+test('disease choices rank recorded cases in the authorized scope, keep the full catalog and exclude pending classification',async()=>{
+    const names=Array.from({length:12},(_,i)=>'Ranked Fixture '+String(i+1).padStart(2,'0'));
+    for(const disease of [...names,'Ranked Unused'])await db.execute("INSERT INTO disease_registry(name,status,is_archived) VALUES(?,'Active',0)",[disease]);
+    for(let i=0;i<names.length;i++)for(let j=0;j<30-i;j++)await db.execute("INSERT INTO health_cases(patient_name,barangay_id,disease,date_recorded,severity,status,encoded_by,disease_review_status) VALUES('Synthetic ranking fixture',?,?,'2025-01-01','Mild','Active','REVIEW-BHW','Recorded')",[own,names[i]]);
+    for(let j=0;j<50;j++)await db.execute("INSERT INTO health_cases(patient_name,barangay_id,disease,date_recorded,severity,status,encoded_by,disease_review_status) VALUES('Synthetic other barangay',?,?,'2025-01-01','Mild','Active','REVIEW-MHO','Recorded')",[other,names[11]]);
+    for(const [disease,review] of [[names[0],'Pending'],[names[0],'Clarification'],['Review Archived Disease','Recorded']])await db.execute("INSERT INTO health_cases(patient_name,barangay_id,disease,date_recorded,severity,status,encoded_by,disease_review_status) VALUES('Synthetic excluded ranking',?,?,'2025-01-01','Mild','Active','REVIEW-BHW',?)",[own,disease,review]);
+    const local=(await request('/bhw/encoding-options','bhw')).result.data;
+    assert.equal(local[0].name,names[0]);assert.equal(local[0].recorded_count,30);
+    assert.deepEqual(local.filter(d=>d.top_rank).map(d=>d.name),names.slice(0,10));assert.equal(local.find(d=>d.name===names[11]).top_rank,null);
+    assert.equal(local.find(d=>d.name==='Ranked Unused').recorded_count,0);assert.ok(!local.some(d=>d.name==='Review Archived Disease'));
+    const municipal=(await request('/mho/walk-in-options','mho')).result.data.diseases;assert.equal(municipal[0].name,names[11]);assert.equal(municipal[0].recorded_count,69);
+    assert.equal((await request('/bhw/encoding-options?barangay_id='+other,'bhw')).status,403);
+    const [[candidate]]=await db.execute('SELECT id FROM health_cases WHERE barangay_id=? AND disease=? LIMIT 1',[own,names[0]]);
+    for(let day=1;day<=5;day++)await db.execute("INSERT INTO case_visits(case_id,consultation_date,transaction_mode,nature_of_visit,blood_pressure,temperature_c,height_cm,weight_kg,severity,encoded_by) VALUES(?,?,'Walk-in','Follow-up visit','120/80',36.5,165,60,'Mild','REVIEW-BHW')",[candidate.id,'2025-02-0'+day]);
+    assert.equal((await request('/bhw/encoding-options','bhw')).result.data.find(d=>d.name===names[0]).recorded_count,30,'Consultations must not inflate disease-case rankings');
+});

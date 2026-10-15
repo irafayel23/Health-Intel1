@@ -57,10 +57,11 @@
                 :`Choose admission or follow-up for #REC-${selected.id} · ${HealthIntelEncoding.conditionLabel(selected)}. Enter measurements and notes from this visit.`
                 :'Select the original disease case. This consultation will appear in resident history without adding another disease case.'
             :'Saving one new disease case and its consultation details to the selected resident barangay.';
+        if(returning()&&selected)field('walkin-existing-case-note').textContent=HealthIntelEncoding.caseSummary(selected,value('walkin-nature'));
     }
     function matchChoices(label,rows=[]) {
         const select=field('walkin-existing-case');select.replaceChildren();addOption(select,'',label);
-        for(const row of rows)addOption(select,row.id,`#REC-${row.id} · ${HealthIntelEncoding.conditionLabel(row)} · ${HealthIntelDate.formatCaseDate(row.date_recorded)} · ${row.status}`);
+        for(const row of rows)select.add(HealthIntelEncoding.caseOption(row));
         select.disabled=!rows.length;select._hiSelect?.refresh();updateSummary();
     }
     function visitFields() {
@@ -92,8 +93,8 @@
                     if(selected){field('walkin-existing-case').value=String(target);field('walkin-existing-case')._hiSelect?.refresh();updateSummary();}
                     else{matches=[];matchChoices('Selected case unavailable');}
                 }
-                field('walkin-existing-case-note').textContent=matches.length?'Up to 50 matching cases, newest case date first. Choose the original case for this admission or follow-up.':'No available case matches these details. Check the identity and barangay, or record the original disease case first.';
-                if(target!==null)field('walkin-existing-case-note').textContent=matches.length?`Linked to #REC-${target}. Choose admission or follow-up and enter fresh details for this visit.`:'The selected case no longer matches this identity or visit date, or is archived. Check the details before saving.';
+                field('walkin-existing-case-note').textContent=matches.length?'Up to 50 matching cases, newest original case first. Compare the case ID, original date, status and last consultation before choosing. The system does not choose automatically.':'No available case matches these details. Check the identity and barangay, or record the original disease case first.';
+                if(target!==null)field('walkin-existing-case-note').textContent=matches.length?HealthIntelEncoding.caseSummary(matches.find(row=>Number(row.id)===target),value('walkin-nature')):'The selected case no longer matches this identity or visit date, or is archived. Check the details before saving.';
             }catch(error){
                 if(version!==matchVersion||error.name==='AbortError')return;
                 matchChoices('Matching cases unavailable');field('walkin-retry-matches').hidden=false;
@@ -193,7 +194,7 @@
         field('walkin-birthdate').addEventListener('input',updateAge);date.addEventListener('change',updateAge);
         date.addEventListener('change',scheduleMatches);
         HealthIntelEncoding.bindCondition('walkin');HealthIntelEncoding.enhanceSelect(field('walkin-barangay'),{searchable:true});
-        for(const id of ['walkin-severity','walkin-transaction','walkin-nature','walkin-time-period','walkin-existing-case','walkin-suffix'])HealthIntelEncoding.enhanceSelect(field(id),{allowEmpty:['walkin-suffix','walkin-time-period'].includes(id)});
+        for(const id of ['walkin-severity','walkin-transaction','walkin-nature','walkin-time-period','walkin-existing-case','walkin-suffix'])HealthIntelEncoding.enhanceSelect(field(id),{allowEmpty:['walkin-suffix','walkin-time-period'].includes(id),searchable:id==='walkin-existing-case',searchPlaceholder:'Search case ID, disease or date…'});
         field('walkin-transaction').addEventListener('change',visitFields);
         field('walkin-nature').addEventListener('change',()=>{if(value('walkin-nature')==='New consultation/case')returnCase=null;visitFields();scheduleMatches();});
         const identityChanged=()=>{returnCase=null;++openVersion;visitFields();scheduleMatches();};

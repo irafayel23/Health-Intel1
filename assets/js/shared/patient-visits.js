@@ -38,16 +38,18 @@
             const eligible=row=>!row.is_archived&&/^\d{4}-\d{2}-\d{2}$/.test(row.date_recorded||'')&&/^\d{4}-\d{2}-\d{2}$/.test(consultationDate)&&row.date_recorded<=consultationDate&&(!row.is_deceased||(row.death_date&&consultationDate<=row.death_date));
             const matching=identityMatches.filter(eligible);
             select.replaceChildren(new Option(!loaded?'Loading cases…':failed?'Cases unavailable — reopen to retry':matching.length?'Select the original disease case':identityMatches.length?'No eligible case for this consultation date':'No matching case — check name, suffix and birthdate',''));
-            matching.forEach(row=>select.add(new Option(`#REC-${row.id} · ${HealthIntelEncoding.conditionLabel(row)} · ${HealthIntelDate.formatCaseDate(row.date_recorded)}`,String(row.id))));
+            matching.forEach(row=>select.add(HealthIntelEncoding.caseOption(row)));
             if(matching.some(row=>String(row.id)===previous))select.value=previous;
             if(target!==null&&matching.some(row=>Number(row.id)===target))select.value=String(target);
             select.disabled=!loaded||failed||!matching.length;
             select._hiSelect?.refresh();
             field('swal-existing-case-note').textContent=failed?'Cases could not be loaded. Close and reopen the form to retry.':loaded&&identityMatches.length&&!matching.length?'Check the consultation date. It must be on or after the original case date and, for a confirmed deceased resident, on or before the recorded death date. Archived cases are unavailable.':'An admission or follow-up adds a visit to the selected case and does not add another disease case.';
-            if(target!==null&&!failed&&matching.length)field('swal-existing-case-note').textContent=`Linked to #REC-${target}. Choose admission or follow-up and enter fresh details for this visit. The original disease case stays unchanged.`;
+            const selected=matching.find(row=>String(row.id)===select.value);
+            if(selected)field('swal-existing-case-note').textContent=HealthIntelEncoding.caseSummary(selected,field('swal-nature').value);
+            else if(!failed&&matching.length>1)field('swal-existing-case-note').textContent=`${matching.length} cases match this patient. Compare the case ID, original date, status and last consultation, then choose the original disease case. The system does not choose automatically.`;
         };
-        for(const id of ['swal-transaction','swal-nature','swal-existing-case','swal-time-period','swal-suffix'])controls.push(HealthIntelEncoding.enhanceSelect(field(id),{allowEmpty:id==='swal-suffix'}));
-        for(const id of ['swal-transaction','swal-nature','swal-suffix'])field(id).addEventListener('change',refresh,options);
+        for(const id of ['swal-transaction','swal-nature','swal-existing-case','swal-time-period','swal-suffix'])controls.push(HealthIntelEncoding.enhanceSelect(field(id),{allowEmpty:id==='swal-suffix',searchable:id==='swal-existing-case',searchPlaceholder:'Search case ID, disease or date…'}));
+        for(const id of ['swal-transaction','swal-nature','swal-suffix','swal-existing-case'])field(id).addEventListener('change',refresh,options);
         field('swal-case-date').addEventListener('change',refresh,options);
         for(const id of ['swal-fname','swal-lname','swal-birthdate'])field(id).addEventListener('input',refresh,options);
         for(const id of ['swal-time-hour','swal-time-minute','swal-bp','swal-temperature','swal-height','swal-weight']) {

@@ -16,8 +16,9 @@ async function frontend(rows,nature,changes={},returnVisit=null){
     const fields=new Map(),field=id=>{if(!fields.has(id))fields.set(id,{value:'',disabled:false,hidden:false,options:[],handlers:{},_hiSelect:{refresh(){}},addEventListener(key,callback){(this.handlers[key]??=[]).push(callback);},replaceChildren(...options){this.options=options;this.value=options[0]?.value||'';},add(option){this.options.push(option);}});return fields.get(id);};
     const values={'swal-fname':patient.first_name,'swal-lname':patient.last_name,'swal-suffix':'','swal-birthdate':'04/10/1975','swal-case-date':'2026-10-14','swal-nature':nature,'swal-transaction':'Walk-in','swal-bp':'120/80','swal-temperature':'36.5','swal-height':'165','swal-weight':'60',...changes};for(const [id,value] of Object.entries(values))field(id).value=value;
     const requests=[];
-    const context={AbortController,Intl,Date,document:{getElementById:field},Option:class{constructor(text,value){this.text=text;this.value=value;}},HealthIntelEncoding:{escape:String,conditionLabel:r=>r.disease,enhanceSelect:()=>({destroy(){}})},fetch:async url=>{requests.push(url);return {ok:true,json:async()=>returnVisit?({success:true,history:rows,resident:{is_deceased:0,death_date:null}}):({success:true,data:rows})};}};context.window=context;vm.createContext(context);
-    for(const file of ['date-format.js','patient-visits.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared',file),'utf8'),context,{filename:file});
+    const context={AbortController,Intl,Date,document:{getElementById:field},Option:class{constructor(text,value){this.text=text;this.textContent=text;this.value=value;this.dataset={};}},HealthIntelText:{escape:String},fetch:async url=>{requests.push(url);return {ok:true,json:async()=>returnVisit?({success:true,history:rows,resident:{is_deceased:0,death_date:null}}):({success:true,data:rows})};}};context.window=context;vm.createContext(context);
+    for(const file of ['date-format.js','encoding-controls.js','patient-visits.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared',file),'utf8'),context,{filename:file});
+    context.HealthIntelEncoding.enhanceSelect=()=>({destroy(){}});
     const control=context.HealthIntelVisits.bind([],returnVisit);await new Promise(setImmediate);
     return {field,control,context,requests,choices:()=>field('swal-existing-case').options.filter(o=>o.value).map(o=>Number(o.value)),change(id,value){field(id).value=value;for(const fn of field(id).handlers.change||[])fn();}};
 }
@@ -78,6 +79,22 @@ test('extra spaces in new or historical purok text reuse one resident and save n
     const saved=await request('/patients',{...patient,date_recorded:'2026-10-02',purok:' QA   Zone ',visit:visit()});assert.equal(saved.status,201);
     const [[row]]=await fixture.db.execute('SELECT resident_id,purok FROM health_cases WHERE id=?',[saved.data.id]);assert.equal(row.resident_id,residentId);assert.equal(row.purok,'QA Zone');
     const [[count]]=await fixture.db.execute('SELECT COUNT(*) AS total FROM residents WHERE first_name=? AND last_name=?',[patient.first_name,patient.last_name]);assert.equal(count.total,1);
+});
+test('multiple cases show explicit dates, status and last consultation without choosing a case automatically',async()=>{
+    const rows=(await request('/patients')).data.data,own=rows.filter(r=>r.resident_id===residentId),first=own.find(r=>r.id===caseId);
+    assert.equal(first.last_consultation,'2026-10-05');
+    const dossier=(await request('/residents/'+residentId+'/dossier')).data;assert.equal(dossier.history.find(r=>r.id===caseId).last_consultation,'2026-10-05');
+    const form=await frontend(rows,'Follow-up visit');
+    try{
+        assert.equal(form.choices().length,2);assert.equal(form.field('swal-existing-case').value,'');assert.match(form.field('swal-existing-case-note').textContent,/2 cases.*does not choose automatically/);
+        const original=form.field('swal-existing-case').options.find(o=>o.value===String(caseId));assert.match(original.text,/Active.*Case ID: REC-.*Original case: Oct 1, 2026.*Last consultation: Oct 5, 2026/);
+        form.change('swal-existing-case',String(caseId));assert.match(form.field('swal-existing-case-note').textContent,new RegExp('follow-up visit.*REC-'+caseId));assert.equal(form.control.consultation().case_id,caseId);
+        const choice=form.context.HealthIntelEncoding.caseChoice({...first,last_consultation:null});assert.match(choice.detail,/Last consultation: Not recorded/);
+    }finally{form.control.destroy();}
+    const records=require('../services/case-records').createCaseRecords(fixture.db);
+    const identity={first_name:patient.first_name,last_name:patient.last_name,suffix:patient.suffix,birthdate:patient.birthdate,barangay_id:String(fixture.own),consultation_date:'2026-10-01'};
+    const matches=await records.matchingWalkIns(identity);assert.deepEqual(matches.map(r=>r.id),[caseId]);assert.equal(matches[0].last_consultation,'2026-10-05');
+    assert.deepEqual(await records.matchingWalkIns({...identity,consultation_date:'2026-09-30'}),[]);
 });
 test('distinct suffixes, birthdays and genuinely different addresses remain separate',async()=>{
     for(const changes of [{suffix:'Jr.'},{birthdate:'1975-04-11'},{purok:'Other Zone'}]){

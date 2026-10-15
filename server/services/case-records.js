@@ -18,11 +18,16 @@ function createCaseRecords(db) {
             return rows;
         },
 
-        async encodingChoices() {
+        async encodingChoices(barangayId=null) {
             const [rows] = await db.execute(
                 "SELECT id,name FROM disease_registry WHERE status='Active' AND is_archived=0 ORDER BY name"
             );
-            return rows.map((row) => ({ ...row, registry_status: 'Active' }));
+            const [counts]=await db.execute("SELECT disease,COUNT(*) AS recorded_count FROM health_cases WHERE COALESCE(disease_review_status,'Recorded') NOT IN ('Pending','Clarification')"+(barangayId===null?'':' AND barangay_id=?')+' GROUP BY disease',barangayId===null?[]:[barangayId]);
+            const totals=new Map(),key=value=>String(value||'').trim().toLocaleLowerCase('en');
+            for(const row of counts)totals.set(key(row.disease),(totals.get(key(row.disease))||0)+Number(row.recorded_count));
+            return rows.map(row=>({...row,registry_status:'Active',recorded_count:totals.get(key(row.name))||0}))
+                .sort((a,b)=>b.recorded_count-a.recorded_count||a.name.localeCompare(b.name,'en')||a.id-b.id)
+                .map((row,index)=>({...row,top_rank:row.recorded_count>0&&index<10?index+1:null}));
         },
 
         async barangays() {
@@ -61,12 +66,14 @@ function createCaseRecords(db) {
             const target=input.case_id;
             if(target!==undefined&&(!Number.isSafeInteger(target)||target<1))throw invalid('Select a valid original case.');
             const [rows]=await db.execute(`SELECT h.id,h.disease,h.disease_review_status,h.disease_reported,h.status,
-                DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,COALESCE(v.is_deceased,0) AS is_deceased,DATE_FORMAT(v.death_date,'%Y-%m-%d') AS death_date
+                DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,
+                DATE_FORMAT((SELECT MAX(cv.consultation_date) FROM case_visits cv WHERE cv.case_id=h.id),'%Y-%m-%d') AS last_consultation,
+                COALESCE(v.is_deceased,0) AS is_deceased,DATE_FORMAT(v.death_date,'%Y-%m-%d') AS death_date
                 FROM health_cases h LEFT JOIN resident_vital_status v ON v.resident_id=h.resident_id
                 WHERE h.first_name=? AND h.last_name=? AND h.suffix=? AND h.birthdate=? AND h.barangay_id=? AND h.is_archived=0
-                AND (COALESCE(v.is_deceased,0)=0 OR (v.death_date IS NOT NULL AND ?<=v.death_date))
+                AND h.date_recorded<=? AND (COALESCE(v.is_deceased,0)=0 OR (v.death_date IS NOT NULL AND ?<=v.death_date))
                 ${target===undefined?'':'AND h.id=?'}
-                ORDER BY h.date_recorded DESC,h.id DESC LIMIT 50`,[first,last,suffix,input.birthdate,Number(input.barangay_id),date,...(target===undefined?[]:[target])]);
+                ORDER BY h.date_recorded DESC,h.id DESC LIMIT 50`,[first,last,suffix,input.birthdate,Number(input.barangay_id),date,date,...(target===undefined?[]:[target])]);
             return rows;
         },
 
@@ -109,7 +116,7 @@ function createCaseRecords(db) {
                     ? monthlyPeriod(input.month, input.year)
                     : null;
             const historical = period && input.include_archived === 'true';
-            let query = `SELECT h.*,DATE_FORMAT(h.birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded, b.name as barangay_name,COALESCE(v.is_deceased,0) AS is_deceased,DATE_FORMAT(v.death_date,'%Y-%m-%d') AS death_date FROM health_cases h LEFT JOIN barangays b ON h.barangay_id = b.id LEFT JOIN resident_vital_status v ON v.resident_id=h.resident_id WHERE ${historical ? '1=1' : 'h.is_archived = FALSE'}`;
+            let query = `SELECT h.*,DATE_FORMAT(h.birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,DATE_FORMAT((SELECT MAX(cv.consultation_date) FROM case_visits cv WHERE cv.case_id=h.id),'%Y-%m-%d') AS last_consultation, b.name as barangay_name,COALESCE(v.is_deceased,0) AS is_deceased,DATE_FORMAT(v.death_date,'%Y-%m-%d') AS death_date FROM health_cases h LEFT JOIN barangays b ON h.barangay_id = b.id LEFT JOIN resident_vital_status v ON v.resident_id=h.resident_id WHERE ${historical ? '1=1' : 'h.is_archived = FALSE'}`;
             let params = [];
             if (period) {
                 query += ' AND h.date_recorded>=? AND h.date_recorded<?';
@@ -151,7 +158,7 @@ function createCaseRecords(db) {
 
         async residentHistory(residentId, user) {
             const historySql =
-                "SELECT *,DATE_FORMAT(date_recorded,'%Y-%m-%d') AS date_recorded,DATE_FORMAT(birthdate,'%Y-%m-%d') AS birthdate FROM health_cases WHERE resident_id = ?" +
+                "SELECT h.*,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,DATE_FORMAT(h.birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT((SELECT MAX(cv.consultation_date) FROM case_visits cv WHERE cv.case_id=h.id),'%Y-%m-%d') AS last_consultation FROM health_cases h WHERE resident_id = ?" +
                 (user.role === 'bhw' ? ' AND barangay_id = ?' : '') +
                 ' ORDER BY date_recorded DESC';
             const [historyRows] = await db.execute(
