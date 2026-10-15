@@ -58,12 +58,15 @@ function createCaseRecords(db) {
             if(typeof input.barangay_id!=='string'||!/^\d+$/.test(input.barangay_id)||!Number.isSafeInteger(Number(input.barangay_id))||Number(input.barangay_id)<1||!validDate(input.birthdate))throw invalid('Enter the patient name, suffix, birthdate and resident barangay to find an existing case.');
             const date=input.consultation_date||require('./patient-validation').todayInManila();
             if(!validDate(date))throw invalid('Select a valid consultation date.');
+            const target=input.case_id;
+            if(target!==undefined&&(!Number.isSafeInteger(target)||target<1))throw invalid('Select a valid original case.');
             const [rows]=await db.execute(`SELECT h.id,h.disease,h.disease_review_status,h.disease_reported,h.status,
                 DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,COALESCE(v.is_deceased,0) AS is_deceased,DATE_FORMAT(v.death_date,'%Y-%m-%d') AS death_date
                 FROM health_cases h LEFT JOIN resident_vital_status v ON v.resident_id=h.resident_id
                 WHERE h.first_name=? AND h.last_name=? AND h.suffix=? AND h.birthdate=? AND h.barangay_id=? AND h.is_archived=0
                 AND (COALESCE(v.is_deceased,0)=0 OR (v.death_date IS NOT NULL AND ?<=v.death_date))
-                ORDER BY h.date_recorded DESC,h.id DESC LIMIT 50`,[first,last,suffix,input.birthdate,Number(input.barangay_id),date]);
+                ${target===undefined?'':'AND h.id=?'}
+                ORDER BY h.date_recorded DESC,h.id DESC LIMIT 50`,[first,last,suffix,input.birthdate,Number(input.barangay_id),date,...(target===undefined?[]:[target])]);
             return rows;
         },
 
@@ -106,7 +109,7 @@ function createCaseRecords(db) {
                     ? monthlyPeriod(input.month, input.year)
                     : null;
             const historical = period && input.include_archived === 'true';
-            let query = `SELECT h.*, b.name as barangay_name,COALESCE(v.is_deceased,0) AS is_deceased,DATE_FORMAT(v.death_date,'%Y-%m-%d') AS death_date FROM health_cases h LEFT JOIN barangays b ON h.barangay_id = b.id LEFT JOIN resident_vital_status v ON v.resident_id=h.resident_id WHERE ${historical ? '1=1' : 'h.is_archived = FALSE'}`;
+            let query = `SELECT h.*,DATE_FORMAT(h.birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded, b.name as barangay_name,COALESCE(v.is_deceased,0) AS is_deceased,DATE_FORMAT(v.death_date,'%Y-%m-%d') AS death_date FROM health_cases h LEFT JOIN barangays b ON h.barangay_id = b.id LEFT JOIN resident_vital_status v ON v.resident_id=h.resident_id WHERE ${historical ? '1=1' : 'h.is_archived = FALSE'}`;
             let params = [];
             if (period) {
                 query += ' AND h.date_recorded>=? AND h.date_recorded<?';
@@ -125,7 +128,7 @@ function createCaseRecords(db) {
         async residents(barangay_id) {
             // Get residents + count of their health cases
             let query = `
-                        SELECT r.*, ${vitalSelect}, (SELECT COUNT(*) FROM health_cases h WHERE h.resident_id=r.id) as case_count
+                        SELECT r.*,DATE_FORMAT(r.birthdate,'%Y-%m-%d') AS birthdate, ${vitalSelect}, (SELECT COUNT(*) FROM health_cases h WHERE h.resident_id=r.id) as case_count
                         FROM residents r
                         ${vitalJoins}
                         WHERE 1=1
@@ -142,13 +145,13 @@ function createCaseRecords(db) {
         },
 
         async residentById(residentId) {
-            const [residentRows] = await db.execute(`SELECT r.*,${vitalSelect} FROM residents r ${vitalJoins} WHERE r.id=?`, [residentId]);
+            const [residentRows] = await db.execute(`SELECT r.*,DATE_FORMAT(r.birthdate,'%Y-%m-%d') AS birthdate,${vitalSelect} FROM residents r ${vitalJoins} WHERE r.id=?`, [residentId]);
             return residentRows;
         },
 
         async residentHistory(residentId, user) {
             const historySql =
-                'SELECT * FROM health_cases WHERE resident_id = ?' +
+                "SELECT *,DATE_FORMAT(date_recorded,'%Y-%m-%d') AS date_recorded,DATE_FORMAT(birthdate,'%Y-%m-%d') AS birthdate FROM health_cases WHERE resident_id = ?" +
                 (user.role === 'bhw' ? ' AND barangay_id = ?' : '') +
                 ' ORDER BY date_recorded DESC';
             const [historyRows] = await db.execute(

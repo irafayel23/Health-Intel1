@@ -32,13 +32,16 @@
             if(!returning())return;
             const select=field('swal-existing-case'), previous=select.value, lower=s=>String(s||'').trim().toLocaleLowerCase('en');
             const birthdate=HealthIntelDate.parseBirthdate(field('swal-birthdate').value);
-            const matching=cases.filter(row=>lower(row.first_name)===lower(field('swal-fname').value)&&lower(row.last_name)===lower(field('swal-lname').value)&&lower(row.suffix)===lower(field('swal-suffix').value)&&String(row.birthdate||'').slice(0,10)===birthdate&&(!row.is_deceased||(row.death_date&&field('swal-case-date').value<=row.death_date)));
-            select.replaceChildren(new Option(!loaded?'Loading cases…':matching.length?'Select the original disease case':'No matching case — check name, suffix and birthdate',''));
+            const consultationDate=field('swal-case-date').value;
+            const identityMatches=cases.filter(row=>lower(row.first_name)===lower(field('swal-fname').value)&&lower(row.last_name)===lower(field('swal-lname').value)&&lower(row.suffix)===lower(field('swal-suffix').value)&&row.birthdate===birthdate);
+            const eligible=row=>!row.is_archived&&/^\d{4}-\d{2}-\d{2}$/.test(row.date_recorded||'')&&/^\d{4}-\d{2}-\d{2}$/.test(consultationDate)&&row.date_recorded<=consultationDate&&(!row.is_deceased||(row.death_date&&consultationDate<=row.death_date));
+            const matching=identityMatches.filter(eligible);
+            select.replaceChildren(new Option(!loaded?'Loading cases…':failed?'Cases unavailable — reopen to retry':matching.length?'Select the original disease case':identityMatches.length?'No eligible case for this consultation date':'No matching case — check name, suffix and birthdate',''));
             matching.forEach(row=>select.add(new Option(`#REC-${row.id} · ${HealthIntelEncoding.conditionLabel(row)} · ${HealthIntelDate.formatCaseDate(row.date_recorded)}`,String(row.id))));
             if(matching.some(row=>String(row.id)===previous))select.value=previous;
             select.disabled=!loaded||failed||!matching.length;
             select._hiSelect?.refresh();
-            field('swal-existing-case-note').textContent=failed?'Cases could not be loaded. Close and reopen the form to retry.':'An admission or follow-up adds a visit to the selected case and does not add another disease case.';
+            field('swal-existing-case-note').textContent=failed?'Cases could not be loaded. Close and reopen the form to retry.':loaded&&identityMatches.length&&!matching.length?'Check the consultation date. It must be on or after the original case date and, for a confirmed deceased resident, on or before the recorded death date. Archived cases are unavailable.':'An admission or follow-up adds a visit to the selected case and does not add another disease case.';
         };
         for(const id of ['swal-transaction','swal-nature','swal-existing-case','swal-time-period','swal-suffix'])controls.push(HealthIntelEncoding.enhanceSelect(field(id),{allowEmpty:id==='swal-suffix'}));
         for(const id of ['swal-transaction','swal-nature','swal-suffix'])field(id).addEventListener('change',refresh,options);
@@ -60,7 +63,9 @@
                 time=String(Number(hour)%12+(period==='PM'?12:0)).padStart(2,'0')+':'+minute.padStart(2,'0');
             }
             const caseId=returning()?Number(value('swal-existing-case')):null;
-            if(returning()&&(!Number.isSafeInteger(caseId)||caseId<1))throw Error('Select the existing disease case. If it is not recorded yet, first record it as a new consultation/case.');
+            const selected=cases.find(row=>Number(row.id)===caseId);
+            if(returning()&&(!Number.isSafeInteger(caseId)||caseId<1||!selected||field('swal-existing-case').disabled))throw formError('swal-existing-case','Select an eligible original disease case. Check the patient details and consultation date; record a new case only when it is a different case.');
+            if(returning()&&selected.date_recorded>value('swal-case-date'))throw formError('swal-case-date','The consultation date must be on or after the original case date.');
             if(value('swal-transaction')==='Referral'&&!value('swal-referral-reason'))throw Error('Enter the reason for referral from the available referral information.');
             return {transaction_mode:value('swal-transaction'),nature_of_visit:nature,consultation_time:time,
                 referred_by:value('swal-referred-by'),referral_reason:value('swal-referral-reason'),blood_pressure:value('swal-bp'),temperature_c:value('swal-temperature'),height_cm:value('swal-height'),weight_kg:value('swal-weight'),case_id:caseId};

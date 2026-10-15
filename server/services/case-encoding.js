@@ -45,7 +45,7 @@ function createCaseEncoding(db) {
                     throw error;
                 }
                 const [residents] = await connection.execute(
-                    'SELECT id FROM residents WHERE first_name=? AND last_name=? AND birthdate=? AND barangay_id=? AND purok=? AND suffix=? LIMIT 2',
+                    "SELECT id FROM residents WHERE first_name=? AND last_name=? AND birthdate=? AND barangay_id=? AND TRIM(REGEXP_REPLACE(purok,'[[:space:]]+',' '))=? AND suffix=? LIMIT 2",
                     [patient.first_name, patient.last_name, patient.birthdate, brgy_id, patient.purok, patient.suffix]
                 );
                 if (residents.length > 1) {

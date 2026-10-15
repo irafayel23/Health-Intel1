@@ -32,7 +32,7 @@
     }
     document.addEventListener('DOMContentLoaded',()=>{
         if(!field('view-vital-review'))return;
-        document.querySelector('[data-target="view-vital-review"]')?.addEventListener('click',refresh);
+        window.addEventListener('health-intel:resident-review-opened',refresh);
         for(const id of ['vital-review-view','vital-review-barangay'])field(id).addEventListener('change',()=>{page=1;refresh();});
         field('vital-review-refresh').addEventListener('click',refresh);
         field('vital-review-prev').addEventListener('click',()=>{if(page>1){page--;refresh();}});field('vital-review-next').addEventListener('click',()=>{if(page<pages){page++;refresh();}});

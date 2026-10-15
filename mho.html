@@ -57,12 +57,12 @@
           <i data-lucide="user-plus" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Walk-in Patients</span>
         </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-disease-review" aria-label="Review unlisted conditions"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Disease Review</span><span id="disease-review-count" class="hi-review-count" hidden>0</span></button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-vital-review" aria-label="Review resident death reports"><i data-lucide="user-check" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Resident Status</span></button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-patient-directory" aria-label="View Patient Directory"><i data-lucide="users" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Patient Directory</span></button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-predictive" aria-label="View Predictive Models">
           <i data-lucide="brain-circuit" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Predictions</span>
         </button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-review-center" aria-label="Open Review Center"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Review Center</span></button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-heatmap" aria-label="View Heatmap">
           <i data-lucide="map" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
@@ -552,17 +552,37 @@
             <div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Date / time</th><th>Patient</th><th>Barangay</th><th>Nature of visit</th><th>Disease / condition</th><th>Case</th></tr></thead><tbody id="walkin-recent-body"></tbody></table></div>
           </div>
         </div>
-        <section id="view-vital-review" class="view-section hidden">
-          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">Resident confirmation</span><h1>Resident Status</h1><p>Review BHW death reports and retain the resident’s complete clinical history.</p></div></div>
+        <section id="view-patient-directory" class="view-section hidden">
+          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">Municipal patient records</span><h1>Patient Directory</h1><p>Find patients across all barangays and view their disease cases, admissions and follow-up visits.</p></div></div>
+          <form id="mho-patient-filters" class="walkin-card p-5 mb-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-search">Patient name or record ID<input id="mho-patient-search" type="search" maxlength="100" placeholder="Search name, RES-12 or REC-34" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"></label>
+            <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-barangay">Barangay<select id="mho-patient-barangay" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"><option value="all">All barangays</option></select></label>
+            <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-vital">Resident status<select id="mho-patient-vital" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"><option value="all">All records</option><option value="living">Not confirmed deceased</option><option value="deceased">Confirmed deceased</option></select></label>
+            <div class="flex gap-2"><button id="mho-patient-search-button" type="submit" class="hi-vital-button flex-1">Search</button><button id="mho-patient-reset" type="button" class="hi-vital-button">Reset</button></div>
+          </form>
+          <p class="hi-vital-note">Each linked resident appears once. Older cases without a resident link are listed separately as unlinked records; matching names are not merged automatically. Archived cases remain in the history.</p>
+          <p id="mho-patient-count" class="hi-vital-count" role="status" aria-live="polite"></p>
+          <div class="walkin-card"><div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Patient / record</th><th>Barangay / purok</th><th>Cases</th><th>Last consultation</th><th>Resident status</th><th>History</th></tr></thead><tbody id="mho-patient-body"><tr><td colspan="6">Open the directory to load records.</td></tr></tbody></table></div></div>
+          <div class="hi-vital-pagination"><button id="mho-patient-prev" type="button" class="hi-vital-button" disabled>Previous</button><span id="mho-patient-page"></span><button id="mho-patient-next" type="button" class="hi-vital-button" disabled>Next</button></div>
+        </section>
+        <section id="view-review-center" class="view-section hidden">
+          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">MHO review workspace</span><h1>Review Center</h1><p>Review disease classifications and resident status in one place. Choose the queue you need below.</p></div></div>
+          <div class="grid grid-cols-2 gap-2 mb-6 max-w-md border-b border-border pb-4" role="tablist" aria-label="Review queues">
+            <button id="review-disease-tab" type="button" role="tab" aria-label="Disease Review" aria-selected="true" aria-controls="view-disease-review" tabindex="0" class="hi-vital-button inline-flex items-center justify-center gap-2 aria-selected:bg-emerald-700 aria-selected:text-white aria-selected:border-emerald-700">Disease Review<span id="disease-review-count" class="hi-review-count !bg-white !text-emerald-800 !text-xs !font-semibold" hidden>0</span></button>
+            <button id="review-resident-tab" type="button" role="tab" aria-label="Resident Status" aria-selected="false" aria-controls="view-vital-review" tabindex="-1" class="hi-vital-button aria-selected:bg-emerald-700 aria-selected:text-white aria-selected:border-emerald-700">Resident Status</button>
+          </div>
+        <section id="view-vital-review" role="tabpanel" aria-labelledby="review-resident-tab" tabindex="0" hidden>
+          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">Resident confirmation</span><h2 class="text-2xl font-bold tracking-tight text-foreground">Resident Status</h2><p>Review BHW death reports and retain the resident’s complete clinical history.</p></div></div>
           <div class="hi-vital-toolbar"><label for="vital-review-view">View<select id="vital-review-view"><option value="pending">Pending death reports</option><option value="deceased">Confirmed deceased residents</option></select></label><label for="vital-review-barangay">Barangay<select id="vital-review-barangay"><option value="all">All barangays</option></select></label><button id="vital-review-refresh" type="button" class="hi-vital-button">Refresh</button><button id="vital-review-export" type="button" class="hi-vital-button">Export confirmed residents</button></div>
           <p id="vital-review-count" class="hi-vital-count" role="status"></p>
           <p class="hi-vital-note">Confirmation records that a resident is deceased; it does not identify the cause of death. The registry counts each resident once. Disease case outcomes are retained separately.</p>
           <div class="walkin-card"><div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Resident</th><th>Barangay</th><th>Death date</th><th>Source / reference</th><th>Action</th></tr></thead><tbody id="vital-review-body"></tbody></table></div></div>
           <div class="hi-vital-pagination"><button id="vital-review-prev" type="button" class="hi-vital-button">Previous</button><span id="vital-review-page"></span><button id="vital-review-next" type="button" class="hi-vital-button">Next</button></div>
         </section>
-        <section id="view-disease-review" class="view-section hidden">
-          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">MHO classification review</span><h1>Disease Review</h1><p>Resolve unlisted conditions while keeping each original case and its history.</p></div><button id="disease-review-refresh" class="hi-review-actions" type="button">Refresh list</button></div>
+        <section id="view-disease-review" role="tabpanel" aria-labelledby="review-disease-tab" tabindex="0">
+          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">MHO classification review</span><h2 class="text-2xl font-bold tracking-tight text-foreground">Disease Review</h2><p>Resolve unlisted conditions while keeping each original case and its history.</p></div><button id="disease-review-refresh" class="hi-review-actions" type="button">Refresh list</button></div>
           <div class="walkin-card"><p class="hi-field-help" style="padding:16px">Catalog review standardizes the recorded condition. It does not establish or confirm a clinical diagnosis. Use established MHO channels for urgent reporting.</p><p id="disease-review-status" role="status" class="hi-review-message"></p><div class="overflow-x-auto"><table class="walkin-table"><thead class="[&_th]:!text-slate-700 dark:[&_th]:!text-slate-300"><tr><th>Case / patient</th><th>Barangay / date</th><th>Reported condition / source</th><th>Review status</th><th>Action</th></tr></thead><tbody id="disease-review-body"></tbody></table></div></div>
+        </section>
         </section>
       </div>
     </main>
@@ -573,6 +593,8 @@
     <script src="assets/js/mho/mho-walkins.js"></script>
     <script src="assets/js/mho/mho-disease-review.js"></script>
     <script src="assets/js/mho/mho-resident-vital.js"></script>
+    <script src="assets/js/mho/mho-review-center.js"></script>
+    <script src="assets/js/mho/mho-patients.js"></script>
     <script>
       lucide.createIcons();
     </script>

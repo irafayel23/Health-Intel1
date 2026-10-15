@@ -2,8 +2,8 @@ const { transaction } = require('./database-transaction');
 const { createSystemAudit } = require('./system-audit');
 function createAccountCredentials(db) {
     return {
-        async find(system_id) {
-            const [rows] = await db.execute('SELECT * FROM users WHERE system_id = ?', [system_id]);
+        async find(system_id, { forUpdate = false } = {}) {
+            const [rows] = await db.execute('SELECT * FROM users WHERE system_id = ?' + (forUpdate ? ' FOR UPDATE' : ''), [system_id]);
             return rows;
         },
 

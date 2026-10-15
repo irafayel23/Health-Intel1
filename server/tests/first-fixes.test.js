@@ -130,7 +130,7 @@ test('login works, and expired, forged, pending, denied and suspended sessions f
         assert.equal((await request('/api/session', null, { headers: { Authorization: `Bearer ${token}` } })).status, 401);
     }
     const [[currentBhw]] = await connection.execute('SELECT password_hash FROM users WHERE system_id=?',[fixtures.bhw]);
-    const spoofedRole = jwt.sign({ system_id: fixtures.bhw, role: 'superadmin', password_version:sessionVersion(currentBhw.password_hash,testSecret) }, testSecret);
+    const spoofedRole = jwt.sign({ system_id: fixtures.bhw, role: 'superadmin', password_version:sessionVersion(currentBhw.password_hash,testSecret) }, testSecret,{expiresIn:'1h'});
     assert.equal((await request('/api/superadmin/health', null, { headers: { Authorization: `Bearer ${spoofedRole}` } })).status, 403);
 });
 
@@ -337,7 +337,7 @@ test('page scripts exist and parse', () => {
 test('browser session helper attaches tokens only to the API, clears logout and propagates errors', async () => {
     const storage=new Map([['health_intel_token','test-token'],['active_user_id','TEST-BHW']]);
     const calls=[]; let response=new Response('{}',{status:200}); let redirected=false, logoutHandler;
-    const sandbox={URL,Headers,Request,Error,setTimeout,console,localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
+    const sandbox={URL,Headers,Request,Error,AbortController,setTimeout,clearTimeout,console,localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
         document:{addEventListener:(event,callback)=>callback(),querySelectorAll:()=>[{addEventListener:(event,callback)=>{logoutHandler=callback;}}]}};
     sandbox.window={location:{href:'http://localhost:5500/index.html',pathname:'/index.html',replace:()=>{redirected=true;}},fetch:async(input,options)=>{calls.push({input,options});return response;}};
     vm.runInNewContext(fs.readFileSync(path.join(__dirname,'..','..','assets','js','shared','api-session.js'),'utf8'),sandbox);
@@ -354,8 +354,13 @@ test('browser session helper attaches tokens only to the API, clears logout and 
     await assert.rejects(sandbox.window.fetch('http://localhost:3000/api/patients'),/Expired/);
     assert.equal(redirected,true);
     assert.equal(storage.has('health_intel_token'),false);
-    storage.set('health_intel_token','again'); logoutHandler();
+    storage.set('health_intel_token','again'); response=new Response('{}',{status:200}); await logoutHandler({preventDefault(){}});
     assert.equal(storage.has('health_intel_token'),false);
+    assert.equal(calls.at(-1).input,'http://localhost:3000/api/logout');
+    assert.equal(calls.at(-1).options.headers.Authorization,'Bearer again');
+    storage.set('health_intel_token','offline-session');response=new Response('{}',{status:503});
+    await assert.rejects(sandbox.window.HealthIntel.logout(),/Sign out could not be completed/);
+    assert.equal(storage.get('health_intel_token'),'offline-session','Failed server revocation must not claim a successful logout');
 });
 
 test('MHO age, year, barangay, outcome and comparison filters count the correct records', async () => {

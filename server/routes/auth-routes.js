@@ -13,6 +13,8 @@ const { createPasswordRecovery } = require('../services/password-recovery');
 const { createRegistrationHandlers } = require('../services/registration');
 const { createSystemAudit } = require('../services/system-audit');
 const { createLoginThrottle } = require('../services/login-throttle');
+const crypto = require('node:crypto');
+const { createSessionSecurity } = require('../services/session-security');
 
 function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) {
     const credentials = createAccountCredentials(db);
@@ -24,6 +26,15 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) 
     });
     const registration = createRegistrationHandlers(db);
     const loginThrottle = createLoginThrottle(db, loginThrottleOptions);
+    const sessions = createSessionSecurity(db);
+    app.post('/api/logout', async (req,res) => {
+        try {
+            await sessions.logout(req.authToken, req.authExpiry);
+            res.json({success:true,message:'Session ended.'});
+        } catch {
+            res.status(503).json({success:false,error:'Sign out could not be completed. Please try again.'});
+        }
+    });
     const loginLimiter = rateLimit({
         windowMs: 1 * 60 * 1000,
         max: 10,
@@ -128,13 +139,14 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) 
                 await failedLogin(req,'Login rejected: invalid credentials.');
                 return res.status(401).json({success:false,error:'Invalid System ID or Password.'});
             }
+            await sessions.initialize();
             const outcome = await loginThrottle.attempt(system_id, async connection => {
             const loginAudit = createSystemAudit(connection);
             const recordFailure = (reason,user=null) => loginAudit.record(user,'Login Failed',{
                 summary:reason,outcome:'Failed',target_type:'Account',target_id:attemptedId(req),
                 attribution:user?'Credentials verified; access refused':'Unverified account identifier; not proof the account owner made this attempt'
             });
-            const rows = await createAccountCredentials(connection).find(system_id);
+            const rows = await createAccountCredentials(connection).find(system_id, {forUpdate:true});
 
             if (rows.length === 0) {
                 await recordFailure('Login rejected: invalid credentials.');
@@ -165,6 +177,8 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) 
                 {
                     system_id: user.system_id,
                     role: user.role,
+                    jti: crypto.randomUUID(),
+                    session_epoch: await sessions.epoch(connection, user.system_id),
                     password_version: sessionVersion(user.password_hash, JWT_SECRET)
                 },
                 JWT_SECRET,

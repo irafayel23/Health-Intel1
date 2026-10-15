@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const { sessionVersion } = require('../config/security-config');
+const { createSessionSecurity } = require('../services/session-security');
 
 const publicEndpoints = new Set([
     'POST /login', 'POST /register', 'POST /get-next-id', 'POST /check-email',
@@ -10,6 +11,8 @@ const publicEndpoints = new Set([
 ]);
 const rules = [
     ['GET', /^\/session$/, ['bhw', 'mho', 'admin', 'superadmin']],
+    ['POST', /^\/logout$/, ['bhw', 'mho', 'admin', 'superadmin']],
+    ['GET', /^\/mho\/patients(?:\/(?:resident|legacy)\/\d+)?$/, ['mho']],
     ['POST', /^\/change-password$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['GET', /^\/admin\/(pending-users|active-users|denied-users|audit-logs)$/, ['admin', 'superadmin']],
     ['GET', /^\/admin\/cases\/\d+$/, ['admin']],
@@ -66,6 +69,7 @@ function loadJwtSecret() {
 }
 
 function createAccessControl(db, secret) {
+    const sessions = createSessionSecurity(db);
     const deny = (res, status, error, code) => res.status(status).json({ success: false, error, code });
     return async (req, res, next) => {
         if (publicEndpoints.has(`${req.method} ${req.path}`)) return next();
@@ -74,13 +78,14 @@ function createAccessControl(db, secret) {
         let claims;
         try {
             claims = jwt.verify(bearer[1], secret, { algorithms: ['HS256'] });
-            if (typeof claims.system_id !== 'string') throw new Error('Invalid identity');
+            if (typeof claims.system_id !== 'string' || !Number.isSafeInteger(claims.exp)) throw new Error('Invalid identity or expiry');
         } catch {
             return deny(res, 401, 'Your session has expired. Please sign in again.', 'SESSION_INVALID');
         }
         try {
+            await sessions.initialize();
             const [users] = await db.execute(
-                'SELECT system_id, role, status, barangay_id, password_hash FROM users WHERE system_id = ?', [claims.system_id]
+                'SELECT system_id,role,status,barangay_id,password_hash FROM users WHERE system_id = ?', [claims.system_id]
             );
             const user = users[0];
             if (!user || user.status !== 'approved') {
@@ -89,6 +94,15 @@ function createAccessControl(db, secret) {
             if (claims.password_version !== sessionVersion(user.password_hash, secret)) {
                 return deny(res, 401, 'Please sign in again with your current password.', 'SESSION_INVALID');
             }
+            const epoch = claims.session_epoch === undefined ? 0 : claims.session_epoch;
+            // Query by the canonical ID: existing MySQL tables can have different collations.
+            const currentEpoch = await sessions.epoch(db, user.system_id);
+            if (!Number.isSafeInteger(epoch) || epoch < 0 || epoch !== currentEpoch || await sessions.revoked(bearer[1])) {
+                return deny(res, 401, 'This session has ended. Please sign in again.', 'SESSION_INVALID');
+            }
+            req.authToken = bearer[1];
+            req.authExpiry = claims.exp;
+            delete user.session_epoch;
             delete user.password_hash;
             req.user = user;
             const rule = rules.find(([method, pattern]) => method === req.method && pattern.test(req.path));
@@ -109,7 +123,7 @@ function createAccessControl(db, secret) {
                     return deny(res, 403, 'You cannot manage this account role.', 'ACCESS_DENIED');
                 }
             }
-            if (user.role === 'bhw' && !['/session', '/change-password', '/diseases'].includes(req.path)) {
+            if (user.role === 'bhw' && !['/session', '/logout', '/change-password', '/diseases'].includes(req.path)) {
                 if (!user.barangay_id) return deny(res, 403, 'Your account needs an assigned barangay.', 'ACCESS_DENIED');
                 const requestedBarangay = req.query.barangay_id;
                 if (requestedBarangay && requestedBarangay !== 'null' && String(requestedBarangay) !== String(user.barangay_id)) {

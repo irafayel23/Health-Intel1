@@ -23,7 +23,7 @@ function validatePatient(body) {
     const first_name=textField(body.first_name,'First name',100);
     const last_name=textField(body.last_name,'Last name',100);
     const suffix=validateSuffix(body.suffix);
-    const purok=textField(body.purok,'Purok / zone',100);
+    const purok=textField(body.purok,'Purok / zone',100).replace(/\s+/gu,' ');
     const disease=body.condition_not_listed === true ? 'Pending classification' : textField(body.disease,'Disease category',255);
     const remarks=textField(body.remarks,'Remarks',4000,false);
     const birthdate=body.birthdate;

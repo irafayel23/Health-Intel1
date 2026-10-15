@@ -135,6 +135,42 @@ test('account actions and their audit entry commit together with accurate Supera
     assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-MHO'})).status,200);const [[log]]=await db.query("SELECT role FROM system_audit_logs WHERE user_id='QA-SUPERADMIN' ORDER BY id DESC LIMIT 1");assert.equal(log.role,'Superadmin');
     await db.query('RENAME TABLE system_audit_logs TO qa_audit_hold');try{assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:'QA-MHO'})).status,503);const [[row]]=await db.query("SELECT status FROM users WHERE system_id='QA-MHO'");assert.equal(row.status,'suspended');}finally{await db.query('RENAME TABLE qa_audit_hold TO system_audit_logs');}
     assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:'QA-MHO'})).status,200);
+    assert.equal((await request('/api/session','mho')).status,401,'Restoration must not revive the old MHO token');
+    // The real post-restoration login is covered by directory-sessions.test.js.
+    // Renew this suite's fixture independently of its intentional IP-limit tests.
+    const [[restored]]=await db.query("SELECT u.password_hash,e.epoch FROM users u JOIN account_session_epochs e ON e.system_id=u.system_id WHERE u.system_id='QA-MHO'");
+    tokens.mho=jwt.sign({system_id:'QA-MHO',session_epoch:Number(restored.epoch),password_version:sessionVersion(restored.password_hash,secret)},secret,{expiresIn:'1h'});
+});
+
+test('BHW/MHO account actions reject stale states and concurrent approvals cannot reverse suspension',async()=>{
+    const [[actor]]=await db.query("SELECT password_hash FROM users WHERE system_id='QA-ADMIN'");
+    const actions={
+        'approve-user':['pending','approved'],
+        'deny-user':['pending','denied'],
+        'undo-deny':['denied','pending'],
+        'suspend-user':['approved','suspended'],
+        'restore-suspended':['suspended','approved']
+    };
+    for(const role of ['bhw','mho']){
+        const id='QA-STATUS-'+role.toUpperCase();
+        await db.execute("INSERT INTO users(system_id,first_name,last_name,role,password_hash,status) VALUES(?,'Status','Fixture',?,?,'pending')",[id,role,actor.password_hash]);
+        for(const [action,[from,to]] of Object.entries(actions))for(const state of ['pending','approved','denied','suspended']){
+            await db.execute('UPDATE users SET status=? WHERE system_id=?',[state,id]);
+            const [[before]]=await db.query('SELECT COUNT(*) AS count FROM system_audit_logs');
+            const response=await request('/api/admin/'+action,'admin',{temp_system_id:id});
+            assert.equal(response.status,state===from?200:409,`${role}: ${action} from ${state}`);
+            const [[account]]=await db.execute('SELECT status FROM users WHERE system_id=?',[id]);
+            const [[after]]=await db.query('SELECT COUNT(*) AS count FROM system_audit_logs');
+            assert.equal(account.status,state===from?to:state);
+            assert.equal(after.count-before.count,state===from?1:0,'Rejected requests must not alter the audit history');
+        }
+        await db.execute("UPDATE users SET status='pending' WHERE system_id=?",[id]);
+        const results=await Promise.all([request('/api/admin/approve-user','admin',{temp_system_id:id}),request('/api/admin/approve-user','admin',{temp_system_id:id})]);
+        assert.deepEqual(results.map(r=>r.status).sort(),[200,409],'Only one simultaneous approval succeeds');
+        assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:id})).status,200);
+        assert.equal((await request('/api/admin/approve-user','admin',{temp_system_id:id})).status,409,'An old approval cannot restore a suspended account');
+        assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:id})).status,200);
+    }
 });
 
 test('Superadmin Admin access enforces current states, saves reasons atomically and scopes account history',async()=>{

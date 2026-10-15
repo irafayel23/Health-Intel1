@@ -238,7 +238,7 @@ test('MHO split scripts retain API charts, filter refresh and report downloads',
 
 test('MHO navigation keeps the requested workflow order and defaults to Philippine month and ISO week',async()=>{
     const p=page('mho.html');p.load();
-    assert.deepEqual(p.navigation.map(node=>node.getAttribute('data-target')),['view-analytics','view-history','view-disease-review','view-vital-review','view-predictive','view-heatmap','view-reports']);
+    assert.deepEqual(p.navigation.map(node=>node.getAttribute('data-target')),['view-analytics','view-history','view-patient-directory','view-predictive','view-review-center','view-heatmap','view-reports']);
     for(const [day,month,year,week,isoYear] of [
         ['2026-10-02','October','2026','40','2026'],
         ['2025-12-29','December','2025','1','2026'],
@@ -257,7 +257,7 @@ test('MHO navigation keeps the requested workflow order and defaults to Philippi
 
 test('Superadmin logout uses clear wording, respects cancel and clears the session on confirmation',async()=>{
     const p=page('superadmin.html');p.load();let dialog,cleared=false;
-    p.s.HealthIntel.clearSession=()=>{cleared=true;};p.s.Swal.fire=async options=>{dialog=options;return {isConfirmed:false};};
+    p.s.HealthIntel.logout=async()=>{cleared=true;};p.s.Swal.fire=async options=>{dialog=options;return {isConfirmed:false};};
     p.s.logout();await settle();assert.equal(dialog.title,'Log out?');assert.equal(dialog.confirmButtonText,'Log out');assert.equal(cleared,false);
     p.s.Swal.fire=async()=>({isConfirmed:true});p.s.logout();await settle();
     assert.equal(cleared,true);assert.equal(p.s.location.href,'index.html');

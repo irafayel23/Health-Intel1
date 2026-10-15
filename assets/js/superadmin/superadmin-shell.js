@@ -26,7 +26,9 @@
           icon: "question",
           showCancelButton: true,
           confirmButtonText: "Log out"
-        }).then((result) => {
-          if (result.isConfirmed) { HealthIntel.clearSession(); window.location.href = "index.html"; }
+        }).then(async (result) => {
+          if (!result.isConfirmed) return;
+          try { await HealthIntel.logout(); window.location.href = "index.html"; }
+          catch { Swal.fire({icon:'error',title:'Still signed in',text:'The server could not confirm sign out. Check your connection and try again.'}); }
         });
       }

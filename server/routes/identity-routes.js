@@ -86,8 +86,7 @@ function registerIdentityRoutes(app, db, dbConfig) {
                 message: `Account approved. Official ID: ${finalId}.${notice}`
             });
         } catch (error) {
-            console.error('Approval Error:', error);
-            res.status(500).json({ success: false, error: 'Database error during approval process.' });
+            respond(res, error, 'The account could not be approved. Please try again.');
         }
     });
 
