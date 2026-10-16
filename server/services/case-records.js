@@ -170,6 +170,7 @@ function createCaseRecords(db) {
 
         async residentVisits(residentId, user) {
             const [rows] = await db.execute(`SELECT v.*,h.disease,h.disease_review_status,h.disease_reported,
+                DATE_FORMAT(v.next_followup_date,'%Y-%m-%d') AS next_followup_date,
                 DATE_FORMAT(v.consultation_date,'%Y-%m-%d') AS consultation_date,
                 TIME_FORMAT(v.consultation_time,'%H:%i') AS consultation_time
                 FROM case_visits v JOIN health_cases h ON h.id=v.case_id WHERE h.resident_id=?` +

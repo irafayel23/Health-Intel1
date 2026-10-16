@@ -541,6 +541,7 @@
                 </div>
                 <div class="walkin-field"><label for="walkin-severity">Recorded visit severity *</label><select id="walkin-severity" required><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select><p class="walkin-help">For a return visit, the original case severity stays unchanged.</p></div>
                 <div class="walkin-field walkin-full"><label for="walkin-remarks">Symptoms / remarks</label><textarea id="walkin-remarks" maxlength="4000" rows="3" placeholder="Optional notes from this consultation"></textarea></div>
+                <div id="walkin-followup-plan" class="walkin-field walkin-full"></div>
               </div>
             </div>
             <div class="walkin-form-footer"><p>New disease cases start as Active. Admissions and follow-ups preserve the original case status and disease totals.</p><button id="walkin-save" type="submit" disabled><i data-lucide="save" aria-hidden="true"></i> Save case / visit</button></div>

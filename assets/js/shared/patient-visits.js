@@ -1,6 +1,20 @@
 // Consultation information belongs to a visit; returning visits retain the original disease case.
 (() => {
     const safe = value => HealthIntelEncoding.escape(value);
+    function followupMarkup(prefix) {
+        return `<div class="hi-followup-plan hi-encode-wide"><h4>Follow-up plan</h4><p class="hi-field-help" id="${prefix}-followup-help">Optional. Copy the return date and instructions advised by the attending health professional. This records advice; it does not book an appointment or send reminders.</p><div class="hi-encode-grid">
+        <div><label for="${prefix}-next-followup">Next follow-up date</label><input id="${prefix}-next-followup" type="date" min="1900-01-01" aria-describedby="${prefix}-followup-help"><p class="hi-field-help">Leave blank if no return date was advised.</p></div>
+        <div class="hi-encode-wide"><label for="${prefix}-followup-instructions">Follow-up instructions</label><textarea id="${prefix}-followup-instructions" maxlength="2000" rows="3" placeholder="Copy the advised instructions, if any" aria-describedby="${prefix}-followup-help"></textarea></div></div></div>`;
+    }
+    function followupPayload(prefix, consultationDate) {
+        const date=document.getElementById(prefix+'-next-followup').value;
+        if(date&&(!/^\d{4}-\d{2}-\d{2}$/.test(date)||date<'1900-01-01'||date<consultationDate))throw formError(prefix+'-next-followup','The next follow-up date must be on or after the consultation date.');
+        return {next_followup_date:date||null,followup_instructions:document.getElementById(prefix+'-followup-instructions').value.trim()};
+    }
+    function followupHistory(visit) {
+        if(!visit.next_followup_date&&!visit.followup_instructions)return '<p class="hi-field-help">No follow-up plan recorded for this visit.</p>';
+        return `<div class="hi-followup-plan hi-followup-history"><h4>Follow-up plan from this visit</h4><p><strong>Next follow-up:</strong> ${visit.next_followup_date?safe(HealthIntelDate.formatCaseDate(visit.next_followup_date)):'No date recorded'}</p><p class="hi-followup-instructions"><strong>Instructions:</strong> ${safe(visit.followup_instructions||'None recorded')}</p></div>`;
+    }
     function markup() {
         return `<section><h3>2. Consultation details</h3><p class="hi-field-help">Choose how the patient was seen. Record only information available from the visit.</p><div class="hi-encode-grid">
         <div><label for="swal-transaction">Mode of transaction *</label><select id="swal-transaction"><option value="">Select mode</option><option>Walk-in</option><option>Visited</option><option>Referral</option></select></div>
@@ -78,7 +92,7 @@
         };
         return {destroy(){closed=true;events.abort();},consultation,payload(){
             validateMeasurements();
-            return {visit:consultation(),condition:returning()?{disease:cases.find(row=>row.id===Number(field('swal-existing-case').value)).disease}:HealthIntelEncoding.conditionPayload('swal')};
+            return {visit:{...consultation(),...followupPayload('swal',field('swal-case-date').value)},condition:returning()?{disease:cases.find(row=>row.id===Number(field('swal-existing-case').value)).disease}:HealthIntelEncoding.conditionPayload('swal')};
         }};
     }
     function formError(id,message) {const error=Error(message);error.field=id;return error;}
@@ -149,6 +163,7 @@
             <dl class="hi-visit-measurements"><div><dt>Blood pressure</dt><dd>${measured(v.blood_pressure,'mmHg')}</dd></div><div><dt>Temperature</dt><dd>${measured(v.temperature_c,'°C')}</dd></div><div><dt>Height</dt><dd>${measured(v.height_cm,'cm')}</dd></div><div><dt>Weight</dt><dd>${measured(v.weight_kg,'kg')}</dd></div></dl>
             ${v.transaction_mode==='Referral'?`<div class="hi-visit-referral"><strong>Referral</strong><p>Referred by: ${safe(v.referred_by||'Not recorded')}</p><p>Reason: ${safe(v.referral_reason||'Not recorded')}</p></div>`:''}
             <div class="hi-visit-notes"><p><strong>Visit severity:</strong> ${safe(v.severity)}</p><p><strong>Symptoms / remarks:</strong> ${safe(v.remarks||'None recorded')}</p></div>
+            ${followupHistory(v)}
         </article>`).join(''):'<div class="hi-history-empty"><strong>No consultations recorded yet</strong><p>Admissions and follow-ups saved with the updated form will appear here. Older disease cases remain available in the case history above.</p></div>';
     }
     async function show(caseId) {
@@ -158,9 +173,9 @@
             if(!response.ok||!result.success)throw Error(result.error||'Visit history could not be loaded.');
             const html=result.data.length?result.data.map(visit=>`<section class="hi-review-summary"><strong>${safe(visit.nature_of_visit)}</strong><p>${safe(HealthIntelDate.formatCaseDate(visit.consultation_date))} · ${safe(formatTime(visit.consultation_time))} · ${safe(visit.transaction_mode)}</p>
                 <p>BP: ${safe(visit.blood_pressure||'Not measured')} · Temperature: ${safe(visit.temperature_c==null?'Not measured':visit.temperature_c+' °C')}<br>Height: ${safe(visit.height_cm==null?'Not measured':visit.height_cm+' cm')} · Weight: ${safe(visit.weight_kg==null?'Not measured':visit.weight_kg+' kg')}</p>
-                ${visit.transaction_mode==='Referral'?`<p>Referred by: ${safe(visit.referred_by||'Not recorded')}<br>Reason: ${safe(visit.referral_reason||'Not recorded')}</p>`:''}<p>Recorded severity: ${safe(visit.severity)}<br>Symptoms / remarks: ${safe(visit.remarks||'None recorded')}</p></section>`).join(''):'<p>No structured visits were recorded for this older case. Its original case details remain in the medical dossier.</p>';
+                ${visit.transaction_mode==='Referral'?`<p>Referred by: ${safe(visit.referred_by||'Not recorded')}<br>Reason: ${safe(visit.referral_reason||'Not recorded')}</p>`:''}<p>Recorded severity: ${safe(visit.severity)}<br>Symptoms / remarks: ${safe(visit.remarks||'None recorded')}</p>${followupHistory(visit)}</section>`).join(''):'<p>No structured visits were recorded for this older case. Its original case details remain in the medical dossier.</p>';
             Swal.fire({title:`Visits · Case #REC-${caseId}`,html:`<div class="hi-review-dialog">${html}</div>`,customClass:{popup:'hi-dialog'},confirmButtonText:'Close',width:680});
         }catch(error){Swal.fire('Visit history unavailable',error.message,'error');}
     }
-    window.HealthIntelVisits={markup,bind,show,formatTime,validateMeasurements,wizard,renderResidentHistory};
+    window.HealthIntelVisits={markup,bind,show,formatTime,validateMeasurements,wizard,renderResidentHistory,followupMarkup,followupPayload,followupHistory};
 })();

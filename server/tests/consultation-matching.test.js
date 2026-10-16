@@ -30,6 +30,21 @@ test('real BHW response matches original case for follow-up and admission withou
     const rows=(await request('/patients')).data.data;
     for(const nature of ['Follow-up visit','New admission']){const form=await frontend(rows,nature);try{assert.ok(form.choices().includes(caseId));assert.equal(form.field('swal-existing-case').disabled,false);form.field('swal-existing-case').value=String(caseId);assert.equal(form.control.consultation().case_id,caseId);}finally{form.control.destroy();}}
 });
+
+test('BHW follow-up plans validate on save, preserve multiline advice, and escape history text',async()=>{
+    const rows=(await request('/patients')).data.data,form=await frontend(rows,'Follow-up visit');
+    try{
+        form.field('swal-existing-case').value=String(caseId);
+        form.field('swal-next-followup').value='2026-09-30';
+        assert.equal(form.control.consultation().case_id,caseId,'Consultation navigation must remain usable while editing a later plan');
+        assert.throws(()=>form.control.payload(),/on or after/);
+        form.field('swal-next-followup').value='2026-11-01';form.field('swal-followup-instructions').value='  Synthetic advice.\nBring the previous record.  ';
+        const saved=form.control.payload().visit;assert.equal(saved.next_followup_date,'2026-11-01');assert.equal(saved.followup_instructions,'Synthetic advice.\nBring the previous record.');
+        form.context.HealthIntelEncoding.escape=value=>String(value).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const html=form.context.HealthIntelVisits.followupHistory({next_followup_date:'2026-11-01',followup_instructions:'<img src=x onerror=bad>'});assert.ok(!html.includes('<img'));assert.ok(html.includes('&lt;img'));
+        assert.match(form.context.HealthIntelVisits.followupHistory({}),/No follow-up plan recorded/);
+    }finally{form.control.destroy();}
+});
 test('BHW dropdown excludes earlier dates, wrong identities, archives and dates after confirmed death; date edits clear selection',async()=>{
     const row=(await request('/patients')).data.data.find(r=>r.id===caseId);
     for(const [rows,changes] of [[[row],{'swal-case-date':'2026-09-30'}],[[row],{'swal-birthdate':'04/11/1975'}],[[row],{'swal-suffix':'Jr.'}],[[{...row,is_archived:1}],{}],[[{...row,is_deceased:1,death_date:'2026-10-10'}],{}],[[{...row,is_deceased:1,death_date:null}],{}]]){

@@ -88,7 +88,7 @@ function page(file) {
         Swal:{fire:async()=>({isConfirmed:false}),showLoading(){},close(){},isLoading:()=>false,showValidationMessage(){}},
         HealthIntel:{download:async(...args)=>downloads.push(args),clearSession(){}},
         HealthIntelEncoding:{escape:value=>String(value),conditionLabel:r=>r.disease || '',conditionCell:r=>r.disease || '',bindCondition(){},enhanceSelect(){},populateConditions(){}},
-        HealthIntelVisits:{validateMeasurements(){},formatTime:()=> 'Time not recorded',renderResidentHistory(){}},
+        HealthIntelVisits:{validateMeasurements(){},formatTime:()=> 'Time not recorded',renderResidentHistory(){},followupMarkup:()=>'',followupPayload:()=>({}),followupHistory:()=>''},
         fetch:async(url,options)=>{
             requests.push({url:String(url),options});
             const result=s.response(String(url),options);

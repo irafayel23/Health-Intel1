@@ -34,10 +34,19 @@ test('numeric storage, referral requirements and malformed types are validated w
     for(const [key,value] of [['temperature_c',''],['height_cm',null],['weight_kg',undefined],['blood_pressure','']])assert.throws(()=>validateVisit({...visit(),[key]:value}),/Enter/);
     assert.equal(validatePatient(patient()).patient_name,'Synthetic Patient Jr.');
 });
+
+test('follow-up plans accept independent optional fields, multiline instructions and future dates; reject invalid dates and unsafe values',()=>{
+    const empty=validateVisit(visit(),'2026-10-01');assert.equal(empty.next_followup_date,null);assert.equal(empty.followup_instructions,'');
+    const instructions='Return for the advised review.\nBring the previous consultation record.';
+    assert.equal(validateVisit({...visit(),followup_instructions:instructions},'2026-10-01').followup_instructions,instructions);
+    for(const date of ['2026-10-01','2026-11-02'])assert.equal(validateVisit({...visit(),next_followup_date:date},'2026-10-01').next_followup_date,date);
+    for(const change of [{next_followup_date:'2026-02-30'},{next_followup_date:'10/02/2026'},{next_followup_date:42},{next_followup_date:'2026-09-30'},{followup_instructions:{}},{followup_instructions:'x'.repeat(2001)},{followup_instructions:'<script>bad</script>'},{followup_instructions:'bad\u0000text'}])assert.throws(()=>validateVisit({...visit(),...change},'2026-10-01'));
+});
 test('new disease case atomically saves consultation, suffix and resident identity',async()=>{
-    const response=await request('/patients','bhw',patient());assert.equal(response.status,201,JSON.stringify(response.result));caseId=response.result.id;assert.equal(response.result.new_case,true);assert.ok(response.result.visit_id);
+    const response=await request('/patients','bhw',{...patient(),visit:{...visit(),next_followup_date:'2026-10-08',followup_instructions:'Synthetic initial consultation advice.'}});assert.equal(response.status,201,JSON.stringify(response.result));caseId=response.result.id;assert.equal(response.result.new_case,true);assert.ok(response.result.visit_id);
     const [[c]]=await db.query('SELECT * FROM health_cases WHERE id=?',[caseId]),[[r]]=await db.query('SELECT * FROM residents WHERE id=?',[c.resident_id]);assert.equal(c.suffix,'Jr.');assert.equal(r.suffix,'Jr.');assert.equal(c.patient_name,'Synthetic Patient Jr.');
     const rows=(await request('/patients/'+caseId+'/visits')).result.data;assert.equal(rows.length,1);assert.equal(rows[0].consultation_time,'13:05');assert.equal(rows[0].nature_of_visit,'New consultation/case');
+    assert.equal(rows[0].next_followup_date,'2026-10-08');assert.equal(rows[0].followup_instructions,'Synthetic initial consultation advice.');
 });
 test('follow-up and admission keep original case, resident, disease date, severity and report counts',async()=>{
     const [[original]]=await db.query('SELECT * FROM health_cases WHERE id=?',[caseId]);
@@ -151,4 +160,34 @@ test('today reports isolate dates and barangays, include returns to older cases,
     const [audits]=await db.query("SELECT details FROM system_audit_logs WHERE action='Report Export Prepared'");
     const ownAudit=audits.map(r=>JSON.parse(r.details)).find(r=>r.target_id==='BHW Today');
     assert.equal(ownAudit.record_count,1);assert.equal(ownAudit.visit_count,3);assert.equal(ownAudit.period.start,period.start);
+});
+
+test('BHW and MHO plans persist per visit in both dossiers without replacing previous plans or increasing disease counts',async()=>{
+    const {createMhoPatients}=require('../services/mho-patients');
+    await db.query('UPDATE health_cases SET is_archived=0 WHERE id=?',[caseId]);
+    const [[original]]=await db.query('SELECT * FROM health_cases WHERE id=?',[caseId]);
+    const [[counts]]=await db.query('SELECT (SELECT COUNT(*) FROM health_cases) cases,(SELECT COUNT(*) FROM residents) residents');
+    const firstPlan={next_followup_date:'2026-11-01',followup_instructions:'Synthetic review instructions.\nBring the previous record.'};
+    for(const [role,nature,date,plan] of [['bhw','Follow-up visit','2026-10-11',firstPlan],['mho','New admission','2026-10-12',{next_followup_date:'2026-11-02',followup_instructions:'Synthetic second visit advice.'}],['bhw','Follow-up visit','2026-10-13',{}]]){
+        const response=await request(role==='mho'?'/mho/walk-in-cases':'/patients',role,{...patient(),barangay_id:own,date_recorded:date,visit:{...visit(nature),...plan}});
+        assert.equal(response.status,201,JSON.stringify(response.result));assert.equal(response.result.id,caseId);assert.equal(response.result.new_case,false);
+    }
+    const bhw=(await request('/residents/'+original.resident_id+'/dossier')).result;
+    const mho=await createMhoPatients(db).dossier('resident',original.resident_id);
+    const perCase=(await request('/patients/'+caseId+'/visits')).result.data;
+    for(const rows of [bhw.visits,mho.visits,perCase]){
+        const first=rows.find(v=>v.consultation_date==='2026-10-11');assert.equal(first.next_followup_date,firstPlan.next_followup_date);assert.equal(first.followup_instructions,firstPlan.followup_instructions);
+        assert.equal(rows.find(v=>v.consultation_date==='2026-10-12').next_followup_date,'2026-11-02');
+        const blank=rows.find(v=>v.consultation_date==='2026-10-13');assert.equal(blank.next_followup_date,null);assert.equal(blank.followup_instructions,null);
+    }
+    assert.deepEqual((await db.query('SELECT * FROM health_cases WHERE id=?',[caseId]))[0][0],original);
+    assert.deepEqual((await db.query('SELECT (SELECT COUNT(*) FROM health_cases) cases,(SELECT COUNT(*) FROM residents) residents'))[0][0],counts);
+    const [[before]]=await db.query('SELECT COUNT(*) n FROM case_visits');
+    for(const role of ['bhw','mho']){
+        const response=await request(role==='mho'?'/mho/walk-in-cases':'/patients',role,{...patient(),barangay_id:own,date_recorded:'2026-10-14',visit:{...visit('Follow-up visit'),next_followup_date:'2026-10-13'}});
+        assert.equal(response.status,400);assert.match(response.result.error,/on or after/);
+    }
+    assert.equal((await db.query('SELECT COUNT(*) n FROM case_visits'))[0][0].n,before.n);
+    await migrateCaseVisits(db);await migrateCaseVisits(db);
+    assert.equal((await request('/patients/'+caseId+'/visits')).result.data.find(v=>v.consultation_date==='2026-10-11').followup_instructions,firstPlan.followup_instructions);
 });

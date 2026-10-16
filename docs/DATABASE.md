@@ -1,5 +1,7 @@
 # Active database schema
 
+The 16 October 2026 follow-up-plan update adds nullable `case_visits.next_followup_date DATE` and `case_visits.followup_instructions VARCHAR(2000)` to each structured consultation. Both are optional; a return date cannot precede its consultation. Existing records remain unchanged. See [FOLLOWUP_PLAN_20261016.md](FOLLOWUP_PLAN_20261016.md).
+
 Observed from `health_intel` on 27 September 2026. This describes the current database rather than an unimplemented design. Phase 2 preserved all eight table structures. The later QA fixes added two generated columns and two unique indexes; no historical patient data was rewritten.
 
 | Table | Main fields and purpose |

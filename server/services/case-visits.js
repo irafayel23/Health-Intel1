@@ -6,7 +6,7 @@ const {guardResidentVisit,guardResidentIdentity}=require('./resident-vital');
 const TRANSACTIONS = ['Walk-in', 'Visited', 'Referral'];
 const NATURES = ['New consultation/case', 'New admission', 'Follow-up visit'];
 
-function validateVisit(input) {
+function validateVisit(input, consultationDate) {
     if (input === undefined) return null; // HTTP encoding routes require visits; legacy service callers may omit them.
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw invalid('Enter valid consultation details.');
     if (!TRANSACTIONS.includes(input.transaction_mode)) throw invalid('Select the mode of transaction.');
@@ -35,7 +35,14 @@ function validateVisit(input) {
     const case_id = input.case_id;
     if (input.nature_of_visit !== NATURES[0] && (!Number.isSafeInteger(case_id) || case_id < 1)) throw invalid('Select the existing disease case for this admission or follow-up.');
     if (input.nature_of_visit === NATURES[0] && case_id != null) throw invalid('A new case cannot be linked as a follow-up.');
+    const next_followup_date = input.next_followup_date === undefined || input.next_followup_date === null || input.next_followup_date === '' ? null : input.next_followup_date;
+    if (next_followup_date !== null && (!validDate(next_followup_date) || next_followup_date < '1900-01-01')) throw invalid('Enter a valid next follow-up date.');
+    if (next_followup_date && consultationDate && next_followup_date < consultationDate) throw invalid('The next follow-up date must be on or after the consultation date.');
+    const rawInstructions = input.followup_instructions;
+    if (rawInstructions != null && (typeof rawInstructions !== 'string' || rawInstructions.length > 2000 || /[<>\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/.test(rawInstructions))) throw invalid('Enter valid follow-up instructions (maximum 2000 characters).');
+    const followup_instructions = (rawInstructions || '').trim();
     return { transaction_mode: input.transaction_mode, nature_of_visit: input.nature_of_visit, consultation_time,
+        next_followup_date, followup_instructions,
         referred_by, referral_reason, blood_pressure,
         temperature_c: measurement('temperature_c', 'Temperature in °C', 100),
         height_cm: measurement('height_cm', 'Height in cm', 500), weight_kg: measurement('weight_kg', 'Weight in kg', 1500), case_id };
@@ -59,13 +66,16 @@ async function migrateCaseVisits(db) {
         INDEX idx_case_visits_case_date (case_id, consultation_date, id),
         CONSTRAINT fk_case_visits_case FOREIGN KEY (case_id) REFERENCES health_cases(id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
+    const [visitColumns] = await db.query('SHOW COLUMNS FROM case_visits');
+    if (!visitColumns.some(c => c.Field === 'next_followup_date')) await db.query('ALTER TABLE case_visits ADD COLUMN next_followup_date DATE NULL');
+    if (!visitColumns.some(c => c.Field === 'followup_instructions')) await db.query('ALTER TABLE case_visits ADD COLUMN followup_instructions VARCHAR(2000) NULL');
 }
 
 async function saveVisit(connection, caseId, patient, visit, systemId) {
     const [result] = await connection.execute(`INSERT INTO case_visits
-        (case_id,consultation_date,consultation_time,transaction_mode,nature_of_visit,referred_by,referral_reason,blood_pressure,temperature_c,height_cm,weight_kg,severity,remarks,encoded_by)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [caseId, patient.date_recorded, visit.consultation_time, visit.transaction_mode, visit.nature_of_visit,
-        visit.referred_by || null, visit.referral_reason || null, visit.blood_pressure, visit.temperature_c, visit.height_cm, visit.weight_kg, patient.severity, patient.remarks || null, systemId]);
+        (case_id,consultation_date,consultation_time,transaction_mode,nature_of_visit,referred_by,referral_reason,blood_pressure,temperature_c,height_cm,weight_kg,severity,remarks,encoded_by,next_followup_date,followup_instructions)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, [caseId, patient.date_recorded, visit.consultation_time, visit.transaction_mode, visit.nature_of_visit,
+        visit.referred_by || null, visit.referral_reason || null, visit.blood_pressure, visit.temperature_c, visit.height_cm, visit.weight_kg, patient.severity, patient.remarks || null, systemId, visit.next_followup_date || null, visit.followup_instructions || null]);
     return result.insertId;
 }
 
@@ -94,6 +104,7 @@ async function caseVisits(db, caseId, user) {
     const [cases] = await db.execute('SELECT id FROM health_cases WHERE id=?' + (user.role === 'bhw' ? ' AND barangay_id=?' : ''), user.role === 'bhw' ? [caseId, user.barangay_id] : [caseId]);
     if (!cases.length) throw invalid('Case not found.', 404);
     const [rows] = await db.execute(`SELECT *,DATE_FORMAT(consultation_date,'%Y-%m-%d') AS consultation_date,
+        DATE_FORMAT(next_followup_date,'%Y-%m-%d') AS next_followup_date,
         TIME_FORMAT(consultation_time,'%H:%i') AS consultation_time FROM case_visits WHERE case_id=? ORDER BY consultation_date DESC,consultation_time DESC,id DESC`, [caseId]);
     return rows;
 }

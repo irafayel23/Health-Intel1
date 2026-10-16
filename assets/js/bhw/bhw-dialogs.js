@@ -15,7 +15,7 @@
           <p id="hi-visit-save-summary" class="hi-encode-wide hi-save-summary"></p>
           <div class="hi-encode-wide" id="swal-condition-fields">${HealthIntelEncoding.conditionMarkup('swal')}</div>
           <div class="hi-encode-wide"><label for="swal-severity">Recorded severity *</label><select id="swal-severity"><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></div>
-          <div class="hi-encode-wide"><label for="swal-remarks">Symptoms / remarks</label><textarea id="swal-remarks" maxlength="4000" rows="3" placeholder="Optional follow-up information"></textarea><p class="hi-field-help">${returnVisit?'Severity describes this visit; the original case severity stays unchanged.':'Severity describes this case. It does not declare an outbreak.'}</p></div></div></section></div>`,
+          <div class="hi-encode-wide"><label for="swal-remarks">Symptoms / remarks</label><textarea id="swal-remarks" maxlength="4000" rows="3" placeholder="Notes from this consultation"></textarea><p class="hi-field-help">${returnVisit?'Severity describes this visit; the original case severity stays unchanged.':'Severity describes this case. It does not declare an outbreak.'}</p></div>${HealthIntelVisits.followupMarkup('swal')}</div></section></div>`,
           confirmButtonText:'Save record',confirmButtonColor:'#2563eb',showCancelButton:true,showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
           didOpen:()=>{
             const field=id=>document.getElementById(id),date=field('swal-case-date'),bd=field('swal-birthdate');

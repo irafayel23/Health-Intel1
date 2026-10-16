@@ -52,7 +52,7 @@ function createMhoPatients(db) {
                 return {kind,resident:{...rows[0],barangay_name:barangays[0]?.name||'Not recorded'},history:await records.residentHistory(id,{role:'mho'}),visits:await records.residentVisits(id,{role:'mho'})};
             }
             const cases=await records.caseById(id);if(!cases.length||cases[0].resident_id!==null)throw invalid('Unlinked historical case not found. Refresh the directory.',404);
-            const [visits]=await db.execute("SELECT v.*,DATE_FORMAT(v.consultation_date,'%Y-%m-%d') AS consultation_date,TIME_FORMAT(v.consultation_time,'%H:%i') AS consultation_time,h.disease,h.disease_reported,h.disease_review_status FROM case_visits v JOIN health_cases h ON h.id=v.case_id WHERE v.case_id=? ORDER BY v.consultation_date DESC,v.id DESC",[id]);
+            const [visits]=await db.execute("SELECT v.*,DATE_FORMAT(v.next_followup_date,'%Y-%m-%d') AS next_followup_date,DATE_FORMAT(v.consultation_date,'%Y-%m-%d') AS consultation_date,TIME_FORMAT(v.consultation_time,'%H:%i') AS consultation_time,h.disease,h.disease_reported,h.disease_review_status FROM case_visits v JOIN health_cases h ON h.id=v.case_id WHERE v.case_id=? ORDER BY v.consultation_date DESC,v.id DESC",[id]);
             return {kind,resident:{...cases[0],is_deceased:null,death_date:null},history:cases,visits};
         }
     };

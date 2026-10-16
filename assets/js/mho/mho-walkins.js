@@ -119,6 +119,7 @@
         try {condition=original?{disease:original.disease}:HealthIntelEncoding.conditionPayload('walkin');}
         catch(error){error.field='walkin-disease';throw error;}
         return {visit:{transaction_mode:mode,nature_of_visit:nature,consultation_time:time,case_id:original?Number(original.id):null,
+            ...HealthIntelVisits.followupPayload('walkin',value('walkin-date')),
             referred_by:mode==='Referral'?value('walkin-referred-by'):'',referral_reason:mode==='Referral'?value('walkin-referral-reason'):'',
             blood_pressure:value('walkin-bp'),temperature_c:value('walkin-temperature'),height_cm:value('walkin-height'),weight_kg:value('walkin-weight')},
             condition};
@@ -161,7 +162,7 @@
         const current=++openVersion,person=detail?.person,caseId=detail?.caseId;
         if(isSaving||!person||person.is_deceased||!Number.isSafeInteger(caseId)||caseId<1)return;
         const draftIds=['walkin-first','walkin-last','walkin-suffix','walkin-birthdate','walkin-barangay','walkin-purok','walkin-time-hour','walkin-time-minute','walkin-time-period','walkin-existing-case','walkin-referred-by','walkin-referral-reason','walkin-bp','walkin-temperature','walkin-height','walkin-weight','walkin-disease','walkin-reported','walkin-source','walkin-severity','walkin-remarks'];
-        const hasDraft=draftIds.some(id=>value(id))||value('walkin-transaction')!=='Walk-in'||value('walkin-nature')!=='New consultation/case'||value('walkin-date')!==todayInManila();
+        const hasDraft=[...draftIds,'walkin-next-followup','walkin-followup-instructions'].some(id=>value(id))||value('walkin-transaction')!=='Walk-in'||value('walkin-nature')!=='New consultation/case'||value('walkin-date')!==todayInManila();
         if(hasDraft){
             const answer=await Swal.fire({icon:'question',titleText:'Replace unfinished consultation?',text:'The current form has entered details. Replace them with this patient and start a fresh visit?',showCancelButton:true,confirmButtonText:'Start fresh visit',cancelButtonText:'Keep current form',customClass:{popup:'hi-dialog'}});
             if(!answer.isConfirmed||current!==openVersion)return;
@@ -187,6 +188,7 @@
     }
     document.addEventListener('DOMContentLoaded',()=>{
         const form=field('mho-walkin-form');if(!form)return;
+        field('walkin-followup-plan').innerHTML=HealthIntelVisits.followupMarkup('walkin');
         bindViews();
         const save=field('walkin-save'),date=field('walkin-date');date.max=todayInManila();date.value=date.max;
         for(const name of ['input','change'])form.addEventListener(name,()=>{clearFieldErrors();if(field('walkin-status').dataset.state==='error')showStatus('');});

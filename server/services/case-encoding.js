@@ -9,7 +9,7 @@ const {guardResidentIdentity}=require('./resident-vital');
 function createCaseEncoding(db) {
     return {
         async save(patient, input, brgy_id, systemId, actorRole) {
-            const visit = validateVisit(input.visit);
+            const visit = validateVisit(input.visit, patient.date_recorded);
             return transaction(db, async (connection) => {
                 const [selectedBarangays] = await connection.execute(
                     'SELECT id,name FROM barangays WHERE id=? FOR UPDATE',
