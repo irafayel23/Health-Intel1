@@ -29,6 +29,7 @@
               for(const [id,value] of [['swal-fname',person.first_name],['swal-lname',person.last_name],['swal-birthdate',`${month}/${day}/${year}`],['swal-purok',person.purok]]){field(id).value=value;field(id).readOnly=true;}
               field('swal-suffix').value=person.suffix||'';field('swal-suffix').disabled=true;
               [...field('swal-nature').options].find(option=>option.value==='New consultation/case').disabled=true;
+              if(returnVisit.nature==='Follow-up visit')field('swal-nature').value='Follow-up visit';
               date.nextElementSibling.textContent='Date of this visit; the original case date stays unchanged.';
               age();
             }
@@ -51,7 +52,7 @@
               if(!response.ok||!result.success)throw Error(result.error||'The case could not be saved.');return result;
             }catch(error){Swal.showValidationMessage(error.message);if(error.field)document.getElementById(error.field)?.focus();return false;}
           }
-        }).then(result=>{if(result.isConfirmed){Swal.fire({icon:'success',title:result.value.new_case===false?`Visit saved · Case #REC-${result.value.id}`:`Case #REC-${result.value.id} saved`,text:result.value.new_case===false?'The visit was added to the original disease case. Disease totals are unchanged.':result.value.review_status==='Pending'?'The reported condition is awaiting MHO review.':'The patient case and consultation were recorded.'});isViewingArchive?loadArchivedPatients():loadPatients();loadDashboardStats();loadTrendChart();window.dispatchEvent(new Event('health-intel:cases-changed'));}else if(returnVisit)viewPatientProfile(returnVisit.person.id);});
+        }).then(result=>{if(result.isConfirmed){Swal.fire({icon:'success',title:result.value.new_case===false?`Visit saved · Case #REC-${result.value.id}`:`Case #REC-${result.value.id} saved`,text:result.value.new_case===false?'The visit was added to the original disease case. Disease totals are unchanged.':result.value.review_status==='Pending'?'The reported condition is awaiting MHO review.':'The patient case and consultation were recorded.'});isViewingArchive?loadArchivedPatients():loadPatients();loadDashboardStats();loadTrendChart();window.dispatchEvent(new Event('health-intel:cases-changed'));}else if(returnVisit&&!returnVisit.fromTracking)viewPatientProfile(returnVisit.person.id);});
       }
 
       async function generateBHWTodayReport() {

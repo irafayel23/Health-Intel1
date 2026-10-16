@@ -555,6 +555,8 @@
         </div>
         <section id="view-patient-directory" class="view-section hidden">
           <div class="walkin-page-heading"><div><span class="walkin-eyebrow">Municipal patient records</span><h1>Patient Directory</h1><p>Find patients across all barangays and view their disease cases, admissions and follow-up visits.</p></div></div>
+          <div id="mho-followup-tabs"></div>
+          <div id="mho-directory-panel" role="tabpanel" aria-labelledby="mho-directory-tab">
           <form id="mho-patient-filters" class="walkin-card p-5 mb-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-search">Patient name or record ID<input id="mho-patient-search" type="search" maxlength="100" placeholder="Search name, RES-12 or REC-34" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"></label>
             <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-barangay">Barangay<select id="mho-patient-barangay" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"><option value="all">All barangays</option></select></label>
@@ -565,6 +567,8 @@
           <p id="mho-patient-count" class="hi-vital-count" role="status" aria-live="polite"></p>
           <div class="walkin-card"><div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Patient / record</th><th>Barangay / purok</th><th>Cases</th><th>Last consultation</th><th>Resident status</th><th>History</th></tr></thead><tbody id="mho-patient-body"><tr><td colspan="6">Open the directory to load records.</td></tr></tbody></table></div></div>
           <div class="hi-vital-pagination"><button id="mho-patient-prev" type="button" class="hi-vital-button" disabled>Previous</button><span id="mho-patient-page"></span><button id="mho-patient-next" type="button" class="hi-vital-button" disabled>Next</button></div>
+          </div>
+          <section id="mho-followup-panel" role="tabpanel" aria-labelledby="mho-followup-tab" hidden></section>
         </section>
         <section id="view-review-center" class="view-section hidden">
           <div class="walkin-page-heading"><div><span class="walkin-eyebrow">MHO review workspace</span><h1>Review Center</h1><p>Review disease classifications and resident status in one place. Choose the queue you need below.</p></div></div>
@@ -596,6 +600,7 @@
     <script src="assets/js/mho/mho-resident-vital.js"></script>
     <script src="assets/js/mho/mho-review-center.js"></script>
     <script src="assets/js/mho/mho-patients.js"></script>
+    <script src="assets/js/shared/followup-tracking.js"></script>
     <script>
       lucide.createIcons();
     </script>

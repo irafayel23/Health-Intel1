@@ -10,6 +10,8 @@ const publicEndpoints = new Set([
     'POST /forgot-password', 'POST /reset-password'
 ]);
 const rules = [
+    ['GET', /^\/bhw\/followups$/, ['bhw']],
+    ['GET', /^\/mho\/followups$/, ['mho']],
     ['GET', /^\/session$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['POST', /^\/logout$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['GET', /^\/mho\/patients(?:\/(?:resident|legacy)\/\d+)?$/, ['mho']],

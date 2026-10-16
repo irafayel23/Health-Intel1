@@ -177,7 +177,7 @@
         const birth=String(person.birthdate||'').slice(0,10).split('-');field('walkin-birthdate').value=birth.length===3?`${birth[1]}/${birth[2]}/${birth[0]}`:'';
         field('walkin-date').max=todayInManila();field('walkin-date').value=field('walkin-date').max;field('walkin-age').value='';
         if(!field('walkin-nature').querySelector('option[value=""]')){const option=new Option('Select admission or follow-up','');field('walkin-nature').prepend(option);}
-        field('walkin-nature').value='';
+        field('walkin-nature').value=detail.nature==='Follow-up visit'?'Follow-up visit':'';
         showStatus('Patient details filled. Choose admission or follow-up and enter new measurements and notes; previous visit values are not copied.');
         try{
             if(current!==openVersion)return;

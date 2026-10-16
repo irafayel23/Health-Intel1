@@ -264,6 +264,8 @@
             <p class="text-[hsl(var(--muted-foreground))] mt-1">Complete medical dossiers and historical records for all registered residents.</p>
           </div>
           
+          <div id="bhw-followup-tabs"></div>
+          <div id="bhw-directory-panel" role="tabpanel" aria-labelledby="bhw-directory-tab">
           <div class="relative w-full max-w-md mb-8 group">
             <i data-lucide="search" class="absolute left-3 top-3.5 w-5 h-5 text-[hsl(var(--muted-foreground))] group-focus-within:text-blue-500 transition-colors"></i>
             <input type="text" id="directory-search" aria-label="Search resident profiles" onkeyup="filterDirectory()" placeholder="Search resident name..." class="w-full pl-10 pr-4 py-3 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
@@ -278,6 +280,8 @@
             <p id="resident-page-count" role="status" aria-live="polite" aria-atomic="true" class="text-sm text-[hsl(var(--muted-foreground))]"></p>
             <nav id="resident-pagination" aria-label="Resident profiles pagination" class="flex flex-wrap items-center justify-end gap-2"></nav>
           </div>
+          </div>
+          <section id="bhw-followup-panel" role="tabpanel" aria-labelledby="bhw-followup-tab" hidden></section>
         </div>
 
         <!-- HEATMAP VIEW -->
@@ -453,6 +457,7 @@
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js"></script>
   <script src="assets/js/bhw/bhw-dialogs.js"></script>
+  <script src="assets/js/shared/followup-tracking.js"></script>
     <script src="assets/js/shared/lazy-heatmap.js"></script>
     <script src="assets/js/shared/portal-navigation.js"></script>
   </body>

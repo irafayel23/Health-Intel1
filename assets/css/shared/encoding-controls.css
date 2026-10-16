@@ -28,6 +28,37 @@
 .hi-encode input:focus,.hi-encode textarea:focus,.hi-unlisted-fields input:focus,.hi-review-dialog input:focus,.hi-review-dialog textarea:focus {outline:0;border-color:var(--hi-form-accent);box-shadow:0 0 0 3px #3b82f620;}
 .hi-encode input[readonly] {background:var(--hi-form-hover);color:var(--hi-form-muted);}
 .hi-encode-wide {grid-column:1/-1;}
+.hi-directory-tabs {display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px;padding-bottom:14px;border-bottom:1px solid var(--hi-form-border);}
+.hi-directory-tabs button,.hi-followup-filters button {min-height:46px;padding:10px 16px;border:1px solid var(--hi-form-border);border-radius:10px;background:var(--hi-form-bg);color:var(--hi-form-text);font-size:14px;font-weight:600;cursor:pointer;}
+.hi-directory-tabs button[aria-selected=true],.hi-followup-filters button[aria-pressed=true] {background:#0f766e;border-color:#0f766e;color:white;}
+.hi-directory-tabs button:focus-visible,.hi-followup-filters button:focus-visible {outline:3px solid #14b8a6;outline-offset:3px;}
+.hi-followup-heading {display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:8px;color:var(--hi-form-text);}
+.hi-followup-heading h2 {font-size:22px;font-weight:700;margin:0 0 6px;}
+.hi-followup-heading p {font-size:14px;color:var(--hi-form-muted);line-height:1.6;}
+.hi-followup-search {display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:22px 0;}
+.hi-followup-search label {display:grid;gap:8px;font-size:14px;font-weight:600;color:var(--hi-form-text);flex:1;min-width:200px;}
+.hi-followup-search input,.hi-followup-search select {min-height:46px;width:100%;border:1px solid var(--hi-form-border);border-radius:9px;background:var(--hi-form-bg);color:var(--hi-form-text);padding:10px 12px;font:inherit;font-weight:400;}
+.hi-followup-search input:focus-visible,.hi-followup-search select:focus-visible {outline:3px solid #14b8a6;outline-offset:2px;}
+.hi-followup-filters {display:flex;gap:10px;flex-wrap:wrap;}
+.hi-followup-filters span {display:inline-block;margin-left:8px;font-size:12px;border-radius:5px;background:#64748b20;padding:2px 7px;}
+.hi-followup-filters [aria-pressed=true] span {background:#ffffff20;}
+.hi-followup-list {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
+.hi-followup-list>.hi-history-empty {grid-column:1/-1;}
+.hi-followup-card {min-width:0;padding:22px;border:1px solid var(--hi-form-border);border-radius:14px;background:var(--hi-form-bg);color:var(--hi-form-text);}
+.hi-followup-card-top {display:flex;flex-wrap:wrap;align-items:start;justify-content:space-between;gap:12px;}
+.hi-followup-card h3 {font-size:18px;font-weight:700;overflow-wrap:anywhere;}
+.hi-followup-card-top p {color:var(--hi-form-muted);font-size:13px;margin-top:4px;}
+.hi-followup-date {font-size:12px;font-weight:650;border-radius:6px;padding:6px 9px;background:#0d948814;color:#0f766e;}
+.hi-followup-date[data-due=past] {background:#b4530912;color:#92400e;}
+.dark .hi-followup-date {color:#5eead4;}.dark .hi-followup-date[data-due=past] {color:#fcd34d;}
+.hi-followup-case {font-size:15px;font-weight:600;margin:18px 0 8px;overflow-wrap:anywhere;}
+.hi-followup-case>span {font-weight:400;color:var(--hi-form-muted);font-size:13px;}
+.hi-followup-copy {margin:14px 0;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;}
+.hi-followup-details {font-size:14px;color:var(--hi-form-text);}.hi-followup-details summary {cursor:pointer;color:var(--hi-form-accent);}
+.hi-followup-card-actions {display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px;}
+.hi-followup-record {background:#0f766e;color:white;border-color:#0f766e;}
+[id$="-directory-panel"][hidden],[id$="-followup-panel"][hidden] {display:none!important;}
+@media(max-width:800px){.hi-followup-list{grid-template-columns:minmax(0,1fr)}.hi-followup-heading{align-items:start;flex-direction:column}.hi-followup-card{padding:18px}.hi-followup-search label{min-width:100%;}.hi-followup-search>.hi-vital-button{flex:1}.hi-followup-filters{gap:6px}.hi-followup-filters button{padding:10px 12px}}
 .hi-followup-plan {min-width:0;padding:18px;border:1px solid var(--hi-form-border);border-left:3px solid #0d9488;border-radius:12px;background:var(--hi-form-hover);text-align:left;}
 .hi-followup-plan h4 {margin:0 0 6px;font-size:16px;font-weight:700;color:var(--hi-form-text);}
 .hi-followup-plan input[type=date] {max-width:260px;}

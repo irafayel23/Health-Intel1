@@ -11,7 +11,7 @@
           return '';
       }
       let bhwReturnVisitOpening=false;
-      async function recordBhwReturnVisit(residentId,caseId) {
+      async function recordBhwReturnVisit(residentId,caseId,nature=null) {
           if(bhwReturnVisitOpening)return;
           if(![residentId,caseId].every(id=>Number.isSafeInteger(id)&&id>0))return;
           bhwReturnVisitOpening=true;
@@ -23,7 +23,7 @@
               const record=result.history.find(row=>Number(row.id)===caseId);
               if(!record||Number(result.resident.id)!==residentId)throw Error('The original case is no longer linked to this resident. Reopen the profile.');
               const reason=bhwReturnVisitReason(result.resident,record);if(reason)throw Error(reason);
-              await openAddPatientModal({person:result.resident,caseId});
+              await openAddPatientModal({person:result.resident,caseId,nature,fromTracking:nature==='Follow-up visit'});
           }catch(error){await Swal.fire({icon:'error',title:'Return visit unavailable',text:error.message,customClass:{popup:'hi-dialog'}});}
           finally{bhwReturnVisitOpening=false;}
       }

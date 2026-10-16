@@ -4,7 +4,7 @@
   "description": "Backend API for Health-Intel Municipal Health Intelligence System",
   "main": "server.js",
   "scripts": {
-    "test": "node --test tests/first-fixes.test.js tests/phase-two.test.js tests/qa-fixes.test.js tests/workflow-fixes.test.js tests/ui-workflow.test.js tests/disease-review.test.js tests/portal-structure.test.js tests/report-layout.test.js tests/portal-navigation.test.js tests/deployment.test.js tests/theme-accessibility.test.js tests/forecast-capacity.test.js tests/patient-loading.test.js tests/login-throttle.test.js tests/case-visits.test.js tests/daily-reports.test.js tests/resident-vital.test.js tests/account-status.test.js tests/directory-sessions.test.js tests/consultation-matching.test.js",
+    "test": "node --test tests/first-fixes.test.js tests/phase-two.test.js tests/qa-fixes.test.js tests/workflow-fixes.test.js tests/ui-workflow.test.js tests/disease-review.test.js tests/portal-structure.test.js tests/report-layout.test.js tests/portal-navigation.test.js tests/deployment.test.js tests/theme-accessibility.test.js tests/forecast-capacity.test.js tests/patient-loading.test.js tests/login-throttle.test.js tests/case-visits.test.js tests/daily-reports.test.js tests/resident-vital.test.js tests/account-status.test.js tests/directory-sessions.test.js tests/consultation-matching.test.js tests/followup-tracking.test.js",
     "start": "node server.js",
     "deploy:check": "node scripts/check-deployment.js",
     "test:first-fixes": "node --test tests/first-fixes.test.js",
