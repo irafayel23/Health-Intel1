@@ -6,7 +6,7 @@ const vm = require('node:vm');
 const script = fs.readFileSync(path.resolve(__dirname,'../../assets/js/shared/portal-navigation.js'),'utf8');
 
 function fixture(mobile = true) {
-    const documentEvents = {}, breakpointEvents = {};
+    const documentEvents = {}, breakpointEvents = {}, windowEvents = {};
     let doc;
     function element(id = '') {
         const classes = new Set(), attributes = {}, events = {};
@@ -30,12 +30,12 @@ function fixture(mobile = true) {
             selector==='[data-portal-menu]'?toggle:selector==='.swal2-container'&&dialog?element():null,
         querySelectorAll:selector=>selector==='table'?[table]:[],createElement:()=>element(),
         addEventListener:(type,callback)=>documentEvents[type]=callback};
-    const window = {matchMedia:()=>breakpoint,toggleSidebar:()=>desktopCalls++};
+    const window = {matchMedia:()=>breakpoint,toggleSidebar:()=>desktopCalls++,addEventListener:(type,callback)=>windowEvents[type]=callback};
     vm.runInNewContext(script,{window,document:doc});
     const key = (key,shiftKey=false)=>{let prevented=false;documentEvents.keydown({key,shiftKey,preventDefault(){prevented=true;}});return prevented;};
     const resize = matches=>{breakpoint.matches=matches;breakpointEvents.change();};
     return {sidebar,toggle,main,body,nav,doc,window,key,resize,tableRegion,
-        desktopCalls:()=>desktopCalls,setDialog:value=>dialog=value,
+        desktopCalls:()=>desktopCalls,setDialog:value=>dialog=value,fullscreen(value){body.classList.toggle('heatmap-is-expanded',value);windowEvents['health-intel:map-fullscreen-change']();},
         close:()=>sidebar.children[0],backdrop:()=>body.children[0]};
 }
 
@@ -69,4 +69,12 @@ test('Resizing releases inert content and desktop toggle continues to call origi
     f.window.toggleSidebar();assert.equal(f.desktopCalls(),1);
     f.resize(true);assert.equal(f.sidebar.inert,true);assert.equal(f.main.inert,false);
     f.window.toggleSidebar();assert.equal(f.desktopCalls(),1);assert.equal(f.main.inert,true);
+});
+
+test('Fullscreen map keeps navigation inert across breakpoints and releases the correct content on exit',()=>{
+    const f=fixture();f.fullscreen(true);f.resize(false);
+    assert.equal(f.main.inert,true);assert.equal(f.sidebar.inert,true);
+    f.fullscreen(false);assert.equal(f.main.inert,false);assert.equal(f.sidebar.inert,false);
+    f.fullscreen(true);f.resize(true);assert.equal(f.main.inert,true);assert.equal(f.sidebar.inert,true);
+    f.fullscreen(false);assert.equal(f.main.inert,false);assert.equal(f.sidebar.inert,true);
 });

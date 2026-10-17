@@ -19,6 +19,8 @@
         if (status) status.textContent = 'Loading map…';
         pending = (async () => {
             if (!window.L) await script('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
+            if (!window.HealthIntelMapFullscreen) await script('assets/js/shared/map-fullscreen.js');
+            if (!window.HealthIntelMapDetails) await script('assets/js/shared/map-details.js');
             await script('assets/js/shared/health-map.js');
             ready = true;
         })().catch(() => {

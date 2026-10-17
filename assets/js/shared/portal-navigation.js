@@ -26,8 +26,9 @@
 
         function synchronize() {
             const mobile = compact.matches;
-            sidebar.inert = mobile && !open;
-            main.inert = mobile && open;
+            const mapExpanded = document.body.classList.contains('heatmap-is-expanded');
+            sidebar.inert = mapExpanded || (mobile && !open);
+            main.inert = mapExpanded || (mobile && open);
             document.body.classList.toggle('hi-menu-open', mobile && open);
             backdrop.hidden = !mobile || !open;
             toggle.setAttribute('aria-expanded', String(mobile ? open : sidebar.classList.contains('w-64')));
@@ -79,6 +80,7 @@
             synchronize();
             if (wasOpen) toggle.focus();
         });
+        window.addEventListener('health-intel:map-fullscreen-change', synchronize);
         synchronize();
         // Tables keep every column; scrolling is local, never across the page.
         document.querySelectorAll('table').forEach(table => {

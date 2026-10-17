@@ -26,18 +26,19 @@ if (mapContainer) {
     const detailsPanel = document.createElement('div');
     detailsPanel.className = 'heatmap-info-panel';
     detailsPanel.hidden = true;
-    detailsPanel.setAttribute('role', 'tooltip');
-    detailsPanel.innerHTML = '<button type="button" class="heatmap-info-close" aria-label="Close barangay details">&times;</button><div class="heatmap-info-content"></div>';
+    detailsPanel.setAttribute('role', 'dialog');
+    detailsPanel.setAttribute('aria-labelledby', mapContainer.id + '-details-title');
+    detailsPanel.innerHTML = '<div class="heatmap-info-content"></div>';
     mapContainer.appendChild(detailsPanel);
     L.DomEvent.disableClickPropagation(detailsPanel);
     L.DomEvent.disableScrollPropagation(detailsPanel);
     let detailsCircle = null;
     let pinnedDetails = false;
     let hideDetailsTimer;
+    let restoringMarkerFocus = false;
 
     function positionDetails() {
         if (detailsPanel.hidden || !detailsCircle || !mapContainer.clientHeight) return;
-        const point = map.latLngToContainerPoint(detailsCircle.getLatLng());
         const margin = 12;
         const mapRect = mapContainer.getBoundingClientRect();
         let visibleLeft = Math.max(mapRect.left, 0);
@@ -57,20 +58,21 @@ if (mapContainer) {
             }
         }
         const leftEdge = visibleLeft - mapRect.left + margin;
-        const topEdge = visibleTop - mapRect.top + margin;
+        const topEdge = Math.max(visibleTop - mapRect.top + margin, 64);
         const rightEdge = visibleRight - mapRect.left - margin;
         const bottomEdge = visibleBottom - mapRect.top - margin;
         detailsPanel.style.visibility = rightEdge <= leftEdge || bottomEdge <= topEdge ? 'hidden' : 'visible';
-        detailsPanel.style.maxWidth = `${Math.max(0, rightEdge - leftEdge)}px`;
-        detailsPanel.style.maxHeight = `${Math.max(0, bottomEdge - topEdge)}px`;
+        const availableWidth = Math.max(0, rightEdge - leftEdge);
+        const availableHeight = Math.max(0, bottomEdge - topEdge);
+        const narrow = availableWidth < 620;
+        detailsPanel.classList.toggle('heatmap-info-sheet', narrow);
+        detailsPanel.style.width = `${narrow ? availableWidth : 420}px`;
+        detailsPanel.style.maxWidth = `${availableWidth}px`;
+        detailsPanel.style.maxHeight = `${narrow && availableHeight > 300 ? availableHeight * .72 : availableHeight}px`;
         const width = detailsPanel.offsetWidth;
         const height = detailsPanel.offsetHeight;
-        const gap = detailsCircle.getRadius() + 12;
-        let left = point.x + gap;
-        if (left + width > rightEdge) left = point.x - gap - width;
-        let top = point.y - height / 2;
-        left = Math.max(leftEdge, Math.min(left, rightEdge - width));
-        top = Math.max(topEdge, Math.min(top, bottomEdge - height));
+        const left = narrow ? leftEdge : Math.max(leftEdge, rightEdge - width);
+        const top = narrow ? Math.max(topEdge, bottomEdge - height) : topEdge;
         detailsPanel.style.left = `${left}px`;
         detailsPanel.style.top = `${top}px`;
     }
@@ -82,29 +84,39 @@ if (mapContainer) {
         pinnedDetails = false;
     }
 
-    function showDetails(circle, details, pin = false) {
+    function showDetails(circle, details, pin = false, focus = false) {
         if (pinnedDetails && !pin) return;
         clearTimeout(hideDetailsTimer);
         detailsCircle = circle;
         pinnedDetails = pin;
         detailsPanel.querySelector('.heatmap-info-content').innerHTML = details;
-        detailsPanel.setAttribute('role', pin ? 'dialog' : 'tooltip');
-        detailsPanel.setAttribute('aria-label', 'Barangay severity details');
         detailsPanel.hidden = false;
-        detailsPanel.scrollTop = 0;
+        detailsPanel.querySelector('.heatmap-info-body').scrollTop = 0;
         positionDetails();
+        if (focus) detailsPanel.querySelector('.heatmap-info-close').focus({preventScroll:true});
+    }
+
+    function closeDetails() {
+        const marker = detailsCircle?.getElement();
+        const restore = detailsPanel.contains(document.activeElement);
+        hideDetails();
+        if (restore && marker) {restoringMarkerFocus=true;marker.focus({preventScroll:true});restoringMarkerFocus=false;}
     }
 
     function scheduleHideDetails() {
-        if (!pinnedDetails) hideDetailsTimer = setTimeout(hideDetails, 180);
+        if (!pinnedDetails && !detailsPanel.contains(document.activeElement)) hideDetailsTimer = setTimeout(hideDetails, 180);
     }
     detailsPanel.addEventListener('mouseenter', () => clearTimeout(hideDetailsTimer));
     detailsPanel.addEventListener('mouseleave', scheduleHideDetails);
-    detailsPanel.querySelector('button').addEventListener('click', hideDetails);
-    mapContainer.addEventListener('keydown', event => { if (event.key === 'Escape') hideDetails(); });
+    detailsPanel.addEventListener('focusin', () => clearTimeout(hideDetailsTimer));
+    detailsPanel.addEventListener('focusout', event => {if (!detailsPanel.contains(event.relatedTarget)) scheduleHideDetails();});
+    detailsPanel.addEventListener('click', event => {if (event.target.closest('.heatmap-info-close')) closeDetails();});
+    detailsPanel.addEventListener('keydown', event => {event.stopPropagation();if (event.key === 'Escape') closeDetails();});
+    mapContainer.addEventListener('keydown', event => { if (event.key === 'Escape') closeDetails(); });
     map.on('click', hideDetails);
     map.on('move zoom resize', positionDetails);
     document.addEventListener('scroll', positionDetails, true);
+    window.addEventListener('resize', positionDetails);
 
     function layoutLabels() {
         if (mapContainer.offsetHeight === 0) return;
@@ -148,32 +160,7 @@ if (mapContainer) {
         return element.innerHTML;
     }
 
-    function detailsFor(brgy, refreshedAt) {
-        const counts = brgy.severity_counts;
-        const diseaseGroups = brgy.diseases_by_severity || { high_risk: brgy.high_risk_diseases || [] };
-        const breakdown = [['high_risk', 'High Risk'], ['monitored', 'Monitored'], ['mild', 'Mild']]
-            .filter(([key]) => counts[key] > 0)
-            .map(([key, label]) => `<div class="heatmap-details-categories">
-                <strong>${label} cases by recorded disease / case</strong>
-                <ul>${(diseaseGroups[key] || []).map(item => `<li><span>${escapeMapText(item.disease)}</span><b>${Number(item.cases)}</b></li>`).join('') || '<li>Disease breakdown unavailable. Refresh after restarting the backend.</li>'}</ul>
-            </div>`).join('');
-        return `<div class="heatmap-details">
-            <h3>${escapeMapText(brgy.name)}</h3>
-            <div class="heatmap-details-total">${brgy.cases} active ${brgy.cases === 1 ? 'case' : 'cases'}</div>
-            <dl>
-                <dt><i class="heatmap-details-dot" style="background:#16a34a"></i>Mild</dt><dd>${counts.mild}</dd>
-                <dt><i class="heatmap-details-dot" style="background:#ea580c"></i>Monitored</dt><dd>${counts.monitored}</dd>
-                <dt><i class="heatmap-details-dot" style="background:#dc2626"></i>High Risk</dt><dd>${counts.high_risk}</dd>
-                ${counts.unknown > 0 ? `<dt>Unknown severity</dt><dd>${counts.unknown}</dd>` : ''}
-            </dl>
-            ${breakdown}
-              ${brgy.pending_classification>0?`<p class="heatmap-details-reason">${Number(brgy.pending_classification)} active case(s) need classification review. They remain included in the totals above.</p>`:""}
-            ${brgy.cases > 0 ? '<div class="heatmap-details-categories"><small>Mild, Monitored and High Risk are recorded case severities, not ratings of the disease.</small></div>' : ''}
-            <div class="heatmap-details-reason"><strong>Color reason:</strong> ${escapeMapText(brgy.color_reason)}</div>
-            ${counts.unknown > 0 ? '<div>Severity information is incomplete.</div>' : ''}
-            <small class="heatmap-details-time">Data refreshed: ${escapeMapText(refreshedAt)}<br>Barangay summary; circles do not show outbreak boundaries.</small>
-        </div>`;
-    }
+    const detailsFor = (barangay, refreshedAt) => HealthIntelMapDetails.render(barangay, refreshedAt, mapContainer.id + '-details-title');
 
     const refreshButton=document.createElement('button');
     refreshButton.type='button';
@@ -200,7 +187,8 @@ if (mapContainer) {
           const barangays = result.data;
           const refreshedAt = new Date(result.fetched_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
           const pinnedLocation=pinnedDetails && detailsCircle?detailsCircle.getLatLng():null;
-          const oldScroll=detailsPanel.scrollTop;
+          const oldScroll=detailsPanel.querySelector('.heatmap-info-body')?.scrollTop || 0;
+          const hadDetailsFocus=detailsPanel.contains(document.activeElement);
           hideDetails();
           mapCircles.forEach(circle=>circle.remove());
           mapLabels.forEach(label=>label.remove());
@@ -239,18 +227,18 @@ if (mapContainer) {
               circleElement.setAttribute('tabindex', '0');
               circleElement.setAttribute('role', 'button');
               circleElement.setAttribute('aria-label', `${brgy.name}: ${brgy.cases} active ${brgy.cases === 1 ? 'case' : 'cases'}. ${brgy.risk}. Open severity details.`);
-              circleElement.addEventListener('focus', () => showDetails(circle, details));
+              circleElement.addEventListener('focus', () => {if (!restoringMarkerFocus) showDetails(circle, details);});
               circleElement.addEventListener('blur', scheduleHideDetails);
               circleElement.addEventListener('keydown', event => {
                   if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault();
-                      showDetails(circle, details, true);
+                      showDetails(circle, details, true, true);
                   }
               });
 
               mapCircles.push(circle);
               if(pinnedLocation && pinnedLocation.lat===Number(brgy.lat) && pinnedLocation.lng===Number(brgy.lng)) {
-                  showDetails(circle,details,true);detailsPanel.scrollTop=oldScroll;
+                  showDetails(circle,details,true,hadDetailsFocus);detailsPanel.querySelector('.heatmap-info-body').scrollTop=oldScroll;
               }
           });
           if (status) status.textContent = `All recorded active cases · Data refreshed: ${refreshedAt} (Philippine time). Colors summarize recorded severity, not outbreak status.`;
@@ -269,6 +257,11 @@ if (mapContainer) {
     document.addEventListener('visibilitychange',()=>{if(visible())refreshMap();});
     const refreshTimer=setInterval(()=>{if(visible())refreshMap();},30000);
     window.addEventListener('pagehide',()=>clearInterval(refreshTimer),{once:true});
+    const fullscreen=HealthIntelMapFullscreen.bind(mapContainer,()=>{
+        map.invalidateSize({animate:false});positionDetails();layoutLabels();
+    });
+    L.DomEvent.disableClickPropagation(fullscreen.controls);
+    L.DomEvent.disableScrollPropagation(fullscreen.controls);
     refreshMap();
 
     // Wait for the hidden map tab to have a real layout before fitting its circles.
