@@ -18,6 +18,7 @@
           <div class="hi-encode-wide"><label for="swal-remarks">Symptoms / remarks</label><textarea id="swal-remarks" maxlength="4000" rows="3" placeholder="Notes from this consultation"></textarea><p class="hi-field-help">${returnVisit?'Severity describes this visit; the original case severity stays unchanged.':'Severity describes this case. It does not declare an outbreak.'}</p></div>${HealthIntelVisits.followupMarkup('swal')}</div></section></div>`,
           confirmButtonText:'Save record',confirmButtonColor:'#2563eb',showCancelButton:true,showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
           didOpen:()=>{
+            controls.push(HealthIntelVisits.bindBloodPressure('swal'));
             const field=id=>document.getElementById(id),date=field('swal-case-date'),bd=field('swal-birthdate');
             date.max=window.HealthIntelDate.todayInManila();date.value=date.max;
             field('swal-assigned-barangay').textContent=window.currentBrgyName || 'Your assigned barangay';
@@ -56,13 +57,7 @@
       }
 
       async function generateBHWTodayReport() {
-        Swal.fire({title:'Preparing today’s report...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
-        try {
-          await HealthIntel.download('http://localhost:3000/api/bhw/reports/today',{},'BHW_Today_Report.pdf');
-          Swal.fire({icon:'success',title:'Download started',text:'Today’s case and consultation summary is ready.'});
-        } catch(error) {
-          Swal.fire({icon:'error',title:'Report unavailable',text:error.message});
-        }
+        return HealthIntelDailyReports.download('bhw');
       }
 
       async function generateBHWReport(type) {
@@ -100,7 +95,8 @@
           if(type==='SURVEILLANCE' && chosenPurok!=='All Puroks') doc.text(`Purok / Zone: ${chosenPurok}`,14,37);
           const data = records.map(p => [
             p.patient_name || 'N/A',
-            p.age ?? 'N/A',
+            p.age_at_case === undefined ? (p.age ?? 'Not recorded') : (p.age_at_case ?? 'Not recorded'),
+            p.age_group || 'Not recorded',
             p.purok || 'N/A',
             HealthIntelEncoding.conditionLabel(p),
             p.status || 'Active',
@@ -109,8 +105,8 @@
 
           doc.autoTable({
             startY: 40,
-            head: [['Patient Name', 'Age', 'Purok', 'Diagnosis', 'Status', 'Date']],
-            body: data.length ? data : [[{ content: `No recorded cases match ${month} ${year}${type === 'SURVEILLANCE' && chosenPurok !== 'All Puroks' ? ` in ${chosenPurok}` : ''}.`, colSpan: 6 }]],
+            head: [['Patient Name', 'Age at case', 'Age group (years)', 'Purok', 'Diagnosis', 'Status', 'Date']],
+            body: data.length ? data : [[{ content: `No recorded cases match ${month} ${year}${type === 'SURVEILLANCE' && chosenPurok !== 'All Puroks' ? ` in ${chosenPurok}` : ''}.`, colSpan: 7 }]],
             theme: 'striped',
             headStyles: { fillColor: type === 'MONTHLY' ? [2, 132, 199] : [234, 88, 12] }
           });

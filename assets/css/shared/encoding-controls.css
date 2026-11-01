@@ -99,6 +99,18 @@
 .hi-encode section {padding:22px;border:1px solid var(--hi-form-border);border-radius:16px;background:var(--hi-form-bg);margin-bottom:8px;}
 .hi-encode h3 {font-size:18px;margin:0 0 8px;letter-spacing:-.2px;}
 .hi-encode-grid {gap:18px;}
+.hi-pressure-temperature-row { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;min-width:0; }
+.hi-pressure-temperature-row > .hi-bp-field { display:block;grid-column:span 2;min-width:0; }
+.hi-pressure-temperature-row > .hi-bp-field > label { display:block;line-height:22px;margin:0 0 8px; }
+.hi-pressure-temperature-row .hi-bp-inputs { gap:18px; }
+.hi-pressure-temperature-row > .hi-temperature-field { display:block;padding-top:30px;min-width:0; }
+.hi-pressure-temperature-row > .hi-temperature-field > label { display:block;font-size:14px;font-weight:500;line-height:20px;margin:0 0 8px; }
+.hi-pressure-temperature-row input:not([type=hidden]) { height:50px;min-height:50px;box-sizing:border-box; }
+@media (max-width:700px) {
+    .hi-pressure-temperature-row { grid-template-columns:minmax(0,1fr); }
+    .hi-pressure-temperature-row > .hi-bp-field { grid-column:auto; }
+    .hi-pressure-temperature-row > .hi-temperature-field { padding-top:0; }
+}
 .hi-step-status {font-size:12px;color:var(--hi-form-muted);margin:0 0 12px;font-weight:600;}
 #hi-visit-progress {position:sticky;top:0;z-index:2;background:var(--hi-form-bg);padding:10px 0 1px;}
 .hi-visit-steps {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;margin:0 0 20px;padding:0;}

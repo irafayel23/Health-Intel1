@@ -35,6 +35,8 @@
         controls.addEventListener('dblclick',event=>event.stopPropagation());
         document.addEventListener('keydown',event=>{
             if(!expanded)return;
+            // The native breakdown dialog handles its own focus trap and Escape.
+            if(event.target?.closest?.('.heatmap-case-dialog[open]'))return;
             if(event.key==='Escape'){event.preventDefault();event.stopPropagation();exit();return;}
             if(event.key!=='Tab')return;
             const focusable=[...container.querySelectorAll('a[href],button,input,select,textarea,[tabindex]')].filter(element=>!element.disabled&&element.tabIndex>=0&&element.getClientRects().length);

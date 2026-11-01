@@ -21,6 +21,8 @@
             if (!window.L) await script('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
             if (!window.HealthIntelMapFullscreen) await script('assets/js/shared/map-fullscreen.js');
             if (!window.HealthIntelMapDetails) await script('assets/js/shared/map-details.js');
+            if (!window.HealthIntelMapBreakdown) await script('assets/js/shared/map-case-breakdown.js');
+            if (!window.HealthIntelHeatView) await script('assets/js/shared/map-heat-view.js');
             await script('assets/js/shared/health-map.js');
             ready = true;
         })().catch(() => {

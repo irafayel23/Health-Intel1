@@ -12,6 +12,7 @@ const publicEndpoints = new Set([
 const rules = [
     ['GET', /^\/bhw\/followups$/, ['bhw']],
     ['GET', /^\/mho\/followups$/, ['mho']],
+    ['GET', /^\/mho\/sarima-demo(?:\/options)?$/, ['mho']],
     ['GET', /^\/session$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['POST', /^\/logout$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['GET', /^\/mho\/patients(?:\/(?:resident|legacy)\/\d+)?$/, ['mho']],
@@ -25,7 +26,7 @@ const rules = [
     ['GET', /^\/bhw\/context$/, ['bhw']],
     ['GET', /^\/bhw\/(encoding-options|puroks)$/, ['bhw']],
     ['GET', /^\/bhw\/report-data$/, ['bhw']],
-    ['GET', /^\/bhw\/reports\/today$/, ['bhw']],
+    ['GET', /^\/bhw\/reports\/(today|daily)$/, ['bhw']],
     ['GET', /^\/mho\/disease-reviews$/, ['mho']],
     ['PUT', /^\/mho\/disease-reviews\/\d+$/, ['mho']],
     ['PUT', /^\/patients\/\d+\/condition-clarification$/, ['bhw']],
@@ -50,7 +51,7 @@ const rules = [
     ['POST', /^\/diseases$/, ['admin']],
     ['PUT', /^\/diseases\/\d+\/(archive|restore)$/, ['admin']],
     ['GET', /^\/(mho-stats|analytics\/demographics|get-predictions|predict)$/, ['mho']],
-    ['GET', /^\/mho\/(stats|kpi|yoy|mortality|reports\/(fhsis|pidsr|today))$/, ['mho']]
+    ['GET', /^\/mho\/(stats|kpi|yoy|trend|year-comparison|analytics-options|mortality|breakdown|reports\/(fhsis|pidsr|today|daily))$/, ['mho']]
 ];
 
 function loadJwtSecret() {

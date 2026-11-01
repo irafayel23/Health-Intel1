@@ -1,0 +1,629 @@
+[
+  {
+    "disease": "Infection all types",
+    "barangay": "Cansilayan",
+    "reason": "No current candidate passed registered eligibility, numerical and residual checks",
+    "candidates": [
+      {
+        "template": 0,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          1,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 1,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          0,
+          1,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 2,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          1,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 3,
+        "stage": "roots",
+        "reason": "ValueError: unstable_or_boundary_roots",
+        "order": [
+          0,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          0,
+          1,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 4,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          0,
+          1,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 5,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          1,
+          1,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 6,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          1,
+          1,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 7,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          0,
+          1,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 8,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          1,
+          1,
+          12
+        ]
+      }
+    ],
+    "rejections": {
+      "residuals: ValueError: residual_autocorrelation_screen_failed": 8,
+      "roots: ValueError: unstable_or_boundary_roots": 1
+    },
+    "source_journal_sha256": "1ef28b854fca9fa698ca7c56b5e58cfb85fdf687875fa175104b7103ab205a02",
+    "policy_not_relaxed": true
+  },
+  {
+    "disease": "ARI",
+    "barangay": "Blumentritt",
+    "reason": "No current candidate passed registered eligibility, numerical and residual checks",
+    "candidates": [
+      {
+        "template": 0,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 1,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 2,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 3,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 4,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 5,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 6,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 7,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 8,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          1,
+          12
+        ]
+      }
+    ],
+    "rejections": {
+      "residuals: ValueError: residual_autocorrelation_screen_failed": 9
+    },
+    "source_journal_sha256": "f50814405706c75e3ea02fd8fa9c627343e348fa714447a3e447a1774a3269fe",
+    "policy_not_relaxed": true
+  },
+  {
+    "disease": "Influenza",
+    "barangay": "Minoyan",
+    "reason": "No current candidate passed registered eligibility, numerical and residual checks",
+    "candidates": [
+      {
+        "template": 0,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 1,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 2,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 3,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 4,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 5,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 6,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 7,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 8,
+        "stage": "roots",
+        "reason": "ValueError: unstable_or_boundary_roots",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          1,
+          12
+        ]
+      }
+    ],
+    "rejections": {
+      "residuals: ValueError: residual_autocorrelation_screen_failed": 8,
+      "roots: ValueError: unstable_or_boundary_roots": 1
+    },
+    "source_journal_sha256": "d64740a5278d9306fda72f3cd37995b2645bf1bb6fd2d14c8411b46de5e428ba",
+    "policy_not_relaxed": true
+  },
+  {
+    "disease": "Acute Gastroenteritis",
+    "barangay": "Caliban",
+    "reason": "No current candidate passed registered eligibility, numerical and residual checks",
+    "candidates": [
+      {
+        "template": 0,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 1,
+        "stage": "roots",
+        "reason": "ValueError: unstable_or_boundary_roots",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 2,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 3,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 4,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 5,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          0,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 6,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          0,
+          12
+        ]
+      },
+      {
+        "template": 7,
+        "stage": "residuals",
+        "reason": "ValueError: residual_autocorrelation_screen_failed",
+        "order": [
+          1,
+          0,
+          1
+        ],
+        "seasonal_order": [
+          0,
+          0,
+          1,
+          12
+        ]
+      },
+      {
+        "template": 8,
+        "stage": "roots",
+        "reason": "ValueError: unstable_or_boundary_roots",
+        "order": [
+          0,
+          0,
+          0
+        ],
+        "seasonal_order": [
+          1,
+          0,
+          1,
+          12
+        ]
+      }
+    ],
+    "rejections": {
+      "residuals: ValueError: residual_autocorrelation_screen_failed": 7,
+      "roots: ValueError: unstable_or_boundary_roots": 2
+    },
+    "source_journal_sha256": "4e83038f91181baff4c70f9cefc7e51934447099a9e6c122645c3a6b03700844",
+    "policy_not_relaxed": true
+  }
+]

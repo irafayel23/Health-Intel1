@@ -382,7 +382,7 @@ body > main {
 .walkin-heading-badge svg { width:16px; height:16px; }
 .dark .walkin-heading-badge { color:#a7f3d0; background:#064e3b55; border-color:#065f46; }
 .walkin-form { overflow:hidden; }
-.walkin-tabs {display:flex;position:sticky;top:0;z-index:5;gap:6px;padding:8px;margin:0 0 20px;border:1px solid hsl(var(--border));border-radius:14px;background:hsl(var(--card));box-shadow:0 2px 8px #0f172a05;}
+.walkin-tabs {display:flex;gap:6px;padding:8px;margin:0 0 20px;border:1px solid hsl(var(--border));border-radius:14px;background:hsl(var(--card));box-shadow:0 2px 8px #0f172a05;}
 .walkin-tabs>button {flex:0 1 auto;min-width:0;min-height:48px;padding:12px 20px;border:1px solid transparent;border-radius:9px;background:transparent;color:hsl(var(--muted-foreground));font-size:15px;font-weight:600;line-height:1.5;cursor:pointer;}
 .walkin-tabs>button:hover {background:hsl(var(--muted));color:hsl(var(--foreground));}
 .walkin-tabs>button[aria-selected=true] {background:#047857;color:#fff;box-shadow:0 2px 6px #04785720;}
@@ -477,3 +477,25 @@ body > main > header { flex-shrink:0; }
 @media (max-width:700px) { .walkin-grid,.walkin-name-grid,.walkin-referral-grid { grid-template-columns:1fr; } .walkin-page-heading { align-items:flex-start; } .walkin-heading-badge { display:none; } .walkin-disease-tools,.walkin-form-footer { align-items:stretch; flex-direction:column; } .walkin-section { padding:20px; } .walkin-form-intro,.walkin-form-footer,.walkin-recent-heading { padding:18px 20px; } .walkin-form-footer button { width:100%; } }
 @media (max-width:500px) { #dynamic-portal-title { display:none; } #dropdown-user-name { font-size:12px; } }
 #murciaMap .leaflet-interactive:focus { outline:3px solid #2563eb; outline-offset:3px; }
+
+/* Compact, permanently visible MHO desktop navigation. */
+.mho-sidebar-brand { flex-shrink:0; }
+.walkin-progress { padding:20px 28px; }
+.walkin-progress p { margin:0 0 18px; font-size:13px; color:hsl(var(--muted-foreground)); }
+.walkin-progress ol { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;list-style:none;padding:0;margin:0; }
+.walkin-progress li { display:flex;align-items:center;gap:8px;padding:0 0 14px;border-bottom:3px solid hsl(var(--border));font-size:13px;color:hsl(var(--muted-foreground)); }
+.walkin-progress li span { display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:hsl(var(--muted));flex-shrink:0; }
+.walkin-progress li[data-stage=current] { border-color:#047857;color:#047857;font-weight:700; }
+.walkin-progress li[data-stage=current] span { background:#047857;color:#fff; }
+.walkin-progress li[data-stage=complete] { border-color:#34d399; }
+.dark .walkin-progress li[data-stage=current] { color:#6ee7b7; }
+.walkin-step-actions { display:flex;gap:10px;margin-left:auto; }
+.walkin-step-actions #walkin-back { background:transparent;color:hsl(var(--foreground));border:1px solid hsl(var(--border)); }
+@media(max-width:600px){.walkin-progress{padding:18px 20px}.walkin-progress li{flex-direction:column;align-items:flex-start;font-size:11px}.walkin-step-actions{width:100%;margin:0}.walkin-step-actions button{flex:1}}
+.mho-sidebar-brand .hi-sidebar-logo { margin-right:0; }
+@media (min-width:901px) {
+  .hi-portal #sidebar.mho-sidebar { width:220px; }
+  .mho-sidebar .nav-menu { padding-left:12px; padding-right:12px; }
+  .mho-sidebar .nav-item { gap:10px; padding-left:12px; padding-right:12px; }
+  .mho-sidebar > div:last-child { padding-left:12px; padding-right:12px; }
+}

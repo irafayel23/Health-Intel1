@@ -26,7 +26,8 @@ async function request(route,role='mho',body,method){const response=await fetch(
 const patient=(last='One')=>require('./helpers/consultation-fixture').withConsultation({first_name:'Disposable',last_name:last,birthdate:'2000-01-01',date_recorded:'2025-09-01',purok:'Fixture Zone',severity:'Mild',condition_not_listed:true,reported_condition:'Unlisted fixture condition',condition_source:'Synthetic clinic referral'});
 async function save(data=patient(),role='bhw'){const response=await request(role==='mho'?'/mho/walk-in-cases':'/patients',role,{...data,...(role==='mho'?{barangay_id:own}:{})},'POST');assert.equal(response.status,201,JSON.stringify(response.result));return response.result.id;}
 async function queue(id){return (await request('/mho/disease-reviews')).result.data.find(row=>row.id===id);}
-async function review(id,body){const current=await queue(id);return request('/mho/disease-reviews/'+id,'mho',{version:current.version,note:'Checked the synthetic source information',...body});}
+
+
 test('unlisted encoding requires a source, saves a stable ID/resident/audit, and stays visible in totals and maps',async()=>{
     for(const change of [{condition_source:''},{reported_condition:''},{reported_condition:'<script>'}])assert.equal((await request('/patients','bhw',{...patient(),...change},'POST')).status,400);
     const id=await save();const [[row]]=await db.query('SELECT * FROM health_cases WHERE id=?',[id]);assert.equal(row.disease,PENDING_DISEASE);assert.equal(row.disease_review_status,'Pending');assert.ok(row.resident_id);assert.equal(row.disease_id,null);
@@ -90,3 +91,27 @@ test('disease choices rank recorded cases in the authorized scope, keep the full
     for(let day=1;day<=5;day++)await db.execute("INSERT INTO case_visits(case_id,consultation_date,transaction_mode,nature_of_visit,blood_pressure,temperature_c,height_cm,weight_kg,severity,encoded_by) VALUES(?,?,'Walk-in','Follow-up visit','120/80',36.5,165,60,'Mild','REVIEW-BHW')",[candidate.id,'2025-02-0'+day]);
     assert.equal((await request('/bhw/encoding-options','bhw')).result.data.find(d=>d.name===names[0]).recorded_count,30,'Consultations must not inflate disease-case rankings');
 });
+
+test('name-only catalog entries reach both consultation forms; archive retains cases and restore re-enables choices',async()=>{
+    const name='Catalog Name Only Fixture';
+    const created=await request('/diseases','admin',{name},'POST');
+    assert.equal(created.status,200,JSON.stringify(created.result));
+    const [[entry]]=await db.query('SELECT * FROM disease_registry WHERE name=?',[name]);
+    assert.equal(entry.category,'morbidity');assert.equal(entry.classification,'Standard');
+    const choices=async()=>[
+        (await request('/bhw/encoding-options','bhw')).result.data,
+        (await request('/mho/walk-in-options')).result.data.diseases
+    ];
+    for(const list of await choices())assert.ok(list.some(row=>row.id===entry.id||row.name===name));
+    const id=await save({...patient('Catalog'),condition_not_listed:false,disease:name});
+    assert.equal((await request('/diseases','admin',{name:' '+name.toLowerCase()+' '},'POST')).status,409);
+    assert.equal((await request('/diseases/'+entry.id+'/archive','admin',{},'PUT')).status,200);
+    for(const list of await choices())assert.ok(!list.some(row=>row.name===name));
+    const [[retained]]=await db.query('SELECT disease,severity,is_archived FROM health_cases WHERE id=?',[id]);
+    assert.equal(retained.disease,name);assert.equal(retained.severity,'Mild');assert.equal(Number(retained.is_archived),0);
+    assert.equal((await request('/diseases','admin',{name},'POST')).status,409);
+    assert.equal((await request('/diseases/'+entry.id+'/restore','admin',{},'PUT')).status,200);
+    for(const list of await choices())assert.ok(list.some(row=>row.name===name));
+    await request('/diseases/'+entry.id+'/archive','admin',{},'PUT');
+});
+async function review(id,body){const current=await queue(id);return request('/mho/disease-reviews/'+id,'mho',{version:current.version,note:'Checked the synthetic source information',...body});}

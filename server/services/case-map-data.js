@@ -29,7 +29,11 @@ function createCaseMapData(db) {
             return monthlyData;
         },
 
-        async heatmap(disease) {
+        async heatmap(disease, barangayId = null) {
+            if (barangayId !== null && (!Number.isSafeInteger(barangayId) || barangayId < 1))
+                throw new Error('A valid assigned barangay is required.');
+            const scoped = barangayId !== null;
+            const params = scoped ? [disease, disease, barangayId] : [disease, disease];
             const query = `
                         SELECT b.id as barangay_id, b.name as barangay_name, b.latitude, b.longitude,
                             COUNT(h.id) as cases,
@@ -39,9 +43,10 @@ function createCaseMapData(db) {
                             SUM(CASE WHEN h.disease_review_status IN ('Pending','Clarification') THEN 1 ELSE 0 END) as pending_classification
                         FROM barangays b
                         LEFT JOIN health_cases h ON h.barangay_id = b.id AND h.status = 'Active' AND h.is_archived = FALSE AND (? = '' OR h.disease = ?)
+                        ${scoped ? 'WHERE b.id = ?' : ''}
                         GROUP BY b.id, b.name, b.latitude, b.longitude
                     `;
-            const [rows] = await db.execute(query, [disease, disease]);
+            const [rows] = await db.execute(query, params);
             const [diseaseRows] = await db.execute(
                 `
                         SELECT h.barangay_id, h.severity,
@@ -51,10 +56,11 @@ function createCaseMapData(db) {
                         WHERE h.status = 'Active' AND h.is_archived = FALSE
                             AND h.severity IN ('Mild', 'Monitored', 'High Risk')
                             AND (? = '' OR h.disease = ?)
+                            ${scoped ? 'AND h.barangay_id = ?' : ''}
                         GROUP BY h.barangay_id, h.severity, COALESCE(NULLIF(TRIM(h.disease), ''), 'Not recorded')
                         ORDER BY h.barangay_id, h.severity, cases DESC, disease ASC
                     `,
-                [disease, disease]
+                params
             );
             const diseasesByBarangay = new Map();
             const severityKeys = { Mild: 'mild', Monitored: 'monitored', 'High Risk': 'high_risk' };

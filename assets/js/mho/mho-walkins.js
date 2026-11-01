@@ -3,6 +3,40 @@
     const todayInManila=()=>HealthIntelDate.todayInManila();
     let categories=[],matches=[],optionsReady=false,isSaving=false,matchTimer,matchRequest,matchVersion=0,recentVersion=0,returnCase=null,openVersion=0;
     const returning=()=>returnCase!==null||['New admission','Follow-up visit'].includes(value('walkin-nature'));
+    let step=0;
+    const stepLabels=['Patient','Consultation','Measurements','Disease & notes'];
+    function showStep(index,focus=false){
+        step=index;
+        const sections=[...field('mho-walkin-form').querySelectorAll(':scope > .walkin-section')];
+        sections.forEach((section,i)=>section.hidden=i!==step);
+        field('walkin-step-status').textContent=`Step ${step+1} of 4 · ${stepLabels[step]}`;
+        field('walkin-progress').querySelectorAll('li').forEach((item,i)=>{item.dataset.stage=i===step?'current':i<step?'complete':'pending';if(i===step)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');});
+        field('walkin-back').hidden=step===0;field('walkin-next').hidden=step===3;field('walkin-save').hidden=step!==3;
+        if(focus){
+            field('walkin-progress').scrollIntoView({block:'start'});
+            sections[step].querySelector('input:not([readonly]):not([type=hidden]):not(:disabled),.hi-select-trigger')?.focus({preventScroll:true});
+        }
+    }
+    function advanceStep(){
+        try{
+            clearFieldErrors();
+            if(step===0){
+                for(const [id,label] of [['walkin-last','family name'],['walkin-first','first name'],['walkin-purok','purok / zone']])if(!value(id))fail(id,`Enter the patient's ${label}.`);
+                if(!HealthIntelDate.parseBirthdate(value('walkin-birthdate')))fail('walkin-birthdate','Enter a real birthdate as MM/DD/YYYY.');
+                if(!value('walkin-barangay'))fail('walkin-barangay','Select the resident barangay.');
+            }
+            if(step===1){
+                updateAge();
+                if(!value('walkin-date')||value('walkin-date')<'1900-01-01'||value('walkin-date')>todayInManila()||value('walkin-age')==='')fail('walkin-date','Check the consultation date and birthdate; the age must be between 0 and 130.');
+                if(!['Walk-in','Visited','Referral'].includes(value('walkin-transaction')))fail('walkin-transaction','Select the mode of transaction.');
+                if(!['New consultation/case','New admission','Follow-up visit'].includes(value('walkin-nature')))fail('walkin-nature','Select the nature of visit.');
+                if(returning()&&!matches.some(row=>String(row.id)===value('walkin-existing-case')))fail('walkin-existing-case','Select the original disease case.');
+                if(value('walkin-transaction')==='Referral'&&!value('walkin-referral-reason'))fail('walkin-referral-reason','Enter the referral reason.');
+            }
+            if(step===2)HealthIntelVisits.validateMeasurements('walkin');
+            showStatus('');showStep(Math.min(3,step+1),true);
+        }catch(error){showStatus(error.message,'error');if(error.field)fieldError(error.field,error.message);}
+    }
     function showStatus(message,state='info') {
         const status=field('walkin-status');status.textContent=message;status.dataset.state=state;status.hidden=!message;
     }
@@ -18,6 +52,8 @@
     }
     function fieldError(id,message) {
         const input=field(id);if(!input)return;
+        const sections=[...field('mho-walkin-form').querySelectorAll(':scope > .walkin-section')];
+        const index=sections.indexOf(input.closest('.walkin-section'));if(index>=0&&index!==step)showStep(index);
         const parent=input.closest('.walkin-field'),note=document.createElement('p');note.id=id+'-error';note.className='walkin-field-error';note.textContent=message;parent.append(note);
         for(const control of [input,parent.querySelector('.hi-select-trigger')].filter(Boolean)){
             control.setAttribute('aria-invalid','true');control.setAttribute('aria-describedby',((control.getAttribute('aria-describedby')||'')+' '+note.id).trim());
@@ -183,11 +219,15 @@
             if(current!==openVersion)return;
             field('walkin-barangay').value=String(person.barangay_id);
             for(const id of ['walkin-suffix','walkin-barangay','walkin-nature','walkin-transaction','walkin-severity','walkin-time-period','walkin-disease'])field(id)._hiSelect?.refresh();
-            updateAge();visitFields();scheduleMatches();focusField('walkin-nature');
+            updateAge();visitFields();scheduleMatches();showStep(1);focusField('walkin-nature');
         }catch(error){optionsFailed(error);}
     }
     document.addEventListener('DOMContentLoaded',()=>{
         const form=field('mho-walkin-form');if(!form)return;
+        field('walkin-next').addEventListener('click',advanceStep);
+        field('walkin-back').addEventListener('click',()=>{if(!isSaving){showStatus('');showStep(Math.max(0,step-1),true);}});
+        form.addEventListener('reset',()=>showStep(0));showStep(0);
+        HealthIntelVisits.bindBloodPressure('walkin');
         field('walkin-followup-plan').innerHTML=HealthIntelVisits.followupMarkup('walkin');
         bindViews();
         const save=field('walkin-save'),date=field('walkin-date');date.max=todayInManila();date.value=date.max;
@@ -214,7 +254,7 @@
         document.querySelector('[data-target="view-history"]')?.addEventListener('click',loadRecent);
         visitFields();loadOptions().catch(optionsFailed);loadRecent();
         form.addEventListener('submit',async event=>{
-            event.preventDefault();if(save.disabled||isSaving)return;clearFieldErrors();
+            event.preventDefault();if(isSaving)return;if(step<3){advanceStep();return;}if(save.disabled)return;clearFieldErrors();
             let payload;
             try {
                 for(const [id,label] of [['walkin-last','family name'],['walkin-first','first name'],['walkin-purok','purok / zone']])if(!value(id))fail(id,`Enter the patient's ${label}.`);
@@ -236,6 +276,13 @@
                 for(const id of ['walkin-disease','walkin-severity','walkin-barangay','walkin-suffix','walkin-nature','walkin-transaction','walkin-time-period'])field(id).dispatchEvent(new Event('change',{bubbles:true}));
                 updateAge();renderCategories();visitFields();scheduleMatches();
                 showStatus(result.new_case===false?`Consultation saved under #REC-${result.id}. Disease case totals are unchanged.`:`Case #REC-${result.id} and its consultation saved.${result.review_status==='Pending'?' The condition needs MHO review.':' Assigned to the selected barangay.'}`,'success');
+                Swal.fire({
+                    icon:'success',
+                    titleText:result.new_case===false?'Consultation saved':'Patient case saved',
+                    text:result.new_case===false?`The consultation was added to Case #REC-${result.id}. Disease case totals are unchanged.`:
+                        `Case #REC-${result.id} and its consultation were saved.${result.review_status==='Pending'?' The reported condition is awaiting MHO review.':' The case is linked to the selected barangay.'}`,
+                    confirmButtonText:'Done',confirmButtonColor:'#047857',customClass:{popup:'hi-dialog'}
+                });
                 await loadRecent();window.dispatchEvent(new Event('health-intel:cases-changed'));
                 if(typeof window.updateDynamicChart==='function')window.updateDynamicChart();
             }catch(error){showStatus(error.message||'The consultation could not be saved. Please try again.','error');}

@@ -11,22 +11,19 @@
           if (actData.success) {
             window.adminRegistryChoices=actData.data;refreshAdminDiseaseFilter();
             actData.data.forEach((d) => {
-              let classificationClass = d.classification === "High Risk" ? "admin-classification-high" : "admin-classification-standard bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200";
               actBodyHtmlBuffer += `
                 <tr>
                   <td class="font-bold text-slate-900 dark:text-slate-100">${escapeText(d.name)}</td>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.category)}</td>
-                  <td><span class="admin-classification ${classificationClass}">${escapeText(d.classification)}</span></td>
-                  <td class="text-emerald-700 dark:text-emerald-400 font-bold">Active</td>
+                  <td class="text-emerald-700 dark:text-emerald-400 font-bold">Available for new cases</td>
                   <td><button onclick="archiveDisease(${d.id})" class="admin-button-archive-disease !text-red-700 dark:!text-red-300">Archive</button></td>
                 </tr>
               `;
             });
           if (actBodyHtmlBuffer === "") {
-              actBodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
+              actBodyHtmlBuffer = `<tr><td colspan="3" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
 <div class="flex flex-col items-center justify-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No records found in the database.</span>
+<span>No active disease names. Add a disease name to make it available in consultation forms.</span>
 </div>
 </td></tr>`;
           }
@@ -43,18 +40,16 @@
               arcBodyHtmlBuffer += `
                 <tr>
                   <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.name)}</td>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.category)}</td>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.classification)}</td>
                   <td><span class="admin-badge-archived">Archived</span></td>
                   <td><button onclick="restoreDisease(${d.id})" class="admin-button-reevaluate">Restore</button></td>
                 </tr>
               `;
             });
           if (arcBodyHtmlBuffer === "") {
-              arcBodyHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
+              arcBodyHtmlBuffer = `<tr><td colspan="3" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
 <div class="flex flex-col items-center justify-center gap-2">
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No records found in the database.</span>
+<span>No archived disease names.</span>
 </div>
 </td></tr>`;
           }
@@ -65,34 +60,52 @@
 
       function openDiseaseModal() {
         document.getElementById("new_disease_name").value = "";
+        document.getElementById("disease-form-error").hidden = true;
         HealthIntelModal.open(document.getElementById("diseaseModal"));
       }
 
       async function saveNewDisease() {
-        const payload = {
-          name: document.getElementById("new_disease_name").value,
-          category: document.getElementById("new_disease_cat").value,
-          classification: document.getElementById("new_disease_class").value,
-        };
-        if (!payload.name) return;
+        const input = document.getElementById("new_disease_name");
+        const button = document.getElementById("disease-save-button");
+        const errorNotice = document.getElementById("disease-form-error");
+        if (button.disabled) return;
+        errorNotice.hidden = true;
+        const payload = { name: input.value.trim() };
+        if (!payload.name || payload.name.length > 255) {
+          errorNotice.textContent = 'Enter a disease name using 1–255 characters.';
+          errorNotice.hidden = false;
+          input.focus();
+          return;
+        }
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
 
         try {
-        await fetch("http://localhost:3000/api/diseases", {
+        const response = await fetch("http://localhost:3000/api/diseases", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
+        const data = await response.json();
+        if (!response.ok || !data.success) throw new Error(data.error || 'The disease name could not be added.');
         closeModal("diseaseModal");
-        Swal.fire({ icon: "success", title: "Saved to Database", showConfirmButton: false, timer: 1500 });
+        Swal.fire({ icon: "success", title: "Disease name added", text: 'Available in BHW and MHO consultation forms.', showConfirmButton: false, timer: 2000 });
         loadDiseases();
-        } catch(error) { Swal.fire({icon:'error',title:'Disease not saved',text:error.message || 'Please check the form and try again.'}); }
+        } catch(error) {
+          errorNotice.textContent = error.message || 'Please check the form and try again.';
+          errorNotice.hidden = false;
+          input.focus();
+        } finally {
+          button.disabled = false;
+          button.removeAttribute('aria-busy');
+        }
 
       }
 
       async function archiveDisease(id) {
         Swal.fire({
-          title: "Archive Disease?",
-          text: "It will be moved to the disease archives.",
+          title: "Archive disease name?",
+          text: "It will no longer be available for new BHW or MHO cases. Existing patient records and histories are retained.",
           icon: "warning",
           showCancelButton: true,
           confirmButtonColor: "#ef4444",
@@ -102,15 +115,15 @@
           if (result.isConfirmed) {
             if (!await saveRegistryAction(id, 'archive')) return;
             loadDiseases();
-            Swal.fire({title: "Archived!", text: "Disease has been archived.", icon: "success", timer: 1500, showConfirmButton: false});
+            Swal.fire({title: "Disease name archived", text: "Existing patient records and histories are retained.", icon: "success", timer: 1500, showConfirmButton: false});
           }
         });
       }
       
       async function restoreDisease(id) {
         Swal.fire({
-          title: "Restore Disease?",
-          text: "It will be available for BHWs again.",
+          title: "Restore disease name?",
+          text: "It will be available for new BHW and MHO cases again.",
           icon: "question",
           showCancelButton: true,
           confirmButtonColor: "#10b981",

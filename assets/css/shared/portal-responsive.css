@@ -3,6 +3,45 @@
 .dark .hi-sidebar-logo {filter:brightness(2.2) saturate(.9);}
 .hi-portal, .hi-portal #dashboard-section { height:100vh; height:100dvh; }
 .hi-portal main { min-width:0; min-height:0; }
+/* Desktop sidebars share one optional compact rail; mobile keeps a drawer. */
+.hi-desktop-menu { display:none; }
+.hi-nav-tooltip:not([hidden]) { position:fixed;z-index:1100;max-width:240px;padding:9px 12px;border-radius:8px;background:#0f172a;color:#fff;font-size:13px;font-weight:500;line-height:1.4;box-shadow:0 4px 16px #0003;pointer-events:none; }
+.dark .hi-nav-tooltip:not([hidden]) {background:#e2e8f0;color:#0f172a;}
+@media (min-width:901px) {
+    .hi-portal #sidebar, .hi-portal #main-sidebar, .hi-portal #superadmin-sidebar { width:220px; }
+    .hi-portal main { border-radius:0; box-shadow:none; }
+    .hi-portal [data-portal-menu] { display:none; }
+    .hi-portal #sidebar > div:first-of-type, .hi-portal #main-sidebar > div:first-of-type, .hi-portal #superadmin-sidebar > div:first-of-type { padding-left:16px;padding-right:16px; }
+    .hi-portal #sidebar-text { font-size:14px; }
+    .hi-portal #sidebar nav, .hi-portal #main-sidebar nav { padding-left:12px;padding-right:12px; }
+    .hi-portal #sidebar .nav-item, .hi-portal #main-sidebar .nav-item { gap:10px;padding-left:12px;padding-right:12px; }
+    .hi-portal .sidebar-label { white-space:normal; }
+    .hi-portal .hi-sidebar-brand { position:relative;padding-right:40px !important;min-height:72px;gap:8px;margin-top:0;padding-top:0; }
+    .hi-portal .hi-sidebar-brand .hi-sidebar-logo {width:32px;height:32px;margin-right:0;}
+    .hi-portal .hi-sidebar-brand #sidebar-text, .hi-portal .hi-brand-name {font-size:13px;min-width:0;}
+    .hi-portal .hi-desktop-menu {display:flex;position:absolute;right:4px;top:50%;transform:translateY(-50%);width:32px;height:36px;align-items:center;justify-content:center;border-radius:8px;color:#475569;background:#f1f5f9;opacity:1;border:1px solid #cbd5e1;transition:background .15s;}
+    .dark .hi-portal .hi-desktop-menu {color:#e2e8f0;background:#0f172a;}
+    .hi-portal .hi-sidebar-brand:hover .hi-desktop-menu, .hi-portal .hi-sidebar-brand:focus-within .hi-desktop-menu {opacity:1;}
+    .hi-portal .hi-desktop-menu:hover {background:#dbeafe;color:#1d4ed8;}
+    .hi-portal .hi-desktop-menu:focus-visible {outline:3px solid #0d9488;outline-offset:2px;opacity:1;}
+    .hi-portal #sidebar.hi-sidebar-collapsed, .hi-portal #main-sidebar.hi-sidebar-collapsed, .hi-portal #superadmin-sidebar.hi-sidebar-collapsed {width:80px;}
+    .hi-portal .hi-sidebar-collapsed .hi-sidebar-brand {justify-content:center;align-items:center;min-height:72px;height:72px;padding-top:0 !important;padding-left:0 !important;padding-right:0 !important;}
+    .hi-portal .hi-sidebar-collapsed .hi-desktop-menu {top:50%;right:24px;background:#f1f5f9;}
+    .hi-portal .hi-sidebar-collapsed .hi-sidebar-brand:not(:hover) .hi-desktop-menu:not(:focus-visible) {opacity:0;pointer-events:none;}
+    .hi-portal .hi-sidebar-collapsed .hi-sidebar-brand:hover .hi-sidebar-logo,
+    .hi-portal .hi-sidebar-collapsed .hi-sidebar-brand:has(.hi-desktop-menu:focus-visible) .hi-sidebar-logo {opacity:0;}
+    .dark .hi-portal .hi-sidebar-collapsed .hi-desktop-menu {background:#0f172a;}
+    .hi-portal .hi-sidebar-collapsed #sidebar-text, .hi-portal .hi-sidebar-collapsed .hi-brand-name, .hi-portal .hi-sidebar-collapsed .sidebar-label {position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+    .hi-portal .hi-sidebar-collapsed nav, .hi-portal #superadmin-sidebar.hi-sidebar-collapsed > div:not(.hi-sidebar-brand) {padding-left:10px;padding-right:10px;}
+    .hi-portal .hi-sidebar-collapsed .nav-item, .hi-portal .hi-sidebar-collapsed [onclick="logout()"] {justify-content:center;gap:0;min-height:44px;padding-left:0;padding-right:0;}
+    .hi-portal .hi-sidebar-collapsed .nav-item svg, .hi-portal .hi-sidebar-collapsed [onclick="logout()"] svg {flex-shrink:0;}
+    .hi-portal .hi-sidebar-collapsed nav {overflow-x:hidden;}
+    .hi-portal .hi-sidebar-collapsed a.sidebar-label {display:none;}
+}
+@media (min-width:901px) and (hover:none) {
+    .hi-portal .hi-desktop-menu, .hi-portal .hi-sidebar-collapsed .hi-sidebar-brand .hi-desktop-menu {opacity:1;pointer-events:auto;}
+    .hi-portal .hi-sidebar-collapsed .hi-sidebar-brand .hi-sidebar-logo {opacity:0;}
+}
 .hi-portal main > header { flex-shrink:0; }
 .hi-portal .hi-table-scroll { max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; }
 .hi-menu-close, .hi-menu-backdrop, .hi-mobile-menu { display:none; }

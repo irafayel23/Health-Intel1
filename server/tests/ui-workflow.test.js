@@ -190,6 +190,21 @@ test('account and registry failures show errors without refreshing or reporting 
     }
 });
 
+test('catalog creation retains the form on rejected saves and submits only a trimmed name on success',async()=>{
+    for(const outcome of ['http','rejected','network','success']) {
+        const notices=[],elements={};let closes=0,refreshes=0,sent;
+        const element=id=>elements[id]||=( {value:id==='new_disease_name'?'  Catalog Fixture  ':'',hidden:true,disabled:false,focus(){},setAttribute(){},removeAttribute(){}} );
+        const sandbox={document:{getElementById:element},Swal:{fire:notice=>notices.push(notice)},closeModal:()=>closes++,
+            fetch:async(url,options)=>{sent=JSON.parse(options.body);if(outcome==='network')throw Error('Connection lost');return {ok:outcome!=='http',json:async()=>outcome==='success'?{success:true}:{success:false,error:'Name already exists'}};}};
+        vm.runInNewContext(script('admin-registry.js'),sandbox);
+        sandbox.loadDiseases=()=>refreshes++;
+        await sandbox.saveNewDisease();
+        assert.deepEqual(sent,{name:'Catalog Fixture'});assert.equal(element('disease-save-button').disabled,false);
+        if(outcome==='success'){assert.equal(closes,1);assert.equal(refreshes,1);assert.equal(notices[0].icon,'success');}
+        else {assert.equal(closes,0);assert.equal(refreshes,0);assert.equal(notices.length,0);assert.equal(element('disease-form-error').hidden,false);assert.match(element('disease-form-error').textContent,/already exists|Connection lost/);}
+    }
+});
+
 test('Google verification prevents competing popups and restores its button after failure', async () => {
     const elements={},dialogs=[];let requests=0,rejectPopup;
     const element=id=>elements[id] ||= {checked:true,disabled:false,style:{},listeners:{},attributes:{},addEventListener(name,handler){this.listeners[name]=handler;},setAttribute(name,value){this.attributes[name]=value;},removeAttribute(name){delete this.attributes[name];}};

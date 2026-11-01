@@ -1,5 +1,9 @@
 # Active database schema
 
+**19 October 2026 normalization:** the active local database and Azure database use the verified normalized schema with 18 physical tables and two read views. The physical `health_cases` table has 12 columns. Case location, condition review and necessary legacy source facts are stored separately; names and known-birthdate ages are derived in the read models. Azure migration preservation checks and 40 live application checks passed. See [NORMALIZATION_20261019.md](NORMALIZATION_20261019.md) for the implemented schema, preservation evidence, tests and deployment details. The older sections below describe the pre-normalization source and historical migrations; do not treat their duplicated case columns as the current physical schema.
+
+The October 18, 2026 age-group update adds derived API fields (`age_at_case` / `age_at_visit` and `age_group`) to relevant case and consultation responses. Groups are calculated from existing dates/ages and are not stored as new database columns. See [AGE_GROUPS_20261018.md](AGE_GROUPS_20261018.md).
+
 The 16 October 2026 follow-up-plan update adds nullable `case_visits.next_followup_date DATE` and `case_visits.followup_instructions VARCHAR(2000)` to each structured consultation. Both are optional; a return date cannot precede its consultation. Existing records remain unchanged. See [FOLLOWUP_PLAN_20261016.md](FOLLOWUP_PLAN_20261016.md).
 
 Observed from `health_intel` on 27 September 2026. This describes the current database rather than an unimplemented design. Phase 2 preserved all eight table structures. The later QA fixes added two generated columns and two unique indexes; no historical patient data was rewritten.

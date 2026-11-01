@@ -12,11 +12,12 @@ function reviewNotice(doc) {
 function renderMonthlyCases(doc, rows, period) {
     const bottom = () => doc.page.height - doc.page.margins.bottom;
     const columns = [
-        { label: 'No.', x: 60, width: 30 },
-        { label: 'Recorded condition', x: 100, width: 175 },
-        { label: 'Registry category', x: 285, width: 85 },
-        { label: 'Case status', x: 380, width: 70 },
-        { label: 'Entries', x: 465, width: 70 }
+        { label: 'No.', x: 60, width: 25 },
+        { label: 'Recorded condition', x: 90, width: 140 },
+        { label: 'Registry category', x: 240, width: 80 },
+        { label: 'Age group', x: 330, width: 65 },
+        { label: 'Case status', x: 405, width: 65 },
+        { label: 'Entries', x: 480, width: 55 }
     ];
     const header = () => {
         doc.font('Helvetica-Bold').fontSize(10);
@@ -38,7 +39,7 @@ function renderMonthlyCases(doc, rows, period) {
     let total = 0;
     rows.forEach((row, index) => {
         const category = row.category === 'mortality' ? 'Mortality' : row.category === 'morbidity' ? 'Morbidity' : 'Unclassified';
-        const values = [String(index + 1), row.disease, category, row.status || 'Not recorded', String(row.count)];
+        const values = [String(index + 1), row.disease, category, row.age_group || 'Not recorded', row.status || 'Not recorded', String(row.count)];
         doc.font('Helvetica').fontSize(10);
         const height = Math.max(...columns.map((c, i) => doc.heightOfString(values[i], { width: c.width }))) + 12;
         if (doc.y + height > bottom() - 5) nextPage();
@@ -73,10 +74,11 @@ function renderMonthlyReview(doc) {
 function renderWeeklyCases(doc, rows, period) {
     const bottom = () => doc.page.height - doc.page.margins.bottom;
     const columns = [
-        { label: 'Date Recorded', x: 60, width: 110, font: 'Helvetica', color: '#0f172a' },
-        { label: 'Recorded condition', x: 180, width: 150, font: 'Helvetica-Bold', color: '#ef4444' },
-        { label: 'Recorded Severity', x: 340, width: 100, font: 'Helvetica-Oblique', color: '#ea580c' },
-        { label: 'Status', x: 450, width: 85, font: 'Helvetica-Bold', color: '#ef4444' }
+        { label: 'Date Recorded', x: 60, width: 100, font: 'Helvetica', color: '#0f172a' },
+        { label: 'Recorded condition', x: 170, width: 135, font: 'Helvetica-Bold', color: '#ef4444' },
+        { label: 'Age group', x: 315, width: 65, font: 'Helvetica', color: '#0f172a' },
+        { label: 'Recorded Severity', x: 390, width: 80, font: 'Helvetica-Oblique', color: '#ea580c' },
+        { label: 'Status', x: 480, width: 55, font: 'Helvetica-Bold', color: '#ef4444' }
     ];
     const header = () => {
         const y = doc.y;
@@ -96,7 +98,7 @@ function renderWeeklyCases(doc, rows, period) {
     header();
     for (const row of rows) {
         const severity = row.severity || 'Not recorded';
-        const values = [new Date(row.date_recorded).toLocaleDateString(), row.disease, severity, row.status];
+        const values = [new Date(row.date_recorded).toLocaleDateString(), row.disease, row.age_group || 'Not recorded', severity, row.status];
         const height = Math.max(...columns.map((column, index) => {
             doc.font(column.font).fontSize(10);
             return doc.heightOfString(values[index], { width: column.width });
@@ -106,7 +108,7 @@ function renderWeeklyCases(doc, rows, period) {
         doc.moveTo(50, y - 5).lineTo(545, y - 5).lineWidth(0.5).strokeColor('#fecaca').stroke();
         columns.forEach((column, index) => {
             doc.font(column.font).fontSize(10)
-                .fillColor(index === 2 && severity === 'High Risk' ? '#dc2626' : column.color)
+                .fillColor(index === 3 && severity === 'High Risk' ? '#dc2626' : column.color)
                 .text(values[index], column.x, y, { width: column.width });
         });
         doc.y = y + height;

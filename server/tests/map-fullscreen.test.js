@@ -34,3 +34,10 @@ test('fullscreen focus wraps inside map controls and repeated toggles do not lea
 test('leaving the page restores the map without losing a pre-existing body class',()=>{
     const f=fixture('murciaMap');f.document.body.classList.add('heatmap-is-expanded');f.control.button.click();f.windowListeners.pagehide();assert.equal(f.container.parentNode,f.main);assert.equal(f.document.body.classList.contains('heatmap-is-expanded'),true);assert.equal(f.main.inert,false);
 });
+
+test('an open breakdown dialog keeps its native Escape handling without exiting fullscreen',()=>{
+    const f=fixture('bhwMap');f.control.button.click();let prevented=false;
+    f.listeners.keydown({key:'Escape',target:{closest:selector=>selector==='.heatmap-case-dialog[open]'},preventDefault(){prevented=true;}});
+    assert.equal(prevented,false);assert.equal(f.container.classList.contains('heatmap-expanded'),true);
+    assert.equal(f.key('Escape'),true);assert.equal(f.container.classList.contains('heatmap-expanded'),false);
+});

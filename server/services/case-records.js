@@ -3,6 +3,7 @@ const { CASE_ACTIONS, withCaseReference } = require('./case-audit');
 const {textField,validDate,validateSuffix}=require('./patient-validation');
 const {invalid}=require('./service-errors');
 const {vitalSelect,vitalJoins}=require('./resident-vital');
+const {caseFields,visitFields}=require('./age-groups');
 
 function createCaseRecords(db) {
     return {
@@ -96,7 +97,7 @@ function createCaseRecords(db) {
                         FROM health_cases h LEFT JOIN barangays b ON b.id=h.barangay_id WHERE h.id=?`,
                 [id]
             );
-            return cases;
+            return cases.map(caseFields);
         },
 
         async caseHistory(id) {
@@ -129,7 +130,7 @@ function createCaseRecords(db) {
             query += ` ORDER BY created_at DESC`;
 
             const [rows] = await db.execute(query, params);
-            return rows;
+            return rows.map(caseFields);
         },
 
         async residents(barangay_id) {
@@ -165,18 +166,18 @@ function createCaseRecords(db) {
                 historySql,
                 user.role === 'bhw' ? [residentId, user.barangay_id] : [residentId]
             );
-            return historyRows;
+            return historyRows.map(caseFields);
         },
 
         async residentVisits(residentId, user) {
-            const [rows] = await db.execute(`SELECT v.*,h.disease,h.disease_review_status,h.disease_reported,
+            const [rows] = await db.execute(`SELECT v.*,h.disease,h.disease_review_status,h.disease_reported,DATE_FORMAT(h.birthdate,'%Y-%m-%d') AS birthdate,
                 DATE_FORMAT(v.next_followup_date,'%Y-%m-%d') AS next_followup_date,
                 DATE_FORMAT(v.consultation_date,'%Y-%m-%d') AS consultation_date,
                 TIME_FORMAT(v.consultation_time,'%H:%i') AS consultation_time
                 FROM case_visits v JOIN health_cases h ON h.id=v.case_id WHERE h.resident_id=?` +
                 (user.role==='bhw'?' AND h.barangay_id=?':'') + ' ORDER BY v.consultation_date DESC,v.consultation_time DESC,v.id DESC',
                 user.role==='bhw'?[residentId,user.barangay_id]:[residentId]);
-            return rows;
+            return rows.map(visitFields);
         },
 
         async archivedPatients(barangay_id) {

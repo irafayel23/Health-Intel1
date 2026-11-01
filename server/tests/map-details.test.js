@@ -3,16 +3,16 @@ const context={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname
 const render=(overrides={})=>context.window.HealthIntelMapDetails.render({name:'Blumentritt',cases:19,severity_counts:{mild:18,monitored:1,high_risk:0,unknown:0},diseases_by_severity:{mild:[{disease:'Dengue',cases:9},{disease:'Hypertension',cases:5},{disease:'Influenza',cases:4}],monitored:[{disease:'Hypertension',cases:1}],high_risk:[]},color_reason:'At least one active case is Monitored; none is recorded as High Risk.',...overrides},'10/17/2026, 11:18 AM','bhwMap-details-title');
 function rows(html){return [...html.matchAll(/<tr(?: class="[^"]*")?><th scope="row">([^<]*)<\/th>((?:<td>.*?<\/td>)+)<\/tr>/g)].map(([,disease,cells])=>({disease,values:[...cells.matchAll(/<td>(?:<strong>)?(\d+)(?:<\/strong>)?<\/td>/g)].map(m=>Number(m[1]))}));}
 
-test('one disease row combines severities while retaining the original totals and color reason',()=>{
+test('one disease row combines severities and explains the proportional marker without classifying the barangay',()=>{
     const html=render(),data=rows(html);
     assert.deepEqual(data,[{disease:'Dengue',values:[9,0,0,9]},{disease:'Hypertension',values:[5,1,0,6]},{disease:'Influenza',values:[4,0,0,4]},{disease:'Total',values:[18,1,0,19]}]);
-    assert.match(html,/Why orange\?/);assert.match(html,/none is recorded as High Risk/);assert.match(html,/not disease ratings or outbreak risk/);
+    assert.match(html,/How to read this marker/);assert.match(html,/1 Monitored case is recorded/);assert.match(html,/not disease ratings or outbreak risk/);assert.doesNotMatch(html,/Why orange/);
     assert.match(html,/<\/header>\s*<div class="heatmap-info-body"/);assert.match(html,/aria-label="Close barangay details"/);
 });
 test('unknown severity is explicit even when the API does not provide its disease details',()=>{
     const html=render({cases:21,severity_counts:{mild:18,monitored:1,high_risk:0,unknown:2}}),data=rows(html);
     assert.deepEqual(data.find(r=>r.disease==='Breakdown unavailable').values,[0,0,0,2,2]);assert.deepEqual(data.at(-1).values,[18,1,0,2,21]);
-    assert.match(html,/2 cases have unknown severity/);assert.match(html,/Disease details are unavailable for 2 cases/);assert.match(html,/Why orange\?/);
+    assert.match(html,/2 cases have unknown severity/);assert.match(html,/Disease details are unavailable for 2 cases/);
 });
 test('legacy missing breakdown is shown honestly; known disease names are not invented',()=>{
     const html=render({diseases_by_severity:undefined,high_risk_diseases:[],pending_classification:1});
@@ -25,7 +25,26 @@ test('patient-controlled names, disease labels, dates and color explanations are
     const custom=context.window.HealthIntelMapDetails.render({name:'A',cases:0,severity_counts:{}},'<img>','" onmouseover="x');assert.doesNotMatch(custom,/<img>|id="" onmouseover/);assert.match(custom,/&lt;img&gt;/);
 });
 test('empty, High Risk and incomplete summaries use the correct state with no invented trend',()=>{
-    const empty=render({cases:0,severity_counts:{},diseases_by_severity:{}});assert.match(empty,/No active disease cases recorded/);assert.match(empty,/Why gray\?/);assert.doesNotMatch(empty,/<table|heatmap-composition/);
-    const high=render({cases:1,severity_counts:{high_risk:1},diseases_by_severity:{high_risk:[{disease:'A',cases:1}]}});assert.match(high,/Why red\?/);
-    const unknown=render({cases:1,severity_counts:{unknown:1},diseases_by_severity:{}});assert.match(unknown,/Why purple\?/);assert.deepEqual(rows(unknown).at(-1).values,[0,0,0,1,1]);
+    const empty=render({cases:0,severity_counts:{},diseases_by_severity:{}});assert.match(empty,/No active disease cases recorded/);assert.match(empty,/Gray means no active cases/);assert.doesNotMatch(empty,/<table|heatmap-composition/);
+    const high=render({cases:1,severity_counts:{high_risk:1},diseases_by_severity:{high_risk:[{disease:'A',cases:1}]}});assert.match(high,/1 High Risk case needs attention/);
+    const unknown=render({cases:1,severity_counts:{unknown:1},diseases_by_severity:{}});assert.match(unknown,/1 case has unknown severity/);assert.deepEqual(rows(unknown).at(-1).values,[0,0,0,1,1]);
+});
+
+test('18 Mild and 1 Monitored occupy their actual shares and do not turn the whole marker orange',()=>{
+    const data={name:'Sample',cases:19,severity_counts:{mild:18,monitored:1}};
+    const result=context.window.HealthIntelMapDetails.composition(data);
+    assert.equal(result.segments.length,2);assert.ok(Math.abs(result.segments[0].percent-94.73684210526316)<1e-9);assert.ok(Math.abs(result.segments[1].percent-5.263157894736842)<1e-9);
+    assert.ok(Math.abs(result.segments.reduce((sum,s)=>sum+s.percent,0)-100)<1e-9);
+    const html=context.window.HealthIntelMapDetails.marker(data);assert.match(html,/heatmap-ring-mild/);assert.match(html,/heatmap-ring-monitored/);assert.match(html,/>19<\/text>/);assert.doesNotMatch(html,/heatmap-ring-high_risk/);
+    assert.match(context.window.HealthIntelMapDetails.summary(data),/18 Mild, 1 Monitored, 0 High Risk/);
+});
+
+test('missing and inconsistent breakdowns remain unknown and empty markers avoid invalid SVG values',()=>{
+    for(const data of [{cases:5},{cases:5,severity_counts:{mild:2}},{cases:5,severity_counts:{mild:8,monitored:2}}]) {
+        const result=context.window.HealthIntelMapDetails.composition(data);
+        assert.equal(Object.values(result.counts).reduce((a,b)=>a+b,0),5);assert.ok(result.counts.unknown>0);
+        assert.ok(Math.abs(result.segments.reduce((sum,s)=>sum+s.percent,0)-100)<1e-9);
+    }
+    const empty=context.window.HealthIntelMapDetails.marker({cases:0,severity_counts:{}});assert.doesNotMatch(empty,/NaN|Infinity|stroke-dasharray/);assert.match(empty,/>0<\/text>/);
+    const missing=context.window.HealthIntelMapDetails.marker({cases:5});assert.match(missing,/heatmap-ring-unknown/);assert.doesNotMatch(missing,/heatmap-ring-mild/);
 });

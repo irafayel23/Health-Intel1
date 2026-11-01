@@ -20,4 +20,13 @@ function todayPeriod(now=new Date()) {
     const end=new Date(start+'T00:00:00Z');end.setUTCDate(end.getUTCDate()+1);
     return {start,end:end.toISOString().slice(0,10),timeZone:'Asia/Manila'};
 }
-module.exports={months,monthlyPeriod,isoWeekPeriod,todayPeriod};
+function dailyPeriod(value,now=new Date()) {
+    const today=todayPeriod(now);
+    if(value===undefined)return today;
+    if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value)||value<'1900-01-01'||value>today.start)bad('Select a report date from 1900 through today in the Philippines.');
+    const date=new Date(value+'T00:00:00Z');
+    if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==value)bad('Select a real report date.');
+    date.setUTCDate(date.getUTCDate()+1);
+    return {start:value,end:date.toISOString().slice(0,10),timeZone:'Asia/Manila'};
+}
+module.exports={months,monthlyPeriod,isoWeekPeriod,todayPeriod,dailyPeriod};

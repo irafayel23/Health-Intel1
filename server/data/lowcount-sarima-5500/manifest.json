@@ -1,0 +1,10 @@
+{
+  "version": "lowcount5500-policyA-SN-v1",
+  "dataset_sha256": "f015cb27a399c3bd3202d864e8474201746188252d3f7da7902ca9f96766cd27",
+  "snapshot_sha256": "907596057dc8206c02f7de7e4712331a7ab37950a6e99872e0f205dc6de511c6",
+  "evidence_archive_sha256": "8a2d7d2b55eb219004648b702166a65783c7e989a9600dd29c2144321be0f323",
+  "records": 3150,
+  "cases": 5500,
+  "scope_count": 70,
+  "created": "2026-10-26T20:22:43+08:00"
+}

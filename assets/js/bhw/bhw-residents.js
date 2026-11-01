@@ -194,7 +194,7 @@
                           tbody.innerHTML += `
                             <tr class="border-b border-[hsl(var(--border))]">
                               <td class="px-5 py-4 font-mono text-xs text-[hsl(var(--muted-foreground))]">
-                                #REC-${record.id}<br>${dateStr}
+                                #REC-${record.id}<br>${dateStr}<br><span class="font-sans">Age at case: ${escapeText(record.age_at_case ?? 'Not recorded')}<br>Age group: ${escapeText(record.age_group || 'Not recorded')}${record.age_group && record.age_group!=='Not recorded'?' years':''}</span>
                               </td>
                               <td class="px-5 py-4 font-semibold text-[hsl(var(--foreground))]">
                                 ${HealthIntelEncoding.conditionCell(record)} <br>${severityBadge}

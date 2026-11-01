@@ -8,8 +8,8 @@
           const result = await Swal.fire({
             title: 'Database Backup',
             html: '<p>Choose a password of 12-128 characters. Keep it to open the encrypted ZIP.</p>' +
-              '<input id="backup-password" type="password" class="swal2-input" placeholder="Backup password" autocomplete="new-password">' +
-              '<input id="backup-password-confirm" type="password" class="swal2-input" placeholder="Confirm password" autocomplete="new-password">',
+              '<label for="backup-password" class="swal2-input-label">Backup password</label><input id="backup-password" type="password" class="swal2-input" placeholder="Backup password" autocomplete="new-password">' +
+              '<label for="backup-password-confirm" class="swal2-input-label">Confirm backup password</label><input id="backup-password-confirm" type="password" class="swal2-input" placeholder="Confirm password" autocomplete="new-password">',
             showCancelButton: true, confirmButtonText: 'Create backup',
             preConfirm: () => {
               const password = document.getElementById('backup-password').value;

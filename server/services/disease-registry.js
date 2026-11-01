@@ -9,8 +9,10 @@ function createDiseaseRegistryHandlers(db) {
         async disease(req, res) {
             try {
                 const name = plain(req.body.name, 'disease name', 255),
-                    classification = plain(req.body.classification, 'classification', 50);
-                const category = req.body.category;
+                    classification = plain(req.body.classification === undefined ? 'Standard' : req.body.classification, 'classification', 50);
+                // Retain legacy metadata for report compatibility. Catalog entry requires only a name;
+                // these defaults do not set severity on patient cases or consultations.
+                const category = req.body.category === undefined ? 'morbidity' : req.body.category;
                 if (name.toLowerCase() === 'pending classification')
                     throw invalid(
                         'This name is reserved for unclassified cases. Enter an actual condition name.'
@@ -26,7 +28,7 @@ function createDiseaseRegistryHandlers(db) {
                         );
                         if (rows.length)
                             throw invalid(
-                                'This disease name already exists. Review the active or archived registry.',
+                                'This disease name already exists. Review the active or archived catalog.',
                                 409
                             );
                         const [created] = await connection.execute(
@@ -35,12 +37,12 @@ function createDiseaseRegistryHandlers(db) {
                         );
                         await connection.execute(
                             "INSERT INTO system_audit_logs(user_id,role,action,details) VALUES(?,'Admin','Registry Updated',?)",
-                            [req.user.system_id, JSON.stringify({summary:`Added disease ${name} (${classification}).`,target_type:'Registry entry',target_id:String(created.insertId),outcome:'Succeeded',after:{name,category,classification}})]
+                            [req.user.system_id, JSON.stringify({summary:`Added disease name ${name} to the catalog.`,target_type:'Registry entry',target_id:String(created.insertId),outcome:'Succeeded',after:{name,category,classification}})]
                         );
                     },
                     'disease-registry'
                 );
-                res.json({ success: true, message: 'Disease added to registry.' });
+                res.json({ success: true, message: 'Disease name added to catalog.' });
             } catch (e) {
                 respond(res, e, 'The disease could not be saved.');
             }

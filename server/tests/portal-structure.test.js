@@ -55,6 +55,7 @@ function page(file) {
             setAttribute:(k,v)=>{attributes[k]=v;},removeAttribute:k=>{delete attributes[k];},getAttribute:k=>attributes[k],
             append(...nodes){e.children.push(...nodes);},prepend(node){e.children.unshift(node);},replaceChildren(...nodes){e.children=nodes;},reset(){},
             insertRow(){const row=element();row.insertCell=()=>{const cell=element();row.append(cell);return cell;};e.append(row);return row;},
+            createTHead(){return element();},createTBody(){return element();},
             querySelector:()=>null,querySelectorAll:()=>[],
             getContext:()=>({createLinearGradient:()=>({addColorStop(){}})}),focus(){},scrollIntoView(){}};
         Object.defineProperty(e,'options',{get:()=>e.children});
@@ -88,7 +89,7 @@ function page(file) {
         Swal:{fire:async()=>({isConfirmed:false}),showLoading(){},close(){},isLoading:()=>false,showValidationMessage(){}},
         HealthIntel:{download:async(...args)=>downloads.push(args),clearSession(){}},
         HealthIntelEncoding:{escape:value=>String(value),conditionLabel:r=>r.disease || '',conditionCell:r=>r.disease || '',bindCondition(){},enhanceSelect(){},populateConditions(){}},
-        HealthIntelVisits:{validateMeasurements(){},formatTime:()=> 'Time not recorded',renderResidentHistory(){},followupMarkup:()=>'',followupPayload:()=>({}),followupHistory:()=>''},
+        HealthIntelVisits:{bindBloodPressure(){},validateMeasurements(){},formatTime:()=> 'Time not recorded',renderResidentHistory(){},followupMarkup:()=>'',followupPayload:()=>({}),followupHistory:()=>''},
         fetch:async(url,options)=>{
             requests.push({url:String(url),options});
             const result=s.response(String(url),options);
@@ -100,7 +101,7 @@ function page(file) {
     s.Chart=class {static register(){} constructor(_ctx,config){this.data=config.data;this.options=config.options;}update(){}destroy(){}};
     const prefix=file==='index.html'?'index-':file.split('.')[0]+'-';
     // Ordered deferred scripts keep the same page scope; allow attributes around src.
-    const names=[...html.matchAll(/<script\b[^>]*\bsrc="assets\/js\/([^"]+\.js)"[^>]*>\s*<\/script>/g)].map(m=>m[1]).filter(name=>path.basename(name).startsWith(prefix));
+    const names=[...html.matchAll(/<script\b[^>]*\bsrc="assets\/js\/([^"?]+\.js)(?:\?[^"]*)?"[^>]*>\s*<\/script>/g)].map(m=>m[1]).filter(name=>path.basename(name).startsWith(prefix));
     function load() {
         const shared = ['theme.js','accessible-modal.js','chart-theme.js'].filter(name=>html.includes('/'+name));
         for(const name of ['safe-text.js','date-format.js',...shared,...names,...(html.includes('portal-navigation.js')?['portal-navigation.js']:[])])vm.runInNewContext(fs.readFileSync(scriptPath(name),'utf8'),s,{filename:name});
@@ -228,7 +229,7 @@ test('MHO split scripts retain API charts, filter refresh and report downloads',
     p.s.response=url=>url.includes('/walk-in-options')?{success:true,data:{barangays:[],diseases:[]}}:base();
     p.load();await p.start();p.hooks();
     assert.deepEqual(p.errors,[]);
-    for(const endpoint of ['mho/kpi','mho/yoy','mho/mortality','mho/stats','mho/walk-in-options','mho/walk-in-cases','mho/disease-reviews'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
+    for(const endpoint of ['mho/kpi','mho/trend','mho/year-comparison','mho/analytics-options','mho/mortality','mho/stats','mho/walk-in-options','mho/walk-in-cases','mho/disease-reviews'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
     assert.match(p.elements['insight-text'].textContent,/No recorded disease cases/);
     p.elements['filter-year'].value='2025';await p.s.updateDynamicChart();
     assert.ok(p.requests.some(r=>r.url.includes('/mho/stats?year=2025')));

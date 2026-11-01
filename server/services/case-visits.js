@@ -103,10 +103,10 @@ async function saveExistingVisit(connection, patient, visit, barangayId, systemI
 async function caseVisits(db, caseId, user) {
     const [cases] = await db.execute('SELECT id FROM health_cases WHERE id=?' + (user.role === 'bhw' ? ' AND barangay_id=?' : ''), user.role === 'bhw' ? [caseId, user.barangay_id] : [caseId]);
     if (!cases.length) throw invalid('Case not found.', 404);
-    const [rows] = await db.execute(`SELECT *,DATE_FORMAT(consultation_date,'%Y-%m-%d') AS consultation_date,
-        DATE_FORMAT(next_followup_date,'%Y-%m-%d') AS next_followup_date,
-        TIME_FORMAT(consultation_time,'%H:%i') AS consultation_time FROM case_visits WHERE case_id=? ORDER BY consultation_date DESC,consultation_time DESC,id DESC`, [caseId]);
-    return rows;
+    const [rows] = await db.execute(`SELECT v.*,DATE_FORMAT(h.birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(v.consultation_date,'%Y-%m-%d') AS consultation_date,
+        DATE_FORMAT(v.next_followup_date,'%Y-%m-%d') AS next_followup_date,
+        TIME_FORMAT(v.consultation_time,'%H:%i') AS consultation_time FROM case_visits v JOIN health_cases h ON h.id=v.case_id WHERE v.case_id=? ORDER BY v.consultation_date DESC,v.consultation_time DESC,v.id DESC`, [caseId]);
+    return rows.map(require('./age-groups').visitFields);
 }
 
 module.exports = { validateVisit, migrateCaseVisits, saveVisit, saveExistingVisit, caseVisits };

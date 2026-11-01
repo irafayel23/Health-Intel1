@@ -25,17 +25,18 @@
 
       <link rel="stylesheet" href="assets/css/shared/encoding-controls.css">
     <script src="assets/js/shared/encoding-controls.js"></script>
-    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261003">
+    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261031-visible4">
   </head>
   <body class="hi-portal">
     <div id="dashboard-section" class="flex h-screen w-full bg-slate-100 dark:bg-neutral-950 font-sans overflow-hidden">
       
       <!-- SIDEBAR (Always Dark) -->
       <aside id="main-sidebar" class="w-64 bg-transparent text-slate-600 dark:text-slate-300 flex flex-col flex-shrink-0 transition-all duration-300 relative z-10">
-        <div class="h-16 flex items-center px-6 pt-4">
+        <div class="hi-sidebar-brand h-16 flex items-center px-6 pt-4">
           <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="hi-sidebar-logo w-8 h-8 mr-3 shrink-0" overflow="hidden">
             <image href="assets/img/Logo-Health-Intel.png?v=concept-06" width="1280" height="1280" />
           </svg>
+        <button type="button" data-desktop-sidebar class="hi-desktop-menu" aria-controls="main-sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
           <h2 id="sidebar-text" class="text-slate-800 dark:text-white font-bold tracking-widest text-lg m-0 transition-all duration-300">ADMIN</h2>
         </div>
         
@@ -47,7 +48,7 @@
             <i data-lucide="database" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Patient Records</span>
           </button>
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-diseases" onclick="switchMainView('view-diseases', 'nav-diseases')">
-            <i data-lucide="clipboard-list" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Disease Registry</span>
+            <i data-lucide="clipboard-list" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Disease Catalog</span>
           </button>
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-audit" onclick="switchMainView('view-audit', 'nav-audit')">
             <i data-lucide="history" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Operational Audit Trail</span>
@@ -63,13 +64,13 @@
       </aside>
 
       <!-- MAIN CONTENT -->
-      <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0f172a] overflow-hidden relative z-20 rounded-tl-[2.5rem] shadow-[-10px_0_30px_rgba(0,0,0,0.2)] dark:shadow-[-10px_0_30px_rgba(0,0,0,0.5)] border-l border-t border-slate-300 dark:border-neutral-800">
+      <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0f172a] overflow-hidden relative z-20 border-l border-t border-slate-300 dark:border-neutral-800">
         
         <!-- HEADER -->
         <header class="h-16 bg-transparent flex items-center justify-between px-6 flex-shrink-0 z-20">
           <div class="flex items-center gap-4">
-            <button id="sidebar-toggle" class="text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200" data-portal-menu aria-label="Toggle sidebar" onclick="toggleSidebar()">
-              <i data-lucide="panel-left-close" id="sidebar-icon" class="w-5 h-5"></i>
+            <button id="sidebar-toggle" class="hi-mobile-menu text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200" data-portal-menu aria-label="Toggle sidebar" onclick="toggleSidebar()">
+              <i data-lucide="menu" id="sidebar-icon" class="w-5 h-5"></i>
             </button>
             <div class="text-sm text-slate-600 flex gap-2">
               <span class="text-slate-800 dark:text-slate-200 font-medium">Dashboard</span>
@@ -269,18 +270,19 @@
           <div id="view-diseases" class="view-section">
             <div class="admin-section-heading">
               <div>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Disease / Case Registry</h1>
-                <p class="text-slate-600 dark:text-slate-400 mt-1">Manage case-encoding categories. Some historical labels describe symptoms or broad case groups and need clinical review.</p>
+                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Disease Catalog</h1>
+                <p class="text-slate-600 dark:text-slate-400 mt-1">Manage the disease names available in BHW and MHO consultation forms.</p>
               </div>
               <button onclick="openDiseaseModal()" class="admin-add-disease bg-emerald-700 hover:bg-emerald-800 text-white">
-                <i data-lucide="plus-circle" class="admin-add-disease-icon"></i> Add Disease / Case
+                <i data-lucide="plus-circle" class="admin-add-disease-icon"></i> Add Disease Name
               </button>
             </div>
 
             <div class="white-panel">
+              <p class="mb-4 text-sm text-slate-600 dark:text-slate-300">This catalog provides disease choices; it does not create patient records or assign severity. Unlisted conditions can be recorded for MHO review.</p>
               <div class="sub-tabs">
-                <button class="sub-tab-btn active" id="btn-disease-active" onclick="switchSubView('disease', 'active')">Active Registry</button>
-                <button class="sub-tab-btn" id="btn-disease-archived" onclick="switchSubView('disease', 'archived')">Archived Registry</button>
+                <button class="sub-tab-btn active" id="btn-disease-active" onclick="switchSubView('disease', 'active')">Active Diseases</button>
+                <button class="sub-tab-btn" id="btn-disease-archived" onclick="switchSubView('disease', 'archived')">Archived Diseases</button>
               </div>
               
               <div id="disease-active-view">
@@ -288,10 +290,8 @@
                   <table>
                     <thead>
                       <tr>
-                        <th>Disease / Case Name</th>
-                        <th>Category</th>
-                        <th>Classification</th>
-                        <th>Status</th>
+                        <th>Disease Name</th>
+                        <th>Availability</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -305,10 +305,8 @@
                   <table>
                     <thead>
                       <tr>
-                        <th>Disease / Case Name</th>
-                        <th>Category</th>
-                        <th>Classification</th>
-                        <th>Status</th>
+                        <th>Disease Name</th>
+                        <th>Availability</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -326,7 +324,7 @@
             <div class="admin-section-heading">
               <div>
                 <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Operational Audit Trail</h1>
-                <p class="text-slate-600 dark:text-slate-400 mt-1">Recorded account, case and disease registry changes.</p>
+                <p class="text-slate-600 dark:text-slate-400 mt-1">Recorded account, case and disease catalog changes.</p>
               </div>
               <button onclick="loadAuditLogs()" class="bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 px-4 py-2 rounded-md font-bold flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700">
                 <i data-lucide="refresh-cw" class="admin-refresh-icon"></i> Refresh Ledger
@@ -365,32 +363,22 @@
     <div id="diseaseModal" role="dialog" aria-modal="true" aria-labelledby="disease-modal-title" tabindex="-1" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
       <div class="bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700">
         <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800">
-          <h3 id="disease-modal-title" class="font-bold text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5 text-brandBlue"></i> Add to Registry</h3>
-          <button aria-label="Close registry form" onclick="closeModal('diseaseModal')" class="text-slate-600 dark:text-slate-300 hover:text-slate-600 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+          <h3 id="disease-modal-title" class="font-bold text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2"><i data-lucide="plus-circle" class="w-5 h-5 text-brandBlue"></i> Add Disease Name</h3>
+          <button aria-label="Close disease form" onclick="closeModal('diseaseModal')" class="text-slate-600 dark:text-slate-300 hover:text-slate-600 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
         </div>
         <div class="p-6 flex flex-col gap-4 bg-white dark:bg-slate-900">
           <div>
-            <label for="new_disease_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Disease / Case Name</label>
-            <input type="text" id="new_disease_name" data-modal-initial-focus class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800" placeholder="e.g. Typhoid Fever" />
+            <label for="new_disease_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Disease Name *</label>
+            <input type="text" id="new_disease_name" required maxlength="255" aria-describedby="disease-name-help disease-form-error" data-modal-initial-focus class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800" placeholder="e.g. Typhoid Fever" />
+            <p id="disease-name-help" class="mt-2 text-sm text-slate-600 dark:text-slate-300">Use a clear, consistent disease name. It will be available in BHW and MHO consultation forms. Severity is recorded separately for each case or visit.</p>
+            <p id="disease-form-error" role="alert" class="mt-2 text-sm text-red-700 dark:text-red-300" hidden></p>
           </div>
-          <div>
-            <label for="new_disease_cat" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Category</label>
-            <select id="new_disease_cat" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800">
-              <option value="morbidity">Morbidity (Sickness)</option>
-              <option value="mortality">Mortality (Death)</option>
-            </select>
-          </div>
-          <div>
-            <label for="new_disease_class" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Classification</label>
-            <select id="new_disease_class" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800">
-              <option value="Standard">Standard Case</option>
-              <option value="High Risk">High Risk / Alert</option>
-            </select>
-          </div>
+          <input id="new_disease_cat" type="hidden" value="morbidity">
+          <input id="new_disease_class" type="hidden" value="Standard">
         </div>
         <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3">
           <button onclick="closeModal('diseaseModal')" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors">Cancel</button>
-          <button onclick="saveNewDisease()" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 shadow-sm transition-colors flex items-center gap-2"><i data-lucide="save" class="w-4 h-4"></i> Save to Database</button>
+          <button id="disease-save-button" onclick="saveNewDisease()" class="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 shadow-sm transition-colors flex items-center gap-2 disabled:opacity-50"><i data-lucide="save" class="w-4 h-4"></i> Add Disease Name</button>
         </div>
       </div>
     </div>
@@ -403,7 +391,7 @@
     <script src="assets/js/admin/admin-records.js"></script>
     <script src="assets/js/admin/admin-registry.js"></script>
     <script src="assets/js/admin/admin-audit.js"></script>
-    <script src="assets/js/shared/portal-navigation.js"></script>
+    <script src="assets/js/shared/portal-navigation.js?v=20261031-visible4"></script>
   </body>
 </html>
 

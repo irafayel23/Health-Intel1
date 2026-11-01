@@ -1,0 +1,11 @@
+{
+  "version": "combined5592-policyA-SN-v1",
+  "dataset_sha256": "6fa6851e203b07fe6ac6bd4013bce7dd9fa601dda7071bb23b42d1b1e7689b36",
+  "snapshot_sha256": "80929aa8c714e8594867b38b5a4102c84e55e6fb57a5c747794af5eb23ecff9d",
+  "source_combined_sha256": "d0f7db1e4f1c9bc0514ffbd570eb3412b58ae2b8d01f8ff1734f691f46ea3cdf",
+  "records": 3150,
+  "cases": 5592,
+  "scope_count": 70,
+  "created": "2026-10-31T10:26:37.712393+00:00",
+  "evidence_archive_sha256": null
+}

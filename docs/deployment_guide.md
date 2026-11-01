@@ -2,6 +2,8 @@
 
 Prepared 3 October 2026. Hosting provider and domain are not chosen. These are tested application settings and reference templates, not a completed public deployment. The current local configuration, database and friend-demo processes are unchanged.
 
+Runtime documentation follow-up, 23 October 2026: the verified local Windows tools are **Node.js v24.22.1 and npm 11.19.1**. The locked backend dependencies accept this Node version and the native bcrypt module loads successfully. No service template, compatibility setting or dependency change is required for this local runtime update. This note does not verify or upgrade Azure; the dated preparation instructions below remain reference material. Revalidate the target runtime and install platform-specific native dependencies through the reviewed deployment process before any future deployment; do not copy Windows dependencies to Linux.
+
 ## Intended arrangement
 
 One persistent server runs Node, Python and MySQL, with one HTTPS domain:

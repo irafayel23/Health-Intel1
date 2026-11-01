@@ -25,7 +25,9 @@ async function seedTopTen(db) {
                 existing.push({ name, status: rows[0].status });
                 continue;
             }
-            await connection.execute('INSERT INTO disease_registry (name,category,classification,status,is_archived) VALUES (?,\'morbidity\',\'Standard\',\'Active\',0)', [name]);
+            await connection.execute(connection.normalizedSchema
+                ? 'INSERT INTO disease_registry (name,category,classification,status) VALUES (?,\'morbidity\',\'Standard\',\'Active\')'
+                : 'INSERT INTO disease_registry (name,category,classification,status,is_archived) VALUES (?,\'morbidity\',\'Standard\',\'Active\',0)', [name]);
             added.push(name);
         }
         if (added.length) {

@@ -1,5 +1,10 @@
+const {caseAgeSql,ageGroupSql,ranges}=require('./age-groups');
 function createDashboardData(db) {
     return {
+        async analyticsBarangays() {
+            const [rows]=await db.execute('SELECT name FROM barangays ORDER BY name');
+            return rows.map(row=>row.name);
+        },
         async bhwStats(barangay_id) {
             let baseFilter = `WHERE is_archived = FALSE`;
             let params = [];
@@ -61,7 +66,7 @@ function createDashboardData(db) {
                 where.params
             );
             const [[summary]] = await db.execute(
-                `SELECT COUNT(*) as total_cases, COALESCE(SUM(age IS NULL OR age < 0 OR age > 130),0) as unknown_age_cases, DATE_FORMAT(MIN(date_recorded),'%Y-%m-%d') as first_recorded, DATE_FORMAT(MAX(date_recorded),'%Y-%m-%d') as last_recorded FROM health_cases WHERE ${where.sql}`,
+                `SELECT COUNT(*) as total_cases, COALESCE(SUM(${caseAgeSql()} IS NULL OR ${caseAgeSql()} < 0 OR ${caseAgeSql()} > 130),0) as unknown_age_cases, DATE_FORMAT(MIN(date_recorded),'%Y-%m-%d') as first_recorded, DATE_FORMAT(MAX(date_recorded),'%Y-%m-%d') as last_recorded FROM health_cases WHERE ${where.sql}`,
                 where.params
             );
             return { rows, summary };
@@ -100,9 +105,52 @@ function createDashboardData(db) {
             return rows;
         },
 
+        async analyticsOptions() {
+            const [years] = await db.execute("SELECT DISTINCT YEAR(date_recorded) as year FROM health_cases WHERE date_recorded IS NOT NULL ORDER BY year DESC");
+            const [barangays] = await db.execute('SELECT name FROM barangays ORDER BY name');
+            const [diseases] = await db.execute("SELECT DISTINCT disease FROM health_cases WHERE disease NOT LIKE '%bite%' AND disease NOT LIKE '%accident%' ORDER BY disease");
+            return { years: years.map(row => Number(row.year)), barangays: barangays.map(row => row.name), diseases: diseases.map(row => row.disease) };
+        },
+
+        async trend(where, year, disease) {
+            const monthly = year !== 'all';
+            const extra = disease ? ' AND disease = ?' : '';
+            const [rows] = await db.execute(
+                `SELECT ${monthly ? 'MONTH' : 'YEAR'}(date_recorded) as period, COUNT(*) as cases FROM health_cases WHERE ${where.sql} AND date_recorded IS NOT NULL${extra} GROUP BY period ORDER BY period`,
+                [...where.params, ...(disease ? [disease] : [])]
+            );
+            return rows;
+        },
+
+        async diseaseYearComparison(where) {
+            const [rows] = await db.execute(
+                `SELECT disease, YEAR(date_recorded) as year, COUNT(*) as cases FROM health_cases WHERE ${where.sql} AND date_recorded IS NOT NULL GROUP BY disease, year ORDER BY year, disease`,
+                where.params
+            );
+            return rows;
+        },
+
+        async breakdown(where, filters) {
+            const [places]=await db.execute('SELECT name FROM barangays ORDER BY name');
+            const [barangays]=await db.execute(`SELECT COALESCE(b.name,'Not recorded') AS label, COUNT(*) AS cases
+                FROM health_cases h LEFT JOIN barangays b ON b.id=h.barangay_id WHERE ${where.sql}
+                GROUP BY label ORDER BY cases DESC,label`,where.params);
+            const [ages]=await db.execute(`SELECT ${ageGroupSql(caseAgeSql())} AS label, COUNT(*) AS cases
+                FROM health_cases WHERE ${where.sql} GROUP BY label`,where.params);
+            const [months]=await db.execute(`SELECT DATE_FORMAT(date_recorded,'%Y-%m') AS label, COUNT(*) AS cases
+                FROM health_cases WHERE ${where.sql} AND date_recorded IS NOT NULL GROUP BY label ORDER BY cases DESC,label`,where.params);
+            const known=new Map(barangays.map(row=>[row.label,Number(row.cases)]));
+            const placeRows=places.filter(row=>filters.barangay==='all'||row.name===filters.barangay).map(row=>({label:row.name,cases:known.get(row.name)||0}));
+            for(const row of barangays)if(!placeRows.some(place=>place.label===row.label))placeRows.push(row);
+            const ageCounts=new Map(ages.map(row=>[row.label,Number(row.cases)]));
+            return {barangays:placeRows.sort((a,b)=>b.cases-a.cases||a.label.localeCompare(b.label)),
+                ages:[...Object.keys(ranges),'Not recorded'].map(label=>({label,cases:ageCounts.get(label)||0})),months,
+                total_cases:barangays.reduce((sum,row)=>sum+Number(row.cases),0),unknown_age_cases:ageCounts.get('Not recorded')||0};
+        },
+
         async mortality(where) {
             const [rows] = await db.execute(
-                `SELECT disease, COUNT(*) as count FROM health_cases WHERE ${where.sql} GROUP BY disease ORDER BY count DESC, disease ASC LIMIT 5`,
+                `SELECT disease, COUNT(*) as count FROM health_cases WHERE ${where.sql} GROUP BY disease ORDER BY count DESC, disease ASC`,
                 where.params
             );
             return rows;

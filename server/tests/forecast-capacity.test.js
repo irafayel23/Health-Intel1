@@ -21,6 +21,7 @@ function fixture() {
                 createDiseaseRegistryHandlers: () => ({}), createDiseaseRegistryData: () => ({})
             };
             if (name === '../services/mho-analytics') return {};
+            if (name === '../services/analytics-sample') return { sampleAnalytics: () => ({}) };
             if (name === 'child_process') return { spawn() {
                 const child = new EventEmitter();
                 child.stdout = new EventEmitter(); child.stderr = new EventEmitter();

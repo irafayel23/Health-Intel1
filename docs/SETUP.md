@@ -1,6 +1,8 @@
 # Setup
 
-Verified on Windows with Node.js 24, Python 3.12 and the local XAMPP MySQL-compatible database. Use a supported Node.js 22 or newer release. Required packages are declared in `server/package.json` and pinned Python requirements in `server/requirements.txt`.
+Verified local Node.js environment on Windows as of 23 October 2026: **Node.js v24.22.1 and npm 11.19.1**. Python 3.12 and the local XAMPP MySQL-compatible database remain the existing setup. Use the verified Node.js 24 environment for local reproduction; compatibility with other supported releases requires their own testing. Required packages are declared in `server/package.json` and pinned Python requirements in `server/requirements.txt`.
+
+After the runtime update, the user reported `npm audit` with zero vulnerabilities and `npm test` with 227 passed, zero failed and zero skipped. The follow-up review independently confirmed the installed runtime versions, a valid installed direct dependency tree, compatible Node engine ranges for all locked dependencies, and successful loading of bcrypt, Express, mysql2 and Nodemailer. No dependency reinstall, package/lockfile changes or application changes were needed. These checks concern the local Windows environment; they do not establish the deployed Azure runtime version. See the [maintenance follow-up](../server/security-reports/20261023/REPORT.md#local-runtime-follow-up).
 
 ## Existing installation
 

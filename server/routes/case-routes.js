@@ -204,7 +204,11 @@ function registerCaseRoutes(app, db, corrections) {
             const disease = req.query.disease === undefined ? '' : req.query.disease;
             if (typeof disease !== 'string' || disease.length > 255 || /[<>\x00-\x1f\x7f]/.test(disease))
                 return res.status(400).json({ success: false, error: 'Select a valid disease filter.' });
-            const data = await mapData.heatmap(disease);
+            // The account assignment is authoritative; never trust a client-supplied map scope.
+            const barangayId = req.user.role === 'bhw' ? Number(req.user.barangay_id) : null;
+            if (barangayId !== null && (!Number.isSafeInteger(barangayId) || barangayId < 1))
+                return res.status(403).json({ success: false, error: 'Your account needs an assigned barangay.' });
+            const data = await mapData.heatmap(disease, barangayId);
             res.json({
                 success: true,
                 data,

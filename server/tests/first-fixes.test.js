@@ -155,16 +155,17 @@ test('BHW data reads and writes cannot cross barangay boundaries or spoof an enc
     assert.ok(result.data.every(row => row.barangay_id === ownBarangay));
     assert.equal((await request('/api/patients?barangay_id=' + otherBarangay, 'bhw')).status, 403);
     const heatmap = await (await request('/api/heatmap-data', 'bhw')).json();
-    assert.equal(heatmap.data.length, 7);
+    assert.equal(heatmap.data.length, 1);
     assert.ok(heatmap.data.some(row => row.id === ownBarangay));
-    assert.ok(heatmap.data.some(row => row.id === otherBarangay));
+    assert.ok(heatmap.data.every(row => row.id === ownBarangay));
+    assert.equal((await request('/api/heatmap-data?barangay_id=' + otherBarangay, 'bhw')).status,403);
     assert.ok(heatmap.data.every(row => !('patient_name' in row) && !('resident_id' in row)));
     const [[sampleDisease]] = await connection.query('SELECT disease FROM health_cases WHERE barangay_id=? AND status=? AND is_archived=FALSE AND disease IS NOT NULL LIMIT 1',[otherBarangay,'Active']);
     if (sampleDisease) {
         const filtered = await (await request('/api/heatmap-data?disease=' + encodeURIComponent(sampleDisease.disease),'bhw')).json();
-        assert.equal(filtered.data.length,7);
+        assert.equal(filtered.data.length,1);
         assert.equal(filtered.selected_disease,sampleDisease.disease);
-        assert.ok(filtered.data.find(row=>row.id===otherBarangay).cases>0);
+        assert.ok(filtered.data.every(row=>row.id===ownBarangay));
     }
     assert.equal((await request('/api/residents/' + otherResident + '/dossier', 'bhw')).status, 404);
     for (const action of ['status','archive','restore']) assert.equal((await request(`/api/patients/${otherCase}/${action}`, 'bhw', { method: 'PUT', body: { new_status: 'Cleared' } })).status, 404);
@@ -206,7 +207,7 @@ test('BHW and MHO heatmaps show disease aggregates for each recorded severity', 
             const response = await request('/api/heatmap-data', role);
             assert.equal(response.status, 200);
             const { data } = await response.json();
-            assert.equal(data.length, 7);
+            assert.equal(data.length, role === 'bhw' ? 1 : 7);
             assert.ok(data.every(row => row.high_risk_diseases.reduce((sum, item) => sum + item.cases, 0) === row.severity_counts.high_risk));
             for (const key of ['mild', 'monitored', 'high_risk']) {
                 assert.ok(data.every(row => row.diseases_by_severity[key].reduce((sum, item) => sum + item.cases, 0) === row.severity_counts[key]));
@@ -217,11 +218,13 @@ test('BHW and MHO heatmaps show disease aggregates for each recorded severity', 
             assert.equal(own.diseases_by_severity.mild.find(item => item.disease === firstDisease).cases, 1);
             assert.equal(own.diseases_by_severity.monitored.find(item => item.disease === firstDisease).cases, 1);
             assert.equal(own.high_risk_diseases.find(item => item.disease === secondDisease).cases, 1);
-            assert.equal(data.find(row => row.id === otherBarangay).high_risk_diseases.find(item => item.disease === secondDisease).cases, 1);
+            if (role === 'mho') assert.equal(data.find(row => row.id === otherBarangay).high_risk_diseases.find(item => item.disease === secondDisease).cases, 1);
+            else assert.ok(data.every(row => row.id === ownBarangay));
             assert.ok(data.every(row => !('patient_name' in row) && !('resident_id' in row)));
             const filtered = await (await request('/api/heatmap-data?disease=' + encodeURIComponent(firstDisease), role)).json();
             assert.deepEqual(filtered.data.find(row => row.id === ownBarangay).high_risk_diseases, [{ disease: firstDisease, cases: 2 }]);
-            assert.deepEqual(filtered.data.find(row => row.id === otherBarangay).high_risk_diseases, []);
+            if (role === 'mho') assert.deepEqual(filtered.data.find(row => row.id === otherBarangay).high_risk_diseases, []);
+            else assert.ok(filtered.data.every(row => row.id === ownBarangay));
         }
     } finally {
         for (const id of inserted) await connection.execute('DELETE FROM health_cases WHERE id = ?', [id]);
@@ -323,7 +326,8 @@ test('page scripts exist and parse', () => {
             if(match[2].trim() && !/type=["']text\/tailwindcss["']/.test(match[1])) new vm.Script(match[2],{filename:name});
             const src=match[1].match(/\bsrc=["'](assets\/js\/[^"']+)["']/i)?.[1];
             if(src) {
-                const file=path.join(__dirname,'..','..',src);
+                // Cache-busting query strings are URL metadata, not part of a disk filename.
+                const file=path.join(__dirname,'..','..',src.split(/[?#]/,1)[0]);
                 assert.ok(fs.existsSync(file),`${name} references missing ${src}`);
                 new vm.Script(fs.readFileSync(file,'utf8'),{filename:src});
             }

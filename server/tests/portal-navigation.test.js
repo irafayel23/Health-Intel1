@@ -1,80 +1,36 @@
-const {test} = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
-const script = fs.readFileSync(path.resolve(__dirname,'../../assets/js/shared/portal-navigation.js'),'utf8');
-
-function fixture(mobile = true) {
-    const documentEvents = {}, breakpointEvents = {}, windowEvents = {};
-    let doc;
-    function element(id = '') {
-        const classes = new Set(), attributes = {}, events = {};
-        return {id, hidden:false, disabled:false, inert:false, children:[],
-            classList:{contains:key=>classes.has(key),add:key=>classes.add(key),
-                toggle(key,on){on?classes.add(key):classes.delete(key);}},
-            setAttribute:(key,value)=>attributes[key]=value,removeAttribute:key=>delete attributes[key],
-            hasAttribute:key=>key in attributes,getAttribute:key=>attributes[key],
-            append(node){this.children.push(node);},prepend(node){this.children.unshift(node);},
-            addEventListener:(type,callback)=>events[type]=callback,
-            fire:(type,event)=>events[type]?.(event),focus(){doc.activeElement=this;},
-            getClientRects:()=>[{}],querySelectorAll(){return this.children;}};
-    }
-    const sidebar = element('sidebar'), toggle = element(), main = element(), body = element(), nav = element();
-    sidebar.classList.add('w-64');sidebar.children.push(nav);
-    const tableRegion = element(), table = {parentElement:tableRegion};
-    const breakpoint = {matches:mobile,addEventListener:(type,callback)=>breakpointEvents[type]=callback};
-    let desktopCalls = 0, dialog = false;
-    doc = {readyState:'complete',body,activeElement:toggle,
-        querySelector:selector=>selector.includes('#sidebar')?sidebar:selector==='main'?main:
-            selector==='[data-portal-menu]'?toggle:selector==='.swal2-container'&&dialog?element():null,
-        querySelectorAll:selector=>selector==='table'?[table]:[],createElement:()=>element(),
-        addEventListener:(type,callback)=>documentEvents[type]=callback};
-    const window = {matchMedia:()=>breakpoint,toggleSidebar:()=>desktopCalls++,addEventListener:(type,callback)=>windowEvents[type]=callback};
-    vm.runInNewContext(script,{window,document:doc});
-    const key = (key,shiftKey=false)=>{let prevented=false;documentEvents.keydown({key,shiftKey,preventDefault(){prevented=true;}});return prevented;};
-    const resize = matches=>{breakpoint.matches=matches;breakpointEvents.change();};
-    return {sidebar,toggle,main,body,nav,doc,window,key,resize,tableRegion,
-        desktopCalls:()=>desktopCalls,setDialog:value=>dialog=value,fullscreen(value){body.classList.toggle('heatmap-is-expanded',value);windowEvents['health-intel:map-fullscreen-change']();},
-        close:()=>sidebar.children[0],backdrop:()=>body.children[0]};
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const source=fs.readFileSync(path.join(__dirname,'../../assets/js/shared/portal-navigation.js'),'utf8');
+function setup(id,mobile=false){
+ const events={},mediaEvents={},windowEvents={};
+ function element(text=''){
+  const set=new Set(),attrs={},handlers={};
+  return {id:'',textContent:text,children:[],style:{},hidden:false,disabled:false,inert:false,
+   classList:{add:x=>set.add(x),contains:x=>set.has(x),toggle(x,on){if(on)set.add(x);else set.delete(x);}},
+   setAttribute:(k,v)=>attrs[k]=String(v),getAttribute:k=>attrs[k]??null,removeAttribute:k=>delete attrs[k],
+   addEventListener(k,f){(handlers[k]??=[]).push(f);},emit(k,e={}){for(const f of handlers[k]||[])f({target:this,preventDefault(){},...e});},
+   append(...nodes){this.children.push(...nodes);},prepend(n){this.children.unshift(n);},focus(){doc.activeElement=this;this.emit('focus');},
+   getBoundingClientRect:()=>({top:120,right:80}),getClientRects:()=>[{}],querySelectorAll:()=>[]};
+ }
+ const body=element(),sidebar=element(),brand=element(),main=element(),toggle=element(),nav=element('Patient Records');sidebar.id=id;
+ const media={matches:mobile,addEventListener:(k,f)=>mediaEvents[k]=f};
+ sidebar.querySelector=()=>({parentElement:brand});sidebar.querySelectorAll=()=>[nav];
+ const doc={readyState:'complete',body,activeElement:null,createElement:()=>element(),addEventListener:(k,f)=>events[k]=f,querySelector:s=>s.startsWith('#sidebar,')?sidebar:s==='[data-portal-menu]'?toggle:s==='main'?main:null,querySelectorAll:()=>[]};
+ const win={matchMedia:()=>media,innerHeight:844,addEventListener:(k,f)=>windowEvents[k]=f,dispatchEvent(){},toggleSidebar(){throw Error('Old portal-specific collapse must not execute');}};
+ vm.runInNewContext(source,{document:doc,window:win,Event:class{constructor(type){this.type=type;}}});
+ return {body,sidebar,brand,main,toggle,nav,doc,win,media,events,change(m){media.matches=m;mediaEvents.change();},desktop:brand.children[0],tooltip:body.children[0],close:sidebar.children[0]};
 }
-
-test('Phone drawer hides inactive navigation and closes on backdrop, selection and Escape',()=>{
-    const f=fixture();
-    assert.equal(f.sidebar.inert,true);assert.equal(f.main.inert,false);
-    assert.equal(f.toggle.getAttribute('aria-expanded'),'false');
-    f.window.toggleSidebar();
-    assert.equal(f.main.inert,true);assert.equal(f.sidebar.inert,false);
-    assert.equal(f.sidebar.getAttribute('aria-modal'),'true');
-    assert.equal(f.doc.activeElement,f.close());
-    f.backdrop().fire('click');assert.equal(f.doc.activeElement,f.toggle);assert.equal(f.main.inert,false);
-    f.window.toggleSidebar();f.sidebar.fire('click',{target:{closest:()=>f.nav}});
-    assert.equal(f.toggle.getAttribute('aria-expanded'),'false');
-    f.window.toggleSidebar();assert.equal(f.key('Escape'),true);assert.equal(f.sidebar.inert,true);
-    assert.equal(f.tableRegion.getAttribute('role'),'region');assert.equal(f.tableRegion.tabIndex,0);
-});
-
-test('Drawer traps keyboard focus while allowing an open confirmation dialog to own Escape',()=>{
-    const f=fixture();f.window.toggleSidebar();
-    assert.equal(f.key('Tab',true),true);assert.equal(f.doc.activeElement,f.nav);
-    assert.equal(f.key('Tab'),true);assert.equal(f.doc.activeElement,f.close());
-    f.setDialog(true);assert.equal(f.key('Escape'),false);assert.equal(f.main.inert,true);
-    f.setDialog(false);f.close().fire('click');assert.equal(f.main.inert,false);
-});
-
-test('Resizing releases inert content and desktop toggle continues to call original portal behavior',()=>{
-    const f=fixture();f.window.toggleSidebar();f.resize(false);
-    assert.equal(f.main.inert,false);assert.equal(f.sidebar.inert,false);assert.equal(f.backdrop().hidden,true);
-    assert.equal(f.sidebar.hasAttribute('aria-modal'),false);assert.equal(f.doc.activeElement,f.toggle);
-    f.window.toggleSidebar();assert.equal(f.desktopCalls(),1);
-    f.resize(true);assert.equal(f.sidebar.inert,true);assert.equal(f.main.inert,false);
-    f.window.toggleSidebar();assert.equal(f.desktopCalls(),1);assert.equal(f.main.inert,true);
-});
-
-test('Fullscreen map keeps navigation inert across breakpoints and releases the correct content on exit',()=>{
-    const f=fixture();f.fullscreen(true);f.resize(false);
-    assert.equal(f.main.inert,true);assert.equal(f.sidebar.inert,true);
-    f.fullscreen(false);assert.equal(f.main.inert,false);assert.equal(f.sidebar.inert,false);
-    f.fullscreen(true);f.resize(true);assert.equal(f.main.inert,true);assert.equal(f.sidebar.inert,true);
-    f.fullscreen(false);assert.equal(f.main.inert,false);assert.equal(f.sidebar.inert,true);
-});
+for(const [role,id]of [['BHW','sidebar'],['MHO','sidebar'],['Admin','main-sidebar'],['Superadmin','superadmin-sidebar']]){
+ test(role+' desktop starts expanded, toggles on click, exposes accessible tooltips and retains focus',()=>{
+  const a=setup(id);assert.equal(a.sidebar.classList.contains('hi-sidebar-collapsed'),false);assert.equal(a.desktop.getAttribute('aria-expanded'),'true');assert.equal(a.desktop.getAttribute('aria-label'),'Collapse sidebar');
+  a.desktop.emit('click');assert.equal(a.sidebar.classList.contains('hi-sidebar-collapsed'),true);assert.equal(a.desktop.getAttribute('aria-label'),'Expand sidebar');assert.equal(a.desktop.getAttribute('aria-controls'),id);
+  a.nav.emit('mouseenter');assert.equal(a.tooltip.hidden,false);assert.equal(a.tooltip.textContent,'Patient Records');assert.equal(a.nav.getAttribute('aria-label'),'Patient Records');
+  a.nav.emit('mouseleave');assert.equal(a.tooltip.hidden,true);a.nav.focus();assert.equal(a.tooltip.hidden,false);a.events.keydown({key:'Escape'});assert.equal(a.tooltip.hidden,true);
+  a.desktop.focus();a.desktop.emit('click');assert.equal(a.sidebar.classList.contains('hi-sidebar-collapsed'),false);assert.equal(a.doc.activeElement,a.desktop);assert.equal(a.desktop.getAttribute('aria-expanded'),'true');
+ });
+ test(role+' mobile drawer remains separate from desktop collapse with close/Escape and breakpoint recovery',()=>{
+  const a=setup(id);a.desktop.emit('click');a.change(true);assert.equal(a.sidebar.classList.contains('hi-sidebar-collapsed'),false);assert.equal(a.sidebar.inert,true);
+  a.win.toggleSidebar();assert.equal(a.sidebar.inert,false);assert.equal(a.main.inert,true);assert.equal(a.doc.activeElement,a.close);assert.equal(a.toggle.getAttribute('aria-expanded'),'true');
+  a.events.keydown({key:'Escape',preventDefault(){}});assert.equal(a.sidebar.inert,true);assert.equal(a.main.inert,false);assert.equal(a.doc.activeElement,a.toggle);
+  a.win.toggleSidebar();a.close.emit('click');assert.equal(a.toggle.getAttribute('aria-expanded'),'false');a.change(false);assert.equal(a.sidebar.classList.contains('hi-sidebar-collapsed'),true);assert.equal(a.main.inert,false);
+ });
+}

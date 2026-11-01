@@ -29,9 +29,9 @@
         <select id="swal-time-period" aria-label="Consultation AM or PM"><option value="">AM/PM</option><option>AM</option><option>PM</option></select></div><p class="hi-field-help">Use the recorded time in the Philippines.</p></div>
         <div id="swal-existing-case-fields" class="hi-encode-wide" hidden><label for="swal-existing-case">Existing disease case *</label><select id="swal-existing-case"><option value="">Enter patient details to find matching cases</option></select><p id="swal-existing-case-note" class="hi-field-help" role="status">An admission or follow-up adds a visit to the selected case and does not add another disease case.</p></div></div></section>
         <section><h3>3. Measurements</h3><p class="hi-field-help">Record all four measurements from this consultation. These values do not assign a diagnosis or severity.</p><div class="hi-encode-grid">
-        <div><label for="swal-bp">Blood pressure (mmHg) *</label><input id="swal-bp" required inputmode="numeric" maxlength="7" placeholder="e.g. 120/80"><p class="hi-field-help">Systolic / diastolic</p></div>
-        <div><label for="swal-temperature">Temperature (°C) *</label><input id="swal-temperature" required inputmode="decimal" maxlength="6" placeholder="e.g. 36.5"><p class="hi-field-help">Use degrees Celsius</p></div>
-        <div><label for="swal-height">Height (cm) *</label><input id="swal-height" required inputmode="decimal" maxlength="6" placeholder="e.g. 165"><p class="hi-field-help">Use centimetres</p></div>
+        <div class="hi-pressure-temperature-row hi-encode-wide"><div class="hi-bp-field"><label for="swal-bp">Blood pressure (mmHg) *</label><input id="swal-bp" required inputmode="numeric" maxlength="7" placeholder="e.g. 120/80"><p class="hi-field-help">Systolic / diastolic</p></div>
+        <div class="hi-temperature-field"><label for="swal-temperature">Temperature (°C) *</label><input id="swal-temperature" required inputmode="decimal" maxlength="6" placeholder="e.g. 36.5"><p class="hi-field-help">Use degrees Celsius</p></div>
+        </div><div><label for="swal-height">Height (cm) *</label><input id="swal-height" required inputmode="decimal" maxlength="6" placeholder="e.g. 165"><p class="hi-field-help">Use centimetres</p></div>
         <div><label for="swal-weight">Weight (kg) *</label><input id="swal-weight" required inputmode="decimal" maxlength="7" placeholder="e.g. 60.5"><p class="hi-field-help">Use kilograms</p></div></div></section>`;
     }
     function bind(controls, returnVisit=null) {
@@ -96,10 +96,31 @@
         }};
     }
     function formError(id,message) {const error=Error(message);error.field=id;return error;}
+    function bindBloodPressure(prefix) {
+        const input=document.getElementById(prefix+'-bp');
+        if(input._hiBloodPressure)return input._hiBloodPressure;
+        const events=new AbortController(),group=document.createElement('div');
+        group.className='hi-bp-inputs grid grid-cols-2 gap-3 min-w-0';
+        group.setAttribute('role','group');group.setAttribute('aria-label','Blood pressure in mmHg');
+        const fields=['systolic','diastolic'].map((name,index)=>{
+            const label=document.createElement('label');label.className='!mb-0 !text-sm !font-medium min-w-0';label.textContent=index===0?'Systolic (top)':'Diastolic (bottom)';
+            const control=document.createElement('input');control.id=prefix+'-bp-'+name;control.type='text';control.inputMode='numeric';control.maxLength=3;control.required=true;control.autocomplete='off';control.placeholder=index===0?'e.g. 120':'e.g. 80';control.className='!mt-2 !text-base min-w-0';
+            label.htmlFor=control.id;label.append(control);group.append(label);return control;
+        });
+        const originalLabel=document.querySelector(`label[for="${prefix}-bp"]`);if(originalLabel)originalLabel.htmlFor=fields[0].id;
+        input.type='hidden';input.required=false;input.after(group);
+        const load=()=>{const match=/^(\d{1,3})\s*\/\s*(\d{1,3})$/.exec(input.value);fields.forEach((field,i)=>field.value=match?.[i+1]||'');};
+        const sync=()=>{input.value=fields.some(field=>field.value)?fields.map(field=>field.value.trim()).join('/'):'';};
+        for(const field of fields){field.addEventListener('beforeinput',event=>{if(event.inputType==='insertText'&&event.data&&/\D/.test(event.data))event.preventDefault();},{signal:events.signal});field.addEventListener('input',sync,{signal:events.signal});}
+        input.addEventListener('change',load,{signal:events.signal});load();
+        const api={sync,errorField(){return fields.find(field=>!/^\d{1,3}$/.test(field.value)||Number(field.value)<1||Number(field.value)>500)?.id||fields[0].id;},destroy(){events.abort();group.remove();input.type='text';input.required=true;if(originalLabel)originalLabel.htmlFor=input.id;delete input._hiBloodPressure;}};
+        input._hiBloodPressure=api;return api;
+    }
     function validateMeasurements(prefix='swal') {
         const value=id=>document.getElementById(id.replace(/^swal-/,prefix+'-')).value.trim();
+        const pressure=document.getElementById(prefix+'-bp');pressure._hiBloodPressure?.sync();
         const match=/^(\d{1,3})\s*\/\s*(\d{1,3})$/.exec(value('swal-bp'));
-        if(!match||match.slice(1).some(n=>Number(n)<1||Number(n)>500))throw formError(prefix+'-bp','Enter blood pressure as systolic/diastolic, for example 120/80.');
+        if(!match||match.slice(1).some(n=>Number(n)<1||Number(n)>500))throw formError(pressure._hiBloodPressure?.errorField()||prefix+'-bp','Enter both blood pressure numbers, for example 120 systolic and 80 diastolic.');
         for(const [id,label,max] of [['swal-temperature','temperature in °C',100],['swal-height','height in cm',500],['swal-weight','weight in kg',1500]]){
             const raw=value(id);if(!/^\d+(?:\.\d{1,2})?$/.test(raw)||Number(raw)<=0||Number(raw)>max)throw formError(id.replace(/^swal-/,prefix+'-'),`Enter ${label} as a positive number (up to ${max}) with no more than two decimal places.`);
         }
@@ -126,7 +147,7 @@
                 const summary=document.getElementById('hi-visit-save-summary'), v=visitControl.consultation();
                 summary.textContent=v.case_id?`Saving a ${v.nature_of_visit.toLowerCase()} under case #REC-${v.case_id}. The original disease case count stays the same.`:'Saving one new disease case and its consultation details.';
             }
-            sections[step].querySelector('input:not([readonly]),.hi-select-trigger')?.focus({preventScroll:true});
+            sections[step].querySelector('input:not([readonly]):not([type=hidden]),.hi-select-trigger')?.focus({preventScroll:true});
         };
         back.addEventListener('click',()=>{if(Swal.isLoading())return;step=Math.max(0,step-1);Swal.resetValidationMessage();render();},{signal:events.signal});
         const validate=()=>{
@@ -160,6 +181,7 @@
         container.innerHTML=visits.length?visits.map(v=>`<article class="hi-visit-card">
             <header><div><span class="hi-visit-nature">${safe(v.nature_of_visit)}</span><p class="hi-visit-date">${safe(HealthIntelDate.formatCaseDate(v.consultation_date))} · ${safe(formatTime(v.consultation_time))}</p></div><span class="hi-visit-case-ref">#REC-${Number(v.case_id)}</span></header>
             <p class="hi-visit-condition">${HealthIntelEncoding.conditionCell(v)} <span>· ${safe(v.transaction_mode)}</span></p>
+            <p class="hi-field-help">Age at visit: ${safe(v.age_at_visit ?? 'Not recorded')} · Age group: ${safe(v.age_group || 'Not recorded')}${v.age_group && v.age_group!=='Not recorded'?' years':''}</p>
             <dl class="hi-visit-measurements"><div><dt>Blood pressure</dt><dd>${measured(v.blood_pressure,'mmHg')}</dd></div><div><dt>Temperature</dt><dd>${measured(v.temperature_c,'°C')}</dd></div><div><dt>Height</dt><dd>${measured(v.height_cm,'cm')}</dd></div><div><dt>Weight</dt><dd>${measured(v.weight_kg,'kg')}</dd></div></dl>
             ${v.transaction_mode==='Referral'?`<div class="hi-visit-referral"><strong>Referral</strong><p>Referred by: ${safe(v.referred_by||'Not recorded')}</p><p>Reason: ${safe(v.referral_reason||'Not recorded')}</p></div>`:''}
             <div class="hi-visit-notes"><p><strong>Visit severity:</strong> ${safe(v.severity)}</p><p><strong>Symptoms / remarks:</strong> ${safe(v.remarks||'None recorded')}</p></div>
@@ -171,11 +193,11 @@
         try {
             const response=await fetch(`http://localhost:3000/api/patients/${caseId}/visits`),result=await response.json();
             if(!response.ok||!result.success)throw Error(result.error||'Visit history could not be loaded.');
-            const html=result.data.length?result.data.map(visit=>`<section class="hi-review-summary"><strong>${safe(visit.nature_of_visit)}</strong><p>${safe(HealthIntelDate.formatCaseDate(visit.consultation_date))} · ${safe(formatTime(visit.consultation_time))} · ${safe(visit.transaction_mode)}</p>
+            const html=result.data.length?result.data.map(visit=>`<section class="hi-review-summary"><strong>${safe(visit.nature_of_visit)}</strong><p>${safe(HealthIntelDate.formatCaseDate(visit.consultation_date))} · ${safe(formatTime(visit.consultation_time))} · ${safe(visit.transaction_mode)}</p><p>Age at visit: ${safe(visit.age_at_visit ?? 'Not recorded')} · Age group: ${safe(visit.age_group || 'Not recorded')}${visit.age_group && visit.age_group!=='Not recorded'?' years':''}</p>
                 <p>BP: ${safe(visit.blood_pressure||'Not measured')} · Temperature: ${safe(visit.temperature_c==null?'Not measured':visit.temperature_c+' °C')}<br>Height: ${safe(visit.height_cm==null?'Not measured':visit.height_cm+' cm')} · Weight: ${safe(visit.weight_kg==null?'Not measured':visit.weight_kg+' kg')}</p>
                 ${visit.transaction_mode==='Referral'?`<p>Referred by: ${safe(visit.referred_by||'Not recorded')}<br>Reason: ${safe(visit.referral_reason||'Not recorded')}</p>`:''}<p>Recorded severity: ${safe(visit.severity)}<br>Symptoms / remarks: ${safe(visit.remarks||'None recorded')}</p>${followupHistory(visit)}</section>`).join(''):'<p>No structured visits were recorded for this older case. Its original case details remain in the medical dossier.</p>';
             Swal.fire({title:`Visits · Case #REC-${caseId}`,html:`<div class="hi-review-dialog">${html}</div>`,customClass:{popup:'hi-dialog'},confirmButtonText:'Close',width:680});
         }catch(error){Swal.fire('Visit history unavailable',error.message,'error');}
     }
-    window.HealthIntelVisits={markup,bind,show,formatTime,validateMeasurements,wizard,renderResidentHistory,followupMarkup,followupPayload,followupHistory};
+    window.HealthIntelVisits={markup,bind,show,formatTime,bindBloodPressure,validateMeasurements,wizard,renderResidentHistory,followupMarkup,followupPayload,followupHistory};
 })();

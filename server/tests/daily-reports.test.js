@@ -2,7 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const PDFDocument=require('pdfkit');
 const express=require('express');
-const {todayPeriod}=require('../services/report-periods');
+const {todayPeriod,dailyPeriod}=require('../services/report-periods');
 const {dailyReportPdf}=require('../services/daily-report');
 const {registerDailyReportRoutes}=require('../routes/daily-reports');
 
@@ -13,6 +13,26 @@ test('today follows the Manila day, including midnight, leap days and year bound
         ['2026-12-31T16:00:00Z','2027-01-01','2027-01-02'],
         ['2028-02-28T16:00:00Z','2028-02-29','2028-03-01']
     ])assert.deepEqual(todayPeriod(new Date(instant)),{start,end,timeZone:'Asia/Manila'});
+});
+
+test('selected daily periods validate calendar dates and reject future dates using the Manila day',()=>{
+ const now=new Date('2026-10-17T16:00:00Z');
+ assert.deepEqual(dailyPeriod(undefined,now),todayPeriod(now));
+ for(const [start,end] of [['2024-02-29','2024-03-01'],['2025-12-31','2026-01-01'],['2026-10-18','2026-10-19']])assert.deepEqual(dailyPeriod(start,now),{start,end,timeZone:'Asia/Manila'});
+ for(const value of ['',null,[],{},'2026-10-19','2026-02-29','2024-02-30','2026-1-01','1899-12-31','2026-10-17T00:00:00Z'])assert.throws(()=>dailyPeriod(value,now),error=>error.status===400);
+});
+
+test('date controls default to Manila today, reset to Today, validate dates and send the selected day for each role',async()=>{
+ const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+ for(const role of ['bhw','mho']){
+  const input={value:'',max:'',focus(){},addEventListener(){}},button={disabled:false,setAttribute(){},removeAttribute(){}},events={},notices=[],downloads=[];let reset;
+  const sandbox={window:{},document:{addEventListener:(name,fn)=>events[name]=fn,getElementById:id=>id===role+'-report-date'?input:id===role+'-daily-download'?button:null,querySelector:selector=>selector.includes('"'+role+'"')?{addEventListener:(_name,fn)=>reset=fn}:null},Date,URLSearchParams,HealthIntelDate:{todayInManila:()=> '2026-10-18'},HealthIntel:{download:async(...args)=>downloads.push(args)},Swal:{fire:async notice=>notices.push(notice),showLoading(){}}};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared/daily-report-controls.js'),'utf8'),sandbox);
+  events.DOMContentLoaded();assert.equal(input.value,'2026-10-18');assert.equal(input.max,'2026-10-18');
+  input.value='2026-10-16';await sandbox.window.HealthIntelDailyReports.download(role);assert.match(downloads[0][0],new RegExp('/'+role+'/reports/daily\\?date=2026-10-16'));assert.equal(downloads[0][2],role.toUpperCase()+'_Daily_2026-10-16.pdf');assert.equal(button.disabled,false);
+  reset();assert.equal(input.value,'2026-10-18');
+  for(const invalid of ['','2026-02-30','2026-10-19']){input.value=invalid;await sandbox.window.HealthIntelDailyReports.download(role);}assert.equal(downloads.length,1);assert.equal(notices.at(-1).title,'Choose a report date');
+ }
 });
 
 test('daily PDFs paginate both sections, retain every row and label zero activity honestly',async()=>{

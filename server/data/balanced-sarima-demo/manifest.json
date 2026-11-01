@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "snapshot_sha256": "9693a80b505e3c97fda99684c2debed031dd3b6c37947fc606a09bd55abdfd14",
+  "dataset_sha256": "eb6f5e97cbaeca41a775d41c43c66f7ae7d4c2d591e639be2639fd558bcf28d4",
+  "frozen_evidence_archive_sha256": "269c2696c0136cd6562a50f39c3d1386afd48ec61c57790409bd6b56f7be1511",
+  "source_folder": "C:\\Users\\User\\.codex\\visualizations\\2026\\09\\26\\01a0dc67-9eb2-7d12-988d-be95e09269e0\\Health-Intel-SARIMA-Balanced-Demo",
+  "validation": "Real-world Validation Pending",
+  "mode": "saved_verified_synthetic_results",
+  "no_retraining": true,
+  "unavailable_causes_sha256": "971da3e541eaf58c71d701a8426c2754ade0b4bd48751451b7f8c926226469c5"
+}

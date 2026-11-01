@@ -170,7 +170,7 @@ test('BHW rehearsal checks all seven barangay assignments and keeps patient list
         const residents=await request('/api/residents',role);assert.equal(residents.status,200);
         assert.ok((await residents.json()).data.every(row=>row.barangay_id===barangay.id));
         const map=await request('/api/heatmap-data',role);assert.equal(map.status,200);
-        const points=(await map.json()).data;assert.equal(points.length,7);
+        const points=(await map.json()).data;assert.equal(points.length,1);assert.equal(points[0].id,barangay.id);
         assert.ok(points.every(point=>!('patient_name' in point)));
     }
     const mhoWalkin=(await db.query("SELECT id,barangay_id FROM health_cases WHERE encoded_by='WORKFLOW-MHO' ORDER BY id DESC LIMIT 1"))[0][0];
@@ -182,3 +182,4 @@ test('shared correction and MHO walk-in scripts parse without changing existing 
     for(const file of ['shared/case-corrections.js','mho/mho-walkins.js'])new vm.Script(fs.readFileSync(path.join(__dirname,'../../assets/js',file),'utf8'),{filename:file});
     for(const file of ['bhw.html','admin.html','index.html','mho.html'])for(const script of fs.readFileSync(path.join(__dirname,'..','..',file),'utf8').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))if(script[1].trim())new vm.Script(script[1],{filename:file});
 });
+

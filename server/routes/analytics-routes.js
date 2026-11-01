@@ -2,13 +2,21 @@ const { createDashboardData } = require('../services/dashboard-data');
 const { spawn } = require('child_process');
 const { createForecastCapacity } = require('../services/forecast-capacity');
 const { createDiseaseRegistryHandlers, createDiseaseRegistryData } = require('../services/disease-registry');
-const { analyticsFilters, caseWhere, sendAnalyticsError } = require('../services/mho-analytics');
+const { analyticsFilters, caseWhere, comparisonSelection, sendAnalyticsError } = require('../services/mho-analytics');
+const {sampleAnalytics}=require('../services/analytics-sample');
 
 function registerAnalyticsRoutes(app, db, pythonExecutable) {
     const forecastCapacity = createForecastCapacity(Number(process.env.FORECAST_MAX_CONCURRENT || 1));
     const dashboard = createDashboardData(db);
     const registry = createDiseaseRegistryHandlers(db);
     const catalog = createDiseaseRegistryData(db);
+    // Auth/role middleware runs before these display-only sample responses.
+    app.get(['/api/mho/stats','/api/mho/kpi','/api/mho/trend','/api/mho/year-comparison','/api/mho/analytics-options','/api/mho/mortality','/api/mho/breakdown'],async(req,res,next)=>{
+        if(req.query.sample===undefined)return next();
+        if(req.query.sample!=='1')return res.status(400).json({success:false,error:'Invalid sample-data selection.'});
+        try{res.json(sampleAnalytics(req.path.split('/').at(-1),req.query,await dashboard.analyticsBarangays()));}
+        catch(error){sendAnalyticsError(res,error);}
+    });
     // ==========================================
     // 8. DASHBOARD STATS & ANALYTICS
     // ==========================================
@@ -241,6 +249,56 @@ function registerAnalyticsRoutes(app, db, pythonExecutable) {
     // ==========================================
     // MHO YOY MORBIDITY API
     // ==========================================
+    app.get('/api/mho/analytics-options', async (_req, res) => {
+        try { res.json({ success: true, ...await dashboard.analyticsOptions() }); }
+        catch (error) { sendAnalyticsError(res, error); }
+    });
+
+    app.get('/api/mho/breakdown',async(req,res)=>{
+        try{const filters=analyticsFilters(req.query);const data=await dashboard.breakdown(caseWhere(filters,{deathsOnly:filters.category==='mortality'}),filters);res.json({success:true,...data,filters});}
+        catch(error){sendAnalyticsError(res,error);}
+    });
+
+    app.get('/api/mho/trend', async (req, res) => {
+        try {
+            const filters = analyticsFilters(req.query);
+            const disease = req.query.disease;
+            if (disease !== undefined && (typeof disease !== 'string' || !disease.trim() || disease.length > 255)) {
+                return res.status(400).json({ success: false, error: 'Invalid disease filter.' });
+            }
+            const rows = await dashboard.trend(caseWhere(filters), filters.year, disease);
+            const currentYear = Number(new Intl.DateTimeFormat('en', {timeZone:'Asia/Manila',year:'numeric'}).format(new Date()));
+            res.json({ success: true, data: rows, granularity: filters.year === 'all' ? 'annual' : 'monthly', current_year: currentYear, filters });
+        } catch (error) { sendAnalyticsError(res, error); }
+    });
+
+    app.get('/api/mho/year-comparison', async (req, res) => {
+        try {
+            const filters = analyticsFilters(req.query);
+            const selection = comparisonSelection(req.query, filters);
+            const where = caseWhere(filters, { includeYear: false });
+            where.sql += ' AND date_recorded <= ?';
+            where.params.push(selection.through);
+            if (selection.years) {
+                where.sql += ' AND YEAR(date_recorded) IN ('+selection.years.map(()=>'?').join(',')+')';
+                where.params.push(...selection.years);
+            }
+            const availableYears = !selection.years && selection.period==='same'
+                ? (await dashboard.trend(where,'all')).map(row=>Number(row.period)) : null;
+            if (selection.period==='same') {
+                where.sql += " AND DATE_FORMAT(date_recorded, '%m-%d') <= ?";
+                where.params.push(selection.through.slice(5));
+            }
+            const rows = await dashboard.diseaseYearComparison(where);
+            const totals = new Map();
+            for (const row of rows) totals.set(row.disease, (totals.get(row.disease) || 0) + Number(row.cases));
+            const diseases = [...totals].sort((a,b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0,4).map(([name]) => name);
+            const years = selection.years || availableYears || [...new Set(rows.map(row => Number(row.year)))].sort((a,b) => a-b);
+            res.json({success:true, data:rows.filter(row => diseases.includes(row.disease)), diseases, years,
+                current_year:selection.currentYear, period:selection.period, through:selection.through, filters});
+        } catch (error) { sendAnalyticsError(res,error); }
+    });
+
     app.get('/api/mho/yoy', async (req, res) => {
         try {
             const filters = analyticsFilters(req.query);

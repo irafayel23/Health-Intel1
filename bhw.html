@@ -12,6 +12,7 @@
     <script src="assets/js/shared/safe-text.js"></script>
     <script src="assets/js/shared/case-corrections.js"></script>
     <script src="assets/js/shared/date-format.js"></script>
+    <script src="assets/js/shared/daily-report-controls.js"></script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="assets/img/Health-Intel-Symbol.png?v=20261003" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -29,22 +30,23 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/shared/chart-theme.js"></script>
       <link rel="stylesheet" href="assets/css/shared/encoding-controls.css">
-    <script src="assets/js/shared/encoding-controls.js"></script>
+    <script src="assets/js/shared/encoding-controls.js?v=20261019-mobile"></script>
     <link rel="stylesheet" href="assets/css/shared/resident-vital.css">
     <script src="assets/js/shared/resident-vital.js"></script>
-    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261003">
+    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261031-visible4">
     <!-- Match the former runtime Tailwind cascade after the custom styles. -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw-utilities.css?v=20261008" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw-utilities.css?v=20261019-mobile" />
   </head>
   <body class="hi-portal h-screen flex overflow-hidden antialiased selection:bg-blue-500/30 bg-slate-100 dark:bg-neutral-950">
     
     <!-- Sidebar -->
     <aside id="sidebar" class="w-64 bg-transparent flex flex-col transition-all duration-300 relative z-10 shrink-0">
       <!-- Logo Area -->
-      <div class="h-16 flex items-center px-6 group cursor-default pt-4">
+      <div class="hi-sidebar-brand h-16 flex items-center px-6 group cursor-default pt-4">
         <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="hi-sidebar-logo w-8 h-8 mr-3 shrink-0 hover:scale-110 transition-transform duration-300" overflow="hidden">
           <image href="assets/img/Logo-Health-Intel.png?v=concept-06" width="1280" height="1280" />
         </svg>
+        <button type="button" data-desktop-sidebar class="hi-desktop-menu" aria-controls="sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
         <h2 id="sidebar-text" class="font-bold text-lg tracking-tight whitespace-nowrap transition-all duration-300 bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400 bg-clip-text text-transparent group-hover:tracking-wider">HEALTH-INTEL</h2>
       </div>
 
@@ -81,14 +83,14 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-full bg-[hsl(var(--card))] overflow-hidden relative z-20 rounded-tl-[2.5rem] shadow-[-10px_0_30px_rgba(0,0,0,0.2)] dark:shadow-[-10px_0_30px_rgba(0,0,0,0.5)] border-l border-t border-slate-300 dark:border-neutral-800">
+    <main class="flex-1 flex flex-col h-full bg-[hsl(var(--card))] overflow-hidden relative z-20 border-l border-t border-slate-300 dark:border-neutral-800">
       
       <!-- Top Header Bar -->
       <header class="h-16 flex items-center justify-between px-6 z-20 bg-transparent">
         <div class="flex items-center gap-4">
           <!-- Sidebar Toggle -->
-          <button id="sidebar-toggle" data-portal-menu aria-label="Toggle sidebar" onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-blue-500 transition-colors">
-            <i data-lucide="panel-left-close" id="sidebar-icon" class="w-5 h-5"></i>
+          <button id="sidebar-toggle" data-portal-menu aria-label="Toggle sidebar" onclick="toggleSidebar()" class="hi-mobile-menu p-2 rounded-lg hover:bg-[hsl(var(--muted))] text-[hsl(var(--muted-foreground))] hover:text-blue-500 transition-colors">
+            <i data-lucide="menu" id="sidebar-icon" class="w-5 h-5"></i>
           </button>
           <div id="dynamic-portal-title" class="text-sm font-semibold text-slate-800 dark:text-slate-300">
             Barangay Health Worker Portal - Loading...
@@ -287,8 +289,8 @@
         <!-- HEATMAP VIEW -->
         <div id="view-heatmap" class="view-section hidden flex-col animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="mb-6 flex-shrink-0">
-            <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Barangay Heatmap</h1>
-            <p id="heatmap-subtitle" class="text-[hsl(var(--muted-foreground))] mt-1">Recorded active-case totals for all seven barangays, as on the MHO map. Your barangay has a thicker outline. Colors show recorded severity, not an outbreak declaration. Hover or tap a circle for details.</p>
+            <h1 id="bhw-heatmap-title" class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Your Barangay Heatmap</h1>
+            <p id="heatmap-subtitle" class="text-[hsl(var(--muted-foreground))] mt-1">Active cases in your assigned barangay only. Summary shows recorded severity; Heat View shows case intensity at the barangay center. Open Case Breakdown for disease counts. These are recorded cases, not outbreak-risk ratings.</p>
           </div>
           <p class="mb-3 text-xs text-[hsl(var(--muted-foreground))]">Only barangay totals are shown; no patient details. Zero means no active case is recorded here.</p>
           <div class="heatmap-legend" aria-label="Map color legend">
@@ -306,13 +308,14 @@
         <div id="view-reports" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="mb-8">
             <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Report Generation</h1>
-            <p class="text-[hsl(var(--muted-foreground))] mt-1">Download case lists and today’s consultation summary for your assigned barangay.</p>
+            <p class="text-[hsl(var(--muted-foreground))] mt-1">Download case lists and daily consultation summaries for your assigned barangay.</p>
           </div>
           <section class="hi-today-report" aria-labelledby="bhw-today-title">
-            <div><span class="hi-today-report-badge">Today · Philippines date</span><h2 id="bhw-today-title">Today’s barangay report</h2>
-              <p>Disease cases and consultations dated today, grouped by condition. Includes today’s admissions and follow-ups in a separate visit section, without adding to disease case totals. Your assigned barangay only.</p>
-              <small>Today so far · Download again after saving new records.</small></div>
-            <button type="button" onclick="generateBHWTodayReport()"><i data-lucide="download" aria-hidden="true"></i> Download today’s PDF</button>
+            <div><span class="hi-today-report-badge">Daily report · Philippines date</span><h2 id="bhw-today-title">Daily barangay report</h2>
+              <p>Disease cases and consultations for the date you choose. Admissions and follow-ups appear separately from new disease cases. Your assigned barangay only.</p>
+              <div class="mt-4 flex flex-wrap items-end gap-3"><label for="bhw-report-date" class="flex flex-col gap-2 text-sm font-semibold">Report date<input id="bhw-report-date" type="date" required min="1900-01-01" aria-describedby="bhw-daily-help" class="min-h-12 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:[color-scheme:dark]"></label><button type="button" data-daily-today="bhw" class="min-h-12 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold dark:border-slate-600">Today</button></div>
+              <small id="bhw-daily-help">Defaults to today. Choose an earlier date to recover a missed report. Late entries and corrections are included when you download again.</small></div>
+            <button id="bhw-daily-download" type="button" onclick="generateBHWTodayReport()"><i data-lucide="download" aria-hidden="true"></i> Download daily PDF</button>
           </section>
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -455,10 +458,10 @@
     <script src="assets/js/bhw/bhw-dashboard.js"></script>
     <script src="assets/js/bhw/bhw-startup.js"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
-  <script src="assets/js/shared/patient-visits.js"></script>
-  <script src="assets/js/bhw/bhw-dialogs.js"></script>
+  <script src="assets/js/shared/patient-visits.js?v=20261019-mobile"></script>
+  <script src="assets/js/bhw/bhw-dialogs.js?v=20261019-mobile"></script>
   <script src="assets/js/shared/followup-tracking.js"></script>
     <script src="assets/js/shared/lazy-heatmap.js"></script>
-    <script src="assets/js/shared/portal-navigation.js"></script>
+    <script src="assets/js/shared/portal-navigation.js?v=20261031-visible4"></script>
   </body>
 </html>

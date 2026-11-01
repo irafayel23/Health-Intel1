@@ -18,13 +18,30 @@ def connect_database():
         database=os.getenv('DB_NAME', 'health_intel')
     )
 
+NORMALIZATION_VERSION = '20261019_core_normalization_v1'
+
+
+def forecast_case_source(db):
+    """Read the same compatibility view as Node after normalization; never alter data."""
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT COUNT(*) AS present FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='normalization_migrations'")
+        if not cursor.fetchone()['present']:
+            return 'health_cases'
+        cursor.execute('SELECT COUNT(*) AS present FROM normalization_migrations WHERE version=%s', (NORMALIZATION_VERSION,))
+        return 'case_records' if cursor.fetchone()['present'] else 'health_cases'
+    finally:
+        cursor.close()
+
+
 def fetch_disease_data(disease_name):
     try:
         db = connect_database()
+        case_table = forecast_case_source(db)
         cursor = db.cursor(dictionary=True)
-        query = """
+        query = f"""
             SELECT DATE_FORMAT(date_recorded, '%Y-%m-01') as month_date, COUNT(id) as total_cases 
-            FROM health_cases 
+            FROM {case_table}
             WHERE disease = %s AND status != 'Archived'
             GROUP BY month_date ORDER BY month_date ASC
         """
@@ -70,18 +87,19 @@ def run_ar1_demonstration(df):
 
 def calculate_barangay_forecast(municipal_predictions, barangay_name, disease_name, monthly_index):
     db = connect_database()
+    case_table = forecast_case_source(db)
     cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT COUNT(id) as total FROM health_cases WHERE disease = %s", (disease_name,))
+    cursor.execute(f"SELECT COUNT(id) as total FROM {case_table} WHERE disease = %s", (disease_name,))
     total_mun = cursor.fetchone()['total']
-    cursor.execute("""
-        SELECT COUNT(h.id) as total FROM health_cases h 
+    cursor.execute(f"""
+        SELECT COUNT(h.id) as total FROM {case_table} h
         JOIN barangays b ON h.barangay_id = b.id 
         WHERE h.disease = %s AND b.name = %s
     """, (disease_name, barangay_name))
     total_brgy = cursor.fetchone()['total']
-    cursor.execute("""
+    cursor.execute(f"""
         SELECT DATE_FORMAT(h.date_recorded, '%Y-%m-01') as month_date, COUNT(h.id) as total_cases
-        FROM health_cases h JOIN barangays b ON h.barangay_id = b.id
+        FROM {case_table} h JOIN barangays b ON h.barangay_id = b.id
         WHERE h.disease = %s AND b.name = %s AND h.date_recorded IS NOT NULL
         GROUP BY month_date ORDER BY month_date
     """, (disease_name, barangay_name))

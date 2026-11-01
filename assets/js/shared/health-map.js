@@ -20,6 +20,8 @@ if (mapContainer) {
     const mapCircles = [];
     const mapLabels = [];
     const status = document.getElementById('heatmap-status');
+    const heatView = window.HealthIntelHeatView?.bind(map,mapContainer,{onChange:()=>hideDetails()});
+    const caseBreakdown = window.HealthIntelMapBreakdown?.bind(mapContainer,{onOpen:()=>hideDetails()});
     let initialViewSet = false;
 
     // Position the details inside the map so hovering never requires panning.
@@ -122,7 +124,11 @@ if (mapContainer) {
         if (mapContainer.offsetHeight === 0) return;
         const occupied = [];
         const size = map.getSize();
-        const offsets = [[0, 0], [0, -42], [0, 42], [-52, 0], [52, 0], [-52, -42], [52, 42]];
+        const markers = mapCircles.map(marker => {
+            const point = map.latLngToContainerPoint(marker.getLatLng());
+            return {left:point.x-46,right:point.x+46,top:point.y-46,bottom:point.y+46};
+        });
+        const offsets = [[0, 0], [0, 42], [-104, 0], [104, 0], [0, -130], [-104, -42], [104, -42], [-104, 42], [104, 42]];
         mapLabels.forEach(label => {
             const content = label.getElement()?.firstElementChild;
             if (!content) return;
@@ -131,15 +137,15 @@ if (mapContainer) {
             const height = content.offsetHeight;
             let chosen = offsets[0];
             for (const offset of offsets) {
-                const box = { left: point.x - 44 + offset[0], top: point.y - 17 + offset[1] };
+                const box = { left: point.x - 44 + offset[0], top: point.y + 49 + offset[1] };
                 box.right = box.left + width;
                 box.bottom = box.top + height;
                 const withinMap = box.left >= 4 && box.top >= 4 && box.right <= size.x - 4 && box.bottom <= size.y - 4;
-                const overlaps = occupied.some(other => box.left < other.right + 5 && box.right > other.left - 5 && box.top < other.bottom + 5 && box.bottom > other.top - 5);
+                const overlaps = [...occupied,...markers].some(other => box.left < other.right + 5 && box.right > other.left - 5 && box.top < other.bottom + 5 && box.bottom > other.top - 5);
                 if (withinMap && !overlaps) { chosen = offset; break; }
             }
             const left = point.x - 44 + chosen[0];
-            const top = point.y - 17 + chosen[1];
+            const top = point.y + 49 + chosen[1];
             occupied.push({ left, top, right: left + width, bottom: top + height });
             content.style.setProperty('--label-offset-x', `${chosen[0]}px`);
             content.style.setProperty('--label-offset-y', `${chosen[1]}px`);
@@ -149,7 +155,7 @@ if (mapContainer) {
 
     function fitBarangays() {
         if (!initialViewSet && mapCircles.length && mapContainer.offsetHeight > 0) {
-            map.fitBounds(L.featureGroup(mapCircles).getBounds(), { padding: [45, 45], maxZoom: 12, animate: false });
+            map.fitBounds(L.featureGroup(mapCircles).getBounds(), { padding: [45, 45], maxZoom: mapContainer.id === 'bhwMap' ? 14 : 12, animate: false });
             initialViewSet = true;
         }
     }
@@ -185,7 +191,13 @@ if (mapContainer) {
           if (!result.success) throw new Error('Unable to load active case totals.');
 
           const barangays = result.data;
+          if (mapContainer.id === 'bhwMap') {
+              const title = document.getElementById('bhw-heatmap-title');
+              if (title) title.textContent = barangays.length === 1 ? `${barangays[0].name} Heatmap` : 'Your Barangay Heatmap';
+          }
+          heatView?.update(barangays);
           const refreshedAt = new Date(result.fetched_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
+          caseBreakdown?.update(barangays,refreshedAt);
           const pinnedLocation=pinnedDetails && detailsCircle?detailsCircle.getLatLng():null;
           const oldScroll=detailsPanel.querySelector('.heatmap-info-body')?.scrollTop || 0;
           const hadDetailsFocus=detailsPanel.contains(document.activeElement);
@@ -195,24 +207,23 @@ if (mapContainer) {
           mapCircles.length=0;mapLabels.length=0;
 
           barangays.forEach((brgy) => {
-              // Screen-sized summary symbols stay readable when the map is zoomed out.
-              const calculatedRadius = Math.min(48, 38 + Math.sqrt(brgy.cases) * 2);
-
-              const circle = L.circleMarker([brgy.lat, brgy.lng], {
-                color: brgy.color,
-                fillColor: brgy.color,
-                fillOpacity: 0.3,
-                weight: mapContainer.id === 'bhwMap' && String(brgy.id) === String(window.currentBrgyId) ? 4 : 2,
+              // Equal-sized rings show the mix of recorded severities, not area-level risk.
+              const own=mapContainer.id === 'bhwMap' && String(brgy.id) === String(window.currentBrgyId);
+              const circle = L.marker([brgy.lat, brgy.lng], {
+                icon: L.divIcon({className:'heatmap-summary-marker'+(own?' heatmap-summary-own':''),html:HealthIntelMapDetails.marker(brgy),iconSize:[88,88],iconAnchor:[44,44]}),
+                keyboard:false,
                 bubblingMouseEvents: false,
-                radius: calculatedRadius
               }).addTo(map);
+
+              const {counts}=HealthIntelMapDetails.composition(brgy);
+              const attention=[counts.high_risk?`${counts.high_risk} High Risk`:'',counts.monitored?`${counts.monitored} Monitored`:'',counts.unknown?`${counts.unknown} Unknown`:''].filter(Boolean).join(' · ');
 
               const label = L.marker([brgy.lat, brgy.lng], {
                   interactive: false,
                   keyboard: false,
                   icon: L.divIcon({
                       className: 'heatmap-label',
-                      html: `<div class="heatmap-label-content"><strong>${escapeMapText(brgy.name)}</strong>${brgy.cases} active ${brgy.cases === 1 ? 'case' : 'cases'}</div>`,
+                      html: `<div class="heatmap-label-content"><strong>${escapeMapText(brgy.name)}</strong>${attention?`<span class="heatmap-marker-attention">${attention}</span>`:''}</div>`,
                       iconSize: [88, 34],
                       iconAnchor: [44, 17]
                   })
@@ -226,7 +237,7 @@ if (mapContainer) {
               const circleElement = circle.getElement();
               circleElement.setAttribute('tabindex', '0');
               circleElement.setAttribute('role', 'button');
-              circleElement.setAttribute('aria-label', `${brgy.name}: ${brgy.cases} active ${brgy.cases === 1 ? 'case' : 'cases'}. ${brgy.risk}. Open severity details.`);
+              circleElement.setAttribute('aria-label', HealthIntelMapDetails.summary(brgy)+' Open severity details.');
               circleElement.addEventListener('focus', () => {if (!restoringMarkerFocus) showDetails(circle, details);});
               circleElement.addEventListener('blur', scheduleHideDetails);
               circleElement.addEventListener('keydown', event => {
@@ -241,12 +252,13 @@ if (mapContainer) {
                   showDetails(circle,details,true,hadDetailsFocus);detailsPanel.querySelector('.heatmap-info-body').scrollTop=oldScroll;
               }
           });
-          if (status) status.textContent = `All recorded active cases · Data refreshed: ${refreshedAt} (Philippine time). Colors summarize recorded severity, not outbreak status.`;
+          if (status) status.textContent = `Select Barangay Summary for severity rings or Heat View for relative case intensity. Updated: ${refreshedAt} (Philippine time). Neither view is an outbreak-risk rating.`;
           fitBarangays();
           layoutLabels();
           loaded=true;
       })
       .catch(error => {
+          caseBreakdown?.markStale();
           if (status) status.textContent = loaded?'Refresh failed. Showing the last loaded totals. Try Refresh map again.':'Map data could not be loaded. Check the connection and use Refresh map.';
           console.error('Error loading heatmap data:', error);
       }).finally(()=>{loading=false;refreshButton.disabled=false;refreshButton.textContent='Refresh map';if(pendingRefresh){pendingRefresh=false;refreshMap();}});
@@ -258,7 +270,7 @@ if (mapContainer) {
     const refreshTimer=setInterval(()=>{if(visible())refreshMap();},30000);
     window.addEventListener('pagehide',()=>clearInterval(refreshTimer),{once:true});
     const fullscreen=HealthIntelMapFullscreen.bind(mapContainer,()=>{
-        map.invalidateSize({animate:false});positionDetails();layoutLabels();
+        map.invalidateSize({animate:false});heatView?.resize();positionDetails();layoutLabels();
     });
     L.DomEvent.disableClickPropagation(fullscreen.controls);
     L.DomEvent.disableScrollPropagation(fullscreen.controls);
@@ -268,6 +280,7 @@ if (mapContainer) {
     new ResizeObserver(entries => {
         if (entries[0].contentRect.width > 0 && entries[0].contentRect.height > 0) {
             map.invalidateSize({ animate: false });
+            heatView?.resize();
             fitBarangays();
             positionDetails();
         }

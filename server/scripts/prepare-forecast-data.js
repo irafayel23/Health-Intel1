@@ -70,7 +70,7 @@ async function main() {
     const args=process.argv.slice(2), option=key=>{const i=args.indexOf(key);return i<0?undefined:args[i+1];};
     const out=path.resolve(option('--output') || path.join(__dirname,'../../analysis/data_preparation',new Date().toISOString().replace(/[:.]/g,'-')));
     const mysql=require('mysql2/promise');
-    const db=await mysql.createConnection({host:process.env.DB_HOST||'localhost',port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER||'root',password:process.env.DB_PASSWORD||'',database:process.env.DB_NAME||'health_intel'});
+    const db=require('../services/normalized-schema').createDatabaseFacade(await mysql.createConnection({host:process.env.DB_HOST||'localhost',port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER||'root',password:process.env.DB_PASSWORD||'',database:process.env.DB_NAME||'health_intel'}));
     let files;
     try {
         const [registry]=await db.query('SELECT name,status,is_archived FROM disease_registry');

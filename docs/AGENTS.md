@@ -23,3 +23,8 @@ The user has provided a clear specification for a lightweight, highly-styled web
 3. Wire up the Vanilla JS frontend to the Node.js REST API endpoints.
 
 Please refer to the accompanying markdown files for detailed specifications, architecture, and database design.
+
+
+## Shared CODEX-1 / CODEX-2 coordination (25 October 2026)
+
+The original guidance above is preserved. Before work, read the repository-root AGENTS.md and docs/PROJECT_OVERVIEW.md, docs/CODEX_HANDOFF.md, docs/CODEX_TASKS.md and recent docs/CODEX_CHANGELOG.md entries, then inspect current Git state and source. Follow the root one-writer and end-of-task documentation workflow. Older architecture/immediate-task descriptions above are historical where the current source/overview supersedes them: the local MHO SARIMA page now serves saved synthetic evidence; analytics.py remains a separate legacy AR(1) compatibility path. Do not change application behavior, database records or deployment while maintaining documentation.

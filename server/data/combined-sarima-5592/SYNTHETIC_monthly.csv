@@ -1,0 +1,3151 @@
+Date,Barangay,Disease,Cases
+2023-01,Salvacion,Cough,1
+2023-02,Salvacion,Cough,6
+2023-03,Salvacion,Cough,1
+2023-04,Salvacion,Cough,3
+2023-05,Salvacion,Cough,3
+2023-06,Salvacion,Cough,1
+2023-07,Salvacion,Cough,7
+2023-08,Salvacion,Cough,1
+2023-09,Salvacion,Cough,7
+2023-10,Salvacion,Cough,6
+2023-11,Salvacion,Cough,5
+2023-12,Salvacion,Cough,7
+2024-01,Salvacion,Cough,3
+2024-02,Salvacion,Cough,4
+2024-03,Salvacion,Cough,6
+2024-04,Salvacion,Cough,8
+2024-05,Salvacion,Cough,2
+2024-06,Salvacion,Cough,5
+2024-07,Salvacion,Cough,5
+2024-08,Salvacion,Cough,1
+2024-09,Salvacion,Cough,2
+2024-10,Salvacion,Cough,3
+2024-11,Salvacion,Cough,3
+2024-12,Salvacion,Cough,4
+2025-01,Salvacion,Cough,2
+2025-02,Salvacion,Cough,5
+2025-03,Salvacion,Cough,8
+2025-04,Salvacion,Cough,4
+2025-05,Salvacion,Cough,1
+2025-06,Salvacion,Cough,2
+2025-07,Salvacion,Cough,3
+2025-08,Salvacion,Cough,2
+2025-09,Salvacion,Cough,1
+2025-10,Salvacion,Cough,2
+2025-11,Salvacion,Cough,2
+2025-12,Salvacion,Cough,2
+2026-01,Salvacion,Cough,4
+2026-02,Salvacion,Cough,1
+2026-03,Salvacion,Cough,1
+2026-04,Salvacion,Cough,6
+2026-05,Salvacion,Cough,4
+2026-06,Salvacion,Cough,9
+2026-07,Salvacion,Cough,7
+2026-08,Salvacion,Cough,3
+2026-09,Salvacion,Cough,3
+2023-01,Alegria,Cough,3
+2023-02,Alegria,Cough,6
+2023-03,Alegria,Cough,4
+2023-04,Alegria,Cough,6
+2023-05,Alegria,Cough,6
+2023-06,Alegria,Cough,1
+2023-07,Alegria,Cough,2
+2023-08,Alegria,Cough,6
+2023-09,Alegria,Cough,6
+2023-10,Alegria,Cough,3
+2023-11,Alegria,Cough,4
+2023-12,Alegria,Cough,6
+2024-01,Alegria,Cough,3
+2024-02,Alegria,Cough,5
+2024-03,Alegria,Cough,3
+2024-04,Alegria,Cough,4
+2024-05,Alegria,Cough,5
+2024-06,Alegria,Cough,2
+2024-07,Alegria,Cough,3
+2024-08,Alegria,Cough,2
+2024-09,Alegria,Cough,3
+2024-10,Alegria,Cough,1
+2024-11,Alegria,Cough,5
+2024-12,Alegria,Cough,5
+2025-01,Alegria,Cough,6
+2025-02,Alegria,Cough,3
+2025-03,Alegria,Cough,9
+2025-04,Alegria,Cough,4
+2025-05,Alegria,Cough,0
+2025-06,Alegria,Cough,2
+2025-07,Alegria,Cough,6
+2025-08,Alegria,Cough,2
+2025-09,Alegria,Cough,8
+2025-10,Alegria,Cough,4
+2025-11,Alegria,Cough,3
+2025-12,Alegria,Cough,5
+2026-01,Alegria,Cough,4
+2026-02,Alegria,Cough,5
+2026-03,Alegria,Cough,4
+2026-04,Alegria,Cough,3
+2026-05,Alegria,Cough,4
+2026-06,Alegria,Cough,2
+2026-07,Alegria,Cough,4
+2026-08,Alegria,Cough,2
+2026-09,Alegria,Cough,5
+2023-01,Blumentritt,Cough,4
+2023-02,Blumentritt,Cough,3
+2023-03,Blumentritt,Cough,4
+2023-04,Blumentritt,Cough,8
+2023-05,Blumentritt,Cough,2
+2023-06,Blumentritt,Cough,2
+2023-07,Blumentritt,Cough,1
+2023-08,Blumentritt,Cough,2
+2023-09,Blumentritt,Cough,6
+2023-10,Blumentritt,Cough,2
+2023-11,Blumentritt,Cough,4
+2023-12,Blumentritt,Cough,4
+2024-01,Blumentritt,Cough,7
+2024-02,Blumentritt,Cough,6
+2024-03,Blumentritt,Cough,3
+2024-04,Blumentritt,Cough,2
+2024-05,Blumentritt,Cough,4
+2024-06,Blumentritt,Cough,6
+2024-07,Blumentritt,Cough,7
+2024-08,Blumentritt,Cough,4
+2024-09,Blumentritt,Cough,4
+2024-10,Blumentritt,Cough,8
+2024-11,Blumentritt,Cough,1
+2024-12,Blumentritt,Cough,1
+2025-01,Blumentritt,Cough,5
+2025-02,Blumentritt,Cough,1
+2025-03,Blumentritt,Cough,2
+2025-04,Blumentritt,Cough,8
+2025-05,Blumentritt,Cough,3
+2025-06,Blumentritt,Cough,8
+2025-07,Blumentritt,Cough,5
+2025-08,Blumentritt,Cough,7
+2025-09,Blumentritt,Cough,1
+2025-10,Blumentritt,Cough,2
+2025-11,Blumentritt,Cough,5
+2025-12,Blumentritt,Cough,5
+2026-01,Blumentritt,Cough,9
+2026-02,Blumentritt,Cough,1
+2026-03,Blumentritt,Cough,1
+2026-04,Blumentritt,Cough,4
+2026-05,Blumentritt,Cough,7
+2026-06,Blumentritt,Cough,2
+2026-07,Blumentritt,Cough,8
+2026-08,Blumentritt,Cough,3
+2026-09,Blumentritt,Cough,5
+2023-01,Caliban,Cough,1
+2023-02,Caliban,Cough,6
+2023-03,Caliban,Cough,2
+2023-04,Caliban,Cough,6
+2023-05,Caliban,Cough,10
+2023-06,Caliban,Cough,1
+2023-07,Caliban,Cough,2
+2023-08,Caliban,Cough,5
+2023-09,Caliban,Cough,2
+2023-10,Caliban,Cough,2
+2023-11,Caliban,Cough,5
+2023-12,Caliban,Cough,2
+2024-01,Caliban,Cough,2
+2024-02,Caliban,Cough,4
+2024-03,Caliban,Cough,1
+2024-04,Caliban,Cough,0
+2024-05,Caliban,Cough,3
+2024-06,Caliban,Cough,4
+2024-07,Caliban,Cough,1
+2024-08,Caliban,Cough,1
+2024-09,Caliban,Cough,6
+2024-10,Caliban,Cough,10
+2024-11,Caliban,Cough,5
+2024-12,Caliban,Cough,5
+2025-01,Caliban,Cough,1
+2025-02,Caliban,Cough,1
+2025-03,Caliban,Cough,5
+2025-04,Caliban,Cough,0
+2025-05,Caliban,Cough,1
+2025-06,Caliban,Cough,5
+2025-07,Caliban,Cough,2
+2025-08,Caliban,Cough,5
+2025-09,Caliban,Cough,2
+2025-10,Caliban,Cough,3
+2025-11,Caliban,Cough,9
+2025-12,Caliban,Cough,5
+2026-01,Caliban,Cough,3
+2026-02,Caliban,Cough,9
+2026-03,Caliban,Cough,1
+2026-04,Caliban,Cough,7
+2026-05,Caliban,Cough,3
+2026-06,Caliban,Cough,3
+2026-07,Caliban,Cough,7
+2026-08,Caliban,Cough,5
+2026-09,Caliban,Cough,5
+2023-01,Cansilayan,Cough,3
+2023-02,Cansilayan,Cough,5
+2023-03,Cansilayan,Cough,5
+2023-04,Cansilayan,Cough,1
+2023-05,Cansilayan,Cough,7
+2023-06,Cansilayan,Cough,4
+2023-07,Cansilayan,Cough,1
+2023-08,Cansilayan,Cough,2
+2023-09,Cansilayan,Cough,5
+2023-10,Cansilayan,Cough,6
+2023-11,Cansilayan,Cough,10
+2023-12,Cansilayan,Cough,2
+2024-01,Cansilayan,Cough,2
+2024-02,Cansilayan,Cough,3
+2024-03,Cansilayan,Cough,1
+2024-04,Cansilayan,Cough,5
+2024-05,Cansilayan,Cough,0
+2024-06,Cansilayan,Cough,4
+2024-07,Cansilayan,Cough,7
+2024-08,Cansilayan,Cough,6
+2024-09,Cansilayan,Cough,5
+2024-10,Cansilayan,Cough,1
+2024-11,Cansilayan,Cough,4
+2024-12,Cansilayan,Cough,3
+2025-01,Cansilayan,Cough,5
+2025-02,Cansilayan,Cough,6
+2025-03,Cansilayan,Cough,2
+2025-04,Cansilayan,Cough,2
+2025-05,Cansilayan,Cough,3
+2025-06,Cansilayan,Cough,6
+2025-07,Cansilayan,Cough,3
+2025-08,Cansilayan,Cough,2
+2025-09,Cansilayan,Cough,4
+2025-10,Cansilayan,Cough,6
+2025-11,Cansilayan,Cough,3
+2025-12,Cansilayan,Cough,2
+2026-01,Cansilayan,Cough,2
+2026-02,Cansilayan,Cough,1
+2026-03,Cansilayan,Cough,9
+2026-04,Cansilayan,Cough,8
+2026-05,Cansilayan,Cough,0
+2026-06,Cansilayan,Cough,5
+2026-07,Cansilayan,Cough,3
+2026-08,Cansilayan,Cough,2
+2026-09,Cansilayan,Cough,4
+2023-01,Sta. Rosa,Cough,7
+2023-02,Sta. Rosa,Cough,6
+2023-03,Sta. Rosa,Cough,4
+2023-04,Sta. Rosa,Cough,6
+2023-05,Sta. Rosa,Cough,3
+2023-06,Sta. Rosa,Cough,2
+2023-07,Sta. Rosa,Cough,10
+2023-08,Sta. Rosa,Cough,3
+2023-09,Sta. Rosa,Cough,0
+2023-10,Sta. Rosa,Cough,1
+2023-11,Sta. Rosa,Cough,4
+2023-12,Sta. Rosa,Cough,3
+2024-01,Sta. Rosa,Cough,5
+2024-02,Sta. Rosa,Cough,10
+2024-03,Sta. Rosa,Cough,3
+2024-04,Sta. Rosa,Cough,3
+2024-05,Sta. Rosa,Cough,8
+2024-06,Sta. Rosa,Cough,9
+2024-07,Sta. Rosa,Cough,3
+2024-08,Sta. Rosa,Cough,5
+2024-09,Sta. Rosa,Cough,2
+2024-10,Sta. Rosa,Cough,3
+2024-11,Sta. Rosa,Cough,3
+2024-12,Sta. Rosa,Cough,3
+2025-01,Sta. Rosa,Cough,4
+2025-02,Sta. Rosa,Cough,7
+2025-03,Sta. Rosa,Cough,3
+2025-04,Sta. Rosa,Cough,7
+2025-05,Sta. Rosa,Cough,2
+2025-06,Sta. Rosa,Cough,0
+2025-07,Sta. Rosa,Cough,4
+2025-08,Sta. Rosa,Cough,2
+2025-09,Sta. Rosa,Cough,2
+2025-10,Sta. Rosa,Cough,3
+2025-11,Sta. Rosa,Cough,2
+2025-12,Sta. Rosa,Cough,2
+2026-01,Sta. Rosa,Cough,2
+2026-02,Sta. Rosa,Cough,3
+2026-03,Sta. Rosa,Cough,3
+2026-04,Sta. Rosa,Cough,2
+2026-05,Sta. Rosa,Cough,7
+2026-06,Sta. Rosa,Cough,3
+2026-07,Sta. Rosa,Cough,3
+2026-08,Sta. Rosa,Cough,3
+2026-09,Sta. Rosa,Cough,7
+2023-01,Minoyan,Cough,7
+2023-02,Minoyan,Cough,2
+2023-03,Minoyan,Cough,8
+2023-04,Minoyan,Cough,5
+2023-05,Minoyan,Cough,3
+2023-06,Minoyan,Cough,7
+2023-07,Minoyan,Cough,4
+2023-08,Minoyan,Cough,5
+2023-09,Minoyan,Cough,3
+2023-10,Minoyan,Cough,1
+2023-11,Minoyan,Cough,7
+2023-12,Minoyan,Cough,3
+2024-01,Minoyan,Cough,2
+2024-02,Minoyan,Cough,4
+2024-03,Minoyan,Cough,2
+2024-04,Minoyan,Cough,3
+2024-05,Minoyan,Cough,2
+2024-06,Minoyan,Cough,7
+2024-07,Minoyan,Cough,3
+2024-08,Minoyan,Cough,5
+2024-09,Minoyan,Cough,4
+2024-10,Minoyan,Cough,4
+2024-11,Minoyan,Cough,2
+2024-12,Minoyan,Cough,4
+2025-01,Minoyan,Cough,5
+2025-02,Minoyan,Cough,3
+2025-03,Minoyan,Cough,4
+2025-04,Minoyan,Cough,6
+2025-05,Minoyan,Cough,4
+2025-06,Minoyan,Cough,2
+2025-07,Minoyan,Cough,4
+2025-08,Minoyan,Cough,2
+2025-09,Minoyan,Cough,7
+2025-10,Minoyan,Cough,4
+2025-11,Minoyan,Cough,1
+2025-12,Minoyan,Cough,0
+2026-01,Minoyan,Cough,4
+2026-02,Minoyan,Cough,1
+2026-03,Minoyan,Cough,5
+2026-04,Minoyan,Cough,5
+2026-05,Minoyan,Cough,3
+2026-06,Minoyan,Cough,4
+2026-07,Minoyan,Cough,6
+2026-08,Minoyan,Cough,3
+2026-09,Minoyan,Cough,5
+2023-01,Salvacion,URTI,1
+2023-02,Salvacion,URTI,0
+2023-03,Salvacion,URTI,3
+2023-04,Salvacion,URTI,0
+2023-05,Salvacion,URTI,1
+2023-06,Salvacion,URTI,4
+2023-07,Salvacion,URTI,2
+2023-08,Salvacion,URTI,2
+2023-09,Salvacion,URTI,4
+2023-10,Salvacion,URTI,1
+2023-11,Salvacion,URTI,1
+2023-12,Salvacion,URTI,2
+2024-01,Salvacion,URTI,3
+2024-02,Salvacion,URTI,3
+2024-03,Salvacion,URTI,2
+2024-04,Salvacion,URTI,0
+2024-05,Salvacion,URTI,7
+2024-06,Salvacion,URTI,3
+2024-07,Salvacion,URTI,2
+2024-08,Salvacion,URTI,1
+2024-09,Salvacion,URTI,2
+2024-10,Salvacion,URTI,6
+2024-11,Salvacion,URTI,1
+2024-12,Salvacion,URTI,3
+2025-01,Salvacion,URTI,3
+2025-02,Salvacion,URTI,3
+2025-03,Salvacion,URTI,3
+2025-04,Salvacion,URTI,3
+2025-05,Salvacion,URTI,1
+2025-06,Salvacion,URTI,2
+2025-07,Salvacion,URTI,4
+2025-08,Salvacion,URTI,1
+2025-09,Salvacion,URTI,1
+2025-10,Salvacion,URTI,2
+2025-11,Salvacion,URTI,1
+2025-12,Salvacion,URTI,5
+2026-01,Salvacion,URTI,1
+2026-02,Salvacion,URTI,1
+2026-03,Salvacion,URTI,3
+2026-04,Salvacion,URTI,0
+2026-05,Salvacion,URTI,2
+2026-06,Salvacion,URTI,6
+2026-07,Salvacion,URTI,2
+2026-08,Salvacion,URTI,0
+2026-09,Salvacion,URTI,3
+2023-01,Alegria,URTI,3
+2023-02,Alegria,URTI,0
+2023-03,Alegria,URTI,2
+2023-04,Alegria,URTI,1
+2023-05,Alegria,URTI,1
+2023-06,Alegria,URTI,0
+2023-07,Alegria,URTI,1
+2023-08,Alegria,URTI,0
+2023-09,Alegria,URTI,1
+2023-10,Alegria,URTI,1
+2023-11,Alegria,URTI,2
+2023-12,Alegria,URTI,1
+2024-01,Alegria,URTI,4
+2024-02,Alegria,URTI,5
+2024-03,Alegria,URTI,2
+2024-04,Alegria,URTI,0
+2024-05,Alegria,URTI,2
+2024-06,Alegria,URTI,0
+2024-07,Alegria,URTI,1
+2024-08,Alegria,URTI,0
+2024-09,Alegria,URTI,1
+2024-10,Alegria,URTI,1
+2024-11,Alegria,URTI,3
+2024-12,Alegria,URTI,0
+2025-01,Alegria,URTI,0
+2025-02,Alegria,URTI,1
+2025-03,Alegria,URTI,1
+2025-04,Alegria,URTI,5
+2025-05,Alegria,URTI,1
+2025-06,Alegria,URTI,1
+2025-07,Alegria,URTI,3
+2025-08,Alegria,URTI,1
+2025-09,Alegria,URTI,2
+2025-10,Alegria,URTI,0
+2025-11,Alegria,URTI,0
+2025-12,Alegria,URTI,2
+2026-01,Alegria,URTI,0
+2026-02,Alegria,URTI,5
+2026-03,Alegria,URTI,2
+2026-04,Alegria,URTI,1
+2026-05,Alegria,URTI,2
+2026-06,Alegria,URTI,2
+2026-07,Alegria,URTI,2
+2026-08,Alegria,URTI,1
+2026-09,Alegria,URTI,1
+2023-01,Blumentritt,URTI,1
+2023-02,Blumentritt,URTI,0
+2023-03,Blumentritt,URTI,0
+2023-04,Blumentritt,URTI,3
+2023-05,Blumentritt,URTI,1
+2023-06,Blumentritt,URTI,1
+2023-07,Blumentritt,URTI,3
+2023-08,Blumentritt,URTI,1
+2023-09,Blumentritt,URTI,4
+2023-10,Blumentritt,URTI,0
+2023-11,Blumentritt,URTI,0
+2023-12,Blumentritt,URTI,1
+2024-01,Blumentritt,URTI,2
+2024-02,Blumentritt,URTI,0
+2024-03,Blumentritt,URTI,5
+2024-04,Blumentritt,URTI,1
+2024-05,Blumentritt,URTI,1
+2024-06,Blumentritt,URTI,0
+2024-07,Blumentritt,URTI,0
+2024-08,Blumentritt,URTI,4
+2024-09,Blumentritt,URTI,2
+2024-10,Blumentritt,URTI,1
+2024-11,Blumentritt,URTI,0
+2024-12,Blumentritt,URTI,1
+2025-01,Blumentritt,URTI,0
+2025-02,Blumentritt,URTI,0
+2025-03,Blumentritt,URTI,0
+2025-04,Blumentritt,URTI,0
+2025-05,Blumentritt,URTI,2
+2025-06,Blumentritt,URTI,1
+2025-07,Blumentritt,URTI,2
+2025-08,Blumentritt,URTI,2
+2025-09,Blumentritt,URTI,2
+2025-10,Blumentritt,URTI,1
+2025-11,Blumentritt,URTI,0
+2025-12,Blumentritt,URTI,0
+2026-01,Blumentritt,URTI,1
+2026-02,Blumentritt,URTI,1
+2026-03,Blumentritt,URTI,2
+2026-04,Blumentritt,URTI,5
+2026-05,Blumentritt,URTI,0
+2026-06,Blumentritt,URTI,0
+2026-07,Blumentritt,URTI,0
+2026-08,Blumentritt,URTI,1
+2026-09,Blumentritt,URTI,1
+2023-01,Caliban,URTI,4
+2023-02,Caliban,URTI,5
+2023-03,Caliban,URTI,0
+2023-04,Caliban,URTI,1
+2023-05,Caliban,URTI,1
+2023-06,Caliban,URTI,3
+2023-07,Caliban,URTI,3
+2023-08,Caliban,URTI,1
+2023-09,Caliban,URTI,2
+2023-10,Caliban,URTI,1
+2023-11,Caliban,URTI,1
+2023-12,Caliban,URTI,1
+2024-01,Caliban,URTI,3
+2024-02,Caliban,URTI,0
+2024-03,Caliban,URTI,2
+2024-04,Caliban,URTI,2
+2024-05,Caliban,URTI,1
+2024-06,Caliban,URTI,1
+2024-07,Caliban,URTI,1
+2024-08,Caliban,URTI,2
+2024-09,Caliban,URTI,2
+2024-10,Caliban,URTI,0
+2024-11,Caliban,URTI,2
+2024-12,Caliban,URTI,3
+2025-01,Caliban,URTI,0
+2025-02,Caliban,URTI,1
+2025-03,Caliban,URTI,0
+2025-04,Caliban,URTI,0
+2025-05,Caliban,URTI,4
+2025-06,Caliban,URTI,3
+2025-07,Caliban,URTI,0
+2025-08,Caliban,URTI,2
+2025-09,Caliban,URTI,1
+2025-10,Caliban,URTI,0
+2025-11,Caliban,URTI,0
+2025-12,Caliban,URTI,0
+2026-01,Caliban,URTI,0
+2026-02,Caliban,URTI,1
+2026-03,Caliban,URTI,2
+2026-04,Caliban,URTI,0
+2026-05,Caliban,URTI,3
+2026-06,Caliban,URTI,3
+2026-07,Caliban,URTI,0
+2026-08,Caliban,URTI,2
+2026-09,Caliban,URTI,2
+2023-01,Cansilayan,URTI,1
+2023-02,Cansilayan,URTI,3
+2023-03,Cansilayan,URTI,2
+2023-04,Cansilayan,URTI,2
+2023-05,Cansilayan,URTI,2
+2023-06,Cansilayan,URTI,5
+2023-07,Cansilayan,URTI,0
+2023-08,Cansilayan,URTI,1
+2023-09,Cansilayan,URTI,5
+2023-10,Cansilayan,URTI,3
+2023-11,Cansilayan,URTI,1
+2023-12,Cansilayan,URTI,2
+2024-01,Cansilayan,URTI,1
+2024-02,Cansilayan,URTI,1
+2024-03,Cansilayan,URTI,3
+2024-04,Cansilayan,URTI,3
+2024-05,Cansilayan,URTI,3
+2024-06,Cansilayan,URTI,1
+2024-07,Cansilayan,URTI,1
+2024-08,Cansilayan,URTI,2
+2024-09,Cansilayan,URTI,4
+2024-10,Cansilayan,URTI,2
+2024-11,Cansilayan,URTI,3
+2024-12,Cansilayan,URTI,1
+2025-01,Cansilayan,URTI,3
+2025-02,Cansilayan,URTI,1
+2025-03,Cansilayan,URTI,0
+2025-04,Cansilayan,URTI,3
+2025-05,Cansilayan,URTI,1
+2025-06,Cansilayan,URTI,1
+2025-07,Cansilayan,URTI,1
+2025-08,Cansilayan,URTI,3
+2025-09,Cansilayan,URTI,0
+2025-10,Cansilayan,URTI,2
+2025-11,Cansilayan,URTI,0
+2025-12,Cansilayan,URTI,3
+2026-01,Cansilayan,URTI,2
+2026-02,Cansilayan,URTI,1
+2026-03,Cansilayan,URTI,0
+2026-04,Cansilayan,URTI,2
+2026-05,Cansilayan,URTI,0
+2026-06,Cansilayan,URTI,4
+2026-07,Cansilayan,URTI,0
+2026-08,Cansilayan,URTI,2
+2026-09,Cansilayan,URTI,1
+2023-01,Sta. Rosa,URTI,5
+2023-02,Sta. Rosa,URTI,3
+2023-03,Sta. Rosa,URTI,1
+2023-04,Sta. Rosa,URTI,1
+2023-05,Sta. Rosa,URTI,2
+2023-06,Sta. Rosa,URTI,1
+2023-07,Sta. Rosa,URTI,1
+2023-08,Sta. Rosa,URTI,0
+2023-09,Sta. Rosa,URTI,0
+2023-10,Sta. Rosa,URTI,1
+2023-11,Sta. Rosa,URTI,3
+2023-12,Sta. Rosa,URTI,0
+2024-01,Sta. Rosa,URTI,1
+2024-02,Sta. Rosa,URTI,1
+2024-03,Sta. Rosa,URTI,1
+2024-04,Sta. Rosa,URTI,1
+2024-05,Sta. Rosa,URTI,2
+2024-06,Sta. Rosa,URTI,2
+2024-07,Sta. Rosa,URTI,2
+2024-08,Sta. Rosa,URTI,1
+2024-09,Sta. Rosa,URTI,0
+2024-10,Sta. Rosa,URTI,2
+2024-11,Sta. Rosa,URTI,3
+2024-12,Sta. Rosa,URTI,4
+2025-01,Sta. Rosa,URTI,1
+2025-02,Sta. Rosa,URTI,0
+2025-03,Sta. Rosa,URTI,1
+2025-04,Sta. Rosa,URTI,1
+2025-05,Sta. Rosa,URTI,3
+2025-06,Sta. Rosa,URTI,1
+2025-07,Sta. Rosa,URTI,3
+2025-08,Sta. Rosa,URTI,0
+2025-09,Sta. Rosa,URTI,1
+2025-10,Sta. Rosa,URTI,0
+2025-11,Sta. Rosa,URTI,1
+2025-12,Sta. Rosa,URTI,2
+2026-01,Sta. Rosa,URTI,2
+2026-02,Sta. Rosa,URTI,2
+2026-03,Sta. Rosa,URTI,1
+2026-04,Sta. Rosa,URTI,1
+2026-05,Sta. Rosa,URTI,1
+2026-06,Sta. Rosa,URTI,2
+2026-07,Sta. Rosa,URTI,1
+2026-08,Sta. Rosa,URTI,1
+2026-09,Sta. Rosa,URTI,0
+2023-01,Minoyan,URTI,4
+2023-02,Minoyan,URTI,0
+2023-03,Minoyan,URTI,0
+2023-04,Minoyan,URTI,3
+2023-05,Minoyan,URTI,1
+2023-06,Minoyan,URTI,3
+2023-07,Minoyan,URTI,2
+2023-08,Minoyan,URTI,4
+2023-09,Minoyan,URTI,4
+2023-10,Minoyan,URTI,2
+2023-11,Minoyan,URTI,2
+2023-12,Minoyan,URTI,2
+2024-01,Minoyan,URTI,2
+2024-02,Minoyan,URTI,1
+2024-03,Minoyan,URTI,3
+2024-04,Minoyan,URTI,2
+2024-05,Minoyan,URTI,1
+2024-06,Minoyan,URTI,1
+2024-07,Minoyan,URTI,2
+2024-08,Minoyan,URTI,2
+2024-09,Minoyan,URTI,2
+2024-10,Minoyan,URTI,4
+2024-11,Minoyan,URTI,1
+2024-12,Minoyan,URTI,3
+2025-01,Minoyan,URTI,2
+2025-02,Minoyan,URTI,1
+2025-03,Minoyan,URTI,1
+2025-04,Minoyan,URTI,1
+2025-05,Minoyan,URTI,0
+2025-06,Minoyan,URTI,3
+2025-07,Minoyan,URTI,1
+2025-08,Minoyan,URTI,1
+2025-09,Minoyan,URTI,0
+2025-10,Minoyan,URTI,1
+2025-11,Minoyan,URTI,1
+2025-12,Minoyan,URTI,1
+2026-01,Minoyan,URTI,1
+2026-02,Minoyan,URTI,0
+2026-03,Minoyan,URTI,3
+2026-04,Minoyan,URTI,1
+2026-05,Minoyan,URTI,0
+2026-06,Minoyan,URTI,0
+2026-07,Minoyan,URTI,0
+2026-08,Minoyan,URTI,1
+2026-09,Minoyan,URTI,0
+2023-01,Salvacion,Infection all types,1
+2023-02,Salvacion,Infection all types,0
+2023-03,Salvacion,Infection all types,2
+2023-04,Salvacion,Infection all types,3
+2023-05,Salvacion,Infection all types,0
+2023-06,Salvacion,Infection all types,0
+2023-07,Salvacion,Infection all types,1
+2023-08,Salvacion,Infection all types,4
+2023-09,Salvacion,Infection all types,0
+2023-10,Salvacion,Infection all types,1
+2023-11,Salvacion,Infection all types,4
+2023-12,Salvacion,Infection all types,3
+2024-01,Salvacion,Infection all types,2
+2024-02,Salvacion,Infection all types,1
+2024-03,Salvacion,Infection all types,0
+2024-04,Salvacion,Infection all types,4
+2024-05,Salvacion,Infection all types,3
+2024-06,Salvacion,Infection all types,1
+2024-07,Salvacion,Infection all types,1
+2024-08,Salvacion,Infection all types,1
+2024-09,Salvacion,Infection all types,1
+2024-10,Salvacion,Infection all types,2
+2024-11,Salvacion,Infection all types,1
+2024-12,Salvacion,Infection all types,3
+2025-01,Salvacion,Infection all types,1
+2025-02,Salvacion,Infection all types,5
+2025-03,Salvacion,Infection all types,3
+2025-04,Salvacion,Infection all types,0
+2025-05,Salvacion,Infection all types,2
+2025-06,Salvacion,Infection all types,1
+2025-07,Salvacion,Infection all types,2
+2025-08,Salvacion,Infection all types,2
+2025-09,Salvacion,Infection all types,2
+2025-10,Salvacion,Infection all types,2
+2025-11,Salvacion,Infection all types,2
+2025-12,Salvacion,Infection all types,0
+2026-01,Salvacion,Infection all types,4
+2026-02,Salvacion,Infection all types,1
+2026-03,Salvacion,Infection all types,0
+2026-04,Salvacion,Infection all types,0
+2026-05,Salvacion,Infection all types,2
+2026-06,Salvacion,Infection all types,1
+2026-07,Salvacion,Infection all types,4
+2026-08,Salvacion,Infection all types,4
+2026-09,Salvacion,Infection all types,1
+2023-01,Alegria,Infection all types,3
+2023-02,Alegria,Infection all types,1
+2023-03,Alegria,Infection all types,3
+2023-04,Alegria,Infection all types,2
+2023-05,Alegria,Infection all types,3
+2023-06,Alegria,Infection all types,4
+2023-07,Alegria,Infection all types,2
+2023-08,Alegria,Infection all types,1
+2023-09,Alegria,Infection all types,0
+2023-10,Alegria,Infection all types,0
+2023-11,Alegria,Infection all types,1
+2023-12,Alegria,Infection all types,5
+2024-01,Alegria,Infection all types,0
+2024-02,Alegria,Infection all types,0
+2024-03,Alegria,Infection all types,1
+2024-04,Alegria,Infection all types,1
+2024-05,Alegria,Infection all types,1
+2024-06,Alegria,Infection all types,4
+2024-07,Alegria,Infection all types,1
+2024-08,Alegria,Infection all types,6
+2024-09,Alegria,Infection all types,1
+2024-10,Alegria,Infection all types,2
+2024-11,Alegria,Infection all types,0
+2024-12,Alegria,Infection all types,2
+2025-01,Alegria,Infection all types,3
+2025-02,Alegria,Infection all types,0
+2025-03,Alegria,Infection all types,2
+2025-04,Alegria,Infection all types,1
+2025-05,Alegria,Infection all types,2
+2025-06,Alegria,Infection all types,0
+2025-07,Alegria,Infection all types,0
+2025-08,Alegria,Infection all types,2
+2025-09,Alegria,Infection all types,4
+2025-10,Alegria,Infection all types,3
+2025-11,Alegria,Infection all types,0
+2025-12,Alegria,Infection all types,4
+2026-01,Alegria,Infection all types,1
+2026-02,Alegria,Infection all types,2
+2026-03,Alegria,Infection all types,1
+2026-04,Alegria,Infection all types,1
+2026-05,Alegria,Infection all types,1
+2026-06,Alegria,Infection all types,3
+2026-07,Alegria,Infection all types,2
+2026-08,Alegria,Infection all types,2
+2026-09,Alegria,Infection all types,7
+2023-01,Blumentritt,Infection all types,2
+2023-02,Blumentritt,Infection all types,0
+2023-03,Blumentritt,Infection all types,0
+2023-04,Blumentritt,Infection all types,2
+2023-05,Blumentritt,Infection all types,3
+2023-06,Blumentritt,Infection all types,4
+2023-07,Blumentritt,Infection all types,2
+2023-08,Blumentritt,Infection all types,3
+2023-09,Blumentritt,Infection all types,1
+2023-10,Blumentritt,Infection all types,3
+2023-11,Blumentritt,Infection all types,0
+2023-12,Blumentritt,Infection all types,3
+2024-01,Blumentritt,Infection all types,1
+2024-02,Blumentritt,Infection all types,1
+2024-03,Blumentritt,Infection all types,3
+2024-04,Blumentritt,Infection all types,1
+2024-05,Blumentritt,Infection all types,0
+2024-06,Blumentritt,Infection all types,0
+2024-07,Blumentritt,Infection all types,1
+2024-08,Blumentritt,Infection all types,5
+2024-09,Blumentritt,Infection all types,4
+2024-10,Blumentritt,Infection all types,0
+2024-11,Blumentritt,Infection all types,4
+2024-12,Blumentritt,Infection all types,0
+2025-01,Blumentritt,Infection all types,1
+2025-02,Blumentritt,Infection all types,2
+2025-03,Blumentritt,Infection all types,1
+2025-04,Blumentritt,Infection all types,0
+2025-05,Blumentritt,Infection all types,0
+2025-06,Blumentritt,Infection all types,0
+2025-07,Blumentritt,Infection all types,3
+2025-08,Blumentritt,Infection all types,1
+2025-09,Blumentritt,Infection all types,2
+2025-10,Blumentritt,Infection all types,2
+2025-11,Blumentritt,Infection all types,2
+2025-12,Blumentritt,Infection all types,2
+2026-01,Blumentritt,Infection all types,4
+2026-02,Blumentritt,Infection all types,2
+2026-03,Blumentritt,Infection all types,3
+2026-04,Blumentritt,Infection all types,1
+2026-05,Blumentritt,Infection all types,1
+2026-06,Blumentritt,Infection all types,2
+2026-07,Blumentritt,Infection all types,1
+2026-08,Blumentritt,Infection all types,2
+2026-09,Blumentritt,Infection all types,0
+2023-01,Caliban,Infection all types,1
+2023-02,Caliban,Infection all types,2
+2023-03,Caliban,Infection all types,1
+2023-04,Caliban,Infection all types,1
+2023-05,Caliban,Infection all types,2
+2023-06,Caliban,Infection all types,2
+2023-07,Caliban,Infection all types,0
+2023-08,Caliban,Infection all types,1
+2023-09,Caliban,Infection all types,2
+2023-10,Caliban,Infection all types,1
+2023-11,Caliban,Infection all types,1
+2023-12,Caliban,Infection all types,0
+2024-01,Caliban,Infection all types,1
+2024-02,Caliban,Infection all types,0
+2024-03,Caliban,Infection all types,0
+2024-04,Caliban,Infection all types,0
+2024-05,Caliban,Infection all types,0
+2024-06,Caliban,Infection all types,1
+2024-07,Caliban,Infection all types,2
+2024-08,Caliban,Infection all types,2
+2024-09,Caliban,Infection all types,2
+2024-10,Caliban,Infection all types,2
+2024-11,Caliban,Infection all types,2
+2024-12,Caliban,Infection all types,1
+2025-01,Caliban,Infection all types,3
+2025-02,Caliban,Infection all types,1
+2025-03,Caliban,Infection all types,0
+2025-04,Caliban,Infection all types,1
+2025-05,Caliban,Infection all types,2
+2025-06,Caliban,Infection all types,1
+2025-07,Caliban,Infection all types,2
+2025-08,Caliban,Infection all types,2
+2025-09,Caliban,Infection all types,0
+2025-10,Caliban,Infection all types,2
+2025-11,Caliban,Infection all types,2
+2025-12,Caliban,Infection all types,6
+2026-01,Caliban,Infection all types,1
+2026-02,Caliban,Infection all types,2
+2026-03,Caliban,Infection all types,3
+2026-04,Caliban,Infection all types,2
+2026-05,Caliban,Infection all types,2
+2026-06,Caliban,Infection all types,1
+2026-07,Caliban,Infection all types,4
+2026-08,Caliban,Infection all types,1
+2026-09,Caliban,Infection all types,1
+2023-01,Cansilayan,Infection all types,1
+2023-02,Cansilayan,Infection all types,3
+2023-03,Cansilayan,Infection all types,1
+2023-04,Cansilayan,Infection all types,2
+2023-05,Cansilayan,Infection all types,3
+2023-06,Cansilayan,Infection all types,2
+2023-07,Cansilayan,Infection all types,1
+2023-08,Cansilayan,Infection all types,0
+2023-09,Cansilayan,Infection all types,0
+2023-10,Cansilayan,Infection all types,1
+2023-11,Cansilayan,Infection all types,1
+2023-12,Cansilayan,Infection all types,3
+2024-01,Cansilayan,Infection all types,2
+2024-02,Cansilayan,Infection all types,1
+2024-03,Cansilayan,Infection all types,3
+2024-04,Cansilayan,Infection all types,2
+2024-05,Cansilayan,Infection all types,3
+2024-06,Cansilayan,Infection all types,2
+2024-07,Cansilayan,Infection all types,2
+2024-08,Cansilayan,Infection all types,2
+2024-09,Cansilayan,Infection all types,2
+2024-10,Cansilayan,Infection all types,0
+2024-11,Cansilayan,Infection all types,0
+2024-12,Cansilayan,Infection all types,1
+2025-01,Cansilayan,Infection all types,1
+2025-02,Cansilayan,Infection all types,2
+2025-03,Cansilayan,Infection all types,1
+2025-04,Cansilayan,Infection all types,2
+2025-05,Cansilayan,Infection all types,2
+2025-06,Cansilayan,Infection all types,1
+2025-07,Cansilayan,Infection all types,3
+2025-08,Cansilayan,Infection all types,2
+2025-09,Cansilayan,Infection all types,1
+2025-10,Cansilayan,Infection all types,1
+2025-11,Cansilayan,Infection all types,1
+2025-12,Cansilayan,Infection all types,0
+2026-01,Cansilayan,Infection all types,0
+2026-02,Cansilayan,Infection all types,2
+2026-03,Cansilayan,Infection all types,2
+2026-04,Cansilayan,Infection all types,1
+2026-05,Cansilayan,Infection all types,1
+2026-06,Cansilayan,Infection all types,2
+2026-07,Cansilayan,Infection all types,0
+2026-08,Cansilayan,Infection all types,2
+2026-09,Cansilayan,Infection all types,2
+2023-01,Sta. Rosa,Infection all types,3
+2023-02,Sta. Rosa,Infection all types,3
+2023-03,Sta. Rosa,Infection all types,3
+2023-04,Sta. Rosa,Infection all types,0
+2023-05,Sta. Rosa,Infection all types,2
+2023-06,Sta. Rosa,Infection all types,1
+2023-07,Sta. Rosa,Infection all types,1
+2023-08,Sta. Rosa,Infection all types,3
+2023-09,Sta. Rosa,Infection all types,0
+2023-10,Sta. Rosa,Infection all types,0
+2023-11,Sta. Rosa,Infection all types,0
+2023-12,Sta. Rosa,Infection all types,0
+2024-01,Sta. Rosa,Infection all types,2
+2024-02,Sta. Rosa,Infection all types,4
+2024-03,Sta. Rosa,Infection all types,2
+2024-04,Sta. Rosa,Infection all types,3
+2024-05,Sta. Rosa,Infection all types,0
+2024-06,Sta. Rosa,Infection all types,0
+2024-07,Sta. Rosa,Infection all types,2
+2024-08,Sta. Rosa,Infection all types,1
+2024-09,Sta. Rosa,Infection all types,0
+2024-10,Sta. Rosa,Infection all types,1
+2024-11,Sta. Rosa,Infection all types,0
+2024-12,Sta. Rosa,Infection all types,2
+2025-01,Sta. Rosa,Infection all types,2
+2025-02,Sta. Rosa,Infection all types,4
+2025-03,Sta. Rosa,Infection all types,2
+2025-04,Sta. Rosa,Infection all types,0
+2025-05,Sta. Rosa,Infection all types,0
+2025-06,Sta. Rosa,Infection all types,4
+2025-07,Sta. Rosa,Infection all types,0
+2025-08,Sta. Rosa,Infection all types,2
+2025-09,Sta. Rosa,Infection all types,2
+2025-10,Sta. Rosa,Infection all types,0
+2025-11,Sta. Rosa,Infection all types,1
+2025-12,Sta. Rosa,Infection all types,0
+2026-01,Sta. Rosa,Infection all types,0
+2026-02,Sta. Rosa,Infection all types,2
+2026-03,Sta. Rosa,Infection all types,2
+2026-04,Sta. Rosa,Infection all types,3
+2026-05,Sta. Rosa,Infection all types,2
+2026-06,Sta. Rosa,Infection all types,1
+2026-07,Sta. Rosa,Infection all types,2
+2026-08,Sta. Rosa,Infection all types,2
+2026-09,Sta. Rosa,Infection all types,2
+2023-01,Minoyan,Infection all types,1
+2023-02,Minoyan,Infection all types,3
+2023-03,Minoyan,Infection all types,0
+2023-04,Minoyan,Infection all types,1
+2023-05,Minoyan,Infection all types,1
+2023-06,Minoyan,Infection all types,2
+2023-07,Minoyan,Infection all types,2
+2023-08,Minoyan,Infection all types,1
+2023-09,Minoyan,Infection all types,3
+2023-10,Minoyan,Infection all types,1
+2023-11,Minoyan,Infection all types,1
+2023-12,Minoyan,Infection all types,1
+2024-01,Minoyan,Infection all types,1
+2024-02,Minoyan,Infection all types,5
+2024-03,Minoyan,Infection all types,1
+2024-04,Minoyan,Infection all types,1
+2024-05,Minoyan,Infection all types,1
+2024-06,Minoyan,Infection all types,0
+2024-07,Minoyan,Infection all types,1
+2024-08,Minoyan,Infection all types,2
+2024-09,Minoyan,Infection all types,2
+2024-10,Minoyan,Infection all types,1
+2024-11,Minoyan,Infection all types,0
+2024-12,Minoyan,Infection all types,3
+2025-01,Minoyan,Infection all types,1
+2025-02,Minoyan,Infection all types,0
+2025-03,Minoyan,Infection all types,2
+2025-04,Minoyan,Infection all types,0
+2025-05,Minoyan,Infection all types,1
+2025-06,Minoyan,Infection all types,1
+2025-07,Minoyan,Infection all types,3
+2025-08,Minoyan,Infection all types,0
+2025-09,Minoyan,Infection all types,1
+2025-10,Minoyan,Infection all types,2
+2025-11,Minoyan,Infection all types,0
+2025-12,Minoyan,Infection all types,1
+2026-01,Minoyan,Infection all types,1
+2026-02,Minoyan,Infection all types,0
+2026-03,Minoyan,Infection all types,0
+2026-04,Minoyan,Infection all types,3
+2026-05,Minoyan,Infection all types,0
+2026-06,Minoyan,Infection all types,3
+2026-07,Minoyan,Infection all types,1
+2026-08,Minoyan,Infection all types,1
+2026-09,Minoyan,Infection all types,1
+2023-01,Salvacion,ARI,2
+2023-02,Salvacion,ARI,1
+2023-03,Salvacion,ARI,1
+2023-04,Salvacion,ARI,2
+2023-05,Salvacion,ARI,2
+2023-06,Salvacion,ARI,3
+2023-07,Salvacion,ARI,1
+2023-08,Salvacion,ARI,2
+2023-09,Salvacion,ARI,3
+2023-10,Salvacion,ARI,1
+2023-11,Salvacion,ARI,1
+2023-12,Salvacion,ARI,2
+2024-01,Salvacion,ARI,3
+2024-02,Salvacion,ARI,2
+2024-03,Salvacion,ARI,4
+2024-04,Salvacion,ARI,1
+2024-05,Salvacion,ARI,0
+2024-06,Salvacion,ARI,1
+2024-07,Salvacion,ARI,2
+2024-08,Salvacion,ARI,3
+2024-09,Salvacion,ARI,2
+2024-10,Salvacion,ARI,1
+2024-11,Salvacion,ARI,2
+2024-12,Salvacion,ARI,0
+2025-01,Salvacion,ARI,0
+2025-02,Salvacion,ARI,2
+2025-03,Salvacion,ARI,0
+2025-04,Salvacion,ARI,1
+2025-05,Salvacion,ARI,2
+2025-06,Salvacion,ARI,1
+2025-07,Salvacion,ARI,1
+2025-08,Salvacion,ARI,2
+2025-09,Salvacion,ARI,1
+2025-10,Salvacion,ARI,3
+2025-11,Salvacion,ARI,0
+2025-12,Salvacion,ARI,1
+2026-01,Salvacion,ARI,1
+2026-02,Salvacion,ARI,2
+2026-03,Salvacion,ARI,1
+2026-04,Salvacion,ARI,1
+2026-05,Salvacion,ARI,4
+2026-06,Salvacion,ARI,2
+2026-07,Salvacion,ARI,2
+2026-08,Salvacion,ARI,1
+2026-09,Salvacion,ARI,0
+2023-01,Alegria,ARI,0
+2023-02,Alegria,ARI,2
+2023-03,Alegria,ARI,1
+2023-04,Alegria,ARI,0
+2023-05,Alegria,ARI,4
+2023-06,Alegria,ARI,0
+2023-07,Alegria,ARI,2
+2023-08,Alegria,ARI,4
+2023-09,Alegria,ARI,2
+2023-10,Alegria,ARI,0
+2023-11,Alegria,ARI,1
+2023-12,Alegria,ARI,2
+2024-01,Alegria,ARI,1
+2024-02,Alegria,ARI,0
+2024-03,Alegria,ARI,1
+2024-04,Alegria,ARI,1
+2024-05,Alegria,ARI,2
+2024-06,Alegria,ARI,1
+2024-07,Alegria,ARI,1
+2024-08,Alegria,ARI,3
+2024-09,Alegria,ARI,0
+2024-10,Alegria,ARI,4
+2024-11,Alegria,ARI,2
+2024-12,Alegria,ARI,1
+2025-01,Alegria,ARI,3
+2025-02,Alegria,ARI,3
+2025-03,Alegria,ARI,2
+2025-04,Alegria,ARI,1
+2025-05,Alegria,ARI,2
+2025-06,Alegria,ARI,1
+2025-07,Alegria,ARI,0
+2025-08,Alegria,ARI,3
+2025-09,Alegria,ARI,4
+2025-10,Alegria,ARI,0
+2025-11,Alegria,ARI,0
+2025-12,Alegria,ARI,3
+2026-01,Alegria,ARI,1
+2026-02,Alegria,ARI,2
+2026-03,Alegria,ARI,2
+2026-04,Alegria,ARI,1
+2026-05,Alegria,ARI,0
+2026-06,Alegria,ARI,2
+2026-07,Alegria,ARI,1
+2026-08,Alegria,ARI,2
+2026-09,Alegria,ARI,0
+2023-01,Blumentritt,ARI,2
+2023-02,Blumentritt,ARI,1
+2023-03,Blumentritt,ARI,0
+2023-04,Blumentritt,ARI,0
+2023-05,Blumentritt,ARI,0
+2023-06,Blumentritt,ARI,1
+2023-07,Blumentritt,ARI,1
+2023-08,Blumentritt,ARI,0
+2023-09,Blumentritt,ARI,1
+2023-10,Blumentritt,ARI,2
+2023-11,Blumentritt,ARI,1
+2023-12,Blumentritt,ARI,0
+2024-01,Blumentritt,ARI,1
+2024-02,Blumentritt,ARI,1
+2024-03,Blumentritt,ARI,0
+2024-04,Blumentritt,ARI,2
+2024-05,Blumentritt,ARI,0
+2024-06,Blumentritt,ARI,0
+2024-07,Blumentritt,ARI,1
+2024-08,Blumentritt,ARI,5
+2024-09,Blumentritt,ARI,0
+2024-10,Blumentritt,ARI,5
+2024-11,Blumentritt,ARI,3
+2024-12,Blumentritt,ARI,0
+2025-01,Blumentritt,ARI,4
+2025-02,Blumentritt,ARI,1
+2025-03,Blumentritt,ARI,2
+2025-04,Blumentritt,ARI,1
+2025-05,Blumentritt,ARI,0
+2025-06,Blumentritt,ARI,3
+2025-07,Blumentritt,ARI,3
+2025-08,Blumentritt,ARI,1
+2025-09,Blumentritt,ARI,2
+2025-10,Blumentritt,ARI,1
+2025-11,Blumentritt,ARI,0
+2025-12,Blumentritt,ARI,2
+2026-01,Blumentritt,ARI,2
+2026-02,Blumentritt,ARI,3
+2026-03,Blumentritt,ARI,1
+2026-04,Blumentritt,ARI,1
+2026-05,Blumentritt,ARI,1
+2026-06,Blumentritt,ARI,2
+2026-07,Blumentritt,ARI,1
+2026-08,Blumentritt,ARI,0
+2026-09,Blumentritt,ARI,1
+2023-01,Caliban,ARI,1
+2023-02,Caliban,ARI,0
+2023-03,Caliban,ARI,4
+2023-04,Caliban,ARI,2
+2023-05,Caliban,ARI,3
+2023-06,Caliban,ARI,2
+2023-07,Caliban,ARI,0
+2023-08,Caliban,ARI,3
+2023-09,Caliban,ARI,4
+2023-10,Caliban,ARI,1
+2023-11,Caliban,ARI,2
+2023-12,Caliban,ARI,0
+2024-01,Caliban,ARI,2
+2024-02,Caliban,ARI,1
+2024-03,Caliban,ARI,1
+2024-04,Caliban,ARI,1
+2024-05,Caliban,ARI,2
+2024-06,Caliban,ARI,4
+2024-07,Caliban,ARI,2
+2024-08,Caliban,ARI,2
+2024-09,Caliban,ARI,2
+2024-10,Caliban,ARI,2
+2024-11,Caliban,ARI,2
+2024-12,Caliban,ARI,1
+2025-01,Caliban,ARI,3
+2025-02,Caliban,ARI,0
+2025-03,Caliban,ARI,0
+2025-04,Caliban,ARI,2
+2025-05,Caliban,ARI,3
+2025-06,Caliban,ARI,3
+2025-07,Caliban,ARI,1
+2025-08,Caliban,ARI,1
+2025-09,Caliban,ARI,1
+2025-10,Caliban,ARI,1
+2025-11,Caliban,ARI,1
+2025-12,Caliban,ARI,4
+2026-01,Caliban,ARI,1
+2026-02,Caliban,ARI,0
+2026-03,Caliban,ARI,1
+2026-04,Caliban,ARI,1
+2026-05,Caliban,ARI,3
+2026-06,Caliban,ARI,0
+2026-07,Caliban,ARI,2
+2026-08,Caliban,ARI,1
+2026-09,Caliban,ARI,1
+2023-01,Cansilayan,ARI,0
+2023-02,Cansilayan,ARI,0
+2023-03,Cansilayan,ARI,1
+2023-04,Cansilayan,ARI,1
+2023-05,Cansilayan,ARI,0
+2023-06,Cansilayan,ARI,1
+2023-07,Cansilayan,ARI,0
+2023-08,Cansilayan,ARI,2
+2023-09,Cansilayan,ARI,4
+2023-10,Cansilayan,ARI,2
+2023-11,Cansilayan,ARI,0
+2023-12,Cansilayan,ARI,1
+2024-01,Cansilayan,ARI,1
+2024-02,Cansilayan,ARI,1
+2024-03,Cansilayan,ARI,2
+2024-04,Cansilayan,ARI,0
+2024-05,Cansilayan,ARI,0
+2024-06,Cansilayan,ARI,3
+2024-07,Cansilayan,ARI,2
+2024-08,Cansilayan,ARI,1
+2024-09,Cansilayan,ARI,2
+2024-10,Cansilayan,ARI,1
+2024-11,Cansilayan,ARI,0
+2024-12,Cansilayan,ARI,1
+2025-01,Cansilayan,ARI,0
+2025-02,Cansilayan,ARI,1
+2025-03,Cansilayan,ARI,1
+2025-04,Cansilayan,ARI,0
+2025-05,Cansilayan,ARI,0
+2025-06,Cansilayan,ARI,1
+2025-07,Cansilayan,ARI,4
+2025-08,Cansilayan,ARI,2
+2025-09,Cansilayan,ARI,3
+2025-10,Cansilayan,ARI,2
+2025-11,Cansilayan,ARI,0
+2025-12,Cansilayan,ARI,0
+2026-01,Cansilayan,ARI,2
+2026-02,Cansilayan,ARI,0
+2026-03,Cansilayan,ARI,0
+2026-04,Cansilayan,ARI,1
+2026-05,Cansilayan,ARI,1
+2026-06,Cansilayan,ARI,1
+2026-07,Cansilayan,ARI,2
+2026-08,Cansilayan,ARI,3
+2026-09,Cansilayan,ARI,0
+2023-01,Sta. Rosa,ARI,0
+2023-02,Sta. Rosa,ARI,6
+2023-03,Sta. Rosa,ARI,0
+2023-04,Sta. Rosa,ARI,3
+2023-05,Sta. Rosa,ARI,1
+2023-06,Sta. Rosa,ARI,2
+2023-07,Sta. Rosa,ARI,1
+2023-08,Sta. Rosa,ARI,1
+2023-09,Sta. Rosa,ARI,2
+2023-10,Sta. Rosa,ARI,1
+2023-11,Sta. Rosa,ARI,3
+2023-12,Sta. Rosa,ARI,3
+2024-01,Sta. Rosa,ARI,2
+2024-02,Sta. Rosa,ARI,3
+2024-03,Sta. Rosa,ARI,0
+2024-04,Sta. Rosa,ARI,0
+2024-05,Sta. Rosa,ARI,1
+2024-06,Sta. Rosa,ARI,1
+2024-07,Sta. Rosa,ARI,0
+2024-08,Sta. Rosa,ARI,1
+2024-09,Sta. Rosa,ARI,3
+2024-10,Sta. Rosa,ARI,1
+2024-11,Sta. Rosa,ARI,1
+2024-12,Sta. Rosa,ARI,1
+2025-01,Sta. Rosa,ARI,0
+2025-02,Sta. Rosa,ARI,3
+2025-03,Sta. Rosa,ARI,0
+2025-04,Sta. Rosa,ARI,0
+2025-05,Sta. Rosa,ARI,0
+2025-06,Sta. Rosa,ARI,3
+2025-07,Sta. Rosa,ARI,2
+2025-08,Sta. Rosa,ARI,3
+2025-09,Sta. Rosa,ARI,1
+2025-10,Sta. Rosa,ARI,1
+2025-11,Sta. Rosa,ARI,2
+2025-12,Sta. Rosa,ARI,2
+2026-01,Sta. Rosa,ARI,2
+2026-02,Sta. Rosa,ARI,0
+2026-03,Sta. Rosa,ARI,2
+2026-04,Sta. Rosa,ARI,2
+2026-05,Sta. Rosa,ARI,0
+2026-06,Sta. Rosa,ARI,2
+2026-07,Sta. Rosa,ARI,1
+2026-08,Sta. Rosa,ARI,1
+2026-09,Sta. Rosa,ARI,5
+2023-01,Minoyan,ARI,0
+2023-02,Minoyan,ARI,2
+2023-03,Minoyan,ARI,3
+2023-04,Minoyan,ARI,2
+2023-05,Minoyan,ARI,2
+2023-06,Minoyan,ARI,5
+2023-07,Minoyan,ARI,0
+2023-08,Minoyan,ARI,4
+2023-09,Minoyan,ARI,2
+2023-10,Minoyan,ARI,2
+2023-11,Minoyan,ARI,2
+2023-12,Minoyan,ARI,1
+2024-01,Minoyan,ARI,4
+2024-02,Minoyan,ARI,0
+2024-03,Minoyan,ARI,2
+2024-04,Minoyan,ARI,4
+2024-05,Minoyan,ARI,1
+2024-06,Minoyan,ARI,5
+2024-07,Minoyan,ARI,3
+2024-08,Minoyan,ARI,0
+2024-09,Minoyan,ARI,1
+2024-10,Minoyan,ARI,2
+2024-11,Minoyan,ARI,1
+2024-12,Minoyan,ARI,0
+2025-01,Minoyan,ARI,2
+2025-02,Minoyan,ARI,1
+2025-03,Minoyan,ARI,3
+2025-04,Minoyan,ARI,3
+2025-05,Minoyan,ARI,2
+2025-06,Minoyan,ARI,2
+2025-07,Minoyan,ARI,0
+2025-08,Minoyan,ARI,0
+2025-09,Minoyan,ARI,2
+2025-10,Minoyan,ARI,1
+2025-11,Minoyan,ARI,1
+2025-12,Minoyan,ARI,3
+2026-01,Minoyan,ARI,1
+2026-02,Minoyan,ARI,3
+2026-03,Minoyan,ARI,1
+2026-04,Minoyan,ARI,1
+2026-05,Minoyan,ARI,3
+2026-06,Minoyan,ARI,2
+2026-07,Minoyan,ARI,1
+2026-08,Minoyan,ARI,2
+2026-09,Minoyan,ARI,1
+2023-01,Salvacion,Fever unknown origin,2
+2023-02,Salvacion,Fever unknown origin,2
+2023-03,Salvacion,Fever unknown origin,4
+2023-04,Salvacion,Fever unknown origin,0
+2023-05,Salvacion,Fever unknown origin,1
+2023-06,Salvacion,Fever unknown origin,2
+2023-07,Salvacion,Fever unknown origin,1
+2023-08,Salvacion,Fever unknown origin,3
+2023-09,Salvacion,Fever unknown origin,0
+2023-10,Salvacion,Fever unknown origin,2
+2023-11,Salvacion,Fever unknown origin,1
+2023-12,Salvacion,Fever unknown origin,0
+2024-01,Salvacion,Fever unknown origin,4
+2024-02,Salvacion,Fever unknown origin,1
+2024-03,Salvacion,Fever unknown origin,3
+2024-04,Salvacion,Fever unknown origin,2
+2024-05,Salvacion,Fever unknown origin,1
+2024-06,Salvacion,Fever unknown origin,2
+2024-07,Salvacion,Fever unknown origin,1
+2024-08,Salvacion,Fever unknown origin,2
+2024-09,Salvacion,Fever unknown origin,1
+2024-10,Salvacion,Fever unknown origin,1
+2024-11,Salvacion,Fever unknown origin,3
+2024-12,Salvacion,Fever unknown origin,2
+2025-01,Salvacion,Fever unknown origin,1
+2025-02,Salvacion,Fever unknown origin,3
+2025-03,Salvacion,Fever unknown origin,1
+2025-04,Salvacion,Fever unknown origin,2
+2025-05,Salvacion,Fever unknown origin,2
+2025-06,Salvacion,Fever unknown origin,2
+2025-07,Salvacion,Fever unknown origin,1
+2025-08,Salvacion,Fever unknown origin,0
+2025-09,Salvacion,Fever unknown origin,0
+2025-10,Salvacion,Fever unknown origin,1
+2025-11,Salvacion,Fever unknown origin,0
+2025-12,Salvacion,Fever unknown origin,2
+2026-01,Salvacion,Fever unknown origin,1
+2026-02,Salvacion,Fever unknown origin,1
+2026-03,Salvacion,Fever unknown origin,0
+2026-04,Salvacion,Fever unknown origin,2
+2026-05,Salvacion,Fever unknown origin,1
+2026-06,Salvacion,Fever unknown origin,2
+2026-07,Salvacion,Fever unknown origin,2
+2026-08,Salvacion,Fever unknown origin,0
+2026-09,Salvacion,Fever unknown origin,1
+2023-01,Alegria,Fever unknown origin,2
+2023-02,Alegria,Fever unknown origin,1
+2023-03,Alegria,Fever unknown origin,4
+2023-04,Alegria,Fever unknown origin,4
+2023-05,Alegria,Fever unknown origin,2
+2023-06,Alegria,Fever unknown origin,1
+2023-07,Alegria,Fever unknown origin,2
+2023-08,Alegria,Fever unknown origin,0
+2023-09,Alegria,Fever unknown origin,1
+2023-10,Alegria,Fever unknown origin,3
+2023-11,Alegria,Fever unknown origin,0
+2023-12,Alegria,Fever unknown origin,1
+2024-01,Alegria,Fever unknown origin,1
+2024-02,Alegria,Fever unknown origin,3
+2024-03,Alegria,Fever unknown origin,0
+2024-04,Alegria,Fever unknown origin,3
+2024-05,Alegria,Fever unknown origin,0
+2024-06,Alegria,Fever unknown origin,2
+2024-07,Alegria,Fever unknown origin,0
+2024-08,Alegria,Fever unknown origin,0
+2024-09,Alegria,Fever unknown origin,0
+2024-10,Alegria,Fever unknown origin,0
+2024-11,Alegria,Fever unknown origin,1
+2024-12,Alegria,Fever unknown origin,4
+2025-01,Alegria,Fever unknown origin,1
+2025-02,Alegria,Fever unknown origin,2
+2025-03,Alegria,Fever unknown origin,0
+2025-04,Alegria,Fever unknown origin,2
+2025-05,Alegria,Fever unknown origin,3
+2025-06,Alegria,Fever unknown origin,3
+2025-07,Alegria,Fever unknown origin,4
+2025-08,Alegria,Fever unknown origin,1
+2025-09,Alegria,Fever unknown origin,2
+2025-10,Alegria,Fever unknown origin,0
+2025-11,Alegria,Fever unknown origin,3
+2025-12,Alegria,Fever unknown origin,1
+2026-01,Alegria,Fever unknown origin,1
+2026-02,Alegria,Fever unknown origin,1
+2026-03,Alegria,Fever unknown origin,2
+2026-04,Alegria,Fever unknown origin,1
+2026-05,Alegria,Fever unknown origin,1
+2026-06,Alegria,Fever unknown origin,2
+2026-07,Alegria,Fever unknown origin,2
+2026-08,Alegria,Fever unknown origin,1
+2026-09,Alegria,Fever unknown origin,2
+2023-01,Blumentritt,Fever unknown origin,2
+2023-02,Blumentritt,Fever unknown origin,0
+2023-03,Blumentritt,Fever unknown origin,0
+2023-04,Blumentritt,Fever unknown origin,3
+2023-05,Blumentritt,Fever unknown origin,0
+2023-06,Blumentritt,Fever unknown origin,3
+2023-07,Blumentritt,Fever unknown origin,2
+2023-08,Blumentritt,Fever unknown origin,2
+2023-09,Blumentritt,Fever unknown origin,0
+2023-10,Blumentritt,Fever unknown origin,4
+2023-11,Blumentritt,Fever unknown origin,2
+2023-12,Blumentritt,Fever unknown origin,1
+2024-01,Blumentritt,Fever unknown origin,5
+2024-02,Blumentritt,Fever unknown origin,1
+2024-03,Blumentritt,Fever unknown origin,5
+2024-04,Blumentritt,Fever unknown origin,1
+2024-05,Blumentritt,Fever unknown origin,2
+2024-06,Blumentritt,Fever unknown origin,2
+2024-07,Blumentritt,Fever unknown origin,0
+2024-08,Blumentritt,Fever unknown origin,2
+2024-09,Blumentritt,Fever unknown origin,2
+2024-10,Blumentritt,Fever unknown origin,1
+2024-11,Blumentritt,Fever unknown origin,2
+2024-12,Blumentritt,Fever unknown origin,1
+2025-01,Blumentritt,Fever unknown origin,1
+2025-02,Blumentritt,Fever unknown origin,2
+2025-03,Blumentritt,Fever unknown origin,3
+2025-04,Blumentritt,Fever unknown origin,0
+2025-05,Blumentritt,Fever unknown origin,1
+2025-06,Blumentritt,Fever unknown origin,0
+2025-07,Blumentritt,Fever unknown origin,0
+2025-08,Blumentritt,Fever unknown origin,2
+2025-09,Blumentritt,Fever unknown origin,0
+2025-10,Blumentritt,Fever unknown origin,1
+2025-11,Blumentritt,Fever unknown origin,1
+2025-12,Blumentritt,Fever unknown origin,3
+2026-01,Blumentritt,Fever unknown origin,1
+2026-02,Blumentritt,Fever unknown origin,2
+2026-03,Blumentritt,Fever unknown origin,3
+2026-04,Blumentritt,Fever unknown origin,1
+2026-05,Blumentritt,Fever unknown origin,0
+2026-06,Blumentritt,Fever unknown origin,1
+2026-07,Blumentritt,Fever unknown origin,3
+2026-08,Blumentritt,Fever unknown origin,0
+2026-09,Blumentritt,Fever unknown origin,0
+2023-01,Caliban,Fever unknown origin,0
+2023-02,Caliban,Fever unknown origin,1
+2023-03,Caliban,Fever unknown origin,0
+2023-04,Caliban,Fever unknown origin,2
+2023-05,Caliban,Fever unknown origin,4
+2023-06,Caliban,Fever unknown origin,3
+2023-07,Caliban,Fever unknown origin,1
+2023-08,Caliban,Fever unknown origin,1
+2023-09,Caliban,Fever unknown origin,0
+2023-10,Caliban,Fever unknown origin,3
+2023-11,Caliban,Fever unknown origin,2
+2023-12,Caliban,Fever unknown origin,2
+2024-01,Caliban,Fever unknown origin,2
+2024-02,Caliban,Fever unknown origin,1
+2024-03,Caliban,Fever unknown origin,6
+2024-04,Caliban,Fever unknown origin,1
+2024-05,Caliban,Fever unknown origin,1
+2024-06,Caliban,Fever unknown origin,2
+2024-07,Caliban,Fever unknown origin,1
+2024-08,Caliban,Fever unknown origin,2
+2024-09,Caliban,Fever unknown origin,1
+2024-10,Caliban,Fever unknown origin,1
+2024-11,Caliban,Fever unknown origin,2
+2024-12,Caliban,Fever unknown origin,1
+2025-01,Caliban,Fever unknown origin,1
+2025-02,Caliban,Fever unknown origin,2
+2025-03,Caliban,Fever unknown origin,2
+2025-04,Caliban,Fever unknown origin,0
+2025-05,Caliban,Fever unknown origin,3
+2025-06,Caliban,Fever unknown origin,0
+2025-07,Caliban,Fever unknown origin,1
+2025-08,Caliban,Fever unknown origin,2
+2025-09,Caliban,Fever unknown origin,4
+2025-10,Caliban,Fever unknown origin,1
+2025-11,Caliban,Fever unknown origin,1
+2025-12,Caliban,Fever unknown origin,3
+2026-01,Caliban,Fever unknown origin,1
+2026-02,Caliban,Fever unknown origin,1
+2026-03,Caliban,Fever unknown origin,4
+2026-04,Caliban,Fever unknown origin,1
+2026-05,Caliban,Fever unknown origin,3
+2026-06,Caliban,Fever unknown origin,0
+2026-07,Caliban,Fever unknown origin,3
+2026-08,Caliban,Fever unknown origin,0
+2026-09,Caliban,Fever unknown origin,0
+2023-01,Cansilayan,Fever unknown origin,1
+2023-02,Cansilayan,Fever unknown origin,0
+2023-03,Cansilayan,Fever unknown origin,0
+2023-04,Cansilayan,Fever unknown origin,3
+2023-05,Cansilayan,Fever unknown origin,0
+2023-06,Cansilayan,Fever unknown origin,0
+2023-07,Cansilayan,Fever unknown origin,0
+2023-08,Cansilayan,Fever unknown origin,3
+2023-09,Cansilayan,Fever unknown origin,1
+2023-10,Cansilayan,Fever unknown origin,0
+2023-11,Cansilayan,Fever unknown origin,4
+2023-12,Cansilayan,Fever unknown origin,0
+2024-01,Cansilayan,Fever unknown origin,3
+2024-02,Cansilayan,Fever unknown origin,1
+2024-03,Cansilayan,Fever unknown origin,0
+2024-04,Cansilayan,Fever unknown origin,1
+2024-05,Cansilayan,Fever unknown origin,1
+2024-06,Cansilayan,Fever unknown origin,2
+2024-07,Cansilayan,Fever unknown origin,3
+2024-08,Cansilayan,Fever unknown origin,1
+2024-09,Cansilayan,Fever unknown origin,0
+2024-10,Cansilayan,Fever unknown origin,4
+2024-11,Cansilayan,Fever unknown origin,1
+2024-12,Cansilayan,Fever unknown origin,0
+2025-01,Cansilayan,Fever unknown origin,1
+2025-02,Cansilayan,Fever unknown origin,2
+2025-03,Cansilayan,Fever unknown origin,2
+2025-04,Cansilayan,Fever unknown origin,2
+2025-05,Cansilayan,Fever unknown origin,2
+2025-06,Cansilayan,Fever unknown origin,1
+2025-07,Cansilayan,Fever unknown origin,0
+2025-08,Cansilayan,Fever unknown origin,1
+2025-09,Cansilayan,Fever unknown origin,2
+2025-10,Cansilayan,Fever unknown origin,1
+2025-11,Cansilayan,Fever unknown origin,0
+2025-12,Cansilayan,Fever unknown origin,0
+2026-01,Cansilayan,Fever unknown origin,4
+2026-02,Cansilayan,Fever unknown origin,0
+2026-03,Cansilayan,Fever unknown origin,0
+2026-04,Cansilayan,Fever unknown origin,2
+2026-05,Cansilayan,Fever unknown origin,2
+2026-06,Cansilayan,Fever unknown origin,4
+2026-07,Cansilayan,Fever unknown origin,0
+2026-08,Cansilayan,Fever unknown origin,3
+2026-09,Cansilayan,Fever unknown origin,1
+2023-01,Sta. Rosa,Fever unknown origin,3
+2023-02,Sta. Rosa,Fever unknown origin,0
+2023-03,Sta. Rosa,Fever unknown origin,2
+2023-04,Sta. Rosa,Fever unknown origin,3
+2023-05,Sta. Rosa,Fever unknown origin,1
+2023-06,Sta. Rosa,Fever unknown origin,1
+2023-07,Sta. Rosa,Fever unknown origin,1
+2023-08,Sta. Rosa,Fever unknown origin,1
+2023-09,Sta. Rosa,Fever unknown origin,1
+2023-10,Sta. Rosa,Fever unknown origin,2
+2023-11,Sta. Rosa,Fever unknown origin,1
+2023-12,Sta. Rosa,Fever unknown origin,0
+2024-01,Sta. Rosa,Fever unknown origin,1
+2024-02,Sta. Rosa,Fever unknown origin,1
+2024-03,Sta. Rosa,Fever unknown origin,2
+2024-04,Sta. Rosa,Fever unknown origin,2
+2024-05,Sta. Rosa,Fever unknown origin,2
+2024-06,Sta. Rosa,Fever unknown origin,0
+2024-07,Sta. Rosa,Fever unknown origin,0
+2024-08,Sta. Rosa,Fever unknown origin,0
+2024-09,Sta. Rosa,Fever unknown origin,4
+2024-10,Sta. Rosa,Fever unknown origin,3
+2024-11,Sta. Rosa,Fever unknown origin,0
+2024-12,Sta. Rosa,Fever unknown origin,1
+2025-01,Sta. Rosa,Fever unknown origin,4
+2025-02,Sta. Rosa,Fever unknown origin,1
+2025-03,Sta. Rosa,Fever unknown origin,1
+2025-04,Sta. Rosa,Fever unknown origin,1
+2025-05,Sta. Rosa,Fever unknown origin,1
+2025-06,Sta. Rosa,Fever unknown origin,1
+2025-07,Sta. Rosa,Fever unknown origin,1
+2025-08,Sta. Rosa,Fever unknown origin,2
+2025-09,Sta. Rosa,Fever unknown origin,1
+2025-10,Sta. Rosa,Fever unknown origin,2
+2025-11,Sta. Rosa,Fever unknown origin,1
+2025-12,Sta. Rosa,Fever unknown origin,2
+2026-01,Sta. Rosa,Fever unknown origin,1
+2026-02,Sta. Rosa,Fever unknown origin,1
+2026-03,Sta. Rosa,Fever unknown origin,5
+2026-04,Sta. Rosa,Fever unknown origin,2
+2026-05,Sta. Rosa,Fever unknown origin,3
+2026-06,Sta. Rosa,Fever unknown origin,1
+2026-07,Sta. Rosa,Fever unknown origin,2
+2026-08,Sta. Rosa,Fever unknown origin,3
+2026-09,Sta. Rosa,Fever unknown origin,1
+2023-01,Minoyan,Fever unknown origin,3
+2023-02,Minoyan,Fever unknown origin,0
+2023-03,Minoyan,Fever unknown origin,1
+2023-04,Minoyan,Fever unknown origin,0
+2023-05,Minoyan,Fever unknown origin,3
+2023-06,Minoyan,Fever unknown origin,3
+2023-07,Minoyan,Fever unknown origin,1
+2023-08,Minoyan,Fever unknown origin,1
+2023-09,Minoyan,Fever unknown origin,0
+2023-10,Minoyan,Fever unknown origin,2
+2023-11,Minoyan,Fever unknown origin,1
+2023-12,Minoyan,Fever unknown origin,2
+2024-01,Minoyan,Fever unknown origin,1
+2024-02,Minoyan,Fever unknown origin,0
+2024-03,Minoyan,Fever unknown origin,1
+2024-04,Minoyan,Fever unknown origin,1
+2024-05,Minoyan,Fever unknown origin,1
+2024-06,Minoyan,Fever unknown origin,1
+2024-07,Minoyan,Fever unknown origin,1
+2024-08,Minoyan,Fever unknown origin,1
+2024-09,Minoyan,Fever unknown origin,1
+2024-10,Minoyan,Fever unknown origin,0
+2024-11,Minoyan,Fever unknown origin,4
+2024-12,Minoyan,Fever unknown origin,1
+2025-01,Minoyan,Fever unknown origin,5
+2025-02,Minoyan,Fever unknown origin,1
+2025-03,Minoyan,Fever unknown origin,1
+2025-04,Minoyan,Fever unknown origin,1
+2025-05,Minoyan,Fever unknown origin,3
+2025-06,Minoyan,Fever unknown origin,4
+2025-07,Minoyan,Fever unknown origin,3
+2025-08,Minoyan,Fever unknown origin,1
+2025-09,Minoyan,Fever unknown origin,1
+2025-10,Minoyan,Fever unknown origin,1
+2025-11,Minoyan,Fever unknown origin,4
+2025-12,Minoyan,Fever unknown origin,0
+2026-01,Minoyan,Fever unknown origin,2
+2026-02,Minoyan,Fever unknown origin,2
+2026-03,Minoyan,Fever unknown origin,0
+2026-04,Minoyan,Fever unknown origin,2
+2026-05,Minoyan,Fever unknown origin,2
+2026-06,Minoyan,Fever unknown origin,2
+2026-07,Minoyan,Fever unknown origin,3
+2026-08,Minoyan,Fever unknown origin,4
+2026-09,Minoyan,Fever unknown origin,0
+2023-01,Salvacion,Hypertension,0
+2023-02,Salvacion,Hypertension,2
+2023-03,Salvacion,Hypertension,2
+2023-04,Salvacion,Hypertension,4
+2023-05,Salvacion,Hypertension,2
+2023-06,Salvacion,Hypertension,0
+2023-07,Salvacion,Hypertension,0
+2023-08,Salvacion,Hypertension,2
+2023-09,Salvacion,Hypertension,0
+2023-10,Salvacion,Hypertension,0
+2023-11,Salvacion,Hypertension,2
+2023-12,Salvacion,Hypertension,1
+2024-01,Salvacion,Hypertension,1
+2024-02,Salvacion,Hypertension,1
+2024-03,Salvacion,Hypertension,1
+2024-04,Salvacion,Hypertension,3
+2024-05,Salvacion,Hypertension,1
+2024-06,Salvacion,Hypertension,1
+2024-07,Salvacion,Hypertension,0
+2024-08,Salvacion,Hypertension,2
+2024-09,Salvacion,Hypertension,0
+2024-10,Salvacion,Hypertension,3
+2024-11,Salvacion,Hypertension,0
+2024-12,Salvacion,Hypertension,3
+2025-01,Salvacion,Hypertension,0
+2025-02,Salvacion,Hypertension,1
+2025-03,Salvacion,Hypertension,5
+2025-04,Salvacion,Hypertension,1
+2025-05,Salvacion,Hypertension,3
+2025-06,Salvacion,Hypertension,1
+2025-07,Salvacion,Hypertension,1
+2025-08,Salvacion,Hypertension,0
+2025-09,Salvacion,Hypertension,2
+2025-10,Salvacion,Hypertension,0
+2025-11,Salvacion,Hypertension,4
+2025-12,Salvacion,Hypertension,3
+2026-01,Salvacion,Hypertension,1
+2026-02,Salvacion,Hypertension,2
+2026-03,Salvacion,Hypertension,0
+2026-04,Salvacion,Hypertension,0
+2026-05,Salvacion,Hypertension,1
+2026-06,Salvacion,Hypertension,0
+2026-07,Salvacion,Hypertension,0
+2026-08,Salvacion,Hypertension,5
+2026-09,Salvacion,Hypertension,1
+2023-01,Alegria,Hypertension,1
+2023-02,Alegria,Hypertension,1
+2023-03,Alegria,Hypertension,2
+2023-04,Alegria,Hypertension,0
+2023-05,Alegria,Hypertension,2
+2023-06,Alegria,Hypertension,0
+2023-07,Alegria,Hypertension,2
+2023-08,Alegria,Hypertension,1
+2023-09,Alegria,Hypertension,1
+2023-10,Alegria,Hypertension,0
+2023-11,Alegria,Hypertension,1
+2023-12,Alegria,Hypertension,0
+2024-01,Alegria,Hypertension,1
+2024-02,Alegria,Hypertension,3
+2024-03,Alegria,Hypertension,0
+2024-04,Alegria,Hypertension,2
+2024-05,Alegria,Hypertension,1
+2024-06,Alegria,Hypertension,1
+2024-07,Alegria,Hypertension,2
+2024-08,Alegria,Hypertension,2
+2024-09,Alegria,Hypertension,0
+2024-10,Alegria,Hypertension,0
+2024-11,Alegria,Hypertension,1
+2024-12,Alegria,Hypertension,1
+2025-01,Alegria,Hypertension,3
+2025-02,Alegria,Hypertension,0
+2025-03,Alegria,Hypertension,2
+2025-04,Alegria,Hypertension,1
+2025-05,Alegria,Hypertension,2
+2025-06,Alegria,Hypertension,0
+2025-07,Alegria,Hypertension,0
+2025-08,Alegria,Hypertension,1
+2025-09,Alegria,Hypertension,2
+2025-10,Alegria,Hypertension,3
+2025-11,Alegria,Hypertension,2
+2025-12,Alegria,Hypertension,2
+2026-01,Alegria,Hypertension,6
+2026-02,Alegria,Hypertension,0
+2026-03,Alegria,Hypertension,0
+2026-04,Alegria,Hypertension,4
+2026-05,Alegria,Hypertension,1
+2026-06,Alegria,Hypertension,2
+2026-07,Alegria,Hypertension,2
+2026-08,Alegria,Hypertension,1
+2026-09,Alegria,Hypertension,2
+2023-01,Blumentritt,Hypertension,2
+2023-02,Blumentritt,Hypertension,1
+2023-03,Blumentritt,Hypertension,2
+2023-04,Blumentritt,Hypertension,1
+2023-05,Blumentritt,Hypertension,1
+2023-06,Blumentritt,Hypertension,1
+2023-07,Blumentritt,Hypertension,3
+2023-08,Blumentritt,Hypertension,2
+2023-09,Blumentritt,Hypertension,1
+2023-10,Blumentritt,Hypertension,3
+2023-11,Blumentritt,Hypertension,1
+2023-12,Blumentritt,Hypertension,3
+2024-01,Blumentritt,Hypertension,1
+2024-02,Blumentritt,Hypertension,1
+2024-03,Blumentritt,Hypertension,1
+2024-04,Blumentritt,Hypertension,0
+2024-05,Blumentritt,Hypertension,3
+2024-06,Blumentritt,Hypertension,1
+2024-07,Blumentritt,Hypertension,2
+2024-08,Blumentritt,Hypertension,2
+2024-09,Blumentritt,Hypertension,4
+2024-10,Blumentritt,Hypertension,2
+2024-11,Blumentritt,Hypertension,3
+2024-12,Blumentritt,Hypertension,1
+2025-01,Blumentritt,Hypertension,3
+2025-02,Blumentritt,Hypertension,1
+2025-03,Blumentritt,Hypertension,1
+2025-04,Blumentritt,Hypertension,1
+2025-05,Blumentritt,Hypertension,0
+2025-06,Blumentritt,Hypertension,1
+2025-07,Blumentritt,Hypertension,1
+2025-08,Blumentritt,Hypertension,1
+2025-09,Blumentritt,Hypertension,2
+2025-10,Blumentritt,Hypertension,1
+2025-11,Blumentritt,Hypertension,5
+2025-12,Blumentritt,Hypertension,1
+2026-01,Blumentritt,Hypertension,0
+2026-02,Blumentritt,Hypertension,2
+2026-03,Blumentritt,Hypertension,1
+2026-04,Blumentritt,Hypertension,1
+2026-05,Blumentritt,Hypertension,1
+2026-06,Blumentritt,Hypertension,4
+2026-07,Blumentritt,Hypertension,1
+2026-08,Blumentritt,Hypertension,2
+2026-09,Blumentritt,Hypertension,2
+2023-01,Caliban,Hypertension,0
+2023-02,Caliban,Hypertension,2
+2023-03,Caliban,Hypertension,2
+2023-04,Caliban,Hypertension,2
+2023-05,Caliban,Hypertension,0
+2023-06,Caliban,Hypertension,1
+2023-07,Caliban,Hypertension,2
+2023-08,Caliban,Hypertension,4
+2023-09,Caliban,Hypertension,2
+2023-10,Caliban,Hypertension,0
+2023-11,Caliban,Hypertension,2
+2023-12,Caliban,Hypertension,0
+2024-01,Caliban,Hypertension,1
+2024-02,Caliban,Hypertension,4
+2024-03,Caliban,Hypertension,2
+2024-04,Caliban,Hypertension,1
+2024-05,Caliban,Hypertension,2
+2024-06,Caliban,Hypertension,0
+2024-07,Caliban,Hypertension,2
+2024-08,Caliban,Hypertension,4
+2024-09,Caliban,Hypertension,1
+2024-10,Caliban,Hypertension,0
+2024-11,Caliban,Hypertension,2
+2024-12,Caliban,Hypertension,1
+2025-01,Caliban,Hypertension,1
+2025-02,Caliban,Hypertension,1
+2025-03,Caliban,Hypertension,3
+2025-04,Caliban,Hypertension,1
+2025-05,Caliban,Hypertension,4
+2025-06,Caliban,Hypertension,0
+2025-07,Caliban,Hypertension,2
+2025-08,Caliban,Hypertension,0
+2025-09,Caliban,Hypertension,0
+2025-10,Caliban,Hypertension,0
+2025-11,Caliban,Hypertension,3
+2025-12,Caliban,Hypertension,3
+2026-01,Caliban,Hypertension,1
+2026-02,Caliban,Hypertension,1
+2026-03,Caliban,Hypertension,3
+2026-04,Caliban,Hypertension,3
+2026-05,Caliban,Hypertension,2
+2026-06,Caliban,Hypertension,4
+2026-07,Caliban,Hypertension,1
+2026-08,Caliban,Hypertension,2
+2026-09,Caliban,Hypertension,1
+2023-01,Cansilayan,Hypertension,1
+2023-02,Cansilayan,Hypertension,1
+2023-03,Cansilayan,Hypertension,1
+2023-04,Cansilayan,Hypertension,2
+2023-05,Cansilayan,Hypertension,1
+2023-06,Cansilayan,Hypertension,5
+2023-07,Cansilayan,Hypertension,2
+2023-08,Cansilayan,Hypertension,4
+2023-09,Cansilayan,Hypertension,3
+2023-10,Cansilayan,Hypertension,0
+2023-11,Cansilayan,Hypertension,2
+2023-12,Cansilayan,Hypertension,0
+2024-01,Cansilayan,Hypertension,2
+2024-02,Cansilayan,Hypertension,0
+2024-03,Cansilayan,Hypertension,2
+2024-04,Cansilayan,Hypertension,1
+2024-05,Cansilayan,Hypertension,0
+2024-06,Cansilayan,Hypertension,3
+2024-07,Cansilayan,Hypertension,1
+2024-08,Cansilayan,Hypertension,1
+2024-09,Cansilayan,Hypertension,2
+2024-10,Cansilayan,Hypertension,0
+2024-11,Cansilayan,Hypertension,1
+2024-12,Cansilayan,Hypertension,1
+2025-01,Cansilayan,Hypertension,0
+2025-02,Cansilayan,Hypertension,3
+2025-03,Cansilayan,Hypertension,0
+2025-04,Cansilayan,Hypertension,3
+2025-05,Cansilayan,Hypertension,1
+2025-06,Cansilayan,Hypertension,2
+2025-07,Cansilayan,Hypertension,1
+2025-08,Cansilayan,Hypertension,1
+2025-09,Cansilayan,Hypertension,2
+2025-10,Cansilayan,Hypertension,2
+2025-11,Cansilayan,Hypertension,0
+2025-12,Cansilayan,Hypertension,5
+2026-01,Cansilayan,Hypertension,1
+2026-02,Cansilayan,Hypertension,1
+2026-03,Cansilayan,Hypertension,2
+2026-04,Cansilayan,Hypertension,1
+2026-05,Cansilayan,Hypertension,1
+2026-06,Cansilayan,Hypertension,2
+2026-07,Cansilayan,Hypertension,0
+2026-08,Cansilayan,Hypertension,1
+2026-09,Cansilayan,Hypertension,1
+2023-01,Sta. Rosa,Hypertension,1
+2023-02,Sta. Rosa,Hypertension,0
+2023-03,Sta. Rosa,Hypertension,2
+2023-04,Sta. Rosa,Hypertension,3
+2023-05,Sta. Rosa,Hypertension,1
+2023-06,Sta. Rosa,Hypertension,1
+2023-07,Sta. Rosa,Hypertension,4
+2023-08,Sta. Rosa,Hypertension,1
+2023-09,Sta. Rosa,Hypertension,2
+2023-10,Sta. Rosa,Hypertension,2
+2023-11,Sta. Rosa,Hypertension,1
+2023-12,Sta. Rosa,Hypertension,1
+2024-01,Sta. Rosa,Hypertension,2
+2024-02,Sta. Rosa,Hypertension,4
+2024-03,Sta. Rosa,Hypertension,2
+2024-04,Sta. Rosa,Hypertension,4
+2024-05,Sta. Rosa,Hypertension,3
+2024-06,Sta. Rosa,Hypertension,0
+2024-07,Sta. Rosa,Hypertension,3
+2024-08,Sta. Rosa,Hypertension,2
+2024-09,Sta. Rosa,Hypertension,0
+2024-10,Sta. Rosa,Hypertension,2
+2024-11,Sta. Rosa,Hypertension,1
+2024-12,Sta. Rosa,Hypertension,1
+2025-01,Sta. Rosa,Hypertension,0
+2025-02,Sta. Rosa,Hypertension,3
+2025-03,Sta. Rosa,Hypertension,2
+2025-04,Sta. Rosa,Hypertension,2
+2025-05,Sta. Rosa,Hypertension,2
+2025-06,Sta. Rosa,Hypertension,3
+2025-07,Sta. Rosa,Hypertension,1
+2025-08,Sta. Rosa,Hypertension,0
+2025-09,Sta. Rosa,Hypertension,1
+2025-10,Sta. Rosa,Hypertension,2
+2025-11,Sta. Rosa,Hypertension,0
+2025-12,Sta. Rosa,Hypertension,0
+2026-01,Sta. Rosa,Hypertension,4
+2026-02,Sta. Rosa,Hypertension,2
+2026-03,Sta. Rosa,Hypertension,1
+2026-04,Sta. Rosa,Hypertension,3
+2026-05,Sta. Rosa,Hypertension,1
+2026-06,Sta. Rosa,Hypertension,1
+2026-07,Sta. Rosa,Hypertension,1
+2026-08,Sta. Rosa,Hypertension,1
+2026-09,Sta. Rosa,Hypertension,2
+2023-01,Minoyan,Hypertension,0
+2023-02,Minoyan,Hypertension,1
+2023-03,Minoyan,Hypertension,1
+2023-04,Minoyan,Hypertension,0
+2023-05,Minoyan,Hypertension,2
+2023-06,Minoyan,Hypertension,0
+2023-07,Minoyan,Hypertension,0
+2023-08,Minoyan,Hypertension,1
+2023-09,Minoyan,Hypertension,2
+2023-10,Minoyan,Hypertension,3
+2023-11,Minoyan,Hypertension,2
+2023-12,Minoyan,Hypertension,1
+2024-01,Minoyan,Hypertension,0
+2024-02,Minoyan,Hypertension,2
+2024-03,Minoyan,Hypertension,2
+2024-04,Minoyan,Hypertension,2
+2024-05,Minoyan,Hypertension,1
+2024-06,Minoyan,Hypertension,2
+2024-07,Minoyan,Hypertension,4
+2024-08,Minoyan,Hypertension,2
+2024-09,Minoyan,Hypertension,4
+2024-10,Minoyan,Hypertension,0
+2024-11,Minoyan,Hypertension,0
+2024-12,Minoyan,Hypertension,1
+2025-01,Minoyan,Hypertension,2
+2025-02,Minoyan,Hypertension,1
+2025-03,Minoyan,Hypertension,1
+2025-04,Minoyan,Hypertension,0
+2025-05,Minoyan,Hypertension,1
+2025-06,Minoyan,Hypertension,1
+2025-07,Minoyan,Hypertension,2
+2025-08,Minoyan,Hypertension,1
+2025-09,Minoyan,Hypertension,1
+2025-10,Minoyan,Hypertension,1
+2025-11,Minoyan,Hypertension,0
+2025-12,Minoyan,Hypertension,3
+2026-01,Minoyan,Hypertension,0
+2026-02,Minoyan,Hypertension,1
+2026-03,Minoyan,Hypertension,1
+2026-04,Minoyan,Hypertension,1
+2026-05,Minoyan,Hypertension,2
+2026-06,Minoyan,Hypertension,3
+2026-07,Minoyan,Hypertension,2
+2026-08,Minoyan,Hypertension,1
+2026-09,Minoyan,Hypertension,0
+2023-01,Salvacion,Influenza,2
+2023-02,Salvacion,Influenza,0
+2023-03,Salvacion,Influenza,1
+2023-04,Salvacion,Influenza,0
+2023-05,Salvacion,Influenza,0
+2023-06,Salvacion,Influenza,2
+2023-07,Salvacion,Influenza,3
+2023-08,Salvacion,Influenza,4
+2023-09,Salvacion,Influenza,4
+2023-10,Salvacion,Influenza,2
+2023-11,Salvacion,Influenza,0
+2023-12,Salvacion,Influenza,2
+2024-01,Salvacion,Influenza,1
+2024-02,Salvacion,Influenza,1
+2024-03,Salvacion,Influenza,1
+2024-04,Salvacion,Influenza,2
+2024-05,Salvacion,Influenza,0
+2024-06,Salvacion,Influenza,5
+2024-07,Salvacion,Influenza,0
+2024-08,Salvacion,Influenza,4
+2024-09,Salvacion,Influenza,0
+2024-10,Salvacion,Influenza,1
+2024-11,Salvacion,Influenza,3
+2024-12,Salvacion,Influenza,2
+2025-01,Salvacion,Influenza,0
+2025-02,Salvacion,Influenza,3
+2025-03,Salvacion,Influenza,1
+2025-04,Salvacion,Influenza,1
+2025-05,Salvacion,Influenza,1
+2025-06,Salvacion,Influenza,4
+2025-07,Salvacion,Influenza,1
+2025-08,Salvacion,Influenza,2
+2025-09,Salvacion,Influenza,5
+2025-10,Salvacion,Influenza,2
+2025-11,Salvacion,Influenza,1
+2025-12,Salvacion,Influenza,0
+2026-01,Salvacion,Influenza,3
+2026-02,Salvacion,Influenza,1
+2026-03,Salvacion,Influenza,1
+2026-04,Salvacion,Influenza,1
+2026-05,Salvacion,Influenza,1
+2026-06,Salvacion,Influenza,0
+2026-07,Salvacion,Influenza,1
+2026-08,Salvacion,Influenza,1
+2026-09,Salvacion,Influenza,1
+2023-01,Alegria,Influenza,2
+2023-02,Alegria,Influenza,0
+2023-03,Alegria,Influenza,0
+2023-04,Alegria,Influenza,2
+2023-05,Alegria,Influenza,2
+2023-06,Alegria,Influenza,3
+2023-07,Alegria,Influenza,2
+2023-08,Alegria,Influenza,0
+2023-09,Alegria,Influenza,0
+2023-10,Alegria,Influenza,2
+2023-11,Alegria,Influenza,0
+2023-12,Alegria,Influenza,0
+2024-01,Alegria,Influenza,1
+2024-02,Alegria,Influenza,2
+2024-03,Alegria,Influenza,1
+2024-04,Alegria,Influenza,3
+2024-05,Alegria,Influenza,5
+2024-06,Alegria,Influenza,0
+2024-07,Alegria,Influenza,2
+2024-08,Alegria,Influenza,2
+2024-09,Alegria,Influenza,1
+2024-10,Alegria,Influenza,1
+2024-11,Alegria,Influenza,2
+2024-12,Alegria,Influenza,0
+2025-01,Alegria,Influenza,1
+2025-02,Alegria,Influenza,1
+2025-03,Alegria,Influenza,1
+2025-04,Alegria,Influenza,2
+2025-05,Alegria,Influenza,1
+2025-06,Alegria,Influenza,1
+2025-07,Alegria,Influenza,1
+2025-08,Alegria,Influenza,3
+2025-09,Alegria,Influenza,3
+2025-10,Alegria,Influenza,2
+2025-11,Alegria,Influenza,2
+2025-12,Alegria,Influenza,1
+2026-01,Alegria,Influenza,0
+2026-02,Alegria,Influenza,1
+2026-03,Alegria,Influenza,3
+2026-04,Alegria,Influenza,0
+2026-05,Alegria,Influenza,0
+2026-06,Alegria,Influenza,2
+2026-07,Alegria,Influenza,2
+2026-08,Alegria,Influenza,2
+2026-09,Alegria,Influenza,2
+2023-01,Blumentritt,Influenza,0
+2023-02,Blumentritt,Influenza,1
+2023-03,Blumentritt,Influenza,2
+2023-04,Blumentritt,Influenza,0
+2023-05,Blumentritt,Influenza,2
+2023-06,Blumentritt,Influenza,1
+2023-07,Blumentritt,Influenza,2
+2023-08,Blumentritt,Influenza,2
+2023-09,Blumentritt,Influenza,7
+2023-10,Blumentritt,Influenza,2
+2023-11,Blumentritt,Influenza,2
+2023-12,Blumentritt,Influenza,0
+2024-01,Blumentritt,Influenza,1
+2024-02,Blumentritt,Influenza,0
+2024-03,Blumentritt,Influenza,0
+2024-04,Blumentritt,Influenza,1
+2024-05,Blumentritt,Influenza,0
+2024-06,Blumentritt,Influenza,1
+2024-07,Blumentritt,Influenza,1
+2024-08,Blumentritt,Influenza,2
+2024-09,Blumentritt,Influenza,3
+2024-10,Blumentritt,Influenza,2
+2024-11,Blumentritt,Influenza,1
+2024-12,Blumentritt,Influenza,1
+2025-01,Blumentritt,Influenza,0
+2025-02,Blumentritt,Influenza,0
+2025-03,Blumentritt,Influenza,1
+2025-04,Blumentritt,Influenza,2
+2025-05,Blumentritt,Influenza,0
+2025-06,Blumentritt,Influenza,5
+2025-07,Blumentritt,Influenza,5
+2025-08,Blumentritt,Influenza,5
+2025-09,Blumentritt,Influenza,3
+2025-10,Blumentritt,Influenza,3
+2025-11,Blumentritt,Influenza,4
+2025-12,Blumentritt,Influenza,1
+2026-01,Blumentritt,Influenza,0
+2026-02,Blumentritt,Influenza,0
+2026-03,Blumentritt,Influenza,0
+2026-04,Blumentritt,Influenza,0
+2026-05,Blumentritt,Influenza,3
+2026-06,Blumentritt,Influenza,1
+2026-07,Blumentritt,Influenza,1
+2026-08,Blumentritt,Influenza,0
+2026-09,Blumentritt,Influenza,5
+2023-01,Caliban,Influenza,1
+2023-02,Caliban,Influenza,0
+2023-03,Caliban,Influenza,1
+2023-04,Caliban,Influenza,1
+2023-05,Caliban,Influenza,0
+2023-06,Caliban,Influenza,1
+2023-07,Caliban,Influenza,0
+2023-08,Caliban,Influenza,4
+2023-09,Caliban,Influenza,6
+2023-10,Caliban,Influenza,1
+2023-11,Caliban,Influenza,2
+2023-12,Caliban,Influenza,0
+2024-01,Caliban,Influenza,0
+2024-02,Caliban,Influenza,1
+2024-03,Caliban,Influenza,1
+2024-04,Caliban,Influenza,3
+2024-05,Caliban,Influenza,1
+2024-06,Caliban,Influenza,3
+2024-07,Caliban,Influenza,4
+2024-08,Caliban,Influenza,3
+2024-09,Caliban,Influenza,5
+2024-10,Caliban,Influenza,1
+2024-11,Caliban,Influenza,3
+2024-12,Caliban,Influenza,0
+2025-01,Caliban,Influenza,1
+2025-02,Caliban,Influenza,1
+2025-03,Caliban,Influenza,0
+2025-04,Caliban,Influenza,0
+2025-05,Caliban,Influenza,1
+2025-06,Caliban,Influenza,3
+2025-07,Caliban,Influenza,3
+2025-08,Caliban,Influenza,2
+2025-09,Caliban,Influenza,1
+2025-10,Caliban,Influenza,0
+2025-11,Caliban,Influenza,1
+2025-12,Caliban,Influenza,1
+2026-01,Caliban,Influenza,0
+2026-02,Caliban,Influenza,0
+2026-03,Caliban,Influenza,3
+2026-04,Caliban,Influenza,3
+2026-05,Caliban,Influenza,2
+2026-06,Caliban,Influenza,4
+2026-07,Caliban,Influenza,1
+2026-08,Caliban,Influenza,4
+2026-09,Caliban,Influenza,4
+2023-01,Cansilayan,Influenza,0
+2023-02,Cansilayan,Influenza,1
+2023-03,Cansilayan,Influenza,0
+2023-04,Cansilayan,Influenza,2
+2023-05,Cansilayan,Influenza,1
+2023-06,Cansilayan,Influenza,2
+2023-07,Cansilayan,Influenza,2
+2023-08,Cansilayan,Influenza,0
+2023-09,Cansilayan,Influenza,3
+2023-10,Cansilayan,Influenza,1
+2023-11,Cansilayan,Influenza,1
+2023-12,Cansilayan,Influenza,1
+2024-01,Cansilayan,Influenza,2
+2024-02,Cansilayan,Influenza,1
+2024-03,Cansilayan,Influenza,1
+2024-04,Cansilayan,Influenza,0
+2024-05,Cansilayan,Influenza,3
+2024-06,Cansilayan,Influenza,1
+2024-07,Cansilayan,Influenza,7
+2024-08,Cansilayan,Influenza,5
+2024-09,Cansilayan,Influenza,2
+2024-10,Cansilayan,Influenza,0
+2024-11,Cansilayan,Influenza,2
+2024-12,Cansilayan,Influenza,1
+2025-01,Cansilayan,Influenza,0
+2025-02,Cansilayan,Influenza,1
+2025-03,Cansilayan,Influenza,0
+2025-04,Cansilayan,Influenza,0
+2025-05,Cansilayan,Influenza,1
+2025-06,Cansilayan,Influenza,1
+2025-07,Cansilayan,Influenza,4
+2025-08,Cansilayan,Influenza,5
+2025-09,Cansilayan,Influenza,2
+2025-10,Cansilayan,Influenza,2
+2025-11,Cansilayan,Influenza,1
+2025-12,Cansilayan,Influenza,0
+2026-01,Cansilayan,Influenza,5
+2026-02,Cansilayan,Influenza,0
+2026-03,Cansilayan,Influenza,1
+2026-04,Cansilayan,Influenza,2
+2026-05,Cansilayan,Influenza,1
+2026-06,Cansilayan,Influenza,2
+2026-07,Cansilayan,Influenza,2
+2026-08,Cansilayan,Influenza,2
+2026-09,Cansilayan,Influenza,2
+2023-01,Sta. Rosa,Influenza,0
+2023-02,Sta. Rosa,Influenza,0
+2023-03,Sta. Rosa,Influenza,1
+2023-04,Sta. Rosa,Influenza,1
+2023-05,Sta. Rosa,Influenza,1
+2023-06,Sta. Rosa,Influenza,1
+2023-07,Sta. Rosa,Influenza,1
+2023-08,Sta. Rosa,Influenza,4
+2023-09,Sta. Rosa,Influenza,0
+2023-10,Sta. Rosa,Influenza,2
+2023-11,Sta. Rosa,Influenza,1
+2023-12,Sta. Rosa,Influenza,1
+2024-01,Sta. Rosa,Influenza,0
+2024-02,Sta. Rosa,Influenza,2
+2024-03,Sta. Rosa,Influenza,1
+2024-04,Sta. Rosa,Influenza,0
+2024-05,Sta. Rosa,Influenza,0
+2024-06,Sta. Rosa,Influenza,1
+2024-07,Sta. Rosa,Influenza,0
+2024-08,Sta. Rosa,Influenza,4
+2024-09,Sta. Rosa,Influenza,1
+2024-10,Sta. Rosa,Influenza,0
+2024-11,Sta. Rosa,Influenza,3
+2024-12,Sta. Rosa,Influenza,3
+2025-01,Sta. Rosa,Influenza,2
+2025-02,Sta. Rosa,Influenza,1
+2025-03,Sta. Rosa,Influenza,3
+2025-04,Sta. Rosa,Influenza,2
+2025-05,Sta. Rosa,Influenza,1
+2025-06,Sta. Rosa,Influenza,0
+2025-07,Sta. Rosa,Influenza,3
+2025-08,Sta. Rosa,Influenza,0
+2025-09,Sta. Rosa,Influenza,3
+2025-10,Sta. Rosa,Influenza,4
+2025-11,Sta. Rosa,Influenza,1
+2025-12,Sta. Rosa,Influenza,2
+2026-01,Sta. Rosa,Influenza,0
+2026-02,Sta. Rosa,Influenza,0
+2026-03,Sta. Rosa,Influenza,0
+2026-04,Sta. Rosa,Influenza,0
+2026-05,Sta. Rosa,Influenza,2
+2026-06,Sta. Rosa,Influenza,2
+2026-07,Sta. Rosa,Influenza,2
+2026-08,Sta. Rosa,Influenza,2
+2026-09,Sta. Rosa,Influenza,1
+2023-01,Minoyan,Influenza,2
+2023-02,Minoyan,Influenza,0
+2023-03,Minoyan,Influenza,0
+2023-04,Minoyan,Influenza,2
+2023-05,Minoyan,Influenza,1
+2023-06,Minoyan,Influenza,1
+2023-07,Minoyan,Influenza,2
+2023-08,Minoyan,Influenza,1
+2023-09,Minoyan,Influenza,2
+2023-10,Minoyan,Influenza,2
+2023-11,Minoyan,Influenza,4
+2023-12,Minoyan,Influenza,2
+2024-01,Minoyan,Influenza,1
+2024-02,Minoyan,Influenza,1
+2024-03,Minoyan,Influenza,0
+2024-04,Minoyan,Influenza,0
+2024-05,Minoyan,Influenza,4
+2024-06,Minoyan,Influenza,3
+2024-07,Minoyan,Influenza,1
+2024-08,Minoyan,Influenza,1
+2024-09,Minoyan,Influenza,2
+2024-10,Minoyan,Influenza,1
+2024-11,Minoyan,Influenza,1
+2024-12,Minoyan,Influenza,1
+2025-01,Minoyan,Influenza,1
+2025-02,Minoyan,Influenza,0
+2025-03,Minoyan,Influenza,0
+2025-04,Minoyan,Influenza,1
+2025-05,Minoyan,Influenza,1
+2025-06,Minoyan,Influenza,2
+2025-07,Minoyan,Influenza,2
+2025-08,Minoyan,Influenza,3
+2025-09,Minoyan,Influenza,1
+2025-10,Minoyan,Influenza,2
+2025-11,Minoyan,Influenza,0
+2025-12,Minoyan,Influenza,1
+2026-01,Minoyan,Influenza,0
+2026-02,Minoyan,Influenza,0
+2026-03,Minoyan,Influenza,3
+2026-04,Minoyan,Influenza,1
+2026-05,Minoyan,Influenza,1
+2026-06,Minoyan,Influenza,3
+2026-07,Minoyan,Influenza,4
+2026-08,Minoyan,Influenza,3
+2026-09,Minoyan,Influenza,2
+2023-01,Salvacion,Acute Gastroenteritis,1
+2023-02,Salvacion,Acute Gastroenteritis,0
+2023-03,Salvacion,Acute Gastroenteritis,1
+2023-04,Salvacion,Acute Gastroenteritis,3
+2023-05,Salvacion,Acute Gastroenteritis,2
+2023-06,Salvacion,Acute Gastroenteritis,0
+2023-07,Salvacion,Acute Gastroenteritis,1
+2023-08,Salvacion,Acute Gastroenteritis,0
+2023-09,Salvacion,Acute Gastroenteritis,0
+2023-10,Salvacion,Acute Gastroenteritis,0
+2023-11,Salvacion,Acute Gastroenteritis,1
+2023-12,Salvacion,Acute Gastroenteritis,1
+2024-01,Salvacion,Acute Gastroenteritis,0
+2024-02,Salvacion,Acute Gastroenteritis,1
+2024-03,Salvacion,Acute Gastroenteritis,0
+2024-04,Salvacion,Acute Gastroenteritis,2
+2024-05,Salvacion,Acute Gastroenteritis,1
+2024-06,Salvacion,Acute Gastroenteritis,2
+2024-07,Salvacion,Acute Gastroenteritis,2
+2024-08,Salvacion,Acute Gastroenteritis,1
+2024-09,Salvacion,Acute Gastroenteritis,2
+2024-10,Salvacion,Acute Gastroenteritis,1
+2024-11,Salvacion,Acute Gastroenteritis,2
+2024-12,Salvacion,Acute Gastroenteritis,1
+2025-01,Salvacion,Acute Gastroenteritis,2
+2025-02,Salvacion,Acute Gastroenteritis,2
+2025-03,Salvacion,Acute Gastroenteritis,0
+2025-04,Salvacion,Acute Gastroenteritis,0
+2025-05,Salvacion,Acute Gastroenteritis,0
+2025-06,Salvacion,Acute Gastroenteritis,2
+2025-07,Salvacion,Acute Gastroenteritis,0
+2025-08,Salvacion,Acute Gastroenteritis,3
+2025-09,Salvacion,Acute Gastroenteritis,1
+2025-10,Salvacion,Acute Gastroenteritis,2
+2025-11,Salvacion,Acute Gastroenteritis,5
+2025-12,Salvacion,Acute Gastroenteritis,1
+2026-01,Salvacion,Acute Gastroenteritis,2
+2026-02,Salvacion,Acute Gastroenteritis,0
+2026-03,Salvacion,Acute Gastroenteritis,1
+2026-04,Salvacion,Acute Gastroenteritis,5
+2026-05,Salvacion,Acute Gastroenteritis,0
+2026-06,Salvacion,Acute Gastroenteritis,1
+2026-07,Salvacion,Acute Gastroenteritis,3
+2026-08,Salvacion,Acute Gastroenteritis,1
+2026-09,Salvacion,Acute Gastroenteritis,0
+2023-01,Alegria,Acute Gastroenteritis,0
+2023-02,Alegria,Acute Gastroenteritis,1
+2023-03,Alegria,Acute Gastroenteritis,0
+2023-04,Alegria,Acute Gastroenteritis,1
+2023-05,Alegria,Acute Gastroenteritis,2
+2023-06,Alegria,Acute Gastroenteritis,0
+2023-07,Alegria,Acute Gastroenteritis,0
+2023-08,Alegria,Acute Gastroenteritis,2
+2023-09,Alegria,Acute Gastroenteritis,1
+2023-10,Alegria,Acute Gastroenteritis,2
+2023-11,Alegria,Acute Gastroenteritis,0
+2023-12,Alegria,Acute Gastroenteritis,0
+2024-01,Alegria,Acute Gastroenteritis,1
+2024-02,Alegria,Acute Gastroenteritis,1
+2024-03,Alegria,Acute Gastroenteritis,2
+2024-04,Alegria,Acute Gastroenteritis,0
+2024-05,Alegria,Acute Gastroenteritis,2
+2024-06,Alegria,Acute Gastroenteritis,1
+2024-07,Alegria,Acute Gastroenteritis,4
+2024-08,Alegria,Acute Gastroenteritis,3
+2024-09,Alegria,Acute Gastroenteritis,3
+2024-10,Alegria,Acute Gastroenteritis,2
+2024-11,Alegria,Acute Gastroenteritis,1
+2024-12,Alegria,Acute Gastroenteritis,2
+2025-01,Alegria,Acute Gastroenteritis,2
+2025-02,Alegria,Acute Gastroenteritis,0
+2025-03,Alegria,Acute Gastroenteritis,2
+2025-04,Alegria,Acute Gastroenteritis,3
+2025-05,Alegria,Acute Gastroenteritis,1
+2025-06,Alegria,Acute Gastroenteritis,0
+2025-07,Alegria,Acute Gastroenteritis,2
+2025-08,Alegria,Acute Gastroenteritis,1
+2025-09,Alegria,Acute Gastroenteritis,1
+2025-10,Alegria,Acute Gastroenteritis,1
+2025-11,Alegria,Acute Gastroenteritis,1
+2025-12,Alegria,Acute Gastroenteritis,1
+2026-01,Alegria,Acute Gastroenteritis,0
+2026-02,Alegria,Acute Gastroenteritis,2
+2026-03,Alegria,Acute Gastroenteritis,1
+2026-04,Alegria,Acute Gastroenteritis,1
+2026-05,Alegria,Acute Gastroenteritis,0
+2026-06,Alegria,Acute Gastroenteritis,2
+2026-07,Alegria,Acute Gastroenteritis,0
+2026-08,Alegria,Acute Gastroenteritis,0
+2026-09,Alegria,Acute Gastroenteritis,1
+2023-01,Blumentritt,Acute Gastroenteritis,0
+2023-02,Blumentritt,Acute Gastroenteritis,2
+2023-03,Blumentritt,Acute Gastroenteritis,0
+2023-04,Blumentritt,Acute Gastroenteritis,4
+2023-05,Blumentritt,Acute Gastroenteritis,0
+2023-06,Blumentritt,Acute Gastroenteritis,2
+2023-07,Blumentritt,Acute Gastroenteritis,1
+2023-08,Blumentritt,Acute Gastroenteritis,0
+2023-09,Blumentritt,Acute Gastroenteritis,2
+2023-10,Blumentritt,Acute Gastroenteritis,1
+2023-11,Blumentritt,Acute Gastroenteritis,1
+2023-12,Blumentritt,Acute Gastroenteritis,0
+2024-01,Blumentritt,Acute Gastroenteritis,1
+2024-02,Blumentritt,Acute Gastroenteritis,2
+2024-03,Blumentritt,Acute Gastroenteritis,0
+2024-04,Blumentritt,Acute Gastroenteritis,0
+2024-05,Blumentritt,Acute Gastroenteritis,2
+2024-06,Blumentritt,Acute Gastroenteritis,2
+2024-07,Blumentritt,Acute Gastroenteritis,2
+2024-08,Blumentritt,Acute Gastroenteritis,5
+2024-09,Blumentritt,Acute Gastroenteritis,2
+2024-10,Blumentritt,Acute Gastroenteritis,1
+2024-11,Blumentritt,Acute Gastroenteritis,0
+2024-12,Blumentritt,Acute Gastroenteritis,1
+2025-01,Blumentritt,Acute Gastroenteritis,0
+2025-02,Blumentritt,Acute Gastroenteritis,2
+2025-03,Blumentritt,Acute Gastroenteritis,3
+2025-04,Blumentritt,Acute Gastroenteritis,0
+2025-05,Blumentritt,Acute Gastroenteritis,0
+2025-06,Blumentritt,Acute Gastroenteritis,4
+2025-07,Blumentritt,Acute Gastroenteritis,0
+2025-08,Blumentritt,Acute Gastroenteritis,1
+2025-09,Blumentritt,Acute Gastroenteritis,3
+2025-10,Blumentritt,Acute Gastroenteritis,2
+2025-11,Blumentritt,Acute Gastroenteritis,0
+2025-12,Blumentritt,Acute Gastroenteritis,2
+2026-01,Blumentritt,Acute Gastroenteritis,3
+2026-02,Blumentritt,Acute Gastroenteritis,3
+2026-03,Blumentritt,Acute Gastroenteritis,1
+2026-04,Blumentritt,Acute Gastroenteritis,1
+2026-05,Blumentritt,Acute Gastroenteritis,3
+2026-06,Blumentritt,Acute Gastroenteritis,1
+2026-07,Blumentritt,Acute Gastroenteritis,1
+2026-08,Blumentritt,Acute Gastroenteritis,0
+2026-09,Blumentritt,Acute Gastroenteritis,3
+2023-01,Caliban,Acute Gastroenteritis,1
+2023-02,Caliban,Acute Gastroenteritis,1
+2023-03,Caliban,Acute Gastroenteritis,1
+2023-04,Caliban,Acute Gastroenteritis,1
+2023-05,Caliban,Acute Gastroenteritis,0
+2023-06,Caliban,Acute Gastroenteritis,1
+2023-07,Caliban,Acute Gastroenteritis,1
+2023-08,Caliban,Acute Gastroenteritis,0
+2023-09,Caliban,Acute Gastroenteritis,2
+2023-10,Caliban,Acute Gastroenteritis,1
+2023-11,Caliban,Acute Gastroenteritis,3
+2023-12,Caliban,Acute Gastroenteritis,0
+2024-01,Caliban,Acute Gastroenteritis,0
+2024-02,Caliban,Acute Gastroenteritis,6
+2024-03,Caliban,Acute Gastroenteritis,0
+2024-04,Caliban,Acute Gastroenteritis,4
+2024-05,Caliban,Acute Gastroenteritis,3
+2024-06,Caliban,Acute Gastroenteritis,0
+2024-07,Caliban,Acute Gastroenteritis,5
+2024-08,Caliban,Acute Gastroenteritis,2
+2024-09,Caliban,Acute Gastroenteritis,0
+2024-10,Caliban,Acute Gastroenteritis,1
+2024-11,Caliban,Acute Gastroenteritis,1
+2024-12,Caliban,Acute Gastroenteritis,2
+2025-01,Caliban,Acute Gastroenteritis,1
+2025-02,Caliban,Acute Gastroenteritis,2
+2025-03,Caliban,Acute Gastroenteritis,2
+2025-04,Caliban,Acute Gastroenteritis,1
+2025-05,Caliban,Acute Gastroenteritis,1
+2025-06,Caliban,Acute Gastroenteritis,0
+2025-07,Caliban,Acute Gastroenteritis,5
+2025-08,Caliban,Acute Gastroenteritis,3
+2025-09,Caliban,Acute Gastroenteritis,0
+2025-10,Caliban,Acute Gastroenteritis,0
+2025-11,Caliban,Acute Gastroenteritis,1
+2025-12,Caliban,Acute Gastroenteritis,0
+2026-01,Caliban,Acute Gastroenteritis,2
+2026-02,Caliban,Acute Gastroenteritis,3
+2026-03,Caliban,Acute Gastroenteritis,0
+2026-04,Caliban,Acute Gastroenteritis,1
+2026-05,Caliban,Acute Gastroenteritis,4
+2026-06,Caliban,Acute Gastroenteritis,1
+2026-07,Caliban,Acute Gastroenteritis,2
+2026-08,Caliban,Acute Gastroenteritis,2
+2026-09,Caliban,Acute Gastroenteritis,2
+2023-01,Cansilayan,Acute Gastroenteritis,1
+2023-02,Cansilayan,Acute Gastroenteritis,0
+2023-03,Cansilayan,Acute Gastroenteritis,0
+2023-04,Cansilayan,Acute Gastroenteritis,2
+2023-05,Cansilayan,Acute Gastroenteritis,0
+2023-06,Cansilayan,Acute Gastroenteritis,1
+2023-07,Cansilayan,Acute Gastroenteritis,1
+2023-08,Cansilayan,Acute Gastroenteritis,2
+2023-09,Cansilayan,Acute Gastroenteritis,4
+2023-10,Cansilayan,Acute Gastroenteritis,1
+2023-11,Cansilayan,Acute Gastroenteritis,2
+2023-12,Cansilayan,Acute Gastroenteritis,3
+2024-01,Cansilayan,Acute Gastroenteritis,2
+2024-02,Cansilayan,Acute Gastroenteritis,5
+2024-03,Cansilayan,Acute Gastroenteritis,0
+2024-04,Cansilayan,Acute Gastroenteritis,3
+2024-05,Cansilayan,Acute Gastroenteritis,2
+2024-06,Cansilayan,Acute Gastroenteritis,0
+2024-07,Cansilayan,Acute Gastroenteritis,0
+2024-08,Cansilayan,Acute Gastroenteritis,2
+2024-09,Cansilayan,Acute Gastroenteritis,1
+2024-10,Cansilayan,Acute Gastroenteritis,1
+2024-11,Cansilayan,Acute Gastroenteritis,4
+2024-12,Cansilayan,Acute Gastroenteritis,0
+2025-01,Cansilayan,Acute Gastroenteritis,5
+2025-02,Cansilayan,Acute Gastroenteritis,2
+2025-03,Cansilayan,Acute Gastroenteritis,1
+2025-04,Cansilayan,Acute Gastroenteritis,2
+2025-05,Cansilayan,Acute Gastroenteritis,0
+2025-06,Cansilayan,Acute Gastroenteritis,0
+2025-07,Cansilayan,Acute Gastroenteritis,1
+2025-08,Cansilayan,Acute Gastroenteritis,2
+2025-09,Cansilayan,Acute Gastroenteritis,0
+2025-10,Cansilayan,Acute Gastroenteritis,1
+2025-11,Cansilayan,Acute Gastroenteritis,0
+2025-12,Cansilayan,Acute Gastroenteritis,2
+2026-01,Cansilayan,Acute Gastroenteritis,1
+2026-02,Cansilayan,Acute Gastroenteritis,0
+2026-03,Cansilayan,Acute Gastroenteritis,1
+2026-04,Cansilayan,Acute Gastroenteritis,3
+2026-05,Cansilayan,Acute Gastroenteritis,0
+2026-06,Cansilayan,Acute Gastroenteritis,1
+2026-07,Cansilayan,Acute Gastroenteritis,1
+2026-08,Cansilayan,Acute Gastroenteritis,2
+2026-09,Cansilayan,Acute Gastroenteritis,2
+2023-01,Sta. Rosa,Acute Gastroenteritis,3
+2023-02,Sta. Rosa,Acute Gastroenteritis,1
+2023-03,Sta. Rosa,Acute Gastroenteritis,2
+2023-04,Sta. Rosa,Acute Gastroenteritis,1
+2023-05,Sta. Rosa,Acute Gastroenteritis,3
+2023-06,Sta. Rosa,Acute Gastroenteritis,1
+2023-07,Sta. Rosa,Acute Gastroenteritis,2
+2023-08,Sta. Rosa,Acute Gastroenteritis,1
+2023-09,Sta. Rosa,Acute Gastroenteritis,0
+2023-10,Sta. Rosa,Acute Gastroenteritis,1
+2023-11,Sta. Rosa,Acute Gastroenteritis,3
+2023-12,Sta. Rosa,Acute Gastroenteritis,2
+2024-01,Sta. Rosa,Acute Gastroenteritis,3
+2024-02,Sta. Rosa,Acute Gastroenteritis,1
+2024-03,Sta. Rosa,Acute Gastroenteritis,3
+2024-04,Sta. Rosa,Acute Gastroenteritis,3
+2024-05,Sta. Rosa,Acute Gastroenteritis,4
+2024-06,Sta. Rosa,Acute Gastroenteritis,0
+2024-07,Sta. Rosa,Acute Gastroenteritis,1
+2024-08,Sta. Rosa,Acute Gastroenteritis,1
+2024-09,Sta. Rosa,Acute Gastroenteritis,2
+2024-10,Sta. Rosa,Acute Gastroenteritis,2
+2024-11,Sta. Rosa,Acute Gastroenteritis,4
+2024-12,Sta. Rosa,Acute Gastroenteritis,2
+2025-01,Sta. Rosa,Acute Gastroenteritis,0
+2025-02,Sta. Rosa,Acute Gastroenteritis,1
+2025-03,Sta. Rosa,Acute Gastroenteritis,2
+2025-04,Sta. Rosa,Acute Gastroenteritis,1
+2025-05,Sta. Rosa,Acute Gastroenteritis,3
+2025-06,Sta. Rosa,Acute Gastroenteritis,0
+2025-07,Sta. Rosa,Acute Gastroenteritis,0
+2025-08,Sta. Rosa,Acute Gastroenteritis,2
+2025-09,Sta. Rosa,Acute Gastroenteritis,2
+2025-10,Sta. Rosa,Acute Gastroenteritis,3
+2025-11,Sta. Rosa,Acute Gastroenteritis,1
+2025-12,Sta. Rosa,Acute Gastroenteritis,1
+2026-01,Sta. Rosa,Acute Gastroenteritis,2
+2026-02,Sta. Rosa,Acute Gastroenteritis,1
+2026-03,Sta. Rosa,Acute Gastroenteritis,1
+2026-04,Sta. Rosa,Acute Gastroenteritis,5
+2026-05,Sta. Rosa,Acute Gastroenteritis,1
+2026-06,Sta. Rosa,Acute Gastroenteritis,0
+2026-07,Sta. Rosa,Acute Gastroenteritis,0
+2026-08,Sta. Rosa,Acute Gastroenteritis,0
+2026-09,Sta. Rosa,Acute Gastroenteritis,2
+2023-01,Minoyan,Acute Gastroenteritis,2
+2023-02,Minoyan,Acute Gastroenteritis,0
+2023-03,Minoyan,Acute Gastroenteritis,6
+2023-04,Minoyan,Acute Gastroenteritis,1
+2023-05,Minoyan,Acute Gastroenteritis,1
+2023-06,Minoyan,Acute Gastroenteritis,3
+2023-07,Minoyan,Acute Gastroenteritis,1
+2023-08,Minoyan,Acute Gastroenteritis,3
+2023-09,Minoyan,Acute Gastroenteritis,2
+2023-10,Minoyan,Acute Gastroenteritis,0
+2023-11,Minoyan,Acute Gastroenteritis,1
+2023-12,Minoyan,Acute Gastroenteritis,0
+2024-01,Minoyan,Acute Gastroenteritis,2
+2024-02,Minoyan,Acute Gastroenteritis,4
+2024-03,Minoyan,Acute Gastroenteritis,4
+2024-04,Minoyan,Acute Gastroenteritis,4
+2024-05,Minoyan,Acute Gastroenteritis,1
+2024-06,Minoyan,Acute Gastroenteritis,1
+2024-07,Minoyan,Acute Gastroenteritis,3
+2024-08,Minoyan,Acute Gastroenteritis,2
+2024-09,Minoyan,Acute Gastroenteritis,3
+2024-10,Minoyan,Acute Gastroenteritis,2
+2024-11,Minoyan,Acute Gastroenteritis,1
+2024-12,Minoyan,Acute Gastroenteritis,1
+2025-01,Minoyan,Acute Gastroenteritis,0
+2025-02,Minoyan,Acute Gastroenteritis,2
+2025-03,Minoyan,Acute Gastroenteritis,3
+2025-04,Minoyan,Acute Gastroenteritis,0
+2025-05,Minoyan,Acute Gastroenteritis,1
+2025-06,Minoyan,Acute Gastroenteritis,5
+2025-07,Minoyan,Acute Gastroenteritis,2
+2025-08,Minoyan,Acute Gastroenteritis,0
+2025-09,Minoyan,Acute Gastroenteritis,0
+2025-10,Minoyan,Acute Gastroenteritis,1
+2025-11,Minoyan,Acute Gastroenteritis,2
+2025-12,Minoyan,Acute Gastroenteritis,3
+2026-01,Minoyan,Acute Gastroenteritis,2
+2026-02,Minoyan,Acute Gastroenteritis,1
+2026-03,Minoyan,Acute Gastroenteritis,1
+2026-04,Minoyan,Acute Gastroenteritis,0
+2026-05,Minoyan,Acute Gastroenteritis,1
+2026-06,Minoyan,Acute Gastroenteritis,0
+2026-07,Minoyan,Acute Gastroenteritis,0
+2026-08,Minoyan,Acute Gastroenteritis,1
+2026-09,Minoyan,Acute Gastroenteritis,0
+2023-01,Salvacion,Vertigo,0
+2023-02,Salvacion,Vertigo,1
+2023-03,Salvacion,Vertigo,1
+2023-04,Salvacion,Vertigo,2
+2023-05,Salvacion,Vertigo,3
+2023-06,Salvacion,Vertigo,3
+2023-07,Salvacion,Vertigo,1
+2023-08,Salvacion,Vertigo,2
+2023-09,Salvacion,Vertigo,3
+2023-10,Salvacion,Vertigo,2
+2023-11,Salvacion,Vertigo,0
+2023-12,Salvacion,Vertigo,2
+2024-01,Salvacion,Vertigo,2
+2024-02,Salvacion,Vertigo,0
+2024-03,Salvacion,Vertigo,2
+2024-04,Salvacion,Vertigo,1
+2024-05,Salvacion,Vertigo,2
+2024-06,Salvacion,Vertigo,1
+2024-07,Salvacion,Vertigo,2
+2024-08,Salvacion,Vertigo,0
+2024-09,Salvacion,Vertigo,1
+2024-10,Salvacion,Vertigo,2
+2024-11,Salvacion,Vertigo,2
+2024-12,Salvacion,Vertigo,0
+2025-01,Salvacion,Vertigo,1
+2025-02,Salvacion,Vertigo,5
+2025-03,Salvacion,Vertigo,1
+2025-04,Salvacion,Vertigo,0
+2025-05,Salvacion,Vertigo,0
+2025-06,Salvacion,Vertigo,2
+2025-07,Salvacion,Vertigo,3
+2025-08,Salvacion,Vertigo,0
+2025-09,Salvacion,Vertigo,2
+2025-10,Salvacion,Vertigo,0
+2025-11,Salvacion,Vertigo,1
+2025-12,Salvacion,Vertigo,1
+2026-01,Salvacion,Vertigo,2
+2026-02,Salvacion,Vertigo,1
+2026-03,Salvacion,Vertigo,1
+2026-04,Salvacion,Vertigo,1
+2026-05,Salvacion,Vertigo,1
+2026-06,Salvacion,Vertigo,2
+2026-07,Salvacion,Vertigo,0
+2026-08,Salvacion,Vertigo,8
+2026-09,Salvacion,Vertigo,1
+2023-01,Alegria,Vertigo,1
+2023-02,Alegria,Vertigo,2
+2023-03,Alegria,Vertigo,0
+2023-04,Alegria,Vertigo,1
+2023-05,Alegria,Vertigo,1
+2023-06,Alegria,Vertigo,1
+2023-07,Alegria,Vertigo,1
+2023-08,Alegria,Vertigo,0
+2023-09,Alegria,Vertigo,2
+2023-10,Alegria,Vertigo,2
+2023-11,Alegria,Vertigo,1
+2023-12,Alegria,Vertigo,1
+2024-01,Alegria,Vertigo,0
+2024-02,Alegria,Vertigo,3
+2024-03,Alegria,Vertigo,0
+2024-04,Alegria,Vertigo,1
+2024-05,Alegria,Vertigo,2
+2024-06,Alegria,Vertigo,0
+2024-07,Alegria,Vertigo,1
+2024-08,Alegria,Vertigo,2
+2024-09,Alegria,Vertigo,2
+2024-10,Alegria,Vertigo,1
+2024-11,Alegria,Vertigo,1
+2024-12,Alegria,Vertigo,4
+2025-01,Alegria,Vertigo,1
+2025-02,Alegria,Vertigo,1
+2025-03,Alegria,Vertigo,1
+2025-04,Alegria,Vertigo,3
+2025-05,Alegria,Vertigo,3
+2025-06,Alegria,Vertigo,1
+2025-07,Alegria,Vertigo,2
+2025-08,Alegria,Vertigo,3
+2025-09,Alegria,Vertigo,1
+2025-10,Alegria,Vertigo,1
+2025-11,Alegria,Vertigo,0
+2025-12,Alegria,Vertigo,3
+2026-01,Alegria,Vertigo,1
+2026-02,Alegria,Vertigo,4
+2026-03,Alegria,Vertigo,4
+2026-04,Alegria,Vertigo,4
+2026-05,Alegria,Vertigo,2
+2026-06,Alegria,Vertigo,3
+2026-07,Alegria,Vertigo,5
+2026-08,Alegria,Vertigo,2
+2026-09,Alegria,Vertigo,2
+2023-01,Blumentritt,Vertigo,4
+2023-02,Blumentritt,Vertigo,1
+2023-03,Blumentritt,Vertigo,1
+2023-04,Blumentritt,Vertigo,2
+2023-05,Blumentritt,Vertigo,1
+2023-06,Blumentritt,Vertigo,0
+2023-07,Blumentritt,Vertigo,3
+2023-08,Blumentritt,Vertigo,5
+2023-09,Blumentritt,Vertigo,1
+2023-10,Blumentritt,Vertigo,3
+2023-11,Blumentritt,Vertigo,1
+2023-12,Blumentritt,Vertigo,3
+2024-01,Blumentritt,Vertigo,1
+2024-02,Blumentritt,Vertigo,0
+2024-03,Blumentritt,Vertigo,1
+2024-04,Blumentritt,Vertigo,1
+2024-05,Blumentritt,Vertigo,0
+2024-06,Blumentritt,Vertigo,3
+2024-07,Blumentritt,Vertigo,3
+2024-08,Blumentritt,Vertigo,0
+2024-09,Blumentritt,Vertigo,3
+2024-10,Blumentritt,Vertigo,0
+2024-11,Blumentritt,Vertigo,2
+2024-12,Blumentritt,Vertigo,5
+2025-01,Blumentritt,Vertigo,1
+2025-02,Blumentritt,Vertigo,2
+2025-03,Blumentritt,Vertigo,3
+2025-04,Blumentritt,Vertigo,2
+2025-05,Blumentritt,Vertigo,2
+2025-06,Blumentritt,Vertigo,1
+2025-07,Blumentritt,Vertigo,2
+2025-08,Blumentritt,Vertigo,1
+2025-09,Blumentritt,Vertigo,0
+2025-10,Blumentritt,Vertigo,5
+2025-11,Blumentritt,Vertigo,3
+2025-12,Blumentritt,Vertigo,0
+2026-01,Blumentritt,Vertigo,2
+2026-02,Blumentritt,Vertigo,0
+2026-03,Blumentritt,Vertigo,1
+2026-04,Blumentritt,Vertigo,2
+2026-05,Blumentritt,Vertigo,1
+2026-06,Blumentritt,Vertigo,2
+2026-07,Blumentritt,Vertigo,4
+2026-08,Blumentritt,Vertigo,2
+2026-09,Blumentritt,Vertigo,1
+2023-01,Caliban,Vertigo,1
+2023-02,Caliban,Vertigo,2
+2023-03,Caliban,Vertigo,0
+2023-04,Caliban,Vertigo,2
+2023-05,Caliban,Vertigo,1
+2023-06,Caliban,Vertigo,2
+2023-07,Caliban,Vertigo,0
+2023-08,Caliban,Vertigo,1
+2023-09,Caliban,Vertigo,1
+2023-10,Caliban,Vertigo,0
+2023-11,Caliban,Vertigo,0
+2023-12,Caliban,Vertigo,1
+2024-01,Caliban,Vertigo,1
+2024-02,Caliban,Vertigo,0
+2024-03,Caliban,Vertigo,1
+2024-04,Caliban,Vertigo,3
+2024-05,Caliban,Vertigo,1
+2024-06,Caliban,Vertigo,1
+2024-07,Caliban,Vertigo,1
+2024-08,Caliban,Vertigo,2
+2024-09,Caliban,Vertigo,2
+2024-10,Caliban,Vertigo,1
+2024-11,Caliban,Vertigo,2
+2024-12,Caliban,Vertigo,5
+2025-01,Caliban,Vertigo,0
+2025-02,Caliban,Vertigo,1
+2025-03,Caliban,Vertigo,1
+2025-04,Caliban,Vertigo,2
+2025-05,Caliban,Vertigo,1
+2025-06,Caliban,Vertigo,1
+2025-07,Caliban,Vertigo,1
+2025-08,Caliban,Vertigo,2
+2025-09,Caliban,Vertigo,3
+2025-10,Caliban,Vertigo,3
+2025-11,Caliban,Vertigo,0
+2025-12,Caliban,Vertigo,0
+2026-01,Caliban,Vertigo,2
+2026-02,Caliban,Vertigo,2
+2026-03,Caliban,Vertigo,3
+2026-04,Caliban,Vertigo,0
+2026-05,Caliban,Vertigo,1
+2026-06,Caliban,Vertigo,0
+2026-07,Caliban,Vertigo,1
+2026-08,Caliban,Vertigo,2
+2026-09,Caliban,Vertigo,1
+2023-01,Cansilayan,Vertigo,0
+2023-02,Cansilayan,Vertigo,2
+2023-03,Cansilayan,Vertigo,0
+2023-04,Cansilayan,Vertigo,2
+2023-05,Cansilayan,Vertigo,0
+2023-06,Cansilayan,Vertigo,2
+2023-07,Cansilayan,Vertigo,0
+2023-08,Cansilayan,Vertigo,0
+2023-09,Cansilayan,Vertigo,0
+2023-10,Cansilayan,Vertigo,0
+2023-11,Cansilayan,Vertigo,2
+2023-12,Cansilayan,Vertigo,4
+2024-01,Cansilayan,Vertigo,1
+2024-02,Cansilayan,Vertigo,1
+2024-03,Cansilayan,Vertigo,2
+2024-04,Cansilayan,Vertigo,3
+2024-05,Cansilayan,Vertigo,4
+2024-06,Cansilayan,Vertigo,1
+2024-07,Cansilayan,Vertigo,5
+2024-08,Cansilayan,Vertigo,1
+2024-09,Cansilayan,Vertigo,2
+2024-10,Cansilayan,Vertigo,0
+2024-11,Cansilayan,Vertigo,1
+2024-12,Cansilayan,Vertigo,1
+2025-01,Cansilayan,Vertigo,1
+2025-02,Cansilayan,Vertigo,0
+2025-03,Cansilayan,Vertigo,1
+2025-04,Cansilayan,Vertigo,0
+2025-05,Cansilayan,Vertigo,1
+2025-06,Cansilayan,Vertigo,3
+2025-07,Cansilayan,Vertigo,0
+2025-08,Cansilayan,Vertigo,2
+2025-09,Cansilayan,Vertigo,3
+2025-10,Cansilayan,Vertigo,2
+2025-11,Cansilayan,Vertigo,2
+2025-12,Cansilayan,Vertigo,1
+2026-01,Cansilayan,Vertigo,1
+2026-02,Cansilayan,Vertigo,1
+2026-03,Cansilayan,Vertigo,3
+2026-04,Cansilayan,Vertigo,2
+2026-05,Cansilayan,Vertigo,3
+2026-06,Cansilayan,Vertigo,2
+2026-07,Cansilayan,Vertigo,1
+2026-08,Cansilayan,Vertigo,2
+2026-09,Cansilayan,Vertigo,4
+2023-01,Sta. Rosa,Vertigo,4
+2023-02,Sta. Rosa,Vertigo,3
+2023-03,Sta. Rosa,Vertigo,2
+2023-04,Sta. Rosa,Vertigo,3
+2023-05,Sta. Rosa,Vertigo,2
+2023-06,Sta. Rosa,Vertigo,1
+2023-07,Sta. Rosa,Vertigo,0
+2023-08,Sta. Rosa,Vertigo,4
+2023-09,Sta. Rosa,Vertigo,2
+2023-10,Sta. Rosa,Vertigo,0
+2023-11,Sta. Rosa,Vertigo,3
+2023-12,Sta. Rosa,Vertigo,1
+2024-01,Sta. Rosa,Vertigo,0
+2024-02,Sta. Rosa,Vertigo,3
+2024-03,Sta. Rosa,Vertigo,1
+2024-04,Sta. Rosa,Vertigo,2
+2024-05,Sta. Rosa,Vertigo,0
+2024-06,Sta. Rosa,Vertigo,2
+2024-07,Sta. Rosa,Vertigo,0
+2024-08,Sta. Rosa,Vertigo,2
+2024-09,Sta. Rosa,Vertigo,0
+2024-10,Sta. Rosa,Vertigo,1
+2024-11,Sta. Rosa,Vertigo,0
+2024-12,Sta. Rosa,Vertigo,1
+2025-01,Sta. Rosa,Vertigo,3
+2025-02,Sta. Rosa,Vertigo,1
+2025-03,Sta. Rosa,Vertigo,1
+2025-04,Sta. Rosa,Vertigo,2
+2025-05,Sta. Rosa,Vertigo,1
+2025-06,Sta. Rosa,Vertigo,4
+2025-07,Sta. Rosa,Vertigo,3
+2025-08,Sta. Rosa,Vertigo,0
+2025-09,Sta. Rosa,Vertigo,0
+2025-10,Sta. Rosa,Vertigo,2
+2025-11,Sta. Rosa,Vertigo,0
+2025-12,Sta. Rosa,Vertigo,0
+2026-01,Sta. Rosa,Vertigo,0
+2026-02,Sta. Rosa,Vertigo,1
+2026-03,Sta. Rosa,Vertigo,3
+2026-04,Sta. Rosa,Vertigo,3
+2026-05,Sta. Rosa,Vertigo,3
+2026-06,Sta. Rosa,Vertigo,2
+2026-07,Sta. Rosa,Vertigo,1
+2026-08,Sta. Rosa,Vertigo,1
+2026-09,Sta. Rosa,Vertigo,2
+2023-01,Minoyan,Vertigo,2
+2023-02,Minoyan,Vertigo,1
+2023-03,Minoyan,Vertigo,0
+2023-04,Minoyan,Vertigo,2
+2023-05,Minoyan,Vertigo,1
+2023-06,Minoyan,Vertigo,3
+2023-07,Minoyan,Vertigo,2
+2023-08,Minoyan,Vertigo,0
+2023-09,Minoyan,Vertigo,1
+2023-10,Minoyan,Vertigo,4
+2023-11,Minoyan,Vertigo,2
+2023-12,Minoyan,Vertigo,2
+2024-01,Minoyan,Vertigo,2
+2024-02,Minoyan,Vertigo,3
+2024-03,Minoyan,Vertigo,0
+2024-04,Minoyan,Vertigo,1
+2024-05,Minoyan,Vertigo,0
+2024-06,Minoyan,Vertigo,0
+2024-07,Minoyan,Vertigo,0
+2024-08,Minoyan,Vertigo,2
+2024-09,Minoyan,Vertigo,1
+2024-10,Minoyan,Vertigo,1
+2024-11,Minoyan,Vertigo,0
+2024-12,Minoyan,Vertigo,0
+2025-01,Minoyan,Vertigo,1
+2025-02,Minoyan,Vertigo,0
+2025-03,Minoyan,Vertigo,2
+2025-04,Minoyan,Vertigo,2
+2025-05,Minoyan,Vertigo,3
+2025-06,Minoyan,Vertigo,1
+2025-07,Minoyan,Vertigo,0
+2025-08,Minoyan,Vertigo,2
+2025-09,Minoyan,Vertigo,3
+2025-10,Minoyan,Vertigo,1
+2025-11,Minoyan,Vertigo,3
+2025-12,Minoyan,Vertigo,4
+2026-01,Minoyan,Vertigo,2
+2026-02,Minoyan,Vertigo,1
+2026-03,Minoyan,Vertigo,1
+2026-04,Minoyan,Vertigo,1
+2026-05,Minoyan,Vertigo,0
+2026-06,Minoyan,Vertigo,1
+2026-07,Minoyan,Vertigo,4
+2026-08,Minoyan,Vertigo,3
+2026-09,Minoyan,Vertigo,4
+2023-01,Salvacion,All types of skin disease,2
+2023-02,Salvacion,All types of skin disease,1
+2023-03,Salvacion,All types of skin disease,3
+2023-04,Salvacion,All types of skin disease,0
+2023-05,Salvacion,All types of skin disease,1
+2023-06,Salvacion,All types of skin disease,1
+2023-07,Salvacion,All types of skin disease,1
+2023-08,Salvacion,All types of skin disease,2
+2023-09,Salvacion,All types of skin disease,1
+2023-10,Salvacion,All types of skin disease,1
+2023-11,Salvacion,All types of skin disease,2
+2023-12,Salvacion,All types of skin disease,0
+2024-01,Salvacion,All types of skin disease,1
+2024-02,Salvacion,All types of skin disease,3
+2024-03,Salvacion,All types of skin disease,2
+2024-04,Salvacion,All types of skin disease,0
+2024-05,Salvacion,All types of skin disease,1
+2024-06,Salvacion,All types of skin disease,2
+2024-07,Salvacion,All types of skin disease,0
+2024-08,Salvacion,All types of skin disease,4
+2024-09,Salvacion,All types of skin disease,1
+2024-10,Salvacion,All types of skin disease,4
+2024-11,Salvacion,All types of skin disease,1
+2024-12,Salvacion,All types of skin disease,1
+2025-01,Salvacion,All types of skin disease,0
+2025-02,Salvacion,All types of skin disease,1
+2025-03,Salvacion,All types of skin disease,2
+2025-04,Salvacion,All types of skin disease,0
+2025-05,Salvacion,All types of skin disease,2
+2025-06,Salvacion,All types of skin disease,3
+2025-07,Salvacion,All types of skin disease,2
+2025-08,Salvacion,All types of skin disease,3
+2025-09,Salvacion,All types of skin disease,2
+2025-10,Salvacion,All types of skin disease,4
+2025-11,Salvacion,All types of skin disease,0
+2025-12,Salvacion,All types of skin disease,0
+2026-01,Salvacion,All types of skin disease,2
+2026-02,Salvacion,All types of skin disease,1
+2026-03,Salvacion,All types of skin disease,1
+2026-04,Salvacion,All types of skin disease,1
+2026-05,Salvacion,All types of skin disease,0
+2026-06,Salvacion,All types of skin disease,1
+2026-07,Salvacion,All types of skin disease,1
+2026-08,Salvacion,All types of skin disease,0
+2026-09,Salvacion,All types of skin disease,1
+2023-01,Alegria,All types of skin disease,2
+2023-02,Alegria,All types of skin disease,2
+2023-03,Alegria,All types of skin disease,2
+2023-04,Alegria,All types of skin disease,1
+2023-05,Alegria,All types of skin disease,2
+2023-06,Alegria,All types of skin disease,2
+2023-07,Alegria,All types of skin disease,2
+2023-08,Alegria,All types of skin disease,2
+2023-09,Alegria,All types of skin disease,1
+2023-10,Alegria,All types of skin disease,3
+2023-11,Alegria,All types of skin disease,2
+2023-12,Alegria,All types of skin disease,2
+2024-01,Alegria,All types of skin disease,0
+2024-02,Alegria,All types of skin disease,3
+2024-03,Alegria,All types of skin disease,1
+2024-04,Alegria,All types of skin disease,4
+2024-05,Alegria,All types of skin disease,0
+2024-06,Alegria,All types of skin disease,1
+2024-07,Alegria,All types of skin disease,1
+2024-08,Alegria,All types of skin disease,3
+2024-09,Alegria,All types of skin disease,1
+2024-10,Alegria,All types of skin disease,4
+2024-11,Alegria,All types of skin disease,0
+2024-12,Alegria,All types of skin disease,4
+2025-01,Alegria,All types of skin disease,0
+2025-02,Alegria,All types of skin disease,2
+2025-03,Alegria,All types of skin disease,3
+2025-04,Alegria,All types of skin disease,1
+2025-05,Alegria,All types of skin disease,1
+2025-06,Alegria,All types of skin disease,4
+2025-07,Alegria,All types of skin disease,3
+2025-08,Alegria,All types of skin disease,2
+2025-09,Alegria,All types of skin disease,2
+2025-10,Alegria,All types of skin disease,0
+2025-11,Alegria,All types of skin disease,2
+2025-12,Alegria,All types of skin disease,2
+2026-01,Alegria,All types of skin disease,0
+2026-02,Alegria,All types of skin disease,2
+2026-03,Alegria,All types of skin disease,2
+2026-04,Alegria,All types of skin disease,3
+2026-05,Alegria,All types of skin disease,0
+2026-06,Alegria,All types of skin disease,2
+2026-07,Alegria,All types of skin disease,1
+2026-08,Alegria,All types of skin disease,0
+2026-09,Alegria,All types of skin disease,4
+2023-01,Blumentritt,All types of skin disease,1
+2023-02,Blumentritt,All types of skin disease,3
+2023-03,Blumentritt,All types of skin disease,1
+2023-04,Blumentritt,All types of skin disease,1
+2023-05,Blumentritt,All types of skin disease,4
+2023-06,Blumentritt,All types of skin disease,6
+2023-07,Blumentritt,All types of skin disease,2
+2023-08,Blumentritt,All types of skin disease,2
+2023-09,Blumentritt,All types of skin disease,1
+2023-10,Blumentritt,All types of skin disease,3
+2023-11,Blumentritt,All types of skin disease,3
+2023-12,Blumentritt,All types of skin disease,4
+2024-01,Blumentritt,All types of skin disease,0
+2024-02,Blumentritt,All types of skin disease,0
+2024-03,Blumentritt,All types of skin disease,2
+2024-04,Blumentritt,All types of skin disease,4
+2024-05,Blumentritt,All types of skin disease,1
+2024-06,Blumentritt,All types of skin disease,1
+2024-07,Blumentritt,All types of skin disease,0
+2024-08,Blumentritt,All types of skin disease,0
+2024-09,Blumentritt,All types of skin disease,6
+2024-10,Blumentritt,All types of skin disease,4
+2024-11,Blumentritt,All types of skin disease,4
+2024-12,Blumentritt,All types of skin disease,3
+2025-01,Blumentritt,All types of skin disease,2
+2025-02,Blumentritt,All types of skin disease,0
+2025-03,Blumentritt,All types of skin disease,1
+2025-04,Blumentritt,All types of skin disease,2
+2025-05,Blumentritt,All types of skin disease,2
+2025-06,Blumentritt,All types of skin disease,2
+2025-07,Blumentritt,All types of skin disease,2
+2025-08,Blumentritt,All types of skin disease,2
+2025-09,Blumentritt,All types of skin disease,3
+2025-10,Blumentritt,All types of skin disease,1
+2025-11,Blumentritt,All types of skin disease,1
+2025-12,Blumentritt,All types of skin disease,0
+2026-01,Blumentritt,All types of skin disease,1
+2026-02,Blumentritt,All types of skin disease,1
+2026-03,Blumentritt,All types of skin disease,2
+2026-04,Blumentritt,All types of skin disease,1
+2026-05,Blumentritt,All types of skin disease,4
+2026-06,Blumentritt,All types of skin disease,0
+2026-07,Blumentritt,All types of skin disease,4
+2026-08,Blumentritt,All types of skin disease,0
+2026-09,Blumentritt,All types of skin disease,1
+2023-01,Caliban,All types of skin disease,3
+2023-02,Caliban,All types of skin disease,1
+2023-03,Caliban,All types of skin disease,1
+2023-04,Caliban,All types of skin disease,1
+2023-05,Caliban,All types of skin disease,1
+2023-06,Caliban,All types of skin disease,3
+2023-07,Caliban,All types of skin disease,0
+2023-08,Caliban,All types of skin disease,4
+2023-09,Caliban,All types of skin disease,2
+2023-10,Caliban,All types of skin disease,2
+2023-11,Caliban,All types of skin disease,3
+2023-12,Caliban,All types of skin disease,1
+2024-01,Caliban,All types of skin disease,4
+2024-02,Caliban,All types of skin disease,1
+2024-03,Caliban,All types of skin disease,3
+2024-04,Caliban,All types of skin disease,1
+2024-05,Caliban,All types of skin disease,2
+2024-06,Caliban,All types of skin disease,0
+2024-07,Caliban,All types of skin disease,1
+2024-08,Caliban,All types of skin disease,2
+2024-09,Caliban,All types of skin disease,4
+2024-10,Caliban,All types of skin disease,1
+2024-11,Caliban,All types of skin disease,2
+2024-12,Caliban,All types of skin disease,0
+2025-01,Caliban,All types of skin disease,2
+2025-02,Caliban,All types of skin disease,0
+2025-03,Caliban,All types of skin disease,0
+2025-04,Caliban,All types of skin disease,3
+2025-05,Caliban,All types of skin disease,3
+2025-06,Caliban,All types of skin disease,2
+2025-07,Caliban,All types of skin disease,1
+2025-08,Caliban,All types of skin disease,2
+2025-09,Caliban,All types of skin disease,2
+2025-10,Caliban,All types of skin disease,1
+2025-11,Caliban,All types of skin disease,2
+2025-12,Caliban,All types of skin disease,1
+2026-01,Caliban,All types of skin disease,0
+2026-02,Caliban,All types of skin disease,2
+2026-03,Caliban,All types of skin disease,0
+2026-04,Caliban,All types of skin disease,4
+2026-05,Caliban,All types of skin disease,0
+2026-06,Caliban,All types of skin disease,1
+2026-07,Caliban,All types of skin disease,1
+2026-08,Caliban,All types of skin disease,2
+2026-09,Caliban,All types of skin disease,1
+2023-01,Cansilayan,All types of skin disease,3
+2023-02,Cansilayan,All types of skin disease,4
+2023-03,Cansilayan,All types of skin disease,2
+2023-04,Cansilayan,All types of skin disease,5
+2023-05,Cansilayan,All types of skin disease,1
+2023-06,Cansilayan,All types of skin disease,1
+2023-07,Cansilayan,All types of skin disease,0
+2023-08,Cansilayan,All types of skin disease,4
+2023-09,Cansilayan,All types of skin disease,1
+2023-10,Cansilayan,All types of skin disease,0
+2023-11,Cansilayan,All types of skin disease,2
+2023-12,Cansilayan,All types of skin disease,3
+2024-01,Cansilayan,All types of skin disease,2
+2024-02,Cansilayan,All types of skin disease,3
+2024-03,Cansilayan,All types of skin disease,1
+2024-04,Cansilayan,All types of skin disease,1
+2024-05,Cansilayan,All types of skin disease,2
+2024-06,Cansilayan,All types of skin disease,0
+2024-07,Cansilayan,All types of skin disease,3
+2024-08,Cansilayan,All types of skin disease,0
+2024-09,Cansilayan,All types of skin disease,1
+2024-10,Cansilayan,All types of skin disease,2
+2024-11,Cansilayan,All types of skin disease,3
+2024-12,Cansilayan,All types of skin disease,0
+2025-01,Cansilayan,All types of skin disease,5
+2025-02,Cansilayan,All types of skin disease,5
+2025-03,Cansilayan,All types of skin disease,0
+2025-04,Cansilayan,All types of skin disease,0
+2025-05,Cansilayan,All types of skin disease,1
+2025-06,Cansilayan,All types of skin disease,2
+2025-07,Cansilayan,All types of skin disease,3
+2025-08,Cansilayan,All types of skin disease,0
+2025-09,Cansilayan,All types of skin disease,1
+2025-10,Cansilayan,All types of skin disease,1
+2025-11,Cansilayan,All types of skin disease,1
+2025-12,Cansilayan,All types of skin disease,3
+2026-01,Cansilayan,All types of skin disease,2
+2026-02,Cansilayan,All types of skin disease,0
+2026-03,Cansilayan,All types of skin disease,2
+2026-04,Cansilayan,All types of skin disease,1
+2026-05,Cansilayan,All types of skin disease,1
+2026-06,Cansilayan,All types of skin disease,3
+2026-07,Cansilayan,All types of skin disease,1
+2026-08,Cansilayan,All types of skin disease,1
+2026-09,Cansilayan,All types of skin disease,1
+2023-01,Sta. Rosa,All types of skin disease,2
+2023-02,Sta. Rosa,All types of skin disease,3
+2023-03,Sta. Rosa,All types of skin disease,2
+2023-04,Sta. Rosa,All types of skin disease,3
+2023-05,Sta. Rosa,All types of skin disease,5
+2023-06,Sta. Rosa,All types of skin disease,5
+2023-07,Sta. Rosa,All types of skin disease,2
+2023-08,Sta. Rosa,All types of skin disease,1
+2023-09,Sta. Rosa,All types of skin disease,2
+2023-10,Sta. Rosa,All types of skin disease,0
+2023-11,Sta. Rosa,All types of skin disease,2
+2023-12,Sta. Rosa,All types of skin disease,1
+2024-01,Sta. Rosa,All types of skin disease,0
+2024-02,Sta. Rosa,All types of skin disease,2
+2024-03,Sta. Rosa,All types of skin disease,0
+2024-04,Sta. Rosa,All types of skin disease,1
+2024-05,Sta. Rosa,All types of skin disease,4
+2024-06,Sta. Rosa,All types of skin disease,1
+2024-07,Sta. Rosa,All types of skin disease,2
+2024-08,Sta. Rosa,All types of skin disease,2
+2024-09,Sta. Rosa,All types of skin disease,1
+2024-10,Sta. Rosa,All types of skin disease,0
+2024-11,Sta. Rosa,All types of skin disease,2
+2024-12,Sta. Rosa,All types of skin disease,2
+2025-01,Sta. Rosa,All types of skin disease,1
+2025-02,Sta. Rosa,All types of skin disease,1
+2025-03,Sta. Rosa,All types of skin disease,0
+2025-04,Sta. Rosa,All types of skin disease,4
+2025-05,Sta. Rosa,All types of skin disease,1
+2025-06,Sta. Rosa,All types of skin disease,0
+2025-07,Sta. Rosa,All types of skin disease,3
+2025-08,Sta. Rosa,All types of skin disease,1
+2025-09,Sta. Rosa,All types of skin disease,0
+2025-10,Sta. Rosa,All types of skin disease,1
+2025-11,Sta. Rosa,All types of skin disease,2
+2025-12,Sta. Rosa,All types of skin disease,3
+2026-01,Sta. Rosa,All types of skin disease,2
+2026-02,Sta. Rosa,All types of skin disease,2
+2026-03,Sta. Rosa,All types of skin disease,3
+2026-04,Sta. Rosa,All types of skin disease,0
+2026-05,Sta. Rosa,All types of skin disease,1
+2026-06,Sta. Rosa,All types of skin disease,4
+2026-07,Sta. Rosa,All types of skin disease,0
+2026-08,Sta. Rosa,All types of skin disease,0
+2026-09,Sta. Rosa,All types of skin disease,0
+2023-01,Minoyan,All types of skin disease,1
+2023-02,Minoyan,All types of skin disease,2
+2023-03,Minoyan,All types of skin disease,2
+2023-04,Minoyan,All types of skin disease,1
+2023-05,Minoyan,All types of skin disease,0
+2023-06,Minoyan,All types of skin disease,0
+2023-07,Minoyan,All types of skin disease,3
+2023-08,Minoyan,All types of skin disease,2
+2023-09,Minoyan,All types of skin disease,1
+2023-10,Minoyan,All types of skin disease,1
+2023-11,Minoyan,All types of skin disease,0
+2023-12,Minoyan,All types of skin disease,5
+2024-01,Minoyan,All types of skin disease,1
+2024-02,Minoyan,All types of skin disease,2
+2024-03,Minoyan,All types of skin disease,1
+2024-04,Minoyan,All types of skin disease,2
+2024-05,Minoyan,All types of skin disease,3
+2024-06,Minoyan,All types of skin disease,0
+2024-07,Minoyan,All types of skin disease,2
+2024-08,Minoyan,All types of skin disease,1
+2024-09,Minoyan,All types of skin disease,2
+2024-10,Minoyan,All types of skin disease,0
+2024-11,Minoyan,All types of skin disease,0
+2024-12,Minoyan,All types of skin disease,2
+2025-01,Minoyan,All types of skin disease,1
+2025-02,Minoyan,All types of skin disease,1
+2025-03,Minoyan,All types of skin disease,1
+2025-04,Minoyan,All types of skin disease,3
+2025-05,Minoyan,All types of skin disease,1
+2025-06,Minoyan,All types of skin disease,2
+2025-07,Minoyan,All types of skin disease,5
+2025-08,Minoyan,All types of skin disease,0
+2025-09,Minoyan,All types of skin disease,1
+2025-10,Minoyan,All types of skin disease,1
+2025-11,Minoyan,All types of skin disease,1
+2025-12,Minoyan,All types of skin disease,1
+2026-01,Minoyan,All types of skin disease,1
+2026-02,Minoyan,All types of skin disease,3
+2026-03,Minoyan,All types of skin disease,1
+2026-04,Minoyan,All types of skin disease,3
+2026-05,Minoyan,All types of skin disease,2
+2026-06,Minoyan,All types of skin disease,4
+2026-07,Minoyan,All types of skin disease,3
+2026-08,Minoyan,All types of skin disease,1
+2026-09,Minoyan,All types of skin disease,3

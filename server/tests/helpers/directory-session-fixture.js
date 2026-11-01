@@ -2,7 +2,7 @@ const mysql=require('mysql2/promise'),crypto=require('node:crypto'),bcrypt=requi
 const {migrateSessionSecurity}=require('../../services/session-security');
 const {migrateResidentVital}=require('../../services/resident-vital');
 const {migrateCaseVisits}=require('../../services/case-visits');
-async function createFixture(port=0){
+async function createFixture(port=0,options={}){
     const source={host:process.env.DB_HOST||'127.0.0.1',port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER||'root',password:process.env.DB_PASSWORD||'',database:process.env.DB_NAME||'health_intel'};
     const name='health_intel_directory_sessions_verify_'+process.pid,root=await mysql.createConnection(source);
     let server,appDb,db,created=false;
@@ -44,6 +44,15 @@ async function createFixture(port=0){
             VALUES(?,?,'09:30:00','Walk-in',?,'120/80',36.5,165,60,'Mild','Synthetic consultation only',?)`,[cases[0],'2025-01-'+String(i).padStart(2,'0'),i===1?'New consultation/case':i===2?'New admission':'Follow-up visit',i%2?users.bhw:users.mho]);
         const legacy=[];
         for(const archived of [0,1]){const [r]=await db.execute("INSERT INTO health_cases(patient_name,barangay_id,disease,date_recorded,status,severity,is_archived,remarks,encoded_by) VALUES('Historical Same Name',?,'Synthetic Legacy Disease','2024-06-01','Cleared','Mild',?,'No resident link; synthetic only',?)",[other,archived,users.bhw]);legacy.push(r.insertId);}
+        if(options.normalized){
+            if(options.databaseCollation){
+                if(!['utf8mb4_bin'].includes(options.databaseCollation))throw Error('Unsupported fixture text setting');
+                await db.query('ALTER DATABASE '+quote(name)+' COLLATE '+options.databaseCollation);
+            }
+            await require('../../services/normalize-clinical-schema').normalizeClinicalSchema(db);
+            db=require('../../services/normalized-schema').createDatabaseFacade(db);
+            await db.schemaReady();
+        }
         process.env.DB_HOST=source.host;process.env.DB_NAME=name;process.env.JWT_SECRET=secret;process.env.SERVE_FRONTEND='true';
         require('nodemailer').createTransport=()=>({sendMail:async()=>({})});
         const application=require('../../server');appDb=application.db;

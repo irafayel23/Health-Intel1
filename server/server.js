@@ -10,6 +10,7 @@ const { registerAuthRoutes } = require('./routes/auth-routes');
 const { registerIdentityRoutes } = require('./routes/identity-routes');
 const { registerCaseRoutes } = require('./routes/case-routes');
 const { registerAnalyticsRoutes } = require('./routes/analytics-routes');
+const { registerBalancedSarimaRoutes } = require('./routes/balanced-sarima-routes');
 const { registerMhoReportRoutes } = require('./routes/mho-reports');
 const { registerDailyReportRoutes } = require('./routes/daily-reports');
 const { registerResidentVitalRoutes } = require('./routes/resident-vital-routes');
@@ -35,7 +36,8 @@ const dbConfig = {
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'health_intel'
 };
-const db = mysql.createPool(dbConfig);
+const { createDatabaseFacade } = require('./services/normalized-schema');
+const db = createDatabaseFacade(mysql.createPool(dbConfig));
 const corrections = correctionHandlers(db);
 app.use('/api', createAccessControl(db, JWT_SECRET));
 app.get('/api/session', (req, res) => res.json({ success: true, user: req.user }));
@@ -45,6 +47,7 @@ registerIdentityRoutes(app, db, dbConfig);
 registerCaseRoutes(app, db, corrections);
 registerDiseaseReviewRoutes(app, db);
 registerAnalyticsRoutes(app, db, pythonExecutable);
+registerBalancedSarimaRoutes(app);
 registerMhoReportRoutes(app, db);
 registerDailyReportRoutes(app, db);
 registerResidentVitalRoutes(app, db);

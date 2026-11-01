@@ -22,52 +22,53 @@
       }
     </script>
     <link rel="stylesheet" href="assets/css/superadmin/superadmin-page.css" />
-    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261003">
+    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261031-visible4">
   </head>
   <body class="[&_.swal2-popup]:!rounded-2xl [&_.swal2-confirm]:!rounded-lg [&_.swal2-cancel]:!rounded-lg [&_.swal2-input::placeholder]:!text-slate-600 dark:[&_.swal2-input::placeholder]:!text-neutral-300 [&_.swal2-popup]:!bg-white [&_.swal2-popup]:!text-slate-900 dark:[&_.swal2-popup]:!bg-neutral-900 dark:[&_.swal2-popup]:!text-neutral-100 [&_.swal2-title]:!text-slate-900 dark:[&_.swal2-title]:!text-white [&_.swal2-html-container]:!text-slate-600 dark:[&_.swal2-html-container]:!text-neutral-300 [&_.swal2-confirm]:!bg-slate-900 [&_.swal2-confirm]:!text-white dark:[&_.swal2-confirm]:!bg-white dark:[&_.swal2-confirm]:!text-neutral-950 [&_.swal2-cancel]:!bg-slate-100 [&_.swal2-cancel]:!text-slate-700 dark:[&_.swal2-cancel]:!bg-neutral-800 dark:[&_.swal2-cancel]:!text-neutral-100 [&_.swal2-input]:!text-slate-900 dark:[&_.swal2-input]:!text-neutral-100 [&_.swal2-input]:!border-slate-400 dark:[&_.swal2-input]:!border-neutral-500 hi-portal flex h-screen w-full bg-slate-100 dark:bg-neutral-950 text-slate-900 dark:text-neutral-100">
     
     <!-- Sidebar -->
     <aside id="superadmin-sidebar" class="w-64 bg-slate-100 dark:bg-neutral-950 flex flex-col shrink-0">
-      <div class="h-20 flex items-center px-6 gap-3 mt-4">
+      <div class="hi-sidebar-brand h-20 flex items-center px-6 gap-3 mt-4">
         <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="hi-sidebar-logo w-10 h-10 shrink-0 p-1" overflow="hidden">
           <image href="assets/img/Logo-Health-Intel.png?v=concept-06" width="1280" height="1280" />
         </svg>
-        <div class="flex flex-col">
+        <button type="button" data-desktop-sidebar class="hi-desktop-menu" aria-controls="superadmin-sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
+        <div class="hi-brand-name flex flex-col">
             <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white">HEALTH-INTEL</span>
             <span class="text-xs text-slate-700 dark:text-neutral-400 font-medium">Superadmin Active</span>
         </div>
       </div>
       
       <div class="px-4 py-4 flex-grow flex flex-col gap-2">
-        <p class="px-3 text-xs font-semibold text-slate-600 dark:text-neutral-400 mb-1">General</p>
+        <p class="sidebar-label px-3 text-xs font-semibold text-slate-600 dark:text-neutral-400 mb-1">General</p>
         <button class="nav-item active" id="nav-dashboard" onclick="switchMainView('view-dashboard', 'nav-dashboard')">
-          <i data-lucide="home" class="w-4 h-4"></i> Overview
+          <i data-lucide="home" class="w-4 h-4"></i> <span class="sidebar-label">Overview</span>
         </button>
         <button class="nav-item" id="nav-users" onclick="switchMainView('view-users', 'nav-users')">
-          <i data-lucide="shield" class="w-4 h-4"></i> Admin Access
+          <i data-lucide="shield" class="w-4 h-4"></i> <span class="sidebar-label">Admin Access</span>
         </button>
         <button class="nav-item" id="nav-audit" onclick="switchMainView('view-audit', 'nav-audit')">
-          <i data-lucide="database" class="w-4 h-4"></i> Master Ledger
+          <i data-lucide="database" class="w-4 h-4"></i> <span class="sidebar-label">Master Ledger</span>
         </button>
         <button class="nav-item" id="nav-db" onclick="switchMainView('view-db', 'nav-db')">
-          <i data-lucide="hard-drive" class="w-4 h-4"></i> DB Backup
+          <i data-lucide="hard-drive" class="w-4 h-4"></i> <span class="sidebar-label">DB Backup</span>
         </button>
       </div>
 
       <div class="p-4 mt-auto mb-4">
         <button onclick="logout()" class="w-full bg-slate-200 dark:bg-neutral-800 text-slate-800 dark:text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-300 dark:hover:bg-neutral-700 transition-colors flex justify-center items-center gap-2">
-          Logout
+          <i data-lucide="log-out" class="w-5 h-5" aria-hidden="true"></i><span class="sidebar-label">Logout</span>
         </button>
       </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="min-w-0 flex-grow flex flex-col h-screen overflow-y-auto bg-slate-100 dark:bg-neutral-950 px-8 py-6 rounded-tl-[2.5rem] shadow-[-10px_0_30px_rgba(0,0,0,0.5)] border-l border-t border-slate-300 dark:border-neutral-800">
+    <main class="min-w-0 flex-grow flex flex-col h-screen overflow-y-auto bg-slate-100 dark:bg-neutral-950 px-8 py-6 border-l border-t border-slate-300 dark:border-neutral-800">
       
       <!-- Top Nav -->
       <header class="h-16 flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
-            <button id="sidebar-toggle" data-portal-menu onclick="toggleSidebar()" aria-label="Open navigation" class="hi-mobile-menu rounded-lg"><i data-lucide="menu" class="w-5 h-5"></i></button>
+            <button id="sidebar-toggle" data-portal-menu onclick="toggleSidebar()" aria-label="Open navigation" class="hi-mobile-menu hi-mobile-menu rounded-lg"><i data-lucide="menu" class="w-5 h-5"></i></button>
             <h1 id="superadmin-view-title" class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Overview</h1>
         </div>
         <button id="theme-toggle-btn" data-theme-toggle aria-label="Switch to light mode" onclick="toggleSuperTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-600 dark:text-neutral-300 transition-colors"><i data-lucide="sun" class="w-5 h-5"></i></button>
@@ -285,6 +286,6 @@
     <script src="assets/js/superadmin/superadmin-ledger.js"></script>
     <script src="assets/js/superadmin/superadmin-backup.js"></script>
     <script src="assets/js/superadmin/superadmin-startup.js"></script>
-    <script src="assets/js/shared/portal-navigation.js"></script>
+    <script src="assets/js/shared/portal-navigation.js?v=20261031-visible4"></script>
   </body>
 </html>
