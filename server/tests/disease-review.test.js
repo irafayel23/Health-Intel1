@@ -35,7 +35,7 @@ test('unlisted encoding requires a source, saves a stable ID/resident/audit, and
     const map=(await request('/heatmap-data','bhw')).result.data.find(b=>b.id===own);assert.equal(map.cases,1);assert.equal(map.pending_classification,1);assert.deepEqual(map.diseases_by_severity.mild,[{disease:PENDING_DISEASE,cases:1}]);
     assert.equal((await request('/patients','bhw',patient(),'POST')).status,409);
     await save({...patient(),reported_condition:'Different unlisted condition'});
-    assert.equal((await request('/predict?disease=Pending%20classification&barangay=Review%20Fixture%20A')).status,400);
+    assert.equal((await request('/predict?disease=Pending%20classification&barangay=Review%20Fixture%20A')).status,410);
     const walkin=await save(patient('Unlisted Walkin'),'mho');assert.equal((await queue(walkin)).disease_review_status,'Pending');
     const edit=(await request('/patients/'+id+'/correction','bhw')).result.data;
     assert.equal((await request('/patients/'+id+'/correction','bhw',{version:edit.version,date_recorded:edit.date_recorded,disease:PENDING_DISEASE,severity:'Monitored',reason:'Synthetic severity source checked'})).status,200);
@@ -115,3 +115,4 @@ test('name-only catalog entries reach both consultation forms; archive retains c
     await request('/diseases/'+entry.id+'/archive','admin',{},'PUT');
 });
 async function review(id,body){const current=await queue(id);return request('/mho/disease-reviews/'+id,'mho',{version:current.version,note:'Checked the synthetic source information',...body});}
+

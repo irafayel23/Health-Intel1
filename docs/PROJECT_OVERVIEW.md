@@ -281,3 +281,8 @@ FORECAST-019 isolated partial-pooling research did not pass its consideration sc
 ## FORECAST-020 solver repair decision — 2026-11-01T09:06:50+08:00
 
 The isolated same-specification count-model solver repair restored all150 disease-prefix fits and70/70October outputs. Primary pooling373/630=59.21%,MAE1.092187/RMSE1.426061; secondary554/980=56.53%. Improvement over simple meanPoisson is small, higher-count/increase hit rates worse than SARIMA, and the unchanged review screen fails. Keep current local SARIMA352/630=55.87%,70/70October. No application/data/model/DB/Azure integration. All5592cases and prior research preserved; genuine validation remains pending. See [FORECAST-020 report](FORECAST_020_SOLVER_REPAIR_REPORT.md). No active fitting worker.
+
+
+## Legacy AR1 retirement — 1 November 2026
+
+The user authorized removal. server/analytics.py and active Python worker wiring removed locally/Azure. /api/predict now returns410 with LEGACY_PREDICTION_RETIRED; MHO uses existing /api/mho/sarima-demo SARIMA endpoint unchanged. Earlier AR1 compatibility descriptions are historical. Full292tests pass and70liveSARIMA selections verified.

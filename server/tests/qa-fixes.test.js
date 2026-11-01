@@ -238,9 +238,9 @@ test('weekly PDF uses ISO week/year boundaries and does not label an empty datas
     const empty=await request('/api/mho/reports/pidsr?week=1&year=2080','mho');const emptyText=pdfText(Buffer.from(await empty.arrayBuffer()));assert.match(emptyText,/Reporting completeness is not established/);assert.doesNotMatch(emptyText,/CLEAR|no outbreak/i);
     assert.equal((await request('/api/mho/reports/pidsr?week=1','mho')).status,400);
 });
-test('date periods reject invalid weeks and years, and forecasting rejects unknown barangays before spawning',async()=>{
+test('date periods reject invalid weeks and years, and legacy forecasting stays retired',async()=>{
     assert.deepEqual(monthlyPeriod('December','2025'),{year:2025,month:'December',start:'2025-12-01',end:'2026-01-01'});assert.deepEqual(isoWeekPeriod('2025-W01'),{year:2025,week:1,start:'2024-12-30',end:'2025-01-06'});assert.throws(()=>isoWeekPeriod('53','2025'));assert.throws(()=>isoWeekPeriod('2025-W01','2024'));assert.throws(()=>monthlyPeriod('January','2025x'));
-    assert.equal((await request('/api/predict?disease=Influenza&barangay=UNKNOWN_QA_BARANGAY','mho')).status,400);
+    assert.equal((await request('/api/predict?disease=Influenza&barangay=UNKNOWN_QA_BARANGAY','mho')).status,410);
 });
 test('safe text helper escapes HTML delimiters and shared JavaScript files parse',()=>{
     const sandbox={window:{}};vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared/safe-text.js'),'utf8'),sandbox);assert.equal(sandbox.window.HealthIntelText.escape('<b>"QA" & \'x\'</b>'),'&lt;b&gt;&quot;QA&quot; &amp; &#39;x&#39;&lt;/b&gt;');

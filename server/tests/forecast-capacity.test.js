@@ -52,27 +52,8 @@ test('forecast capacity rejects invalid limits and duplicate release cannot crea
     assert.ok(gate.acquire()); assert.equal(gate.acquire(), null);
 });
 
-test('simultaneous requests start one worker; completion permits the next request', async () => {
-    const f = fixture();
-    const responses = await Promise.all(Array.from({ length: 20 }, () => f.request()));
-    assert.equal(f.children.length, 1);
-    assert.equal(responses.filter(r => r.statusCode === 503).length, 19);
-    assert.equal(responses[1].headers['Retry-After'], '5');
-    f.children[0].stdout.emit('data', '{"success":true}'); f.children[0].emit('close', 0);
-    assert.equal(responses[0].body.success, true);
-    await f.request(); assert.equal(f.children.length, 2);
-    f.children[1].emit('close', 1);
-});
-
-test('disconnected and failed workers hold capacity until exit, then recover', async () => {
-    const f = fixture(), first = await f.request();
-    first.emit('close'); assert.equal(f.children[0].killed, true);
-    assert.equal((await f.request()).statusCode, 503);
-    f.children[0].emit('close', 1);
-    const second = await f.request();
-    f.children[1].emit('error', Error('spawn failed'));
-    assert.equal(second.statusCode, 503);
-    f.children[1].emit('close', -1);
-    await f.request(); assert.equal(f.children.length, 3);
-    f.children[2].emit('close', 1);
+test('retired endpoint never starts a worker for repeated requests', async()=>{
+    const f=fixture();const responses=await Promise.all(Array.from({length:20},()=>f.request()));
+    assert.equal(f.children.length,0);
+    assert.ok(responses.every(r=>r.statusCode===410&&r.body.code==='LEGACY_PREDICTION_RETIRED'));
 });
