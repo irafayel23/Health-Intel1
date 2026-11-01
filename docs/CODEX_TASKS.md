@@ -2,7 +2,7 @@
 
 Updated 2026-10-25T16:58:54+08:00 (Asia/Manila). Allowed statuses: **Planned**, **In Progress**, **Blocked**, **Completed**. Every new task must state authorization/scope; listing a proposal is not permission to implement it.
 
-Active writer: **CODEX-1 — AZURE-SYNC-20261101; reviewed runtime update and GitHub publication.**
+Active writer: **None — AZURE-SYNC-20261101 completed; ownership released.**
 
 ## MAP-SEVERITY-20261031 — Severity inside Case Breakdown
 
@@ -738,3 +738,8 @@ User authorized all reviewed local application changes including installed combi
 ## AZURE-SYNC-20261101 — Azure complete, GitHub publication in progress — CODEX-1 2026-11-01T10:11:46+08:00
 
 Authorized local runtime/SARIMA release activated and verified on Azure.70/70authenticatedforecasts;148filehashes;private401/404checks;DBrowcountsunchanged. Private previous runtime/Predictions backup checksumverified. Current combined5592SARIMA352/630=55.87%; no020integration. Production explicitoptinadded;Linuxlockinstalled. Local broad291/292pass:legacyAR1timeoutremains;staleBHW7rowtestcorrectedtoassigned1andpasses.9SARIMAproductiontests pass. Browser visualverificationblockedbydisabledcontrol/usageapproval;no screenshotclaim. ApprovedSSHsingleIPreplacementonly. See AZURE_SYNC_20261101.md. Reviewed GitHub publication follows; credentials/rawITR/backups excluded. No operationalrecord/schema deploymentchanges.
+
+
+## AZURE-SYNC-20261101 — Completed, CODEX-1, 1 November 2026
+
+Azure release and GitHub publication verified. Runtime release commit b1ef39e78c19ffefc53b3914d2cd61a065c31d3f equals origin/main. All70liveSARIMA selections and148runtime hashes verified; rollback backup preserved. Current5592casebundle/55.87%historicalscore. NoFORECAST020model integration or patient/schema migration. Fullsuite291passed/1legacyAR1timeout;9productionSARIMAtests passed. Browser visualcheckblockedbydisabledcontrol. RawITR/datasets and binarymanuscripts/securitylogs excluded frompush; preexisting localchanges preserved. Ownership released. No further deployment or research queued. See AZURE_SYNC_20261101.md and external publication-result.json.

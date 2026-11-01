@@ -1,5 +1,8 @@
 # Current Codex handoff
 
+> Latest Azure/GitHub release completed1November2026: currentlocal5592SARIMA and portalchanges live,70/70APIverified; oldAzurePredictions backedup. Releasecommit b1ef39e78c19ffefc53b3914d2cd61a065c31d3f. One legacyAR1testtimeout; browservisualcheckpending. Writerreleased. See AZURE_SYNC_20261101.md.
+
+
 > Latest research: FORECAST-020 completed 1 November 2026. Solver-only repair restores 630/630,980/980 and70/70 experimental partial-pooling outputs under unchanged safeguards. Primary59.21%/MAE1.0922/RMSE1.4261 improves modestly on SARIMA55.87% but fails frozen consideration criteria and worsens 3+/sudden-increase hits. KEEP CURRENT SARIMA; no integration, no running fitting worker, writer released. Final5592 dataset unchanged. See FORECAST_020_SOLVER_REPAIR_REPORT.md and external verified-FORECAST-020-evidence.zip. Historical running/paused statements below are superseded for this task.
 
 
@@ -613,3 +616,8 @@ Added docs/FORECAST_020_SOLVER_REPAIR_REPORT.md; updated shared tasks/handoff/ch
 ## AZURE-SYNC-20261101 — Azure complete, GitHub publication in progress — CODEX-1 2026-11-01T10:11:46+08:00
 
 Authorized local runtime/SARIMA release activated and verified on Azure.70/70authenticatedforecasts;148filehashes;private401/404checks;DBrowcountsunchanged. Private previous runtime/Predictions backup checksumverified. Current combined5592SARIMA352/630=55.87%; no020integration. Production explicitoptinadded;Linuxlockinstalled. Local broad291/292pass:legacyAR1timeoutremains;staleBHW7rowtestcorrectedtoassigned1andpasses.9SARIMAproductiontests pass. Browser visualverificationblockedbydisabledcontrol/usageapproval;no screenshotclaim. ApprovedSSHsingleIPreplacementonly. See AZURE_SYNC_20261101.md. Reviewed GitHub publication follows; credentials/rawITR/backups excluded. No operationalrecord/schema deploymentchanges.
+
+
+## AZURE-SYNC-20261101 — Completed, CODEX-1, 1 November 2026
+
+Azure release and GitHub publication verified. Runtime release commit b1ef39e78c19ffefc53b3914d2cd61a065c31d3f equals origin/main. All70liveSARIMA selections and148runtime hashes verified; rollback backup preserved. Current5592casebundle/55.87%historicalscore. NoFORECAST020model integration or patient/schema migration. Fullsuite291passed/1legacyAR1timeout;9productionSARIMAtests passed. Browser visualcheckblockedbydisabledcontrol. RawITR/datasets and binarymanuscripts/securitylogs excluded frompush; preexisting localchanges preserved. Ownership released. No further deployment or research queued. See AZURE_SYNC_20261101.md and external publication-result.json.

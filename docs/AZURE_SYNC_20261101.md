@@ -26,3 +26,8 @@ Rollback: stop health-intel; restore the exact runtime archive into /opt/health-
 - SSH source changed only from143.44.168.114/32to143.44.168.87/32,TCP22,priority910,after explicit userapproval. HTTP/HTTPS/otherNSGrules unchanged. Verifiedhostkey retained. NoVMresize or credentials/network-isolation relaxation.
 
 External evidence: C:/Users/User/.codex/visualizations/2026/09/26/01a0dc67-9eb2-7d12-988d-be95e09269e0/azure-sync-20261101. Existing main/a65e804 source checkpoint retained in Git history; local-before.patch and source manifests retained outside repository. GitHub publication includes reviewed code/tests/docs and aggregate saved forecast bundles, excluding rawdatasets/, binary manuscript artifacts, private backup and security logs. Pre-existing excluded local files remain on disk. The original Git-tracked dataset deletions are left unstaged rather than publishing raw source changes.
+
+
+## GitHub publication verified
+
+Release commit b1ef39e78c19ffefc53b3914d2cd61a065c31d3f was pushed and verified against origin/main (142files). This documentation follow-up records completion and releases ownership.
