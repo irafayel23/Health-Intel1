@@ -14,7 +14,19 @@ function createAccountDirectory(db) {
         },
 
         async deniedUsers() {
-            const query = `SELECT system_id, first_name, last_name, employee_id, status FROM users WHERE status IN ('denied', 'suspended') AND role IN ('bhw', 'mho') ORDER BY created_at DESC`;
+            const query = `SELECT u.system_id, u.first_name, u.last_name, u.employee_id, u.status,
+                CASE WHEN u.status = 'suspended' THEN (
+                    SELECT CASE WHEN a.action = 'User Suspended' THEN a.timestamp END
+                    FROM system_audit_logs a
+                    WHERE a.action IN ('User Suspended', 'Access Restored')
+                        AND ((JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(a.details), a.details, '{}'), '$.target_type')) = 'Account'
+                            AND JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(a.details), a.details, '{}'), '$.target_id')) = u.system_id
+                            AND JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(a.details), a.details, '{}'), '$.outcome')) = 'Succeeded')
+                        OR a.details = CONCAT(a.action, ': ', u.system_id, '.'))
+                    ORDER BY a.timestamp DESC, a.id DESC LIMIT 1
+                ) END AS suspended_at
+                FROM users u WHERE u.status IN ('denied', 'suspended') AND u.role IN ('bhw', 'mho')
+                ORDER BY u.created_at DESC`;
             const [rows] = await db.execute(query);
             return rows;
         },
@@ -26,7 +38,9 @@ function createAccountDirectory(db) {
         },
 
         async users() {
-            const query = `SELECT system_id, email, first_name, last_name, employee_id, role, status, created_at FROM users WHERE role != 'superadmin' ORDER BY created_at DESC`;
+            const query = `SELECT u.system_id, u.email, u.first_name, u.last_name, u.employee_id, u.role, u.status, u.created_at, b.name AS assigned_barangay
+                FROM users u LEFT JOIN barangays b ON u.barangay_id = b.id
+                WHERE u.role IN ('bhw', 'mho', 'admin') ORDER BY u.created_at DESC`;
             const [rows] = await db.execute(query);
             return rows;
         },

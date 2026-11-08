@@ -18,28 +18,15 @@
 .admin-hidden-subview { display: none }
 .admin-patient-search-row { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
 .admin-patient-search-input { flex: 2; min-width: 220px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; font-size: 0.95rem; }
-.admin-table-highlight { color: #0284c7; }
 .admin-section-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
 .admin-add-disease {   padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 .admin-add-disease-icon { width: 18px }
-.admin-refresh-icon { width: 16px }
 .admin-badge-pending { background:#fef08a; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#854d0e; font-weight:bold; }
-.admin-button-approve {   border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
-.admin-button-deny {   border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-left: 5px; }
-.admin-uppercase-role { text-transform: uppercase; }
 .admin-badge-active {   padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
-.admin-button-suspend {   border:none; padding:6px 12px; border-radius:4px; cursor:pointer; }
 .admin-badge-suspended { background:#fee2e2; color:#b91c1c; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
-.admin-button-restore-access { background:#e0f2fe; color:#0369a1; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold; }
 .admin-badge-denied { background:#fef3c7; color:#b45309; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
-.admin-button-reevaluate { background:#e2e8f0; color:#475569; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold; }
-.admin-button-archive-patient { border:1px solid #ef4444; background:transparent; color:#ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; }
-.admin-badge-archived { background:#fecaca; color:#991b1b; padding:4px 8px; border-radius:4px; font-size:0.8rem; font-weight:bold; }
-.admin-button-archive-disease { background:transparent; color:#ef4444; border:1px solid #ef4444; padding:4px 8px; border-radius:4px; cursor:pointer; font-weight:bold; }
-.admin-disease-name, .admin-case-status { font-weight: bold; }
+.admin-disease-name { font-weight: 600; }
 .admin-disease-alert { color: #ef4444; }
-.admin-status-active { color: #ea580c; }
-.admin-status-resolved { color: #10b981; }
 .admin-classification, .admin-audit-role { padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
 .admin-classification-high { color: #ef4444; background: #fee2e2; }
 .admin-classification-standard {   }
@@ -47,14 +34,50 @@
 .admin-audit-role-default { background: #e2e8f0; color: #475569; }
 .admin-audit-role-bhw {   }
 .admin-audit-role-admin {   }
-.admin-case-view-button { display:inline-block; margin:3px 6px 3px 0; padding:5px 9px; border:1px solid #0284c7; border-radius:6px; color:#0369a1; background:#f0f9ff; font-weight:600; cursor:pointer; }
-.admin-case-view-button:hover { background:#e0f2fe; }
-.admin-case-view-button:focus-visible { outline:2px solid #0284c7; outline-offset:2px; }
-.admin-case-focused { background:#e0f2fe; }
-.admin-case-dialog.hi-dialog.swal2-popup { width:min(900px, calc(100vw - 32px)) !important; overflow:hidden; }
-.admin-case-dialog.hi-dialog .swal2-html-container { max-height:calc(92vh - 180px); overflow:auto; }
-.admin-case-detail { text-align:left; }
-.admin-case-detail dl { display:grid; grid-template-columns:1fr 1fr; gap:12px 24px; margin:0; }
+#view-data :is(th, td):last-child { position: static; border-left: 0; filter: none; }
+#view-data th:last-child { background: #f8fafc; }
+#view-data .table-container { border-radius: 14px; }
+#view-data .admin-case-table { table-layout: fixed; min-width: 760px; }
+.admin-case-table th:nth-child(1) { width: 21%; }
+.admin-case-table th:nth-child(2) { width: 6%; }
+.admin-case-table th:nth-child(3) { width: 22%; }
+.admin-case-table th:nth-child(4), .admin-case-table th:nth-child(5) { width: 13%; }
+.admin-case-table th:nth-child(6) { width: 10%; }
+.admin-case-table th:nth-child(7) { width: 15%; }
+.admin-case-table :is(th, td) { overflow-wrap: anywhere; }
+.admin-case-table tbody td { border-bottom-color: var(--admin-list-line); }
+.admin-case-table tbody tr:last-child td { border-bottom: 0; }
+.admin-case-row { cursor: pointer; }
+#view-data .admin-case-row:is(:hover, :focus-within) td { background: #eff6ff; }
+.dark #view-data .admin-case-row:is(:hover, :focus-within) td { background: #1e293b !important; }
+.admin-case-open { min-height: 44px; max-width: 100%; padding: 2px 0; text-align: left; }
+.admin-case-name, .admin-case-id { display: block; }
+.admin-case-name { color: var(--admin-list-text); font-weight: 650; }
+.admin-case-id { margin-top: 3px; color: var(--admin-list-help); font-size: .75rem; }
+.admin-case-row:is(:hover, :focus-within) .admin-case-name { color: var(--admin-list-accent); text-decoration: underline; text-underline-offset: 3px; }
+.admin-case-meta { font-size: .8125rem; }
+.admin-case-status { display: inline-block; border-radius: 999px; padding: 4px 9px; font-size: .75rem; font-weight: 600; line-height: 1.4; color: var(--admin-list-text); background: var(--admin-list-muted); }
+.admin-case-status[data-status="active"] { background: #fff1da; color: #92400e; }
+.admin-case-status:is([data-status="cleared"], [data-status="available"]) { background: #dcfce7; color: #166534; }
+.dark .admin-case-status[data-status="active"] { background: #451a03; color: #fde68a; }
+.dark .admin-case-status:is([data-status="cleared"], [data-status="available"]) { background: #052e16; color: #bbf7d0; }
+.admin-case-pages { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; color: #475569; font-size: .875rem; }
+.dark .admin-case-pages { color: #cbd5e1; }
+.admin-case-page-buttons { display: flex; flex-wrap: wrap; gap: 5px; }
+.admin-case-page-buttons button { min-width: 36px; min-height: 36px; padding: 4px 9px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.dark .admin-case-page-buttons button { border-color: #475569; }
+.admin-case-page-buttons button[aria-current="page"] { color: #fff; background: #1e40af; border-color: #1e40af; }
+.admin-case-page-buttons button:disabled { opacity: .5; }
+:is(.admin-case-open, .admin-case-page-buttons button):focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.admin-case-dialog.hi-dialog.swal2-popup { display: flex !important; flex-direction: column; width: min(820px, calc(100vw - 32px)) !important; max-height: calc(100dvh - 32px); overflow: hidden; }
+.admin-case-dialog .swal2-title { padding-inline: 28px; }
+.admin-case-dialog .swal2-close { position: absolute; inset: 8px 8px auto auto; }
+.admin-case-dialog .swal2-html-container { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.admin-case-dialog .swal2-actions { justify-content: flex-end; flex-shrink: 0; padding-top: 12px; border-top: 1px solid #cbd5e1; }
+.admin-case-detail { text-align: left; }
+.admin-case-detail dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; margin: 0; }
+.admin-case-detail dl > div { padding: 10px 0; border-bottom: 1px solid #cbd5e1; }
+.dark :is(.admin-case-detail dl > div, .admin-case-dialog .swal2-actions) { border-color: #475569; }
 .admin-case-detail dt { font-size:.8rem; color:#64748b; font-weight:600; }
 .admin-case-detail dd { margin:3px 0 0; white-space:pre-wrap; overflow-wrap:anywhere; }
 .admin-case-detail h3 { font-weight:700; margin:24px 0 8px; }
@@ -63,8 +86,200 @@
 .admin-case-history li { margin-top:12px; padding:12px; border:1px solid #cbd5e1; border-radius:9px; }
 .admin-case-history small { color:#64748b; }
 .admin-case-history p { white-space:pre-wrap; overflow-wrap:anywhere; margin:8px 0 0; }
-.dark .admin-case-view-button { border-color:#38bdf8; color:#7dd3fc; background:#082f49; }
-.dark .admin-case-view-button:hover, .dark .admin-case-focused { background:#0c4a6e; }
 .dark .admin-case-detail dt, .dark .admin-case-history-note, .dark .admin-case-history small { color:#94a3b8; }
 .dark .admin-case-history li { border-color:#475569; }
 @media(max-width:640px) { .admin-case-detail dl { grid-template-columns:1fr; } }
+
+.admin-header-theme, .admin-header-profile {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+.admin-header-theme { border: 1px solid #cbd5e1; color: #1e293b; }
+.admin-header-theme:hover { background: #eff6ff; }
+.admin-header-profile { background: linear-gradient(135deg, #2563eb, #0e7490); color: #fff; }
+.admin-header-profile:hover { background: #1d4ed8; }
+.admin-overview-hero { background: linear-gradient(125deg, #172554, #1e40af); }
+.dark .admin-header-theme { border-color: #475569; color: #f1f5f9; }
+.dark .admin-header-theme:hover { background: #1e293b; }
+
+.admin-list-card {
+  --admin-list-line: #dbe4ef;
+  --admin-list-surface: #fff;
+  --admin-list-muted: #f1f5f9;
+  --admin-list-text: #0f2743;
+  --admin-list-help: #475569;
+  --admin-list-accent: #1e40af;
+  min-width: 0;
+  border: 1px solid var(--admin-list-line);
+  border-radius: 18px;
+  background: var(--admin-list-surface);
+  box-shadow: 0 5px 20px #0f27430a;
+}
+.dark .admin-list-card {
+  --admin-list-line: #334155;
+  --admin-list-surface: #0f172a;
+  --admin-list-muted: #1e293b;
+  --admin-list-text: #f1f5f9;
+  --admin-list-help: #cbd5e1;
+  --admin-list-accent: #bfdbfe;
+}
+.admin-list-header {
+  padding: clamp(16px, 2.5vw, 28px);
+  border-bottom: 1px solid var(--admin-list-line);
+  border-radius: 17px 17px 0 0;
+  background: linear-gradient(115deg, var(--admin-list-muted), var(--admin-list-surface));
+  color: var(--admin-list-text);
+}
+.admin-list-header h1 { font-size: 1.25rem; font-weight: 750; }
+.admin-list-header p { margin-top: 4px; color: var(--admin-list-help); font-size: .875rem; }
+.admin-list-body { padding: clamp(12px, 2.2vw, 24px); }
+.admin-list-card .admin-list-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  width: fit-content;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 4px;
+  border: 1px solid var(--admin-list-line);
+  border-radius: 12px;
+  background: var(--admin-list-muted);
+}
+.admin-list-card .admin-list-tabs .sub-tab-btn { min-height: 40px; color: var(--admin-list-help); }
+.admin-list-card .admin-list-tabs .sub-tab-btn:hover { background: var(--admin-list-surface); color: var(--admin-list-text); }
+.admin-list-card .admin-list-tabs .sub-tab-btn.active { color: #fff; background: #1e40af; }
+.dark .admin-list-card .admin-list-tabs .sub-tab-btn.active { color: #fff !important; background: #1e40af !important; }
+.admin-list-card .admin-list-tabs .sub-tab-btn:focus-visible { outline: 2px solid #2563eb; outline-offset: 1px; }
+
+#view-iam .table-container { border-color: var(--admin-list-line); border-radius: 12px; }
+#view-iam .table-container table { min-width: 0; }
+#view-iam .table-container th { background: var(--admin-list-muted); color: var(--admin-list-help); }
+#view-iam :is(th, td):last-child { position: static; border-left: 0; filter: none; }
+#view-iam :is(th, td) { padding-inline: clamp(12px, 1.5vw, 20px); }
+#view-iam td { overflow-wrap: anywhere; }
+#view-iam .admin-personnel-row td { padding-block: 8px; }
+#view-iam .admin-personnel-row:last-child td { border-bottom: 0; }
+.admin-personnel-row { cursor: pointer; }
+#view-iam .admin-personnel-row:is(:hover, :focus-within) td { background: #eff6ff; }
+.dark #view-iam .admin-personnel-row:is(:hover, :focus-within) td { background: #1e293b !important; }
+.admin-personnel-open {
+  display: inline-grid;
+  min-height: 44px;
+  max-width: 100%;
+  align-content: center;
+  text-align: left;
+}
+.admin-personnel-name { color: var(--admin-list-text); font-weight: 700; }
+.admin-personnel-id { color: var(--admin-list-accent); font-size: .75rem; font-weight: 600; }
+:is(.admin-header-theme, .admin-header-profile, .admin-personnel-open):focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+#view-iam td.admin-personnel-status { position: relative; padding-inline-end: 34px; }
+.admin-personnel-status > span:first-child { display: inline-block; border-radius: 999px; }
+.admin-personnel-status::after {
+  position: absolute;
+  inset-inline-end: 17px;
+  inset-block-start: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--admin-list-accent);
+  border-top: 2px solid var(--admin-list-accent);
+  transform: translateY(-50%) rotate(45deg);
+  content: "";
+}
+:is(.admin-personnel-hint, .admin-case-hint, .admin-disease-hint) {
+  position: absolute;
+  inset-inline-end: 12px;
+  inset-block-end: 2px;
+  color: var(--admin-list-accent);
+  font-size: .6875rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+.admin-personnel-row:has(.admin-personnel-open:focus-visible) .admin-personnel-hint,
+.admin-case-open:focus-visible + .admin-case-hint,
+.admin-disease-open:focus-visible + .admin-disease-hint { opacity: 1; }
+#admin-row-tooltip {
+  position: fixed;
+  z-index: 60;
+  padding: 6px 10px;
+  max-width: calc(100vw - 16px);
+  border-radius: 6px;
+  background: #0f2743;
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  pointer-events: none;
+  visibility: hidden;
+}
+.dark #admin-row-tooltip { background: #e2e8f0; color: #0f2743; }
+#admin-row-tooltip.is-visible { visibility: visible; transition: visibility 0s 250ms; }
+@media (max-width: 640px) {
+  .admin-list-card .admin-list-tabs { width: 100%; }
+  .admin-list-card .admin-list-tabs .sub-tab-btn { flex: 1 1 auto; white-space: normal; }
+  #view-iam #iam-active-view table { min-width: 460px; }
+  #view-iam #iam-pending-view table { min-width: 360px; }
+  #view-iam #iam-archived-view table { min-width: 280px; }
+}
+.admin-personnel-dialog .swal2-title { padding-inline: 26px; overflow-wrap: anywhere; }
+.admin-personnel-dialog .swal2-actions { justify-content: flex-end; }
+.admin-personnel-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; margin: 0; text-align: left; }
+.admin-personnel-facts div { min-width: 0; padding: 10px 0; border-bottom: 1px solid #cbd5e1; }
+.admin-personnel-facts dt { font-size: .82rem; font-weight: 700; }
+.admin-personnel-facts dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.dark .admin-personnel-facts div { border-color: #475569; }
+@media (max-width: 480px) { .admin-personnel-facts { grid-template-columns: 1fr; } }
+
+.admin-overview-cta { color: #1e40af; }
+.admin-overview-cta:hover { background: #eff6ff; }
+
+:is(.admin-case-row, .admin-disease-row) > td:first-child { position: relative; }
+:is(.admin-case-hint, .admin-disease-hint) { inset-inline: .75rem auto; }
+.admin-disease-header { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
+.admin-disease-header .admin-add-disease { min-height: 44px; background: #047857; color: #fff; border-radius: 9px; }
+.admin-disease-header .admin-add-disease:hover { background: #065f46; }
+.admin-disease-guide { margin-bottom: 14px; color: var(--admin-list-help); font-size: .875rem; }
+#view-diseases .table-container { border-color: var(--admin-list-line); border-radius: 12px; }
+#view-diseases .table-container table { min-width: 0; }
+#view-diseases th { background: var(--admin-list-muted); }
+#view-diseases :is(th, td):last-child { position: static; border-left: 0; filter: none; }
+#view-diseases :is(th, td) { padding-inline: clamp(12px, 1.5vw, 20px); overflow-wrap: anywhere; }
+#view-diseases th:first-child { width: 64%; }
+#view-diseases .admin-disease-row td { padding-block: 4px; }
+.admin-disease-row { cursor: pointer; }
+#view-diseases .admin-disease-row:is(:hover, :focus-within) td { background: #eff6ff; }
+.dark #view-diseases .admin-disease-row:is(:hover, :focus-within) td { background: #1e293b !important; }
+.admin-disease-open { min-height: 44px; text-align: left; font-weight: 650; color: var(--admin-list-text); }
+.admin-disease-row:is(:hover, :focus-within) .admin-disease-open { color: var(--admin-list-accent); text-decoration: underline; text-underline-offset: 3px; }
+:is(.admin-disease-open, .admin-add-disease):focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+#view-audit .table-container {
+  --audit-row-height: 3.25rem;
+  border-color: var(--admin-list-line);
+  border-radius: 12px;
+}
+#view-audit .admin-list-body:has(#audit-page-buttons button) .table-container {
+  min-height: calc(9 * var(--audit-row-height) + 4px);
+}
+#view-audit .admin-audit-table { width: 100%; min-width: 580px; table-layout: fixed; }
+#view-audit .admin-audit-table th { height: var(--audit-row-height); padding-block: 0; background: var(--admin-list-muted); }
+#view-audit th:nth-child(1) { width: 27%; }
+#view-audit th:nth-child(2) { width: 17%; }
+#view-audit th:nth-child(3) { width: 20%; }
+#view-audit th:nth-child(4) { width: 36%; }
+#view-audit :is(th, td):last-child { position: static; border-left: 0; filter: none; }
+#view-audit .admin-audit-row td { height: var(--audit-row-height); padding-block: 0; border-bottom-color: var(--admin-list-line); }
+.admin-audit-row { cursor: pointer; }
+#view-audit .admin-audit-row:is(:hover, :focus-within) td { background: #eff6ff; }
+.dark #view-audit .admin-audit-row:is(:hover, :focus-within) td { background: #1e293b !important; }
+.admin-audit-cell { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-audit-open { min-height: 44px; text-align: left; color: var(--admin-list-accent); font-weight: 650; }
+.admin-audit-open:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.admin-audit-row:is(:hover, :focus-within) .admin-audit-open { text-decoration: underline; text-underline-offset: 3px; }
+.admin-audit-cell .admin-audit-role { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: middle; border-radius: 999px; }

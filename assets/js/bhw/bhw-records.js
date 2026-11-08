@@ -13,7 +13,7 @@
       function patientListMessage(message) {
         const row = document.createElement('tr');
         const cell = document.createElement('td');
-        cell.colSpan = 5;
+        cell.colSpan = 4;
         cell.className = 'px-6 py-8 text-center text-slate-700 dark:text-slate-300';
         cell.textContent = message;
         row.append(cell);
@@ -109,13 +109,13 @@
           if (isViewingArchive) {
               btn.innerHTML = "<i data-lucide='arrow-left' class='w-4 h-4'></i> Back to Active Records";
               btn.classList.remove("bg-[hsl(var(--card))]", "text-[hsl(var(--foreground))]");
-              btn.classList.add("bg-orange-700", "text-white", "border-orange-700", "hover:bg-orange-800");
+              btn.classList.add("bg-blue-700", "text-white", "border-blue-700", "hover:bg-blue-800");
               title.innerText = "Archived Patient Records";
               loadArchivedPatients();
           } else {
               btn.innerHTML = "<i data-lucide='archive' class='w-4 h-4'></i> View Archived";
               btn.classList.add("bg-[hsl(var(--card))]", "text-[hsl(var(--foreground))]");
-              btn.classList.remove("bg-orange-700", "text-white", "border-orange-700", "hover:bg-orange-800");
+              btn.classList.remove("bg-blue-700", "text-white", "border-blue-700", "hover:bg-blue-800");
               title.innerText = "Patient Records Profiling";
               loadPatients();
           }
@@ -131,7 +131,7 @@
         const pageData = data.slice(startIndex, endIndex);
 
         if (pageData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-[hsl(var(--muted-foreground))]">No records found.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-[hsl(var(--muted-foreground))]">No records found.</td></tr>';
         } else {
             tbody.innerHTML = pageData.map((record) => {
                 let statusColor = record.status === "Cleared" ? "text-green-700 dark:text-green-400" : (record.status === "Deceased" ? "text-slate-600 dark:text-slate-400" : "text-orange-700 dark:text-orange-400");
@@ -139,23 +139,15 @@
 
                 const residentId = Number.isSafeInteger(Number(record.resident_id)) && Number(record.resident_id)>0 ? Number(record.resident_id) : null;
 
+                const caseId = Number(record.id);
+                if (!Number.isSafeInteger(caseId) || caseId < 1) return '';
                 return `
-                  <tr class="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] transition-colors">
-                    <td class="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">${escapeText(fullName)}</td>
-                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${escapeText(record.purok || 'Not recorded')}</td>
-                    <td class="px-6 py-4 text-slate-600 dark:text-slate-400">${HealthIntelEncoding.conditionCell(record)}</td>
-                    <td class="px-6 py-4 font-semibold ${statusColor}">${record.status || (isViewingArchive ? "Archived" : "")}</td>
-                    <td class="px-6 py-4">
-                        <div class="patient-row-actions">
-                            <button onclick="${residentId ? `viewPatientProfile(${residentId})` : `viewUnlinkedCase(${record.id})`}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-xs shadow-sm transition-colors">${residentId ? 'Profile' : 'Case details'}</button>
-                            ${!isViewingArchive ? `<button onclick="updatePatientStatus(${record.id})" class="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white rounded-md font-medium text-xs shadow-sm transition-colors">Update Status</button>` : ""}
-                            ${!isViewingArchive && record.disease_review_status==='Clarification' ? `<button onclick="supplyConditionClarification(${record.id})" class="hi-review-actions">Clarify</button>` : ""}
-                            ${!isViewingArchive ? `<button onclick="HealthIntelCorrections.open(${record.id})" class="px-3 py-1.5 bg-slate-600 hover:bg-slate-700 text-white rounded-md font-medium text-xs transition-colors">Correct</button>` : ""}
-                            <button onclick="toggleArchiveStatus(${record.id})" class="px-3 py-1.5 ${isViewingArchive ? 'bg-green-700 hover:bg-green-800' : 'bg-red-700 hover:bg-red-800'} text-white rounded-md font-medium text-xs shadow-sm transition-colors">${isViewingArchive ? "Restore" : "Archive"}</button>
-                        </div>
-                    </td>
-                  </tr>
-                `;
+                  <tr class="bhw-case-row" data-bhw-case="${caseId}" data-bhw-hint="${residentId ? 'See profile' : 'See case details'}">
+                    <td class="px-6 py-4"><button type="button" class="bhw-case-open">${escapeText(fullName)}</button><br><small>#REC-${caseId}</small></td>
+                    <td class="px-6 py-4">${escapeText(record.purok || 'Not recorded')}</td>
+                    <td class="px-6 py-4">${HealthIntelEncoding.conditionCell(record)}</td>
+                    <td class="px-6 py-4 font-semibold ${statusColor}">${escapeText(record.status || (isViewingArchive ? "Archived" : ""))}</td>
+                  </tr>`;
             }).join('');
         }
         renderPaginationControls(totalPages);
@@ -193,11 +185,58 @@
       }
 
 
+
+      function renderBhwCaseActions(container, record, close) {
+          container.replaceChildren();
+          if (!record) return;
+          const id = Number(record.id);
+          const archived = record.is_archived == null ? isViewingArchive : Number(record.is_archived) === 1;
+          const title = document.createElement('strong');
+          title.textContent = 'Case #REC-' + id;
+          container.setAttribute('aria-label', 'Actions for case REC-' + id);
+          title.className = 'bhw-case-action-label';
+          container.append(title);
+          const addAction = (label, handler, tone = '') => {
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'hi-vital-button ' + tone;
+              button.textContent = label;
+              button.addEventListener('click', () => {
+                  close();
+                  handler(id);
+              });
+              container.append(button);
+          };
+          if (!archived) {
+              addAction('Update status', updatePatientStatus, 'bhw-case-status');
+              if (record.disease_review_status === 'Clarification') addAction('Clarify', supplyConditionClarification);
+              addAction('Correct', caseId => HealthIntelCorrections.open(caseId), 'bhw-case-correct');
+          }
+          addAction(archived ? 'Restore' : 'Archive', caseId => toggleArchiveStatus(caseId, archived), archived ? 'bhw-case-restore' : 'bhw-case-archive');
+      }
+
+      document.getElementById('patients-table-body')?.addEventListener('click', event => {
+          const row = event.target.closest('[data-bhw-case]');
+          if (!row) return;
+          const record = allPatients.find(item => Number(item.id) === Number(row.dataset.bhwCase));
+          if (!record) return;
+          const residentId = Number(record.resident_id);
+          if (Number.isSafeInteger(residentId) && residentId > 0) viewPatientProfile(residentId, record);
+          else viewUnlinkedCase(Number(record.id));
+      });
+
       function viewUnlinkedCase(caseId) {
           const record=allPatients.find(item=>Number(item.id)===Number(caseId));
           if(!record)return Swal.fire({icon:'info',title:'Case unavailable',text:'Refresh Patient Records and try again.'});
           const name=record.patient_name || `${record.first_name || ''} ${record.last_name || ''}`.trim() || 'Not recorded';
-          Swal.fire({title:'Recorded case details',customClass:{popup:'hi-dialog'},confirmButtonText:'Close',
+          Swal.fire({title:'Recorded case details',customClass:{popup:'hi-dialog bhw-case-dialog',confirmButton:'hi-vital-button'},showCloseButton:true,closeButtonAriaLabel:'Close recorded case details',confirmButtonText:'Close',buttonsStyling:false,
+              didOpen:()=>{
+                  const actions = document.createElement('div');
+                  actions.className = 'bhw-case-actions';
+                  actions.setAttribute('role', 'group');
+                  Swal.getActions().prepend(actions);
+                  renderBhwCaseActions(actions, record, () => Swal.close());
+              },
               html:`<div class="hi-case-details"><div><strong>Name on case:</strong> ${escapeText(name)}</div><div><strong>Barangay:</strong> ${escapeText(window.currentBrgyName || 'Assigned barangay')}</div><div><strong>Purok / Zone:</strong> ${escapeText(record.purok || 'Not recorded')}</div><div><strong>Case date:</strong> ${escapeText(window.HealthIntelDate.formatCaseDate(record.date_recorded))}</div><div><strong>Disease / case:</strong> ${HealthIntelEncoding.conditionCell(record)}</div><div><strong>Case status:</strong> ${escapeText(record.status || 'Not recorded')}</div><div><strong>Recorded severity:</strong> ${escapeText(record.severity || 'Not recorded')}</div><div><strong>Remarks:</strong> ${escapeText(record.remarks || 'None recorded')}</div><p>This historical case has no verified resident-profile link. Review its source before linking it to a person.</p></div>`});
       }
 
@@ -213,8 +252,7 @@
         if(result.isConfirmed){Swal.fire('Updated!','The status and entered follow-up notes were saved.','success');loadPatients();loadDashboardStats();loadTrendChart();window.dispatchEvent(new Event('health-intel:cases-changed'));}
       }
 
-      async function toggleArchiveStatus(id) {
-          const restoring = isViewingArchive;
+      async function toggleArchiveStatus(id, restoring = isViewingArchive) {
           const result = await Swal.fire({
             title: restoring ? "Restore Case?" : "Archive Case?",
             text: restoring ? "This will return the case to active records." : "This will hide the case from active views.",

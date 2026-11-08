@@ -16,3 +16,152 @@
 
 
 #sys-status-bar { width:100%; }
+
+/* Keep ledger columns stable across filters/pages, including long unbroken references. */
+.hi-ledger-table { width: 100%; min-width: 900px; table-layout: fixed; }
+.hi-ledger-table th, .hi-ledger-table td { overflow-wrap: anywhere; vertical-align: middle; }
+.hi-ledger-table th:nth-child(1) { width: 16%; }
+.hi-ledger-table th:nth-child(2) { width: 14%; }
+.hi-ledger-table th:nth-child(3) { width: 10%; }
+.hi-ledger-table th:nth-child(4) { width: 34%; }
+.hi-ledger-table th:nth-child(5) { width: 14%; }
+.hi-ledger-table th:nth-child(6) { width: 12%; }
+.hi-ledger-table tbody tr[tabindex]:hover { background: #eff6ff; }
+.dark .hi-ledger-table tbody tr[tabindex]:hover { background: #262626; }
+.hi-ledger-table tbody tr[tabindex]:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+
+/* Reserve eight equal slots so long summaries and the last page cannot move pagination. */
+.hi-ledger-region { min-height: 828px; }
+.hi-ledger-table thead tr { height: 56px; }
+.hi-ledger-table tbody tr { height: 96px; }
+.hi-ledger-cell { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; max-height: 40px; overflow: hidden; line-height: 20px; }
+.hi-ledger-action { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; line-height: 22px; }
+.hi-ledger-summary { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; margin-top: 4px; max-height: 36px; overflow: hidden; line-height: 18px; white-space: normal; }
+#audit-page-buttons button { min-width: 40px; }
+#audit-page-buttons button:first-child, #audit-page-buttons button:last-child { width: 64px; }
+#audit-page-buttons button:disabled { opacity: .45; cursor: default; }
+
+/* Fill the remaining workspace without changing the backup card's contents. */
+/* Pass the main workspace height through the intermediate view wrapper. */
+.hi-superadmin-views:has(> #view-db.active) { display: flex; flex-direction: column; }
+#view-db.active { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+#view-db > div { flex: 1; }
+.hi-superadmin-dialogs .swal2-actions { box-sizing: border-box; justify-content: flex-end; width: 100%; padding: 0 24px; }
+.hi-superadmin-dialogs .swal2-close { position: absolute; right: 12px; top: 12px; border-radius: 8px; }
+.hi-superadmin-dialogs .swal2-title { padding-left: 48px; padding-right: 48px; }
+.hi-ledger-table td:nth-child(4) { position: relative; }
+.hi-ledger-hint { position: absolute; right: 12px; bottom: 0; z-index: 30; padding: 5px 9px; border-radius: 6px; background: #0f172a; color: #fff; font-size: 12px; line-height: 18px; opacity: 0; pointer-events: none; }
+body:not(:has(#superadmin-row-tooltip.is-visible)) .hi-ledger-table tr:focus-visible .hi-ledger-hint { opacity: 1; }
+.hi-history-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin: 16px 0 4px; padding: 12px 2px 2px; border-top: 1px solid #cbd5e1; }
+.hi-history-pagination p { margin: 0; }
+.dark .hi-history-pagination { border-color: #475569; }
+.hi-related-pages { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-inline-start: auto; }
+@media (max-width: 560px) { .hi-history-pagination p { width: 100%; } }
+.hi-related-page { min-width: 40px; min-height: 40px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; }
+.hi-related-page[aria-current="page"] { background: #2563eb; color: #fff; }
+.hi-related-page:disabled { opacity: .45; }
+.hi-related-page:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+/* Superadmin light-mode text only; preserve font metrics and colored surfaces. */
+html:not(.dark) .hi-superadmin-dialogs :is(.text-slate-300, .text-slate-400, .text-slate-500, .text-slate-600, .text-slate-700, .text-neutral-300, .text-neutral-400, .text-neutral-500, .text-neutral-600, .text-neutral-700, .text-gray-300, .text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700) { color: #1e293b !important; }
+html:not(.dark) .hi-superadmin-dialogs :is(.swal2-html-container, .swal2-input, .swal2-textarea, .swal2-select) { color: #0f172a !important; }
+html:not(.dark) .hi-superadmin-dialogs :is(label, dt, .swal2-input-label, .hi-account-help, .hi-account-note) { color: #1e293b !important; }
+html:not(.dark) .hi-superadmin-dialogs :is(input, textarea)::placeholder { color: #334155 !important; opacity: 1; }
+/* Each recorded fact stays paired with its label, separated by a quiet divider. */
+.hi-ledger-detail-row { margin: 0; padding: 12px 0; border-bottom: 1px solid #cbd5e1; }
+.hi-ledger-detail-row dt { font-weight: 700; }
+.hi-ledger-detail-row dd { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.dark .hi-ledger-detail-row { border-color: #475569; }
+.hi-admin-account-facts > div { padding-bottom: 8px; border-bottom: 1px solid #cbd5e1; }
+.dark .hi-admin-account-facts > div { border-color: #64748b; }
+.hi-superadmin-dialogs .swal2-html-container > div:has(> .hi-admin-account-facts),
+.hi-superadmin-dialogs .hi-ledger-modal .swal2-html-container { scrollbar-width: thin; scrollbar-color: #64748b transparent; }
+
+/* Event cards use the modal body scroll; do not create a nested scroll region. */
+.hi-related-event-list { padding: 2px; }
+.hi-related-event { margin: 0 0 12px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #fff; overflow-wrap: anywhere; }
+.hi-related-event-title { margin: 0; font-weight: 600; }
+.hi-related-event-time { margin: 6px 0 0; color: #334155; }
+.hi-related-event-details { margin: 10px 0 0; white-space: pre-wrap; }
+.dark .hi-related-event { border-color: #475569; background: #171717; }
+.dark .hi-related-event-time { color: #cbd5e1; }
+
+/* One scroll owner: modal body. Header and footer always remain visible. */
+.swal2-container.hi-ledger-modal-host { position: fixed !important; inset: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; box-sizing: border-box; padding: 16px !important; overflow: hidden !important; }
+.swal2-popup.hi-ledger-modal { display: flex !important; flex: 0 1 auto; flex-direction: column; box-sizing: border-box; width: min(760px, 100%) !important; max-width: calc(100vw - 32px) !important; max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); min-width: 0; min-height: 0; margin: 0 !important; padding: 0; overflow: hidden; }
+.hi-ledger-modal .swal2-title { flex-shrink: 0; margin: 0; padding: 20px 56px 16px; font-size: 24px; }
+.hi-ledger-modal .swal2-html-container { flex: 1 1 auto; min-height: 0; max-height: none !important; margin: 0 !important; padding: 0 24px !important; overflow-y: auto !important; scrollbar-gutter: stable; overscroll-behavior: contain; }
+.hi-ledger-modal .swal2-actions { flex-shrink: 0; margin: 0 !important; padding: 16px 24px !important; border-top: 1px solid #cbd5e1; }
+.dark .hi-ledger-modal .swal2-actions { border-color: #475569; }
+
+.superadmin-overview-hero { background: linear-gradient(125deg, #172554, #1e40af); }
+.superadmin-overview-cta { color: #1e40af; }
+.superadmin-overview-cta:hover { background: #eff6ff; }
+
+.superadmin-header-controls :is(.superadmin-header-theme, .superadmin-header-profile) { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; border-radius: 50%; }
+.superadmin-header-theme { width: 34px; height: 34px; border: 1px solid #dbe4ef; color: #0f172a; }
+.superadmin-header-theme:hover { background: #eff6ff; }
+.dark .superadmin-header-theme { border-color: #334155; color: #f1f5f9; }
+.dark .superadmin-header-theme:hover { background: #1e293b; }
+.superadmin-header-profile { width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #06b6d4); color: #fff; }
+.superadmin-header-profile:hover { background: #2563eb; }
+.superadmin-header-controls button:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.superadmin-header-controls #overview-account-id { color: #1e293b; }
+.dark .superadmin-header-controls #overview-account-id { color: #f1f5f9; }
+
+
+.hi-access-choices { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding-bottom: 12px; border-bottom: 1px solid #cbd5e1; }
+html:not(.dark) #view-users :is(.hi-access-choices, #admin-access-description, #admin-list-status, label, th, td:not(:has(.hi-admin-access-status)), td p),
+html:not(.dark) .hi-superadmin-dialogs .hi-admin-account-facts :is(dt, dd) { color: #0f172a !important; }
+.hi-admin-account-facts dt { font-weight: 600; }
+.dark #view-users :is(.hi-access-choices, #admin-access-description, #admin-list-status, label, th, td:not(:has(.hi-admin-access-status)), td p),
+.dark .hi-superadmin-dialogs .hi-admin-account-facts :is(dt, dd) { color: #f1f5f9 !important; }
+.hi-access-choices button { min-height: 44px; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: .875rem; font-weight: 600; }
+.hi-access-choices button[aria-pressed="true"] { color: #fff; background: #1d4ed8; border-color: #1d4ed8; }
+.hi-access-choices button:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.hi-access-choices span:not(:empty) { margin-left: 4px; padding: 2px 6px; border-radius: 999px; background: #dcfce7; color: #166534; }
+.dark .hi-access-choices, .dark .hi-access-choices button[aria-pressed="false"] { border-color: #475569; }
+
+.hi-admin-access-table { table-layout: fixed; min-width: 600px; }
+.hi-admin-access-table th:nth-child(1) { width: 27%; }
+.hi-admin-access-table th:nth-child(2) { width: 32%; }
+.hi-admin-access-table th:nth-child(3) { width: 17%; }
+.hi-admin-access-table th:nth-child(4) { width: 24%; }
+.hi-admin-access-table :is(th, td) { overflow-wrap: anywhere; }
+.hi-admin-access-row { cursor: pointer; }
+.hi-admin-access-row:is(:hover, :focus-visible) { background: #eff6ff; }
+.dark .hi-admin-access-row:is(:hover, :focus-visible) { background: #1e293b; }
+.hi-admin-access-row:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+.hi-admin-access-row:is(:hover, :focus-visible) td:first-child p:first-child { text-decoration: underline; text-underline-offset: 3px; }
+.hi-admin-access-row td:last-child { position: relative; padding-block: 1.375rem; }
+.hi-admin-access-hint { position: absolute; inset-inline-end: .75rem; inset-block-end: 2px; padding: 2px 6px; border-radius: 5px; background: #1e3a5f; color: #fff; font-size: .6875rem; line-height: 1rem; visibility: hidden; pointer-events: none; }
+body:not(:has(#superadmin-row-tooltip.is-visible)) .hi-admin-access-row:focus-visible .hi-admin-access-hint { visibility: visible; }
+.hi-admin-access-status { display: inline-block; padding: 4px 10px; border-radius: 999px; background: #e2e8f0; color: #334155; font-size: .75rem; font-weight: 600; }
+.hi-admin-access-status[data-status="approved"] { background: #dcfce7; color: #166534; }
+.hi-admin-access-status[data-status="pending"] { background: #fef3c7; color: #92400e; }
+.hi-admin-access-status:is([data-status="suspended"], [data-status="denied"]) { background: #fee2e2; color: #991b1b; }
+.dark .hi-admin-access-status { background: #334155; color: #e2e8f0; }
+.dark .hi-admin-access-status[data-status="approved"] { background: #052e16; color: #bbf7d0; }
+.dark .hi-admin-access-status[data-status="pending"] { background: #451a03; color: #fde68a; }
+.dark .hi-admin-access-status:is([data-status="suspended"], [data-status="denied"]) { background: #450a0a; color: #fecaca; }
+.hi-superadmin-dialogs .swal2-popup button.swal2-confirm.hi-admin-access-action-suspended { background: #047857 !important; color: #fff !important; }
+.hi-superadmin-dialogs .swal2-popup button.swal2-confirm.hi-admin-access-action-approved { background: #b91c1c !important; color: #fff !important; }
+.hi-superadmin-dialogs .swal2-popup button.swal2-confirm.hi-admin-access-action-pending { background: #1e40af !important; color: #fff !important; }
+
+#superadmin-row-tooltip {
+  position: fixed;
+  z-index: 60;
+  width: max-content;
+  max-width: calc(100% - 16px);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #0f2743;
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  pointer-events: none;
+  visibility: hidden;
+}
+#superadmin-row-tooltip.is-visible { visibility: visible; }
+.dark #superadmin-row-tooltip { background: #e2e8f0; color: #0f2743; }

@@ -108,7 +108,7 @@ function createDashboardData(db) {
         async analyticsOptions() {
             const [years] = await db.execute("SELECT DISTINCT YEAR(date_recorded) as year FROM health_cases WHERE date_recorded IS NOT NULL ORDER BY year DESC");
             const [barangays] = await db.execute('SELECT name FROM barangays ORDER BY name');
-            const [diseases] = await db.execute("SELECT DISTINCT disease FROM health_cases WHERE disease NOT LIKE '%bite%' AND disease NOT LIKE '%accident%' ORDER BY disease");
+            const [diseases] = await db.execute("SELECT name AS disease FROM disease_registry WHERE status='Active' AND is_archived=0 ORDER BY name");
             return { years: years.map(row => Number(row.year)), barangays: barangays.map(row => row.name), diseases: diseases.map(row => row.disease) };
         },
 

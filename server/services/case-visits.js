@@ -12,7 +12,7 @@ function validateVisit(input, consultationDate) {
     if (!TRANSACTIONS.includes(input.transaction_mode)) throw invalid('Select the mode of transaction.');
     if (!NATURES.includes(input.nature_of_visit)) throw invalid('Select the nature of visit.');
     const consultation_time = input.consultation_time === undefined || input.consultation_time === '' ? null : input.consultation_time;
-    if (consultation_time !== null && (typeof consultation_time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(consultation_time))) throw invalid('Enter the consultation time with hour, minutes and AM/PM.');
+    if (typeof consultation_time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(consultation_time)) throw invalid('Enter the consultation time with hour, minutes and AM/PM.');
     const referral = input.transaction_mode === 'Referral';
     const referred_by = referral ? plain(input.referred_by, 'referred by', 500, true) : '';
     const referral_reason = referral ? plain(input.referral_reason, 'reason for referral', 1000) : '';

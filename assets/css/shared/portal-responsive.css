@@ -97,3 +97,89 @@
 @media (prefers-reduced-motion:reduce) {
     .hi-portal #sidebar, .hi-portal #main-sidebar, .hi-portal #superadmin-sidebar { transition:none; }
 }
+
+/* Let keyboard users bypass the portal navigation. */
+.hi-portal .hi-skip-link {
+  position: fixed;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 0.75rem;
+  z-index: 1000;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  background: #0f172a;
+  color: #fff;
+  font-weight: 600;
+  transform: translateY(calc(-100% - 1rem));
+}
+
+.hi-portal .hi-skip-link:focus {
+  transform: none;
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+/* Admin portals share the BHW light-mode sidebar palette. */
+html:not(.dark) .hi-portal :is(#main-sidebar, #superadmin-sidebar) {
+  background-color: #f1f5f9;
+  border-right: 1px solid #cbd5e1;
+}
+html:not(.dark) .hi-portal :is(#main-sidebar, #superadmin-sidebar) .nav-item { color: #334155; }
+html:not(.dark) .hi-portal :is(#main-sidebar, #superadmin-sidebar) .nav-item:hover {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+html:not(.dark) .hi-portal :is(#main-sidebar, #superadmin-sidebar) .nav-item.active {
+  background-color: rgb(59 130 246 / 10%);
+  color: #1d4ed8;
+  border-left-width: 0;
+}
+html:not(.dark) .hi-portal #main-sidebar #sidebar-text,
+html:not(.dark) .hi-portal #superadmin-sidebar .hi-brand-name > span:first-child {
+  background-image: linear-gradient(to right, #2563eb, #06b6d4);
+  background-clip: text;
+  color: transparent;
+}
+
+/* One logout treatment across all portal sidebars. */
+.hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 48px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  transform: none;
+}
+html:not(.dark) .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out {
+  background-color: rgb(59 130 246 / 10%);
+  color: #1d4ed8;
+}
+html:not(.dark) .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out:is(:hover, :focus-visible) {
+  background-color: rgb(239 68 68 / 10%);
+  color: #b91c1c;
+}
+.hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+.dark .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out {
+  background-color: rgb(59 130 246 / 10%);
+  color: #93c5fd;
+}
+.dark .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out:is(:hover, :focus-visible) {
+  background-color: rgb(248 113 113 / 12%);
+  color: #f87171;
+}
+
+@media (min-width:901px) {
+  .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar).hi-sidebar-collapsed .nav-item.sign-out {
+    justify-content: center;
+    gap: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}

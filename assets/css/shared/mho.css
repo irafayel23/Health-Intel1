@@ -416,6 +416,12 @@ body > main {
 .walkin-form .hi-select-trigger>span:first-child {min-width:0;overflow-wrap:anywhere;line-height:1.5;}
 .dark .walkin-form .hi-select-trigger {background:#1e293b!important;}
 .dark .walkin-field input[type=date] {color-scheme:dark;}
+.walkin-birthdate-control { position: relative; }
+.walkin-birthdate-control.has-picker #walkin-birthdate { padding-inline-end: 54px; }
+.walkin-birthdate-control #walkin-birthdate-picker { position: absolute; inset-inline-end: 0; inset-block-end: 0; width: 44px; height: 100%; min-height: 0; padding: 0; opacity: 0; pointer-events: none; }
+.walkin-birthdate-control button:not([hidden]) { position: absolute; inset-inline-end: 4px; inset-block-start: 50%; transform: translateY(-50%); display: grid; place-items: center; width: 44px; height: 44px; border-radius: 8px; }
+.walkin-birthdate-control button:hover { background: hsl(var(--muted)); }
+.walkin-birthdate-control button:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
 .walkin-form .hi-select-trigger:focus-visible,.walkin-form .hi-select-trigger[aria-expanded=true] {border-color:#0d9488!important;box-shadow:0 0 0 3px #0d948820;}
 .walkin-form [hidden] {display:none!important;}
 .walkin-referral-grid {display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:18px;background:#0d948808;border:1px solid #0d948830;border-radius:12px;}
@@ -499,3 +505,79 @@ body > main > header { flex-shrink:0; }
   .mho-sidebar .nav-item { gap:10px; padding-left:12px; padding-right:12px; }
   .mho-sidebar > div:last-child { padding-left:12px; padding-right:12px; }
 }
+
+/* MHO navigation and account controls match the administrator portals. */
+#sidebar.mho-sidebar #sidebar-text { background-image: linear-gradient(to right, #2563eb, #06b6d4); }
+.dark #sidebar.mho-sidebar #sidebar-text { background-image: linear-gradient(to right, #93c5fd, #67e8f9); }
+#sidebar.mho-sidebar .nav-menu .nav-item { border-radius: 8px; }
+html:not(.dark) #sidebar.mho-sidebar .nav-menu .nav-item:hover { background-color: #eff6ff; color: #2563eb; }
+html:not(.dark) #sidebar.mho-sidebar .nav-menu .nav-item.active { background-color: rgb(59 130 246 / 10%); color: #1d4ed8; }
+.dark #sidebar.mho-sidebar .nav-menu .nav-item:is(.active, :hover) { background-color: #1e293b; color: #bfdbfe; }
+.mho-header-controls { display: flex; align-items: center; gap: 12px; }
+.mho-header-controls :is(.mho-header-theme, .mho-header-profile) { display: inline-grid; place-items: center; flex: 0 0 auto; border-radius: 50%; }
+.mho-header-controls .mho-header-theme { width: 34px; height: 34px; border: 1px solid #dbe4ef; color: #0f172a; }
+.mho-header-controls .mho-header-theme:hover { background-color: #eff6ff; }
+.dark .mho-header-controls .mho-header-theme { border-color: #334155; color: #f1f5f9; }
+.dark .mho-header-controls .mho-header-theme:hover { background-color: #1e293b; }
+.mho-header-controls .mho-header-profile { width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6, #06b6d4); color: #fff; }
+.mho-header-controls .mho-header-profile:hover { background: #2563eb; }
+.mho-header-controls button:focus-visible, .mho-walkin-icon:focus-visible, .mho-patient-open:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+
+#walkin-tabs .mho-walkin-icon { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 1px solid hsl(var(--border)); border-radius: 10px; background: hsl(var(--card)); color: hsl(var(--foreground)); }
+#walkin-tabs .mho-walkin-icon:hover { background: hsl(var(--muted)); }
+#walkin-tabs .mho-walkin-add { border-color: #1d4ed8; background: #1d4ed8; color: #fff; }
+#walkin-tabs .mho-walkin-add:hover { background: #1e40af; }
+
+.mho-directory-card { padding: 12px; }
+.mho-directory-table { overflow: auto; border: 1px solid hsl(var(--border)); border-radius: 12px; }
+.mho-directory-table .walkin-table { min-width: 650px; }
+.mho-directory-table tbody tr { border-top: 1px solid hsl(var(--border)); }
+.mho-directory-table tr[data-patient-id] { cursor: pointer; }
+.mho-directory-table tr[data-patient-id]:is(:hover, :focus-within) { background: #eff6ff; }
+.dark .mho-directory-table tr[data-patient-id]:is(:hover, :focus-within) { background: #1e293b; }
+.mho-patient-open { border-radius: 2px; font-weight: 700; text-align: left; }
+.mho-directory-table tr[data-patient-id]:is(:hover, :focus-within) .mho-patient-open { text-decoration: underline; text-underline-offset: 3px; }
+
+.hi-dialog.mho-patient-history-dialog.swal2-popup { position: relative; display: flex !important; flex-direction: column; width: min(960px, calc(100vw - 32px)) !important; max-height: min(900px, calc(100dvh - 32px)); overflow: hidden; color-scheme: light; }
+.dark .hi-dialog.mho-patient-history-dialog.swal2-popup { color-scheme: dark; }
+.mho-patient-history-dialog.swal2-popup .swal2-title { flex: 0 0 auto; padding-inline: 28px; }
+.mho-patient-history-dialog.swal2-popup .swal2-close { position: absolute; inset-block-start: 10px; inset-inline-end: 10px; border-radius: 8px; color: inherit; }
+.mho-patient-history-dialog.swal2-popup .swal2-html-container { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.mho-patient-history-dialog.swal2-popup .swal2-actions { flex: 0 0 auto; justify-content: flex-end; align-self: stretch; padding-top: 12px; border-top: 1px solid hsl(var(--border)); }
+.mho-patient-history-dialog .swal2-confirm { background-color: #1d4ed8; color: #fff; }
+
+#mho-cursor-tooltip { position: fixed; z-index: 60; width: max-content; max-width: calc(100% - 16px); padding: 6px 10px; border-radius: 6px; background: #0f2743; color: #fff; font-size: .75rem; font-weight: 600; pointer-events: none; visibility: hidden; }
+#mho-cursor-tooltip.is-visible { visibility: visible; }
+.dark #mho-cursor-tooltip { background: #e2e8f0; color: #0f2743; }
+
+#walkin-tabs .mho-walkin-add { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; padding: 0 12px; font-size: .875rem; font-weight: 600; }
+#walkin-tabs .mho-walkin-add svg { width: 18px; height: 18px; flex-shrink: 0; }
+.mho-directory-table tr[data-history-id] { cursor: pointer; }
+.mho-directory-table tr[data-history-id]:is(:hover, :focus-within) { background: #eff6ff; }
+.dark .mho-directory-table tr[data-history-id]:is(:hover, :focus-within) { background: #1e293b; }
+.mho-directory-table tr[data-history-id]:is(:hover, :focus-within) .mho-patient-open { text-decoration: underline; text-underline-offset: 3px; }
+.mho-numbered-pages { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 12px 16px; }
+.mho-numbered-pages:empty { display: none; }
+.mho-numbered-pages nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-inline-start: auto; }
+.mho-numbered-pages button { min-width: 44px; min-height: 44px; padding: 4px 8px; border: 1px solid hsl(var(--border)); border-radius: 8px; }
+.mho-numbered-pages button[aria-current="page"] { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.mho-numbered-pages button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+#view-review-center [role="tablist"][hidden], #view-predictive [role="tablist"][hidden] { display: none !important; }
+
+.mho-review-queue { padding: 16px; }
+.mho-review-queue .mho-directory-table { margin-top: 12px; }
+.mho-review-queue .walkin-table { min-width: 620px; }
+.mho-review-queue .hi-field-help { margin: 0; }
+.mho-review-queue .hi-review-message { display: inline-block; margin: 12px 0 0; padding: 6px 10px; border-radius: 8px; background: #eff6ff; color: #1e3a8a; font-size: .875rem; font-weight: 600; }
+.mho-review-queue .hi-review-message:empty { display: none; }
+.dark .mho-review-queue .hi-review-message { background: #1e293b; color: #bfdbfe; }
+.mho-review-queue tr[data-review] { cursor: pointer; }
+.mho-review-queue tr[data-review]:is(:hover, :focus-within) { background: #eff6ff; }
+.dark .mho-review-queue tr[data-review]:is(:hover, :focus-within) { background: #1e293b; }
+.mho-review-queue tr[data-review]:is(:hover, :focus-within) .mho-patient-open { text-decoration: underline; text-underline-offset: 3px; }
+body.heatmap-is-expanded #mho-cursor-tooltip { z-index: 100001; }
+
+/* MHO directory selection and Disease Review refresh. */
+#mho-followup-tabs .hi-directory-tabs button[aria-selected="true"] { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.mho-review-refresh { display: inline-grid; place-items: center; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; margin: 0; }

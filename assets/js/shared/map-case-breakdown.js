@@ -90,6 +90,10 @@
         let rows=[], refreshedAt='', stale=false;
         const button=document.createElement('button');
         button.type='button'; button.className='heatmap-breakdown-control'; button.textContent='Case Breakdown'; button.disabled=true;
+        if(['murciaMap','bhwMap'].includes(container.id)){
+            button.innerHTML="<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M10 3a9 9 0 1 0 11 11H10z\"/><path d=\"M14 3v7h7a9 9 0 0 0-7-7z\"/></svg>";
+            button.setAttribute('aria-label','Case breakdown');button.dataset.mhoHint='Case breakdown';
+        }
         const dialog=document.createElement('dialog'); dialog.className='heatmap-case-dialog'; dialog.id=container.id+'-case-breakdown';
         dialog.setAttribute('aria-labelledby',dialog.id+'-title');
         button.setAttribute('aria-haspopup','dialog'); button.setAttribute('aria-controls',dialog.id); button.setAttribute('aria-expanded','false');
@@ -103,6 +107,7 @@
         dialog.addEventListener('close',()=>{button.setAttribute('aria-expanded','false');button.focus({preventScroll:true});});
         dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
         return {
+            button,
             update(data, timestamp){
                 rows=Array.isArray(data)?data:[];refreshedAt=timestamp;stale=false;button.disabled=false;
                 if(dialog.open){

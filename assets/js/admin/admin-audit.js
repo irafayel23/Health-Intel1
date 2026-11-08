@@ -1,92 +1,100 @@
-      // ==========================================
-      // SECURITY AUDIT TRAIL LOGIC
-      // ==========================================
-      let allAuditLogs = [];
-      let currentAuditPage = 1;
-      const AUDIT_PER_PAGE = 8;
+let allAuditLogs = [];
+let currentAuditPage = 1;
+const AUDIT_PER_PAGE = 8;
 
-      async function loadAuditLogs() {
-        try {
-          const res = await fetch("http://localhost:3000/api/admin/audit-logs");
-          const result = await res.json();
-          if (result.success) {
-            allAuditLogs = result.data;
-            currentAuditPage = 1;
-            renderAuditTable();
-          }
-        } catch (e) {
-          console.error("Failed to load audit logs:", e);
-        }
-      }
+async function loadAuditLogs() {
+  try {
+    const response = await fetch("http://localhost:3000/api/admin/audit-logs");
+    const result = await response.json();
+    if (!response.ok || !result.success || !Array.isArray(result.data)) throw new Error('Audit entries could not be loaded.');
+    allAuditLogs = result.data;
+    currentAuditPage = 1;
+    renderAuditTable();
+  } catch (error) {
+    console.error("Failed to load audit logs:", error);
+    document.getElementById('audit-page-info').textContent = 'Could not refresh audit entries.';
+  }
+}
 
-      function renderAuditTable() {
-        const tbody = document.getElementById("audit-table-body");
-        tbody.innerHTML = "";
-        let tbodyHtmlBuffer = "";
-        
-        if (allAuditLogs.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
-<div class="flex flex-col items-center justify-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No records found in the database.</span>
-</div>
-</td></tr>`;
-            document.getElementById("audit-pagination").classList.add("hidden");
-            return;
-        }
+function formatAuditTime(value) {
+  const date = new Date(value);
+  return value && !Number.isNaN(date.getTime())
+    ? date.toLocaleString('en-PH', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' })
+    : 'Time not recorded';
+}
 
-        const startIndex = (currentAuditPage - 1) * AUDIT_PER_PAGE;
-        const endIndex = startIndex + AUDIT_PER_PAGE;
-        const paginatedData = allAuditLogs.slice(startIndex, endIndex);
+function renderAuditTable() {
+  const start = (currentAuditPage - 1) * AUDIT_PER_PAGE;
+  const rows = allAuditLogs.slice(start, start + AUDIT_PER_PAGE);
+  const tbody = document.getElementById('audit-table-body');
+  tbody.innerHTML = rows.map((log, index) => {
+    let badge = 'admin-audit-role-default';
+    if (log.role === 'BHW') badge = 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200';
+    else if (log.role === 'Admin' || log.role === 'LGU Admin') badge = 'bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200';
+    const action = escapeText(log.action || 'Event');
+    const reference = Number.isSafeInteger(log.case_id) && log.case_id > 0 ? ' · #REC-' + log.case_id : '';
+    return `<tr class="admin-audit-row" onclick="openAdminAuditEvent(${start + index}, this)">
+      <td><span class="admin-audit-cell">${escapeText(formatAuditTime(log.created_at))}</span></td>
+      <td><span class="admin-audit-cell">${escapeText(log.user_id || 'Not recorded')}</span></td>
+      <td><span class="admin-audit-cell"><span class="admin-audit-role ${badge}">${escapeText(log.role || 'Not recorded')}</span></span></td>
+      <td><button type="button" class="admin-audit-open admin-audit-cell" aria-label="View details for ${action}${reference}">${action}${reference}</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="4" class="text-center py-12">No audit entries found.</td></tr>';
 
-        paginatedData.forEach((log) => {
-          const date = new Date(log.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-          
-          let badgeClass = 'admin-audit-role-default';
-          if (log.role === 'BHW') badgeClass = 'admin-audit-role-bhw bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200';
-          else if (log.role === 'Admin' || log.role === 'LGU Admin') badgeClass = 'admin-audit-role-admin bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200';
-          
-          tbodyHtmlBuffer += `
-            <tr >
-              <td class="whitespace-nowrap font-medium text-slate-700 dark:text-slate-300 text-[0.85rem]">${date}</td>
-              <td class="whitespace-nowrap font-bold text-slate-900 dark:text-slate-100">${escapeText(log.user_id)}</td>
-              <td class="whitespace-nowrap"><span class="admin-audit-role ${badgeClass}">${escapeText(log.role)}</span></td>
-              <td class="whitespace-nowrap text-sky-700 dark:text-sky-400 font-bold">${escapeText(log.action)}</td>
-              <td class="whitespace-pre-line font-medium text-slate-700 dark:text-slate-300 text-[0.9rem]">${escapeText(HealthIntelText.auditDetails(log))}${Number.isSafeInteger(log.case_id) && log.case_id > 0 ? `<div class="mt-2"><button class="admin-case-view-button" onclick="viewAdminCase(${log.case_id},true)">View case #REC-${log.case_id}</button></div>` : ''}</td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = tbodyHtmlBuffer;
+  const totalPages = Math.ceil(allAuditLogs.length / AUDIT_PER_PAGE);
+  const end = start + rows.length;
+  document.getElementById('audit-page-info').textContent = rows.length
+    ? `Showing ${start + 1}–${end} of ${allAuditLogs.length} entries` : '0 entries';
+  const buttons = document.getElementById('audit-page-buttons');
+  const first = Math.max(1, Math.min(currentAuditPage - 2, totalPages - 4));
+  const button = (page, label, attributes = '') => `<button type="button" onclick="goToAuditPage(${page})" ${attributes}>${label}</button>`;
+  let controls = '';
+  if (totalPages > 1) {
+    controls = button(currentAuditPage - 1, 'Previous', currentAuditPage === 1 ? 'disabled' : '');
+    for (let page = first; page <= Math.min(first + 4, totalPages); page++) {
+      controls += button(page, page, page === currentAuditPage ? 'aria-current="page"' : `aria-label="Page ${page}"`);
+    }
+    controls += button(currentAuditPage + 1, 'Next', currentAuditPage === totalPages ? 'disabled' : '');
+  }
+  buttons.innerHTML = controls;
+}
 
-        document.getElementById("audit-pagination").classList.remove("hidden");
-        const totalPages = Math.ceil(allAuditLogs.length / AUDIT_PER_PAGE);
-        document.getElementById("audit-page-info").innerText = `Showing ${startIndex + 1} to ${Math.min(endIndex, allAuditLogs.length)} of ${allAuditLogs.length} entries`;
-        
-        let buttonsHtml = '';
-        
-        // Show max 5 buttons (simple pagination logic)
-        let startPage = Math.max(1, currentAuditPage - 2);
-        let endPage = Math.min(totalPages, startPage + 4);
-        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+function goToAuditPage(page) {
+  if (!Number.isInteger(page) || page < 1 || page > Math.ceil(allAuditLogs.length / AUDIT_PER_PAGE)) return;
+  ++adminCaseRequest;
+  currentAuditPage = page;
+  renderAuditTable();
+  document.getElementById('audit-page-buttons').querySelector('[aria-current="page"]')?.focus({ preventScroll: true });
+}
 
-        if (currentAuditPage > 1) {
-            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage - 1})" class="px-3 py-1 rounded text-sm font-medium border bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Prev</button>`;
-        }
-        
-        for (let i = startPage; i <= endPage; i++) {
-            let activeClass = i === currentAuditPage ? 'bg-brandBlue text-white border-brandBlue' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700';
-            buttonsHtml += `<button onclick="goToAuditPage(${i})" class="px-3 py-1 rounded text-sm font-medium border transition-colors ${activeClass}">${i}</button>`;
-        }
-        
-        if (currentAuditPage < totalPages) {
-            buttonsHtml += `<button onclick="goToAuditPage(${currentAuditPage + 1})" class="px-3 py-1 rounded text-sm font-medium border bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">Next</button>`;
-        }
-        
-        document.getElementById("audit-page-buttons").innerHTML = buttonsHtml;
-      }
+function adminAuditFacts(log) {
+  const fields = [
+    ['Timestamp', formatAuditTime(log.created_at) + ' (Philippine time)'],
+    ['User ID', log.user_id],
+    ['Role', log.role],
+    ['Action executed', log.action],
+    ['System details', HealthIntelText.auditDetails(log)]
+  ];
+  return `<dl>${fields.map(([label, value]) =>
+    `<div><dt>${label}</dt><dd>${escapeText(value || 'Not recorded')}</dd></div>`).join('')}</dl>`;
+}
 
-      function goToAuditPage(page) {
-          currentAuditPage = page;
-          renderAuditTable();
-      }
+function showAdminAuditEvent(log, caseUnavailable = false) {
+  return Swal.fire({
+    titleText: 'Audit event details',
+    html: `<div class="admin-case-detail">${caseUnavailable ? '<p>The linked case could not be opened.</p>' : ''}${adminAuditFacts(log)}</div>`,
+    customClass: { popup: 'hi-dialog admin-case-dialog' },
+    showCloseButton: true,
+    confirmButtonText: 'Close',
+    confirmButtonColor: '#475569'
+  });
+}
 
+function openAdminAuditEvent(index, row) {
+  const log = allAuditLogs[index];
+  if (!log) return;
+  row.querySelector('button')?.focus({ preventScroll: true });
+  if (Number.isSafeInteger(log.case_id) && log.case_id > 0) return viewAdminCase(log.case_id, log);
+  ++adminCaseRequest;
+  return showAdminAuditEvent(log);
+}

@@ -1,0 +1,100 @@
+/* Scoped to the account dialog so other portal popups keep their layout. */
+.swal2-container.hi-account-container {
+  position: fixed !important;
+  inset: 0 !important;
+  display: grid !important;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr) !important;
+  place-items: center !important;
+  padding: 16px !important;
+  overflow: hidden !important;
+}
+.swal2-popup.hi-account-dialog {
+  --account-ink: #0f172a;
+  --account-muted: #334155;
+  --account-line: #cbd5e1;
+  --account-surface: #ffffff;
+  grid-area: 1 / 1 !important;
+  display: flex !important;
+  flex-direction: column;
+  width: min(500px, 100%) !important;
+  min-width: 0;
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 1px solid var(--account-line);
+  border-radius: 18px;
+  background: var(--account-surface) !important;
+  color: var(--account-ink) !important;
+  font-family: inherit;
+  box-shadow: 0 24px 64px #0f172a33;
+  text-align: left;
+}
+.hi-account-dialog .swal2-title {
+  flex-shrink: 0;
+  margin: 0 !important;
+  padding: 22px 64px 0 24px !important;
+  color: var(--account-ink) !important;
+  font-size: 22px !important;
+  line-height: 1.3;
+  font-weight: 700;
+  text-align: left;
+}
+.hi-account-dialog .swal2-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  color: var(--account-muted);
+}
+.hi-account-dialog .swal2-html-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 !important;
+  padding: 18px 24px !important;
+  overflow: auto !important;
+  color: var(--account-ink) !important;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+}
+.hi-account-identity { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #bfdbfe; border-radius: 12px; background: #eff6ff; }
+.hi-account-mark { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; border-radius: 10px; background: #dbeafe; color: #1d4ed8; }
+.hi-account-mark svg { width: 22px; height: 22px; }
+.hi-account-identity dl { margin: 0; min-width: 0; }
+.hi-account-identity dt { color: #334155; font-size: 12px; }
+.hi-account-identity dd { margin: 0; color: #0f172a; font-weight: 600; overflow-wrap: anywhere; }
+.hi-account-role { margin-left: auto; max-width: 48%; color: #065f46; font-size: 12px; font-weight: 600; text-align: right; }
+.hi-account-heading { margin: 18px 0 4px; color: var(--account-ink); font-size: 16px; font-weight: 600; }
+.hi-account-help, .hi-account-note { margin: 0; color: var(--account-muted); font-size: 13px; }
+.hi-account-note { margin-top: 14px; }
+.hi-account-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.hi-account-field:first-child { grid-column: 1 / -1; }
+.hi-account-field label { display: block; margin-bottom: 5px; color: var(--account-ink); font-size: 14px; font-weight: 600; }
+.hi-account-field input { box-sizing: border-box; width: 100%; height: 44px; padding: 10px 12px; border: 1px solid var(--account-line); border-radius: 9px; background: var(--account-surface); color: var(--account-ink); font: inherit; }
+.hi-account-field input:focus-visible, .hi-account-dialog button:focus-visible { outline: 3px solid #2563eb !important; outline-offset: 3px; box-shadow: none !important; }
+.hi-account-dialog .swal2-actions { flex-shrink: 0; justify-content: flex-end; gap: 10px; width: 100%; margin: 0 !important; padding: 14px 24px !important; border-top: 1px solid var(--account-line); background: var(--account-surface); }
+.hi-account-dialog .swal2-actions button { min-height: 42px; margin: 0 !important; padding: 10px 16px; border-radius: 9px; font-size: 14px; font-weight: 600; }
+.hi-account-container .hi-account-dialog button.hi-account-save { border: 1px solid #047857 !important; background: #047857 !important; color: #ffffff !important; }
+.hi-account-container .hi-account-dialog button.hi-account-save:hover { background: #065f46 !important; }
+.hi-account-container .hi-account-dialog button.hi-account-cancel { border: 1px solid var(--account-line) !important; background: var(--account-surface) !important; color: var(--account-muted) !important; }
+.hi-account-dialog .swal2-validation-message { flex-shrink: 0; margin: 0; padding: 10px 24px; background: #fff1f2; color: #9f1239; font-size: 13px; text-align: left; }
+.dark .hi-account-dialog { --account-ink: #f1f5f9; --account-muted: #cbd5e1; --account-line: #475569; --account-surface: #0f172a; }
+.dark .hi-account-identity { border-color: #1e40af; background: #172554; }
+.dark .hi-account-mark { background: #1e3a8a; color: #bfdbfe; }
+.dark .hi-account-identity dt { color: #cbd5e1; }
+.dark .hi-account-identity dd { color: #f1f5f9; }
+.dark .hi-account-role { color: #a7f3d0; }
+.dark .hi-account-dialog .swal2-validation-message { background: #4c0519; color: #fecdd3; }
+@media (max-width: 480px) {
+  .swal2-container.hi-account-container { padding: 12px !important; }
+  .swal2-popup.hi-account-dialog { max-height: calc(100dvh - 24px); }
+  .hi-account-dialog .swal2-title { padding: 18px 56px 0 18px !important; font-size: 20px !important; }
+  .hi-account-dialog .swal2-html-container { padding: 16px 18px !important; }
+  .hi-account-dialog .swal2-actions { padding: 12px 18px !important; }
+  .hi-account-fields { grid-template-columns: minmax(0, 1fr); }
+  .hi-account-field input { font-size: 16px; }
+}

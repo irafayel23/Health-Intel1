@@ -173,7 +173,9 @@ if (mapContainer) {
     refreshButton.className='mb-3 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800';
     refreshButton.textContent='Refresh map';
     refreshButton.setAttribute('aria-label','Refresh map case totals');
-    status?.before(refreshButton);
+    const iconOnly=['murciaMap','bhwMap'].includes(mapContainer.id);
+    if(iconOnly){refreshButton.className='heatmap-expand-button';refreshButton.innerHTML="<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 7v5h-5M4 17v-5h5\"/><path d=\"M6 8a7 7 0 0 1 11-2l3 3M4 15l3 3a7 7 0 0 0 11-2\"/></svg>";refreshButton.dataset.mhoHint='Refresh map';}
+    else status?.before(refreshButton);
     let loading=false;
     let pendingRefresh=false;
     let loaded=false;
@@ -181,7 +183,7 @@ if (mapContainer) {
     function refreshMap() {
       if(loading){pendingRefresh=true;return;}
       loading=true;refreshButton.disabled=true;
-      refreshButton.textContent='Refreshing…';
+      if(!iconOnly)refreshButton.textContent='Refreshing…';
       return fetch('http://localhost:3000/api/heatmap-data')
       .then(response => {
           if (!response.ok) throw new Error('Unable to load active case totals.');
@@ -261,7 +263,7 @@ if (mapContainer) {
           caseBreakdown?.markStale();
           if (status) status.textContent = loaded?'Refresh failed. Showing the last loaded totals. Try Refresh map again.':'Map data could not be loaded. Check the connection and use Refresh map.';
           console.error('Error loading heatmap data:', error);
-      }).finally(()=>{loading=false;refreshButton.disabled=false;refreshButton.textContent='Refresh map';if(pendingRefresh){pendingRefresh=false;refreshMap();}});
+      }).finally(()=>{loading=false;refreshButton.disabled=false;if(!iconOnly)refreshButton.textContent='Refresh map';if(pendingRefresh){pendingRefresh=false;refreshMap();}});
     }
     refreshButton.addEventListener('click',refreshMap);
     window.addEventListener('health-intel:cases-changed',refreshMap);
@@ -272,6 +274,10 @@ if (mapContainer) {
     const fullscreen=HealthIntelMapFullscreen.bind(mapContainer,()=>{
         map.invalidateSize({animate:false});heatView?.resize();positionDetails();layoutLabels();
     });
+    if(iconOnly){
+        fullscreen.controls.append(refreshButton);
+        if(caseBreakdown)fullscreen.controls.append(caseBreakdown.button);
+    }
     L.DomEvent.disableClickPropagation(fullscreen.controls);
     L.DomEvent.disableScrollPropagation(fullscreen.controls);
     refreshMap();

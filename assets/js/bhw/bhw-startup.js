@@ -34,16 +34,9 @@
       async function loadPurokChoices() {
         const filter=document.getElementById('bhw-purok-filter');
         if(!filter)return;
-        try {
-          const response=await fetch('http://localhost:3000/api/bhw/puroks');
-          const result=await response.json();
-          if(!response.ok||!result.success)throw new Error('Purok choices unavailable');
-          const selected=filter.value;
-          filter.replaceChildren();
-          const all=document.createElement('option');all.value='All Puroks';all.textContent='All Puroks / Zones in your barangay';filter.append(all);
-          for(const name of result.data){const option=document.createElement('option');option.value=name;option.textContent=name;filter.append(option);}
-          if(result.data.includes(selected))filter.value=selected;
-        }catch(error){console.error('Purok choices unavailable',error);}
+        const all=document.createElement('option');
+        all.value='All Puroks';all.textContent='All puroks in your barangay';
+        filter.replaceChildren(all);filter.value='All Puroks';
       }
 
       function refreshBHWSupportingViews() {
@@ -75,8 +68,7 @@
 
               const brgyDisplay = window.currentBrgyName || "Unknown Barangay";
               document.getElementById("dynamic-portal-title").innerText = `Barangay Health Worker Portal — ${brgyDisplay}`;
-              const subtitle = document.getElementById("dynamic-dashboard-subtitle");
-              if (subtitle) subtitle.innerText = `Real-time insights for ${brgyDisplay}.`;
+              updateBhwDashboardIdentity(userId, brgyDisplay);
             }
           } catch(e) { console.error("Error fetching context:", e); }
         }

@@ -4,14 +4,25 @@
     async function request(url,body){const response=await fetch(api+url,{method:body?'PUT':'GET',headers:body?{'Content-Type':'application/json'}:{},...(body?{body:JSON.stringify(body)}:{})});const result=await response.json();if(!response.ok||!result.success)throw Error(result.error||'The request could not be completed.');return result;}
     async function refresh(){
         try{const result=await request('/mho/disease-reviews');rows=result.data;field('disease-review-count').textContent=rows.length;field('disease-review-count').hidden=!rows.length;field('disease-review-status').textContent=`${rows.length} ${rows.length===1?'case needs':'cases need'} classification review.`;
-            field('disease-review-body').innerHTML=rows.length?rows.map(row=>`<tr><td><strong>#REC-${row.id}</strong><br>${safe(row.patient_name)}</td><td>${safe(row.barangay_name)}<br>${safe(HealthIntelDate.formatCaseDate(row.date_recorded))}</td><td><strong>${safe(row.disease_reported)}</strong><br><small>${safe(row.condition_source)}</small></td><td><span class="hi-review-badge">${row.disease_review_status==='Clarification'?'Clarification requested':'Needs review'}</span>${row.disease_review_note?`<small class="hi-review-note">${safe(row.disease_review_note)}</small>`:''}${row.is_archived?'<small class="hi-review-note">Archived — restore before review</small>':''}</td><td><button type="button" class="hi-review-actions" data-review="${row.id}" ${row.is_archived?'disabled':''}>Review case</button></td></tr>`).join(''):'<tr><td colspan="5">No cases are awaiting classification review.</td></tr>';
+
+            field('disease-review-body').innerHTML=rows.length?rows.map(row=>{
+                const id=Number(row.id),caseLabel=`#REC-${id}`;
+                const action=!row.is_archived&&Number.isSafeInteger(id)&&id>0;
+                const identity=action?`<button type="button" class="mho-patient-open" aria-label="Review case ${caseLabel}">${caseLabel}</button>`:`<strong>${caseLabel}</strong>`;
+                return `<tr${action?` data-review="${id}" data-mho-hint="Review case"`:''}>
+                    <td>${identity}<br>${safe(row.patient_name)}</td>
+                    <td>${safe(row.barangay_name)}<br>${safe(HealthIntelDate.formatCaseDate(row.date_recorded))}</td>
+                    <td><strong>${safe(row.disease_reported)}</strong><br><small>${safe(row.condition_source)}</small></td>
+                    <td><span class="hi-review-badge">${row.disease_review_status==='Clarification'?'Clarification requested':'Needs review'}</span>${row.disease_review_note?`<small class="hi-review-note">${safe(row.disease_review_note)}</small>`:''}${row.is_archived?'<small class="hi-review-note">Archived — restore before review</small>':''}</td>
+                </tr>`;
+            }).join(''):'<tr><td colspan="4">No cases are awaiting classification review.</td></tr>';
         }catch(error){field('disease-review-status').textContent=error.message;}
     }
     async function review(id){
-        const row=rows.find(item=>item.id===id);if(!row)return;
+        const row=rows.find(item=>Number(item.id)===id);if(!row||row.is_archived)return;
         let registry;try{registry=(await request('/diseases')).data.filter(d=>d.status==='Active'&&!d.is_archived);}catch(error){Swal.fire('Choices unavailable',error.message,'error');return;}
         const controls=[];
-        await Swal.fire({title:`Review case #REC-${id}`,width:650,customClass:{popup:'hi-dialog'},showCancelButton:true,confirmButtonText:'Save review',showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
+        await Swal.fire({title:`Review case #REC-${id}`,width:650,customClass:{popup:'hi-dialog'},showCloseButton:true,closeButtonAriaLabel:'Close case review',showCancelButton:true,confirmButtonText:'Save review',showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
             html:`<div class="hi-review-dialog"><div class="hi-review-summary"><strong>${safe(row.patient_name)}</strong> · ${safe(row.barangay_name)}<br>Reported condition: <strong>${safe(row.disease_reported)}</strong><br>Source: ${safe(row.condition_source)}</div><label for="review-action">Review action *</label><select id="review-action"><option value="existing">Use existing disease</option><option value="new">Approve new disease category</option><option value="clarification">Request clarification</option></select><div id="review-existing"><label for="review-disease">Approved condition *</label><select id="review-disease"><option value="">Select existing condition</option>${registry.map(d=>`<option value="${d.id}">${safe(d.name)}</option>`).join('')}</select></div><div id="review-new" hidden><label for="review-name">New approved condition name *</label><input id="review-name" maxlength="255" value="${safe(row.disease_reported)}"><p class="hi-field-help">This adds a shared category. It does not automatically enable prediction or establish an official reporting mapping.</p></div><label for="review-note">Review note / clarification request *</label><textarea id="review-note" maxlength="1000" rows="3" placeholder="Explain the classification decision or the information needed"></textarea></div>`,
             didOpen:()=>{controls.push(HealthIntelEncoding.enhanceSelect(field('review-action')),HealthIntelEncoding.enhanceSelect(field('review-disease'),{searchable:true}));field('review-action').addEventListener('change',()=>{field('review-existing').hidden=field('review-action').value!=='existing';field('review-new').hidden=field('review-action').value!=='new';});},
             willClose:()=>controls.forEach(control=>control.destroy()),

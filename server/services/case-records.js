@@ -38,7 +38,7 @@ function createCaseRecords(db) {
 
         async recentWalkIns(systemId) {
             const [rows] = await db.execute(
-                `SELECT h.id,h.patient_name,h.purok,h.disease,h.disease_review_status,h.disease_reported,h.severity,h.status,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,b.name AS barangay_name,
+                `SELECT h.id,h.resident_id,h.patient_name,h.purok,h.disease,h.disease_review_status,h.disease_reported,h.severity,h.status,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,b.name AS barangay_name,
                         EXISTS(SELECT 1 FROM case_visits v WHERE v.case_id=h.id) AS has_visits
                         FROM health_cases h JOIN barangays b ON b.id=h.barangay_id
                         WHERE h.encoded_by=? AND h.is_archived=FALSE ORDER BY h.created_at DESC,h.id DESC LIMIT 25`,
@@ -48,7 +48,7 @@ function createCaseRecords(db) {
         },
 
         async recentMhoVisits(systemId) {
-            const [rows]=await db.execute(`SELECT v.id,v.case_id,v.nature_of_visit,v.transaction_mode,
+            const [rows]=await db.execute(`SELECT v.id,v.case_id,h.resident_id,v.nature_of_visit,v.transaction_mode,
                 DATE_FORMAT(v.consultation_date,'%Y-%m-%d') AS consultation_date,TIME_FORMAT(v.consultation_time,'%H:%i') AS consultation_time,
                 h.patient_name,h.disease,h.disease_review_status,h.disease_reported,b.name AS barangay_name
                 FROM case_visits v JOIN health_cases h ON h.id=v.case_id JOIN barangays b ON b.id=h.barangay_id

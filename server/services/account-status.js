@@ -9,6 +9,7 @@ async function accountStatus(db,req,status,action){const id=req.body.temp_system
     const route=String(req.path).replace(/^\/api(?=\/)/,'');
     const transitions=account.role==='admin'?{
         '/superadmin/approve-admin':['pending','approved'],
+        '/admin/deny-user':['pending','denied'],
         '/admin/suspend-user':['approved','suspended'],
         '/admin/restore-suspended':['suspended','approved']
     }:{

@@ -6,11 +6,9 @@ const {guardResidentVisit}=require('./resident-vital');
 const fields = "id,barangay_id,resident_id,first_name,last_name,suffix,DATE_FORMAT(birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(date_recorded,'%Y-%m-%d') AS date_recorded,disease,disease_review_status,disease_reported,condition_source,disease_id,severity,age,status,remarks,is_archived,updated_at";
 const version = row => crypto.createHash('sha256').update(JSON.stringify(row)).digest('hex');
 async function diseases(db, current) {
-    const [registry] = await db.query('SELECT name,status,is_archived FROM disease_registry');
-    const [history] = await db.query("SELECT DISTINCT disease AS name FROM health_cases WHERE disease IS NOT NULL AND disease<>'' AND disease_review_status NOT IN ('Pending','Clarification')");
-    const normalized = name => name.trim().toLowerCase();
-    const archived = new Set(registry.filter(r => r.status === 'Archived' || r.is_archived).map(r => normalized(r.name)));
-    const names = new Set([...registry.filter(r => r.status === 'Active' && !r.is_archived).map(r => r.name), ...history.filter(r => !archived.has(normalized(r.name))).map(r => r.name)]);
+    const [registry] = await db.query("SELECT name FROM disease_registry WHERE status='Active' AND is_archived=0");
+    const names = new Set(registry.map(row => row.name));
+    // Preserve the original historical category without offering it for another case.
     if (current) names.add(current);
     return [...names].sort();
 }

@@ -6,7 +6,7 @@
       if (portalPath !== location.pathname) location.replace(portalPath + location.search + location.hash);
     </script>
     <script src="assets/js/shared/theme.js"></script>
-    <script src="assets/js/shared/api-session.js"></script>
+    <script src="assets/js/shared/api-session.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/safe-text.js"></script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="assets/img/Health-Intel-Symbol.png?v=20261003" />
@@ -15,32 +15,32 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Built with npm --prefix tools/styles run build:portals. -->
-    <link rel="stylesheet" href="assets/css/superadmin/superadmin-utilities.css?v=20261008" />
+    <link rel="stylesheet" href="assets/css/superadmin/superadmin-utilities.css?v=20261107-account-pages" />
     <script>
       function toggleSuperTheme() {
           HealthIntelTheme.toggle();
       }
     </script>
-    <link rel="stylesheet" href="assets/css/superadmin/superadmin-page.css" />
-    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261031-visible4">
+    <link rel="stylesheet" href="assets/css/superadmin/superadmin-page.css?v=20261108-account-paging" />
+    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261107-logout-hover">
+  <link rel="stylesheet" href="assets/css/shared/account-settings.css?v=20261107-password-renewal">
   </head>
-  <body class="[&_.swal2-popup]:!rounded-2xl [&_.swal2-confirm]:!rounded-lg [&_.swal2-cancel]:!rounded-lg [&_.swal2-input::placeholder]:!text-slate-600 dark:[&_.swal2-input::placeholder]:!text-neutral-300 [&_.swal2-popup]:!bg-white [&_.swal2-popup]:!text-slate-900 dark:[&_.swal2-popup]:!bg-neutral-900 dark:[&_.swal2-popup]:!text-neutral-100 [&_.swal2-title]:!text-slate-900 dark:[&_.swal2-title]:!text-white [&_.swal2-html-container]:!text-slate-600 dark:[&_.swal2-html-container]:!text-neutral-300 [&_.swal2-confirm]:!bg-slate-900 [&_.swal2-confirm]:!text-white dark:[&_.swal2-confirm]:!bg-white dark:[&_.swal2-confirm]:!text-neutral-950 [&_.swal2-cancel]:!bg-slate-100 [&_.swal2-cancel]:!text-slate-700 dark:[&_.swal2-cancel]:!bg-neutral-800 dark:[&_.swal2-cancel]:!text-neutral-100 [&_.swal2-input]:!text-slate-900 dark:[&_.swal2-input]:!text-neutral-100 [&_.swal2-input]:!border-slate-400 dark:[&_.swal2-input]:!border-neutral-500 hi-portal flex h-screen w-full bg-slate-100 dark:bg-neutral-950 text-slate-900 dark:text-neutral-100">
+  <body class="[&_.swal2-popup]:!rounded-2xl [&_.swal2-confirm]:!rounded-lg [&_.swal2-cancel]:!rounded-lg [&_.swal2-input::placeholder]:!text-slate-600 dark:[&_.swal2-input::placeholder]:!text-neutral-300 [&_.swal2-popup]:!bg-white [&_.swal2-popup]:!text-slate-900 dark:[&_.swal2-popup]:!bg-neutral-900 dark:[&_.swal2-popup]:!text-neutral-100 [&_.swal2-title]:!text-slate-900 dark:[&_.swal2-title]:!text-white [&_.swal2-html-container]:!text-slate-600 dark:[&_.swal2-html-container]:!text-neutral-300 [&_.swal2-confirm]:!bg-slate-900 [&_.swal2-confirm]:!text-white dark:[&_.swal2-confirm]:!bg-white dark:[&_.swal2-confirm]:!text-neutral-950 [&_.swal2-cancel]:!bg-slate-100 [&_.swal2-cancel]:!text-slate-700 dark:[&_.swal2-cancel]:!bg-neutral-800 dark:[&_.swal2-cancel]:!text-neutral-100 [&_.swal2-input]:!text-slate-900 dark:[&_.swal2-input]:!text-neutral-100 [&_.swal2-input]:!border-slate-400 dark:[&_.swal2-input]:!border-neutral-500 hi-superadmin-dialogs hi-portal hi-role-readable flex h-screen w-full bg-slate-100 dark:bg-neutral-950 text-slate-900 dark:text-neutral-100">
+    <a class="hi-skip-link" href="#portal-main">Skip to main content</a>
     
     <!-- Sidebar -->
     <aside id="superadmin-sidebar" class="w-64 bg-slate-100 dark:bg-neutral-950 flex flex-col shrink-0">
-      <div class="hi-sidebar-brand h-20 flex items-center px-6 gap-3 mt-4">
-        <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="hi-sidebar-logo w-10 h-10 shrink-0 p-1" overflow="hidden">
+      <div class="hi-sidebar-brand h-16 flex items-center px-6 pt-4">
+        <svg role="img" aria-label="HEALTH-INTEL logo" viewBox="0 0 1280 1060" preserveAspectRatio="xMidYMin slice" class="hi-sidebar-logo w-8 h-8 mr-3 shrink-0" overflow="hidden">
           <image href="assets/img/Logo-Health-Intel.png?v=concept-06" width="1280" height="1280" />
         </svg>
         <button type="button" data-desktop-sidebar class="hi-desktop-menu" aria-controls="superadmin-sidebar" aria-expanded="true" aria-label="Collapse sidebar" title="Collapse sidebar" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
         <div class="hi-brand-name flex flex-col">
-            <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white">HEALTH-INTEL</span>
-            <span class="text-xs text-slate-700 dark:text-neutral-400 font-medium">Superadmin Active</span>
+            <span class="font-bold tracking-widest text-blue-700 dark:text-blue-300">SUPERADMIN</span>
         </div>
       </div>
       
       <div class="px-4 py-4 flex-grow flex flex-col gap-2">
-        <p class="sidebar-label px-3 text-xs font-semibold text-slate-600 dark:text-neutral-400 mb-1">General</p>
         <button class="nav-item active" id="nav-dashboard" onclick="switchMainView('view-dashboard', 'nav-dashboard')">
           <i data-lucide="home" class="w-4 h-4"></i> <span class="sidebar-label">Overview</span>
         </button>
@@ -56,154 +56,103 @@
       </div>
 
       <div class="p-4 mt-auto mb-4">
-        <button onclick="logout()" class="w-full bg-slate-200 dark:bg-neutral-800 text-slate-800 dark:text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-300 dark:hover:bg-neutral-700 transition-colors flex justify-center items-center gap-2">
-          <i data-lucide="log-out" class="w-5 h-5" aria-hidden="true"></i><span class="sidebar-label">Logout</span>
+        <button type="button" onclick="logout()" class="nav-item sign-out w-full transition-colors" aria-label="Sign Out">
+          <i data-lucide="log-out" class="w-5 h-5" aria-hidden="true"></i><span class="sidebar-label whitespace-nowrap">Log Out</span>
         </button>
       </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="min-w-0 flex-grow flex flex-col h-screen overflow-y-auto bg-slate-100 dark:bg-neutral-950 px-8 py-6 border-l border-t border-slate-300 dark:border-neutral-800">
+    <main id="portal-main" tabindex="-1" class="min-w-0 flex-grow flex flex-col h-screen overflow-y-auto bg-slate-100 dark:bg-neutral-950 px-8 py-6 border-l border-t border-slate-300 dark:border-neutral-800">
       
       <!-- Top Nav -->
-      <header class="h-16 flex items-center justify-between mb-6">
+      <header class="min-h-16 flex flex-wrap items-center justify-between gap-3 mb-6">
         <div class="flex items-center gap-4">
             <button id="sidebar-toggle" data-portal-menu onclick="toggleSidebar()" aria-label="Open navigation" class="hi-mobile-menu hi-mobile-menu rounded-lg"><i data-lucide="menu" class="w-5 h-5"></i></button>
-            <h1 id="superadmin-view-title" class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Overview</h1>
+            <h1 id="superadmin-view-title" class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Superadmin Portal</h1>
         </div>
-        <button id="theme-toggle-btn" data-theme-toggle aria-label="Switch to light mode" onclick="toggleSuperTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-200 dark:hover:bg-neutral-800 text-slate-600 dark:text-neutral-300 transition-colors"><i data-lucide="sun" class="w-5 h-5"></i></button>
+        <div class="superadmin-header-controls ml-auto flex min-w-0 items-center gap-3">
+          <button type="button" id="theme-toggle-btn" data-theme-toggle aria-label="Switch to dark mode" onclick="toggleSuperTheme()" class="superadmin-header-theme"><i data-lucide="moon" class="w-4 h-4" aria-hidden="true"></i></button>
+          <span id="overview-account-id" class="max-w-xs truncate text-sm font-semibold text-slate-700 dark:text-slate-300">Superadmin</span>
+          <button type="button" id="account-profile" onclick="HealthIntelAccount.open()" aria-label="Open profile and password settings" title="Profile and security" class="superadmin-header-profile"><i data-lucide="user" class="h-5 w-5" aria-hidden="true"></i></button>
+        </div>
       </header>
 
-      <div class="w-full flex-grow">
+      <div class="hi-superadmin-views w-full flex-grow">
         
         <!-- DASHBOARD VIEW -->
-        <div id="view-dashboard" class="view-section active space-y-6">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Stat Card 1 -->
-                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-6 relative overflow-hidden group">
-                    <div class="absolute top-6 right-6 w-8 h-8 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center">
-                        <i data-lucide="activity" class="w-4 h-4 text-slate-600 dark:text-neutral-400"></i>
-                    </div>
-                    <h2 class="text-slate-600 dark:text-neutral-400 font-medium mb-4 text-sm">Server Uptime</h2>
-                    <div class="text-4xl font-bold text-slate-900 dark:text-white mb-2" id="stat-uptime">99.9%</div>
-                    <p class="text-slate-600 dark:text-neutral-400 text-xs">Current server process uptime</p>
-                </div>
-                <!-- Stat Card 2 -->
-                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-6 relative overflow-hidden">
-                    <div class="absolute top-6 right-6 w-8 h-8 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center">
-                        <i data-lucide="file-clock" class="w-4 h-4 text-slate-600 dark:text-neutral-400"></i>
-                    </div>
-                    <h2 class="text-slate-600 dark:text-neutral-400 font-medium mb-4 text-sm">Total Logs</h2>
-                    <div class="text-4xl font-bold text-slate-900 dark:text-white mb-2" id="stat-total-logs">0</div>
-                    <p class="text-slate-600 dark:text-neutral-400 text-xs">Recorded audit entries</p>
-                </div>
-                <!-- Stat Card 3 -->
-                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-6 relative overflow-hidden">
-                    <div class="absolute top-6 right-6 w-8 h-8 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center">
-                        <i data-lucide="users" class="w-4 h-4 text-slate-600 dark:text-neutral-400"></i>
-                    </div>
-                    <h2 class="text-slate-600 dark:text-neutral-400 font-medium mb-4 text-sm">Total Personnel</h2>
-                    <div class="text-4xl font-bold text-slate-900 dark:text-white mb-2" id="stat-active-admins">0</div>
-                    <p class="text-slate-600 dark:text-neutral-400 text-xs">Registered system accounts</p>
-                </div>
-                <!-- Stat Card 4 -->
-                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-6 relative overflow-hidden">
-                    <div class="absolute top-6 right-6 w-8 h-8 bg-slate-100 dark:bg-neutral-800 rounded-full flex items-center justify-center">
-                        <i data-lucide="hard-drive" class="w-4 h-4 text-slate-600 dark:text-neutral-400"></i>
-                    </div>
-                    <h2 class="text-slate-600 dark:text-neutral-400 font-medium mb-4 text-sm">Storage Used</h2>
-                    <div class="text-4xl font-bold text-slate-900 dark:text-white mb-2" id="stat-db-size">42 MB</div>
-                    <p class="text-slate-600 dark:text-neutral-400 text-xs">Database storage reported by MySQL</p>
-                </div>
-            </div>
+        <div id="view-dashboard" class="view-section active space-y-6"><div id="role-overview" data-overview-role="superadmin" class="space-y-6" aria-busy="true">
+ <div class="flex flex-wrap items-start justify-between gap-4"><div><h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">System overview</h1><p class="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">Oversee administrator access, accountability and system recovery.</p></div><button type="button" id="overview-refresh" aria-label="Refresh overview" title="Refresh overview" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i></button></div>
+ <section class="relative overflow-hidden rounded-2xl superadmin-overview-hero p-6 text-white shadow-sm"><div class="flex flex-wrap items-center justify-between gap-5"><div class="min-w-0 flex-1"><p class="text-xs font-medium uppercase tracking-widest text-emerald-100">Super administrator workspace</p><h2 id="overview-welcome" class="mt-2 break-words text-2xl font-bold tracking-tight">Welcome to your workspace</h2><p id="overview-hero-title" class="mt-3 font-semibold text-white">Your system, organized and within reach</p><p class="mt-1 max-w-xl text-sm text-emerald-100">Keep administrator access, system records and encrypted recovery backups within reach.</p></div><button type="button" data-overview-open="backup" class="superadmin-overview-cta shrink-0 rounded-xl bg-white px-4 py-3 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Open database backup</button></div></section>
+ <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"><button type="button" data-overview-open="directory" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+ <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">System accounts</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="users-round" class="h-5 w-5" aria-hidden="true"></i></span></span>
+ <span id="overview-system-accounts" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
+ <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">Browse BHW, MHO and Admin accounts<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button><button type="button" data-overview-open="accounts" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+ <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">Administrators</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="shield-check" class="h-5 w-5" aria-hidden="true"></i></span></span>
+ <span id="overview-accounts" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
+ <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">View administrator access<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button><div class="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5">
+ <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">Recorded cases</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="database" class="h-5 w-5" aria-hidden="true"></i></span></span>
+ <span id="overview-records" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
+ <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">Total disease case records</span></div><button type="button" data-overview-open="audit" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+ <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">Audit entries</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="scroll-text" class="h-5 w-5" aria-hidden="true"></i></span></span>
+ <span id="stat-total-logs" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
+ <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">View the master ledger<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button></div>
+ <div class="grid items-start gap-5 xl:grid-cols-2"><section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-800/60"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="shield-check" class="h-5 w-5" aria-hidden="true"></i></span>Administrator requests</span></h2><button type="button" data-overview-open="pending" class="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 dark:border-emerald-800 dark:bg-neutral-900 dark:text-emerald-200 dark:hover:bg-emerald-950">View requests</button></header><div id="overview-pending-list"><p class="p-5 text-sm font-medium text-slate-700 dark:text-slate-200">Loading requests…</p></div></section>
+ <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-800/60"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="history" class="h-5 w-5" aria-hidden="true"></i></span>Recent activity</span></h2><button type="button" data-overview-open="audit" class="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 dark:border-emerald-800 dark:bg-neutral-900 dark:text-emerald-200 dark:hover:bg-emerald-950">View ledger</button></header><div id="overview-recent-list"><p class="p-5 text-sm font-medium text-slate-700 dark:text-slate-200">Loading activity…</p></div></section></div>
+ <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-6"><div class="flex flex-wrap items-center justify-between gap-3"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><i data-lucide="radio-tower" class="h-5 w-5 text-emerald-800 dark:text-emerald-300" aria-hidden="true"></i>Connection status</span></h2><button type="button" onclick="loadSystemHealth()" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800">Check connections</button></div><p id="sys-status-text" class="mt-3 rounded-lg bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 dark:bg-neutral-800 dark:text-slate-100" role="status">Checking server and database…</p><div class="hidden" aria-hidden="true"><div id="sys-status-bar" class="h-full bg-slate-300"></div></div><dl class="mt-5 grid gap-3 text-sm md:grid-cols-3"><div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-neutral-700 dark:bg-neutral-800"><dt class="font-semibold text-slate-700 dark:text-slate-200">MySQL database</dt><dd id="status-db" class="mt-2 font-bold text-slate-900 dark:text-white">Checking…</dd></div><div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-neutral-700 dark:bg-neutral-800"><dt class="font-semibold text-slate-700 dark:text-slate-200">Node.js API</dt><dd id="status-api" class="mt-2 font-bold text-slate-900 dark:text-white">Checking…</dd></div><div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-neutral-700 dark:bg-neutral-800"><dt class="font-semibold text-slate-700 dark:text-slate-200">Access controls</dt><dd class="mt-2 font-bold text-slate-900 dark:text-white">Assigned role permissions</dd></div></dl><div class="mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-slate-200 pt-4 text-sm font-medium text-slate-700 dark:border-neutral-700 dark:text-slate-200"><span>Pending: <strong id="overview-pending">—</strong></span><span>Process uptime: <strong id="stat-uptime">—</strong></span><span>Database size: <strong id="stat-db-size">—</strong></span></div></section><section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 flex flex-wrap items-center justify-between gap-4 p-5"><div><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Recovery and accountability</h2><p class="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">Keep backups secure and review saved actions in the master ledger.</p></div><div class="flex flex-wrap gap-2"><button type="button" data-overview-open="backup" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="hard-drive-download" class="h-5 w-5 shrink-0" aria-hidden="true"></i>Database backup</button><button type="button" data-overview-open="audit" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="scroll-text" class="h-5 w-5 shrink-0" aria-hidden="true"></i>Master ledger</button><button type="button" onclick="restartServices()" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800" aria-label="View manual server restart instructions"><i data-lucide="info" class="h-5 w-5 shrink-0" aria-hidden="true"></i>View instructions</button></div></section>
+ <p id="overview-load-status" class="text-sm font-medium text-slate-700 dark:text-slate-200" role="status">Loading saved overview data…</p>
+ </div></div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-                <!-- Large Panel -->
-                <div class="lg:col-span-2 bg-white dark:bg-neutral-900 rounded-3xl p-8">
-                    <div class="hi-wrap-actions flex justify-between items-center mb-8">
-                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">System Actions</h2>
-                        <div class="flex gap-2">
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <div class="bg-slate-100 dark:bg-neutral-950 p-5 hi-stack-small rounded-2xl border border-slate-300 dark:border-neutral-800/50 flex items-center justify-between">
-                            <div>
-                                <p class="text-slate-600 dark:text-neutral-400 font-bold text-xs mb-1">NODE SERVER</p>
-                                <p class="text-slate-900 dark:text-white font-medium">Manual Server Restart</p>
-                            </div>
-                            <button onclick="restartServices()" class="px-6 py-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:bg-neutral-700 text-slate-900 dark:text-white font-medium rounded-full text-sm transition">View instructions</button>
-                        </div>
-                        
-                    </div>
-                </div>
-
-                <!-- Secondary Panel -->
-                <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8">
-                    <h2 class="text-lg font-bold text-slate-900 dark:text-white mb-2">System Integrity</h2>
-                    <p class="text-slate-600 dark:text-neutral-400 text-sm mb-8" id="sys-status-text">All core modules operational</p>
-                    
-                    <div class="h-2 w-full bg-slate-100 dark:bg-neutral-800 rounded-full mb-6 flex overflow-hidden">
-                        <div class="h-full bg-emerald-500" id="sys-status-bar"></div>
-                    </div>
-                    
-                    <div class="space-y-4 mt-6">
-                        <div class="flex justify-between text-sm border-b border-slate-300 dark:border-neutral-800 pb-3">
-                            <span class="flex items-center gap-2 text-slate-600 dark:text-neutral-400"><i data-lucide="database" class="w-4 h-4"></i> MySQL Database</span>
-                            <span class="text-emerald-700 dark:text-emerald-400 font-bold" id="status-db">Connected</span>
-                        </div>
-                        <div class="flex justify-between text-sm border-b border-slate-300 dark:border-neutral-800 pb-3">
-                            <span class="flex items-center gap-2 text-slate-600 dark:text-neutral-400"><i data-lucide="server" class="w-4 h-4"></i> Node.js API</span>
-                            <span class="text-emerald-700 dark:text-emerald-400 font-bold" id="status-api">Connected</span>
-                        </div>
-                        <div class="flex justify-between text-sm pb-1">
-                            <span class="flex items-center gap-2 text-slate-600 dark:text-neutral-400"><i data-lucide="lock" class="w-4 h-4"></i> Account Authentication</span>
-                            <span class="text-emerald-700 dark:text-emerald-400 font-bold">Secured</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- USERS VIEW -->
         <div id="view-users" class="view-section space-y-6">
             <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8">
                 <div class="hi-wrap-actions flex justify-between items-center mb-8">
                     <div>
                         <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Access Control</h2>
-                        <p class="text-slate-600 dark:text-neutral-400 text-sm mt-1">Review LGU Admin accounts and manage their access</p>
+                        <p class="text-slate-600 dark:text-neutral-400 text-sm mt-1" id="admin-access-description">Review LGU Admin accounts. Select a row to view details and manage access.</p>
                     </div>
+                </div>
+
+
+                <div class="hi-access-choices" role="group" aria-label="Access Control views">
+                    <button id="admin-view-directory" type="button" aria-pressed="false" onclick="selectAdminAccess('directory')">System Accounts</button>
+                    <button id="admin-view-accounts" type="button" aria-pressed="true" onclick="selectAdminAccess('accounts')">Administrators</button>
+                    <button id="admin-view-pending" type="button" aria-pressed="false" onclick="selectAdminAccess('pending')">Pending Requests <span id="admin-pending-count"></span></button>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 mb-4">
                     <div class="flex-1">
-                        <label for="admin-search" class="block text-xs text-slate-600 dark:text-neutral-400 mb-2">Search Admin accounts</label>
-                        <input id="admin-search" type="search" oninput="renderAdmins()" placeholder="Name, email, account ID or employee ID" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <label for="admin-search" class="block text-xs text-slate-600 dark:text-neutral-400 mb-2">Search accounts</label>
+                        <input id="admin-search" type="search" oninput="renderAdmins()" placeholder="Search accounts" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     </div>
-                    <div class="sm:w-48">
-                        <label for="admin-status-filter" class="block text-xs text-slate-600 dark:text-neutral-400 mb-2">Account status</label>
-                        <select id="admin-status-filter" onchange="renderAdmins()" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                            <option value="">All statuses</option><option value="approved">Active</option><option value="pending">Pending</option><option value="suspended">Suspended</option><option value="denied">Denied</option>
+                    <div id="admin-role-field" class="sm:w-48" hidden>
+                        <label for="admin-role-filter" class="block text-xs text-slate-600 dark:text-neutral-400 mb-2">Role</label>
+                        <select id="admin-role-filter" onchange="renderAdmins()" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="">All roles</option><option value="bhw">BHW</option><option value="mho">MHO</option><option value="admin">Admin</option>
                         </select>
                     </div>
-                    <button onclick="loadAdmins()" class="sm:self-end px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-neutral-800">Refresh</button>
+                    <div id="admin-status-field" class="sm:w-48">
+                        <label for="admin-status-filter" class="block text-xs text-slate-600 dark:text-neutral-400 mb-2">Account status</label>
+                        <select id="admin-status-filter" onchange="renderAdmins()" class="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <option value="">All statuses</option><option value="approved">Active</option><option id="admin-pending-option" value="pending" hidden>Pending</option><option value="suspended">Suspended</option><option value="denied">Denied</option>
+                        </select>
+                    </div>
+                    <button type="button" onclick="loadAdmins()" aria-label="Refresh accounts" title="Refresh accounts" class="sm:self-end flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600"><i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i></button>
                 </div>
                 <p id="admin-list-status" role="status" class="text-sm text-slate-600 dark:text-neutral-400 mb-4">Loading Admin accounts…</p>
-                <div class="w-full overflow-x-auto rounded-2xl border border-slate-300 dark:border-neutral-800" role="region" aria-label="Admin accounts" tabindex="0">
-                    <table class="w-full min-w-[760px] text-left text-sm">
+                <div class="w-full overflow-x-auto rounded-2xl border border-slate-300 dark:border-neutral-800" role="region" aria-label="Access Control accounts" tabindex="0">
+                    <table class="hi-admin-access-table w-full text-left text-sm">
                         <thead class="bg-slate-100 dark:bg-neutral-950 border-b border-slate-300 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 font-medium">
                             <tr>
-                                <th class="p-4">Admin account</th>
-                                <th class="p-4">Email</th>
-                                <th class="p-4">Status</th>
-                                <th class="p-4">Registered</th>
-                                <th class="sticky right-0 z-10 bg-slate-100 dark:bg-neutral-950 p-4 border-l border-slate-300 dark:border-neutral-800 text-right">Actions</th>
+                                <th id="admin-account-heading" scope="col" class="p-4">Admin account</th>
+                                <th id="admin-email-heading" scope="col" class="p-4">Email</th>
+                                <th scope="col" class="p-4">Status</th>
+                                <th id="admin-date-heading" scope="col" class="p-4">Registered</th>
                             </tr>
                         </thead>
                         <tbody id="user-table-body" class="divide-y divide-slate-200 dark:divide-neutral-800"></tbody>
                     </table>
                 </div>
+                <div id="admin-account-pager" onclick="pageAdminAccounts(event)"></div>
             </div>
         </div>
 
@@ -229,8 +178,8 @@
                     <button onclick="clearLedgerFilters()" class="self-end rounded-xl border border-slate-300 dark:border-neutral-700 px-3 py-2 text-sm text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800">Clear filters</button>
                 </div>
                 <p id="ledger-status" role="status" class="mb-4 text-sm text-slate-500 dark:text-neutral-400">Read-only history. Activities appear when the server records them.</p>
-                <div class="w-full overflow-x-auto rounded-2xl border border-slate-300 dark:border-neutral-800 flex-grow" role="region" aria-label="Master Ledger entries" tabindex="0">
-                    <table class="w-full min-w-[900px] table-fixed text-left text-sm">
+                <div class="hi-ledger-region w-full overflow-x-auto rounded-2xl border border-slate-300 dark:border-neutral-800" role="region" aria-label="Master Ledger entries" tabindex="0">
+                    <table class="hi-ledger-table w-full min-w-[900px] table-fixed text-left text-sm">
                         <thead class="bg-slate-100 dark:bg-neutral-950 border-b border-slate-300 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 font-medium">
                             <tr>
                                 <th class="p-3 w-36">Timestamp</th>
@@ -239,7 +188,6 @@
                                 <th class="p-3">Executed Action / Summary</th>
                                 <th class="p-3 w-32">Affected record</th>
                                 <th class="p-3 w-28">Outcome</th>
-                                <th class="sticky right-0 z-10 bg-slate-100 dark:bg-neutral-950 p-3 w-32 text-center border-l border-slate-300 dark:border-neutral-800">Details</th>
                             </tr>
                         </thead>
                         <tbody id="audit-table-body" class="divide-y divide-neutral-800"></tbody>
@@ -256,7 +204,7 @@
 
         <!-- DB BACKUP VIEW -->
         <div id="view-db" class="view-section space-y-6">
-            <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8 max-w-3xl">
+            <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8 w-full">
                 <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Database Extraction</h2>
                 <p class="text-slate-600 dark:text-neutral-400 text-sm mb-8">Download an encrypted backup containing the database tables and records.</p>
                 
@@ -280,12 +228,15 @@
       </div>
     </main>
 
-    <script src="assets/js/superadmin/superadmin-shell.js"></script>
-    <script src="assets/js/superadmin/superadmin-health.js"></script>
-    <script src="assets/js/superadmin/superadmin-users.js"></script>
-    <script src="assets/js/superadmin/superadmin-ledger.js"></script>
-    <script src="assets/js/superadmin/superadmin-backup.js"></script>
-    <script src="assets/js/superadmin/superadmin-startup.js"></script>
+    <div id="superadmin-row-tooltip" aria-hidden="true"></div>
+    <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
+    <script src="assets/js/shared/role-overview.js?v=20261108-access-choices"></script>
+    <script src="assets/js/superadmin/superadmin-shell.js?v=20261108-cursor-hints"></script>
+    <script src="assets/js/superadmin/superadmin-health.js?v=20261108-access-choices"></script>
+    <script src="assets/js/superadmin/superadmin-users.js?v=20261108-account-paging"></script>
+    <script src="assets/js/superadmin/superadmin-ledger.js?v=20261108-history-pagination"></script>
+    <script src="assets/js/superadmin/superadmin-backup.js?v=20261107-password-renewal"></script>
+    <script src="assets/js/superadmin/superadmin-startup.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261031-visible4"></script>
   </body>
 </html>

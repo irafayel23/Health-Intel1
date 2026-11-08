@@ -178,3 +178,14 @@
 .heatmap-heat-view .map-distribution-header p,.dark .map-distribution-header p {color:#5eead4;}
 .heatmap-heat-view .heatmap-breakdown-control,.dark .heatmap-breakdown-control {background:#111827f2;border-color:#475569;color:#f1f5f9;}
 @media(max-width:600px){.heatmap-breakdown-control{top:122px;right:12px}.heatmap-case-dialog{width:calc(100vw - 24px);max-height:calc(100dvh - 24px);border-radius:16px}.map-distribution-header{padding:16px}.map-distribution-header h2{font-size:21px}.map-distribution-body{padding:16px}.map-distribution-grid{grid-template-columns:1fr;gap:22px}.map-distribution-chart svg{width:180px}.map-distribution-key{grid-template-columns:1fr;max-width:320px;margin:auto}.map-distribution-table th,.map-distribution-table td{padding:11px 9px}.map-distribution-scope{margin-bottom:16px}}
+
+:is(#murciaMap,#bhwMap) .heatmap-expand-controls { gap: 6px; }
+:is(#murciaMap,#bhwMap) .heatmap-expand-controls button { display: inline-grid; place-items: center; position: static; width: 44px; height: 44px; min-height: 44px; padding: 0; }
+:is(#murciaMap,#bhwMap) .heatmap-expand-controls button svg { width: 20px; height: 20px; }
+:is(#murciaMap,#bhwMap) .heatmap-expand-button[aria-expanded="true"] .mho-map-maximize,
+:is(#murciaMap,#bhwMap) .heatmap-expand-button[aria-expanded="false"] .mho-map-minimize { display: none; }
+
+@media (max-width: 1024px) {
+  :is(#murciaMap,#bhwMap) .heatmap-view-switch { top: 64px; left: 12px; right: 12px; justify-content: center; }
+}
+:is(#murciaMap,#bhwMap) .heatmap-expand-controls button:disabled { opacity: .6; cursor: wait; }

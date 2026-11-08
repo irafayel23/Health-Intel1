@@ -7,7 +7,7 @@
     </script>
     <script src="assets/js/shared/theme.js"></script>
     <script src="assets/js/shared/accessible-modal.js"></script>
-    <script src="assets/js/shared/api-session.js"></script>
+    <script src="assets/js/shared/api-session.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/safe-text.js"></script>
     <script src="assets/js/shared/case-corrections.js"></script>
     <meta charset="UTF-8" />
@@ -20,14 +20,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- Built with npm --prefix tools/styles run build:portals. -->
-    <link rel="stylesheet" href="assets/css/admin/admin-utilities.css?v=20261008" />
-    <link rel="stylesheet" href="assets/css/admin/admin-page.css" />
+    <link rel="stylesheet" href="assets/css/admin/admin-utilities.css?v=20261107-account-pages" />
+    <link rel="stylesheet" href="assets/css/admin/admin-page.css?v=20261107-audit-trail" />
 
-      <link rel="stylesheet" href="assets/css/shared/encoding-controls.css">
-    <script src="assets/js/shared/encoding-controls.js"></script>
-    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261031-visible4">
+      <link rel="stylesheet" href="assets/css/shared/encoding-controls.css?v=20261101-chevron">
+    <script src="assets/js/shared/encoding-controls.js?v=20261101-select-scroll"></script>
+    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261107-logout-hover">
+  <link rel="stylesheet" href="assets/css/shared/account-settings.css?v=20261107-password-renewal">
   </head>
-  <body class="hi-portal">
+  <body class="hi-portal hi-role-readable">
+    <a class="hi-skip-link" href="#portal-main">Skip to main content</a>
     <div id="dashboard-section" class="flex h-screen w-full bg-slate-100 dark:bg-neutral-950 font-sans overflow-hidden">
       
       <!-- SIDEBAR (Always Dark) -->
@@ -41,7 +43,10 @@
         </div>
         
         <nav class="flex-1 py-4 flex flex-col gap-1 px-3">
-          <button class="nav-item text-slate-600 dark:text-slate-300 active w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-iam" onclick="switchMainView('view-iam', 'nav-iam')">
+          <button class="nav-item text-slate-600 dark:text-slate-300 active w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-overview" onclick="switchMainView('view-overview', 'nav-overview')">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Overview</span>
+          </button>
+<button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-iam" onclick="switchMainView('view-iam', 'nav-iam')">
             <i data-lucide="users-round" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">User Management</span>
           </button>
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-data" onclick="switchMainView('view-data', 'nav-data')">
@@ -64,23 +69,23 @@
       </aside>
 
       <!-- MAIN CONTENT -->
-      <main class="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0f172a] overflow-hidden relative z-20 border-l border-t border-slate-300 dark:border-neutral-800">
+      <main id="portal-main" tabindex="-1" class="flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0f172a] overflow-hidden relative z-20 border-l border-t border-slate-300 dark:border-neutral-800">
         
         <!-- HEADER -->
-        <header class="h-16 bg-transparent flex items-center justify-between px-6 flex-shrink-0 z-20">
+        <header class="min-h-16 bg-transparent flex flex-wrap items-center justify-between gap-3 px-6 py-3 flex-shrink-0 z-20">
           <div class="flex items-center gap-4">
             <button id="sidebar-toggle" class="hi-mobile-menu text-slate-600 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200" data-portal-menu aria-label="Toggle sidebar" onclick="toggleSidebar()">
               <i data-lucide="menu" id="sidebar-icon" class="w-5 h-5"></i>
             </button>
-            <div class="text-sm text-slate-600 flex gap-2">
-              <span class="text-slate-800 dark:text-slate-200 font-medium">Dashboard</span>
-            </div>
           </div>
           
           <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400 font-medium">
-            <span class="hidden sm:inline">Admin Control Center</span>
-            <button id="theme-toggle-btn" data-theme-toggle aria-label="Switch to dark mode" onclick="toggleAdminTheme()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors">
-              <i data-lucide="moon" class="w-4 h-4"></i>
+            <button type="button" id="theme-toggle-btn" data-theme-toggle aria-label="Switch to dark mode" onclick="toggleAdminTheme()" class="admin-header-theme">
+              <i data-lucide="moon" class="w-4 h-4" aria-hidden="true"></i>
+            </button>
+            <span id="overview-account-id" class="text-sm font-semibold text-slate-800 dark:text-slate-100">ADM-***</span>
+            <button type="button" id="account-profile" onclick="HealthIntelAccount.open()" aria-label="Open profile and password settings" title="Profile and security" class="admin-header-profile">
+              <i data-lucide="user-round" class="h-5 w-5" aria-hidden="true"></i>
             </button>
           </div>
         </header>
@@ -92,265 +97,281 @@
           <!-- 1. USER MANAGEMENT (IAM) -->
 <!-- 1. USER MANAGEMENT (IAM) -->
           <!-- ============================================== -->
-          <div id="view-iam" class="view-section active">
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">User Management</h1>
-            <br />
-            <div class="white-panel">
-              <div class="sub-tabs">
-                <button class="sub-tab-btn active" id="btn-iam-pending" onclick="switchSubView('iam', 'pending')">
-                  Pending Approvals
-                </button>
-                <button class="sub-tab-btn" id="btn-iam-active" onclick="switchSubView('iam', 'active')">
-                  Active Personnel Directory
-                </button>
-                <button class="sub-tab-btn" id="btn-iam-archived" onclick="switchSubView('iam', 'archived')">
-                  Archived / Denied
-                </button>
-              </div>
+          <div id="view-overview" class="view-section active"><div id="role-overview" data-overview-role="admin" class="space-y-6" aria-busy="true">
+ <div class="flex flex-wrap items-start justify-between gap-4"><div><h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Administration overview</h1><p class="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">Manage your people, records and disease catalog in one workspace.</p></div><button type="button" id="overview-refresh" aria-label="Refresh overview" title="Refresh overview" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i></button></div>
+ <section class="relative overflow-hidden rounded-2xl admin-overview-hero p-6 text-white shadow-sm"><div class="flex flex-wrap items-center justify-between gap-5"><div class="min-w-0 flex-1"><p class="text-xs font-medium uppercase tracking-widest text-emerald-100">Administrator workspace</p><h2 id="overview-welcome" class="mt-2 break-words text-2xl font-bold tracking-tight">Welcome to your workspace</h2><p id="overview-hero-title" class="mt-3 font-semibold text-white">Your approval queue at a glance</p><p class="mt-1 max-w-xl text-sm text-emerald-100">Review BHW and MHO registrations, manage access and keep your records organized.</p></div><button type="button" data-overview-open="pending" class="admin-overview-cta shrink-0 rounded-xl bg-white px-4 py-3 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Review requests</button></div></section>
+ <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"><button type="button" data-overview-open="accounts" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+ <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">BHW & MHO accounts</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="users-round" class="h-5 w-5" aria-hidden="true"></i></span></span>
+ <span id="overview-accounts" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
+ <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">All registration statuses<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button><button type="button" data-overview-open="pending" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+ <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">Awaiting approval</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200"><i data-lucide="user-round-check" class="h-5 w-5" aria-hidden="true"></i></span></span>
+ <span id="overview-pending" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
+ <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">Review account requests<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button><button type="button" data-overview-open="records" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+ <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">Active disease cases</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="clipboard-list" class="h-5 w-5" aria-hidden="true"></i></span></span>
+ <span id="overview-records" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
+ <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">Non-archived active cases<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button><button type="button" data-overview-open="catalog" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
+ <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">Catalog diseases</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="book-open" class="h-5 w-5" aria-hidden="true"></i></span></span>
+ <span id="overview-catalog" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
+ <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">Currently active entries<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button></div>
+ <div class="grid items-start gap-5 xl:grid-cols-2"><section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-800/60"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="user-round-check" class="h-5 w-5" aria-hidden="true"></i></span>Account approval queue</span></h2><button type="button" data-overview-open="pending" class="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 dark:border-emerald-800 dark:bg-neutral-900 dark:text-emerald-200 dark:hover:bg-emerald-950">View requests</button></header><div id="overview-pending-list"><p class="p-5 text-sm font-medium text-slate-700 dark:text-slate-200">Loading requests…</p></div></section>
+ <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-800/60"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="history" class="h-5 w-5" aria-hidden="true"></i></span>Recent activity</span></h2><button type="button" data-overview-open="audit" class="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 dark:border-emerald-800 dark:bg-neutral-900 dark:text-emerald-200 dark:hover:bg-emerald-950">View audit trail</button></header><div id="overview-recent-list"><p class="p-5 text-sm font-medium text-slate-700 dark:text-slate-200">Loading activity…</p></div></section></div>
+ <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 flex flex-wrap items-center justify-between gap-4 p-5"><div><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Records and catalog</h2><p class="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">Open the tools you use most without leaving your workspace.</p></div><div class="flex flex-wrap gap-2"><button type="button" data-overview-open="records" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="database" class="h-5 w-5 shrink-0" aria-hidden="true"></i>Patient records</button><button type="button" data-overview-open="catalog" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="book-open" class="h-5 w-5 shrink-0" aria-hidden="true"></i>Disease catalog</button></div></section>
+ <p id="overview-load-status" class="text-sm font-medium text-slate-700 dark:text-slate-200" role="status">Loading saved overview data…</p><p id="overview-action-note" class="text-sm font-medium text-slate-700 dark:text-slate-200" role="status"></p>
+ </div></div>
+<div id="view-iam" class="view-section">
+            <section class="admin-list-card" aria-labelledby="admin-personnel-title">
+              <header class="admin-list-header">
+                <h1 id="admin-personnel-title">User Management</h1>
+                <p>Review registrations and manage BHW and MHO account access.</p>
+              </header>
+              <div class="admin-list-body">
+                <div class="sub-tabs admin-list-tabs" role="group" aria-label="Personnel lists">
+                  <button class="sub-tab-btn active" id="btn-iam-pending" aria-pressed="true" onclick="switchSubView('iam', 'pending')">
+                    Pending Approvals
+                  </button>
+                  <button class="sub-tab-btn" id="btn-iam-active" aria-pressed="false" onclick="switchSubView('iam', 'active')">
+                    Active Personnel Directory
+                  </button>
+                  <button class="sub-tab-btn" id="btn-iam-archived" aria-pressed="false" onclick="switchSubView('iam', 'archived')">
+                    Archived / Denied
+                  </button>
+                </div>
 
-              <!-- Pending Approvals View -->
-              <div id="iam-pending-view">
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>System ID</th>
-                        <th>Full Name</th>
-                        <th>Employee ID</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="pending-table-body"></tbody>
-                  </table>
+                <!-- Pending Approvals View -->
+                <div id="iam-pending-view">
+                  <div class="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Account</th>
+                          <th scope="col">Employee ID</th>
+                          <th scope="col">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="pending-table-body"></tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Active Personnel View -->
+                <div id="iam-active-view" class="admin-hidden-subview">
+                  <div class="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Account</th>
+                          <th scope="col">Role</th>
+                          <th scope="col">Assigned Barangay</th>
+                          <th scope="col">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="active-users-table-body"></tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- Archived / Denied View -->
+                <div id="iam-archived-view" class="admin-hidden-subview">
+                  <div class="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Account</th>
+                          <th scope="col">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="denied-table-body"></tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-
-              <!-- Active Personnel View -->
-              <div id="iam-active-view" class="admin-hidden-subview">
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>System ID</th>
-                        <th>Full Name</th>
-                        <th>Role</th>
-                        <th>Assigned Barangay</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="active-users-table-body"></tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- Archived / Denied View -->
-              <div id="iam-archived-view" class="admin-hidden-subview">
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>System ID</th>
-                        <th>Full Name</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="denied-table-body"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            </section>
           </div>
 
           <!-- ============================================== -->
           <!-- 2. MASTER RECORD DATABASE (PATIENTS) -->
           <!-- ============================================== -->
           <div id="view-data" class="view-section">
-            <h1 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">Patient Records</h1>
-            <p class="text-slate-600 dark:text-slate-400 mb-6">Master records of BHW cases and MHO walk-ins. Use a Case ID to trace a specific record and its history.</p>
-
-            <div class="white-panel">
-              <div class="sub-tabs">
-                <button class="sub-tab-btn active" id="btn-data-active" onclick="switchSubView('data', 'active')">
-                  Active Patient Records
-                </button>
-                <button class="sub-tab-btn" id="btn-data-archived" onclick="switchSubView('data', 'archived')">
-                  Archived Records
-                </button>
-              </div>
-
-              <div id="data-active-view">
-                <div class="admin-patient-search-row">
-                  <input type="text" id="search-patient" onkeyup="filterData()" placeholder="Search name or Case ID (REC-5257)..." aria-label="Search active records by patient name or Case ID" class="admin-patient-search-input" />
-                  <select id="filter-table-brgy" onchange="filterData()" class="flex-1 min-w-[140px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
-                    <option value="">All Barangays</option>
-                    <option value="1">Blumentritt</option>
-                    <option value="2">Salvacion</option>
-                    <option value="3">Minoyan</option>
-                    <option value="4">Caliban</option>
-                    <option value="5">Cansilayan</option>
-                    <option value="6">Alegria</option>
-                    <option value="7">Sta. Rosa</option>
-                  </select>
-                  <select id="filter-table-disease" onchange="filterData()" class="flex-1 min-w-[140px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
-                    <option value="">All Diseases</option>
-                    <option value="cough">Cough</option>
-                    <option value="urti">URTI</option>
-                    <option value="infection all types">Infection all types</option>
-                    <option value="ari">ARI</option>
-                    <option value="fever unknown origin">Fever unknown origin</option>
-                    <option value="hypertension">Hypertension</option>
-                    <option value="influenza">Influenza</option>
-                    <option value="acute gastroenteritis">Acute Gastroenteritis</option>
-                    <option value="vertigo">Vertigo</option>
-                    <option value="all types of skin disease">All types of skin disease</option>
-                    <option value="dengue">Dengue</option>
-                  </select>
-                  <select id="filter-table-status" onchange="filterData()" class="flex-1 min-w-[120px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="cleared">Cleared</option>
-                    <option value="deceased">Deceased</option>
-                  </select>
+            <section class="admin-list-card" aria-labelledby="admin-patient-records-title">
+              <header class="admin-list-header">
+                <h1 id="admin-patient-records-title">Patient Records</h1>
+                <p>Master records of BHW cases and MHO walk-ins. Select a case row to see its details and history.</p>
+              </header>
+              <div class="admin-list-body">
+                <div class="sub-tabs admin-list-tabs" role="group" aria-label="Patient record lists">
+                  <button class="sub-tab-btn active" id="btn-data-active" onclick="switchSubView('data', 'active')">
+                    Active Patient Records
+                  </button>
+                  <button class="sub-tab-btn" id="btn-data-archived" onclick="switchSubView('data', 'archived')">
+                    Archived Records
+                  </button>
                 </div>
+
+                <div id="data-active-view">
+                  <div class="admin-patient-search-row">
+                    <input type="text" id="search-patient" onkeyup="filterData()" placeholder="Search name or Case ID (REC-5257)..." aria-label="Search active records by patient name or Case ID" class="admin-patient-search-input" />
+                    <select id="filter-table-brgy" onchange="filterData()" class="flex-1 min-w-[140px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
+                      <option value="">All Barangays</option>
+                      <option value="1">Blumentritt</option>
+                      <option value="2">Salvacion</option>
+                      <option value="3">Minoyan</option>
+                      <option value="4">Caliban</option>
+                      <option value="5">Cansilayan</option>
+                      <option value="6">Alegria</option>
+                      <option value="7">Sta. Rosa</option>
+                    </select>
+                    <select id="filter-table-disease" onchange="filterData()" class="flex-1 min-w-[140px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
+                      <option value="">All Diseases</option>
+                      <option value="cough">Cough</option>
+                      <option value="urti">URTI</option>
+                      <option value="infection all types">Infection all types</option>
+                      <option value="ari">ARI</option>
+                      <option value="fever unknown origin">Fever unknown origin</option>
+                      <option value="hypertension">Hypertension</option>
+                      <option value="influenza">Influenza</option>
+                      <option value="acute gastroenteritis">Acute Gastroenteritis</option>
+                      <option value="vertigo">Vertigo</option>
+                      <option value="all types of skin disease">All types of skin disease</option>
+                    </select>
+                    <select id="filter-table-status" onchange="filterData()" class="flex-1 min-w-[120px] px-3 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-brandBlue/50">
+                      <option value="">All Statuses</option>
+                      <option value="active">Active</option>
+                      <option value="cleared">Cleared</option>
+                      <option value="deceased">Deceased</option>
+                    </select>
+                  </div>
                 
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Case ID</th>
-                        <th>Patient Name</th>
-                        <th>Age</th>
-                        <th>Disease</th>
-                        <th>Barangay</th>
-                        <th>Status</th>
-                        <!-- NEW PROVENANCE COLUMNS -->
-                        <th class="admin-table-highlight !text-sky-700 dark:!text-sky-300">Encoded By</th>
-                        <th class="admin-table-highlight !text-sky-700 dark:!text-sky-300">Last Updated</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody id="patient-table-body"></tbody>
-                  </table>
+                  <div class="table-container">
+                    <table class="admin-case-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Patient / Case ID</th>
+                          <th scope="col">Age</th>
+                          <th scope="col">Disease</th>
+                          <th scope="col">Barangay</th>
+                          <th scope="col">Status</th>
+                          <th scope="col">Encoded By</th>
+                          <th scope="col">Last Updated</th>
+                        </tr>
+                      </thead>
+                      <tbody id="patient-table-body"></tbody>
+                    </table>
+                  </div>
+                  <nav id="admin-active-case-pages" class="admin-case-pages" aria-label="Active case pages"></nav>
                 </div>
-              </div>
 
-              <div id="data-archived-view" class="admin-hidden-subview">
-                <div class="admin-patient-search-row">
-                  <input type="text" id="search-archived-patient" onkeyup="filterArchivedPatients()" placeholder="Search name or Case ID (REC-5257)..." aria-label="Search archived records by patient name or Case ID" class="admin-patient-search-input" />
-                </div>
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Case ID</th>
-                        <th>Patient Name</th>
-                        <th>Age</th>
-                        <th>Disease</th>
-                        <th>Barangay</th>
-                        <th>Status</th>
-                        <!-- NEW PROVENANCE COLUMNS -->
-                        <th class="admin-table-highlight !text-sky-700 dark:!text-sky-300">Encoded By</th>
-                        <th class="admin-table-highlight !text-sky-700 dark:!text-sky-300">Last Updated</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody id="patient-archived-table-body"></tbody>
-                  </table>
+                <div id="data-archived-view" class="admin-hidden-subview">
+                  <div class="admin-patient-search-row">
+                    <input type="text" id="search-archived-patient" onkeyup="filterArchivedPatients()" placeholder="Search name or Case ID (REC-5257)..." aria-label="Search archived records by patient name or Case ID" class="admin-patient-search-input" />
+                  </div>
+                  <div class="table-container">
+                    <table class="admin-case-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Patient / Case ID</th>
+                          <th scope="col">Age</th>
+                          <th scope="col">Disease</th>
+                          <th scope="col">Barangay</th>
+                          <th scope="col">Status</th>
+                          <th scope="col">Encoded By</th>
+                          <th scope="col">Last Updated</th>
+                        </tr>
+                      </thead>
+                      <tbody id="patient-archived-table-body"></tbody>
+                    </table>
+                  </div>
+                  <nav id="admin-archived-case-pages" class="admin-case-pages" aria-label="Archived case pages"></nav>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
 
           <!-- ============================================== -->
           <!-- 3. DISEASE REGISTRY -->
           <!-- ============================================== -->
           <div id="view-diseases" class="view-section">
-            <div class="admin-section-heading">
-              <div>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Disease Catalog</h1>
-                <p class="text-slate-600 dark:text-slate-400 mt-1">Manage the disease names available in BHW and MHO consultation forms.</p>
-              </div>
-              <button onclick="openDiseaseModal()" class="admin-add-disease bg-emerald-700 hover:bg-emerald-800 text-white">
-                <i data-lucide="plus-circle" class="admin-add-disease-icon"></i> Add Disease Name
-              </button>
-            </div>
+            <section class="admin-list-card" aria-labelledby="admin-disease-catalog-title">
+              <header class="admin-list-header admin-disease-header">
+                <div>
+                  <h1 id="admin-disease-catalog-title">Disease Catalog</h1>
+                  <p>Manage the disease names available in BHW and MHO consultation forms.</p>
+                </div>
+                <button type="button" onclick="openDiseaseModal()" class="admin-add-disease">
+                  <i data-lucide="plus-circle" class="admin-add-disease-icon" aria-hidden="true"></i> Add Disease Name
+                </button>
+              </header>
+              <div class="admin-list-body">
+                <div class="sub-tabs admin-list-tabs" role="group" aria-label="Disease catalog lists">
+                  <button type="button" class="sub-tab-btn active" id="btn-disease-active" aria-pressed="true" onclick="switchSubView('disease', 'active')">Active Diseases</button>
+                  <button type="button" class="sub-tab-btn" id="btn-disease-archived" aria-pressed="false" onclick="switchSubView('disease', 'archived')">Archived Diseases</button>
+                </div>
+                <p class="admin-disease-guide">Select a disease row for details. The catalog supplies disease choices for consultations. Unlisted conditions can be recorded for MHO review.</p>
 
-            <div class="white-panel">
-              <p class="mb-4 text-sm text-slate-600 dark:text-slate-300">This catalog provides disease choices; it does not create patient records or assign severity. Unlisted conditions can be recorded for MHO review.</p>
-              <div class="sub-tabs">
-                <button class="sub-tab-btn active" id="btn-disease-active" onclick="switchSubView('disease', 'active')">Active Diseases</button>
-                <button class="sub-tab-btn" id="btn-disease-archived" onclick="switchSubView('disease', 'archived')">Archived Diseases</button>
-              </div>
-              
-              <div id="disease-active-view">
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Disease Name</th>
-                        <th>Availability</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="disease-table-body"></tbody>
-                  </table>
+                <div id="disease-active-view">
+                  <div class="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Disease Name</th>
+                          <th scope="col">Availability</th>
+                        </tr>
+                      </thead>
+                      <tbody id="disease-table-body"></tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div id="disease-archived-view" class="admin-hidden-subview">
+                  <div class="table-container">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Disease Name</th>
+                          <th scope="col">Availability</th>
+                        </tr>
+                      </thead>
+                      <tbody id="disease-archived-table-body"></tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-
-              <div id="disease-archived-view" class="admin-hidden-subview">
-                <div class="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Disease Name</th>
-                        <th>Availability</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="disease-archived-table-body"></tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            </section>
           </div>
 
           <!-- ============================================== -->
           <!-- 4. SECURITY AUDIT TRAIL (NEW MODULE) -->
           <!-- ============================================== -->
           <div id="view-audit" class="view-section">
-            <div class="admin-section-heading">
-              <div>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">Operational Audit Trail</h1>
-                <p class="text-slate-600 dark:text-slate-400 mt-1">Recorded account, case and disease catalog changes.</p>
+            <section class="admin-list-card" aria-labelledby="admin-audit-title">
+              <header class="admin-list-header admin-disease-header">
+                <div>
+                  <h1 id="admin-audit-title">Operational Audit Trail</h1>
+                  <p>Recorded account, case and disease catalog changes. Select a row for details. Timestamps use Philippine time.</p>
+                </div>
+                <button type="button" onclick="loadAuditLogs()" aria-label="Refresh audit trail" title="Refresh audit trail" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800">
+                  <i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i>
+                </button>
+              </header>
+              <div class="admin-list-body">
+                <div class="table-container">
+                  <table class="admin-audit-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Timestamp</th>
+                        <th scope="col">User ID</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Action Executed</th>
+                      </tr>
+                    </thead>
+                    <tbody id="audit-table-body"></tbody>
+                  </table>
+                </div>
+                <nav id="audit-pagination" class="admin-case-pages" aria-label="Audit pages">
+                  <span id="audit-page-info" role="status">Loading audit entries…</span>
+                  <div class="admin-case-page-buttons" id="audit-page-buttons"></div>
+                </nav>
               </div>
-              <button onclick="loadAuditLogs()" class="bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 px-4 py-2 rounded-md font-bold flex items-center gap-2 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700">
-                <i data-lucide="refresh-cw" class="admin-refresh-icon"></i> Refresh Ledger
-              </button>
-            </div>
-
-            <div class="white-panel">
-              <div class="table-container">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Timestamp</th>
-                      <th>User ID</th>
-                      <th>Role</th>
-                      <th>Action Executed</th>
-                      <th>System Details</th>
-                    </tr>
-                  </thead>
-                  <tbody id="audit-table-body"></tbody>
-                </table>
-              </div>
-              <div id="audit-pagination" class="flex justify-between items-center mt-6 pt-4 border-t border-slate-100 dark:border-slate-700/50 hidden">
-                <span class="text-sm text-slate-600 dark:text-slate-400" id="audit-page-info">Showing 1 to 10 of 50 entries</span>
-                <div class="flex gap-1" id="audit-page-buttons"></div>
-              </div>
-            </div>
+            </section>
           </div>
 
         </div>
@@ -369,7 +390,7 @@
         <div class="p-6 flex flex-col gap-4 bg-white dark:bg-slate-900">
           <div>
             <label for="new_disease_name" class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">Disease Name *</label>
-            <input type="text" id="new_disease_name" required maxlength="255" aria-describedby="disease-name-help disease-form-error" data-modal-initial-focus class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800" placeholder="e.g. Typhoid Fever" />
+            <input type="text" id="new_disease_name" required maxlength="255" aria-describedby="disease-name-help disease-form-error" data-modal-initial-focus class="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-brandBlue/50 focus:border-brandBlue transition-all text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800" placeholder="Enter an approved disease name" />
             <p id="disease-name-help" class="mt-2 text-sm text-slate-600 dark:text-slate-300">Use a clear, consistent disease name. It will be available in BHW and MHO consultation forms. Severity is recorded separately for each case or visit.</p>
             <p id="disease-form-error" role="alert" class="mt-2 text-sm text-red-700 dark:text-red-300" hidden></p>
           </div>
@@ -386,11 +407,14 @@
     <!-- ============================================== -->
     <!-- JAVASCRIPT -->
     <!-- ============================================== -->
-    <script src="assets/js/admin/admin-shell.js"></script>
-    <script src="assets/js/admin/admin-users.js"></script>
-    <script src="assets/js/admin/admin-records.js"></script>
-    <script src="assets/js/admin/admin-registry.js"></script>
-    <script src="assets/js/admin/admin-audit.js"></script>
+    <div id="admin-row-tooltip" aria-hidden="true">Click to see details</div>
+    <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
+    <script src="assets/js/shared/role-overview.js?v=20261107-admin-mask"></script>
+    <script src="assets/js/admin/admin-shell.js?v=20261107-audit-trail"></script>
+    <script src="assets/js/admin/admin-users.js?v=20261108-approve-first"></script>
+    <script src="assets/js/admin/admin-records.js?v=20261107-dialog-actions"></script>
+    <script src="assets/js/admin/admin-registry.js?v=20261107-dialog-actions"></script>
+    <script src="assets/js/admin/admin-audit.js?v=20261107-dialog-actions"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261031-visible4"></script>
   </body>
 </html>

@@ -6,7 +6,8 @@
       if (portalPath !== location.pathname) location.replace(portalPath + location.search + location.hash);
     </script>
     <script src="assets/js/shared/theme.js"></script>
-    <script src="assets/js/shared/api-session.js"></script>
+    <script src="assets/js/shared/accessible-modal.js"></script>
+    <script src="assets/js/shared/api-session.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/safe-text.js"></script>
     <script src="assets/js/shared/date-format.js"></script>
     <script src="assets/js/shared/daily-report-controls.js"></script>
@@ -18,27 +19,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Health-Intel Epidemiological Profiling System" />
     <title>Portal | HEALTH-INTEL</title>
-    <link rel="stylesheet" href="assets/css/shared/mho.css" />
-    <link rel="stylesheet" href="assets/css/shared/health-map.css" />
+    <link rel="stylesheet" href="assets/css/shared/mho.css?v=20261108-review-refresh" />
+    <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261108-numbered-pages" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="assets/js/shared/chart-theme.js"></script>
+    <script src="assets/js/shared/chart-theme.js?v=20261101-summary-cards"></script>
     <link rel="stylesheet" href="assets/css/mho/mho-page.css" />
   
     <!-- Built with npm --prefix tools/styles run build:mho. -->
-    <link rel="stylesheet" href="assets/css/mho/mho-utilities.css?v=single-month-20261025" />
+    <link rel="stylesheet" href="assets/css/mho/mho-utilities.css?v=20261105-monthly" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-      <link rel="stylesheet" href="assets/css/shared/encoding-controls.css">
-    <script src="assets/js/shared/encoding-controls.js?v=20261019-mobile"></script>
-    <script src="assets/js/shared/patient-visits.js?v=20261019-mobile"></script>
+      <link rel="stylesheet" href="assets/css/shared/encoding-controls.css?v=20261101-chevron">
+    <script src="assets/js/shared/encoding-controls.js?v=20261101-select-scroll"></script>
+    <script src="assets/js/shared/patient-visits.js?v=20261101-time-required"></script>
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css">
     <link rel="stylesheet" href="assets/css/shared/resident-vital.css">
-    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261031-visible4">
+    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261107-logout-hover">
+  <link rel="stylesheet" href="assets/css/shared/account-settings.css?v=20261107-password-renewal">
   </head>
-  <body class="hi-portal h-screen flex overflow-hidden antialiased selection:bg-emerald-500/30 bg-slate-100 dark:bg-neutral-950">
+  <body class="hi-portal hi-role-readable hi-clinical-readable h-screen flex overflow-hidden antialiased selection:bg-emerald-500/30 bg-slate-100 dark:bg-neutral-950">
+    <a class="hi-skip-link" href="#portal-main">Skip to main content</a>
     <!-- Sidebar -->
     <aside id="sidebar" class="mho-sidebar w-64 bg-transparent flex flex-col relative z-10 shrink-0">
       <!-- Logo Area -->
@@ -65,7 +68,7 @@
           <i data-lucide="brain-circuit" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Predictions</span>
         </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-review-center" aria-label="Open Review Center"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Review Center</span></button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-review-center" aria-label="Open Disease Review"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Disease Review</span></button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-heatmap" aria-label="View Heatmap">
           <i data-lucide="map" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
@@ -89,7 +92,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col h-full bg-[hsl(var(--card))] overflow-hidden relative z-20 border-l border-slate-300 dark:border-neutral-800">
+    <main id="portal-main" tabindex="-1" class="flex-1 flex flex-col h-full bg-[hsl(var(--card))] overflow-hidden relative z-20 border-l border-slate-300 dark:border-neutral-800">
       
       <!-- Top Header Bar -->
       <header class="h-16 flex items-center justify-between px-6 z-20 bg-transparent">
@@ -103,25 +106,21 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-4">
-          <!-- Dark Mode Toggle -->
-          <button data-theme-toggle aria-label="Switch to dark mode" onclick="toggleDarkMode()" class="p-2 rounded-full border border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))] hover:rotate-12 transition-all duration-300 text-[hsl(var(--foreground))] hover:shadow-sm">
-            <i data-lucide="moon" id="theme-icon" class="w-4 h-4"></i>
+        <div class="mho-header-controls">
+          <button type="button" data-theme-toggle aria-label="Switch to dark mode" onclick="toggleDarkMode()" class="mho-header-theme">
+            <i data-lucide="moon" id="theme-icon" class="w-4 h-4" aria-hidden="true"></i>
           </button>
-          
-          <div class="flex items-center gap-3 border-l border-[hsl(var(--border))] pl-4">
-            <span id="dropdown-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-300">MHO-001</span>
-            <button type="button" aria-label="Account settings" id="dropdown-user-initial" onclick="showAccountSettings()" class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center overflow-hidden cursor-pointer hover:shadow-md hover:ring-2 hover:ring-emerald-500/30 transition-all duration-300 text-emerald-700 dark:text-emerald-400">
-              <i data-lucide="user" class="w-5 h-5"></i>
-            </button>
-          </div>
+          <span id="dropdown-user-name" class="text-sm font-semibold text-slate-700 dark:text-slate-300">MHO-001</span>
+          <button type="button" aria-label="Account settings" id="dropdown-user-initial" onclick="showAccountSettings()" class="mho-header-profile">
+            <i data-lucide="user" class="w-5 h-5" aria-hidden="true"></i>
+          </button>
         </div>
       </header>
 
       <!-- Scrollable Content Area -->
       <div class="mho-page-scroll flex-1 overflow-y-auto overflow-x-hidden p-6 md:p-8">
         <div id="view-analytics" class="view-section space-y-5">
-<header class="flex flex-wrap items-start justify-between gap-3"><div><p class="text-xs font-bold uppercase tracking-widest text-emerald-700 dark:text-emerald-400 mb-2">Municipal health overview</p><h1 class="text-3xl font-bold tracking-tight">Municipal Analytics</h1><p class="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-2">Explore recorded disease cases, outcomes and trends across your barangays.</p></div><span id="analytics-scope" class="rounded-full bg-blue-50 dark:bg-blue-950 px-3 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300">All recorded years</span></header>
+<header class="flex flex-wrap items-start justify-between gap-3"><div><p id="mho-analytics-welcome" class="text-sm font-semibold text-emerald-800 dark:text-emerald-300 mb-2">Welcome back</p><h1 class="text-3xl font-bold tracking-tight">Municipal Analytics</h1><p class="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-2">Overview of recorded disease cases across the seven pilot barangays.</p></div><span id="analytics-scope" class="rounded-full bg-blue-50 dark:bg-blue-950 px-3 py-2 text-xs font-semibold text-blue-700 dark:text-blue-300">All recorded years</span></header>
 <section aria-label="Analytics filters" class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><label class="text-xs font-semibold">Barangay<div class="mt-1.5"><select
                 id="filter-barangay" aria-label="Filter by Barangay"
                 onchange="updateDynamicChart()"
@@ -151,12 +150,13 @@
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4"><div class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0"><p class="text-sm font-medium text-[hsl(var(--muted-foreground))]">Recorded cases</p><p id="stat-total" class="text-3xl font-bold tracking-tight my-2 text-blue-700 dark:text-blue-400">…</p><p class="text-xs text-[hsl(var(--muted-foreground))]">All case outcomes</p></div><div class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0"><p class="text-sm font-medium text-[hsl(var(--muted-foreground))]">Active cases</p><p id="stat-active" class="text-3xl font-bold tracking-tight my-2 text-amber-700 dark:text-amber-400">…</p><p class="text-xs text-[hsl(var(--muted-foreground))]">Current active records</p></div><div class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0"><p class="text-sm font-medium text-[hsl(var(--muted-foreground))]">Cleared / recovered</p><p id="stat-recovered" class="text-3xl font-bold tracking-tight my-2 text-emerald-700 dark:text-emerald-400">…</p><p class="text-xs text-[hsl(var(--muted-foreground))]">Current case outcomes</p></div><div class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0"><p class="text-sm font-medium text-[hsl(var(--muted-foreground))]">Active high risk</p><p id="stat-risk" class="text-3xl font-bold tracking-tight my-2 text-rose-700 dark:text-rose-400">…</p><p class="text-xs text-[hsl(var(--muted-foreground))]">Recorded case severity</p></div></div>
 <section aria-labelledby="health-profile-title" class="space-y-4">
 <div><h2 id="health-profile-title" class="text-xl font-bold flex items-center gap-2"><i data-lucide="activity" class="w-6 h-6 text-blue-500"></i>Epidemiological Health Profile</h2><p class="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-2">Explore the ten most frequently recorded disease categories for the selected year, barangay and age group.</p></div>
-<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+<div class="grid grid-cols-1 items-start xl:grid-cols-3 gap-5">
 <section class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0 xl:col-span-2"><div class="flex flex-wrap items-start justify-between gap-3 mb-4"><div><h3 class="text-lg font-bold">Top 10 recorded diseases</h3><p class="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-1">Up to 10 categories, ranked by case count.</p></div><label class="text-xs font-semibold w-full sm:w-48 shrink-0">Outcome shown<select id="filter-category" aria-label="Filter by Category" onchange="updateDynamicChart()" class="w-full min-w-0 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none dark:[color-scheme:dark]">
                 <option value="morbidity">Cases (Morbidity)</option>
                 <option value="mortality">Cases marked Deceased</option>
               </select></label></div><div id="profile-chart-wrap" class="relative h-[400px] md:h-[440px]"><canvas id="dynamicChart" role="img" aria-label="Top recorded diseases bar chart"></canvas></div><p id="profile-empty" class="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed text-center" role="status"></p><div id="profile-table" class="sr-only" role="region" aria-label="Disease chart data"></div></section>
-<aside class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0 flex flex-col gap-4"><div class="flex items-start gap-3"><div class="w-10 h-10 shrink-0 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 flex items-center justify-center"><i data-lucide="microscope" class="w-5 h-5"></i></div><div><h3 class="text-lg font-bold leading-6">Descriptive findings</h3><p class="text-xs text-[hsl(var(--muted-foreground))] mt-1">Automatically summarized from this selection</p></div></div><p id="insight-text" class="sr-only" aria-live="polite">Loading selected records…</p><dl id="descriptive-findings" class="divide-y divide-[hsl(var(--border))]" aria-live="polite"><div class="py-3 text-sm text-[hsl(var(--muted-foreground))]">Loading findings…</div></dl><div class="rounded-xl bg-emerald-50 dark:bg-emerald-950 p-4 mt-auto"><h3 class="text-sm font-bold text-emerald-800 dark:text-emerald-300 mb-2">Suggested MHO action</h3><p id="action-text" class="text-sm text-emerald-900 dark:text-emerald-200 leading-relaxed">Awaiting records.</p></div><p class="text-xs text-[hsl(var(--muted-foreground))]">Counts describe recorded cases, not population disease rates or outbreak risk.</p></aside></div>
+<aside class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0 flex flex-col gap-4"><div class="flex items-start gap-3"><div class="w-10 h-10 shrink-0 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-300 flex items-center justify-center"><i data-lucide="microscope" class="w-5 h-5"></i></div><div><h3 class="text-lg font-bold leading-6">Descriptive findings</h3><p class="text-xs text-[hsl(var(--muted-foreground))] mt-1">Automatically summarized from this selection</p></div></div><p id="insight-text" class="sr-only" aria-hidden="true">Loading selected records…</p><dl id="descriptive-findings" class="divide-y divide-[hsl(var(--border))]" aria-live="polite"><div class="py-3 text-sm text-[hsl(var(--muted-foreground))]">Loading findings…</div></dl><p class="text-xs text-[hsl(var(--muted-foreground))]">Counts describe recorded cases, not population disease rates or outbreak risk.</p></aside></div>
+<div class="rounded-xl bg-emerald-50 dark:bg-emerald-950 p-4"><h3 class="text-sm font-bold text-emerald-800 dark:text-emerald-300 mb-2">Recorded-case summary</h3><div id="action-text" class="text-sm text-emerald-900 dark:text-emerald-200 leading-relaxed" aria-live="polite">Awaiting records.</div></div>
 </section>
 <section aria-labelledby="breakdown-title" class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0">
 <div class="flex flex-wrap items-start justify-between gap-3"><div><h2 id="breakdown-title" class="text-lg font-bold">Case breakdown</h2><p class="text-sm text-[hsl(var(--muted-foreground))] mt-1">Where cases were recorded and the age groups represented.</p></div><div role="tablist" aria-label="Case breakdown dimension" class="inline-flex rounded-xl bg-[hsl(var(--muted))] p-1"><button id="breakdown-barangay-tab" type="button" role="tab" aria-selected="true" aria-controls="breakdown-panel" onclick="setAnalyticsBreakdown('barangay')" class="rounded-lg px-4 py-2.5 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-blue-500">Barangay</button><button id="breakdown-age-tab" type="button" role="tab" aria-selected="false" aria-controls="breakdown-panel" onclick="setAnalyticsBreakdown('age')" class="rounded-lg px-4 py-2.5 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-blue-500">Age group</button></div></div>
@@ -204,47 +204,80 @@
             <span id="predictive-validation-status" hidden></span>
           </header>
 
-          <section class="mb-5 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5" aria-label="Forecast selection">
+          <div class="mb-5 grid w-full max-w-lg grid-cols-2 gap-2 border-b border-border pb-4" role="tablist" aria-label="Prediction workspace" hidden>
+            <button id="prediction-results-tab" type="button" role="tab" aria-selected="true" aria-controls="prediction-results-panel" tabindex="0" class="hi-vital-button aria-selected:bg-emerald-700 aria-selected:text-white aria-selected:border-emerald-700">Predictions</button>
+            <button id="prediction-updates-tab" type="button" role="tab" aria-selected="false" aria-controls="monthly-updates" tabindex="-1" class="hi-vital-button aria-selected:bg-emerald-700 aria-selected:text-white aria-selected:border-emerald-700">Monthly Updates</button>
+          </div>
+          <section id="prediction-results-panel" role="tabpanel" aria-labelledby="prediction-results-tab" tabindex="0">
+          <section class="mb-5 rounded-2xl border border-slate-200 bg-white p-4 text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:p-5" aria-label="Prediction data source" hidden>
+            <label for="prediction-source" class="block text-sm font-semibold mb-2">Prediction history</label>
+            <select id="prediction-source" class="w-full sm:max-w-md rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-950 dark:border-slate-600 dark:bg-slate-800 dark:text-white"><option value="demonstration">Current demonstration history</option><option value="operational">Published operational records</option></select>
+            <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">Operational records and the demonstration remain separate. Predict loads the selected published version; it does not retrain on every click.</p>
+          </section>
+
+
+          <section class="mb-5 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5" aria-label="Prediction selection">
             <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto]">
               <div class="min-w-0"><label for="predictive-disease-select" class="mb-2 block text-xs font-semibold text-muted-foreground">Disease</label><select id="predictive-disease-select" class="min-h-12 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-blue-500" disabled><option>Loading diseases…</option></select></div>
               <div class="min-w-0"><label for="predictive-brgy-select" class="mb-2 block text-xs font-semibold text-muted-foreground">Barangay</label><select id="predictive-brgy-select" class="min-h-12 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-blue-500" disabled><option>Loading barangays…</option></select></div>
-              <button id="run-forecast-button" type="button" onclick="runPredictiveModel()" class="min-h-12 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-50 sm:col-span-2 xl:col-span-1" disabled>Run Forecast</button>
+              <button id="run-forecast-button" type="button" onclick="runPredictiveModel()" class="min-h-12 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-50 sm:col-span-2 xl:col-span-1" disabled>Predict</button>
             </div>
           </section>
-          <p id="sarima-state" class="mb-4 text-xs leading-relaxed text-muted-foreground" role="status">Select a disease and barangay, then run the forecast.</p>
+          <p id="sarima-state" class="mb-4 text-xs leading-relaxed text-muted-foreground" role="status">Select a disease and barangay, then select Predict.</p>
 
           <div id="sarima-dashboard" class="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.85fr)_minmax(320px,1fr)]" aria-busy="false">
             <section class="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6" aria-labelledby="sarima-chart-title">
-              <div class="flex flex-wrap items-start justify-between gap-3"><div class="min-w-0"><h2 id="sarima-chart-title" class="text-lg font-bold text-foreground">Cases and forecast</h2><p id="sarima-chart-subtitle" class="mt-1 text-xs leading-relaxed text-muted-foreground">Recorded history and saved SARIMA estimates</p></div><label for="sarima-window" class="sr-only">Chart history</label><select id="sarima-window" class="min-h-10 rounded-lg border border-border bg-background px-2 text-xs text-foreground"><option value="24">Last 24 months</option><option value="45">Full history</option></select></div>
-              <div class="mb-1 mt-5 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted-foreground"><span class="flex items-center gap-2"><i class="h-0.5 w-5 rounded bg-blue-500" aria-hidden="true"></i>Recorded cases</span><span class="flex items-center gap-2"><i class="h-0.5 w-5 rounded bg-violet-500" aria-hidden="true"></i>Past predictions</span><span class="flex items-center gap-2"><i class="w-5 border-t-2 border-dashed border-teal-600" aria-hidden="true"></i>Forecast</span></div>
+              <div class="flex flex-wrap items-start justify-between gap-3"><div class="min-w-0"><h2 id="sarima-chart-title" class="text-lg font-bold text-foreground">Cases and prediction</h2><p id="sarima-chart-subtitle" class="mt-1 text-xs leading-relaxed text-muted-foreground">Recorded history and saved SARIMA estimates</p></div><label for="sarima-window" class="sr-only">Chart history</label><select id="sarima-window" class="min-h-10 rounded-lg border border-border bg-background px-2 text-xs text-foreground"><option value="24">Last 24 months</option><option value="45">Full history</option></select></div>
+              <div class="mb-1 mt-5 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted-foreground"><span class="flex items-center gap-2"><i class="h-0.5 w-5 rounded bg-blue-500" aria-hidden="true"></i>Recorded cases</span><span class="flex items-center gap-2"><i class="h-0.5 w-5 rounded bg-violet-500" aria-hidden="true"></i>Past predictions</span><span class="flex items-center gap-2"><i class="w-5 border-t-2 border-dashed border-teal-600" aria-hidden="true"></i>Prediction</span></div>
               <canvas id="predictionChart" hidden aria-hidden="true"></canvas>
-              <div id="sarima-chart" class="min-h-[330px] w-full min-w-0 sm:min-h-[420px]" role="region" aria-label="Interactive disease case forecast"><div class="grid min-h-[330px] place-content-center px-5 text-center sm:min-h-[420px]"><svg class="mx-auto mb-3 h-9 w-9 text-blue-300 dark:text-blue-700" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 5v22h22M8 22l7-8 5 4 7-11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p class="text-sm font-medium text-foreground">Your forecast will appear here</p><p class="mt-1 text-xs text-muted-foreground">Choose a disease and barangay, then select Run Forecast.</p></div></div>
+              <div id="sarima-chart" class="min-h-[330px] w-full min-w-0 sm:min-h-[420px]" role="region" aria-label="Interactive disease case prediction"><div class="grid min-h-[330px] place-content-center px-5 text-center sm:min-h-[420px]"><svg class="mx-auto mb-3 h-9 w-9 text-blue-300 dark:text-blue-700" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 5v22h22M8 22l7-8 5 4 7-11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p class="text-sm font-medium text-foreground">Your prediction will appear here</p><p class="mt-1 text-xs text-muted-foreground">Choose a disease and barangay, then select Predict.</p></div></div>
               <div class="mt-2 flex items-center gap-2 rounded-xl bg-slate-50 p-2 dark:bg-slate-800/70"><button id="sarima-previous-point" type="button" class="grid h-9 w-9 shrink-0 place-content-center rounded-lg border border-border bg-card text-foreground disabled:opacity-30" aria-label="Inspect previous month" disabled>‹</button><p id="sarima-chart-readout" class="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground" aria-live="polite">Point to a month or use the arrows to inspect its values.</p><button id="sarima-next-point" type="button" class="grid h-9 w-9 shrink-0 place-content-center rounded-lg border border-border bg-card text-foreground disabled:opacity-30" aria-label="Inspect next month" disabled>›</button></div>
-              <p id="sarima-chart-note" class="mt-3 text-[11px] leading-relaxed text-muted-foreground">The shaded area separates the forecast from recorded history. Available ranges show model uncertainty.</p>
+              <p id="sarima-chart-note" class="mt-3 text-[11px] leading-relaxed text-muted-foreground">The shaded area separates the prediction from recorded history. Available ranges show model uncertainty.</p>
             </section>
 
-            <aside class="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6" aria-label="Historical forecast performance">
-              <div class="flex items-start justify-between gap-3"><div><h2 class="text-base font-bold text-foreground">Historical forecast accuracy</h2><p id="sarima-scope" class="mt-1 text-xs leading-relaxed text-muted-foreground">Results for your selection</p></div><details id="sarima-score-info" class="relative shrink-0"><summary class="grid h-8 w-8 cursor-pointer list-none place-content-center rounded-full border border-border text-xs font-bold text-muted-foreground marker:hidden" aria-label="How historical accuracy is calculated">i</summary><div class="absolute right-0 top-10 z-30 w-72 max-w-[calc(100vw-6rem)] rounded-xl border border-border bg-card p-4 text-xs leading-relaxed text-foreground shadow-xl" role="note"><p class="font-semibold">Past predictions within the proposed error limit</p><p id="sarima-score-formula" class="mt-2">Run a forecast to see the calculation for this selection.</p><p class="mt-2">A prediction passes if its absolute error is at most 20% of actual cases or one case, whichever is larger. This proposed rule requires panel acceptance.</p><p class="mt-2">Tests use earlier months to predict later months. This percentage is not the probability of future cases.</p></div></details></div>
+            <aside class="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6" aria-label="Historical prediction performance">
+              <div class="flex items-start justify-between gap-3"><div><h2 class="text-base font-bold text-foreground">Historical prediction accuracy</h2><p id="sarima-scope" class="mt-1 text-xs leading-relaxed text-muted-foreground">Results for your selection</p></div><details id="sarima-score-info" class="relative shrink-0"><summary class="grid h-8 w-8 cursor-pointer list-none place-content-center rounded-full border border-border text-xs font-bold text-muted-foreground marker:hidden" aria-label="How historical accuracy is calculated">i</summary><div class="absolute right-0 top-10 z-30 w-72 max-w-[calc(100vw-6rem)] rounded-xl border border-border bg-card p-4 text-xs leading-relaxed text-foreground shadow-xl" role="note"><p class="font-semibold">Past predictions within the proposed error limit</p><p id="sarima-score-formula" class="mt-2">Select Predict to see the calculation for this selection.</p><p class="mt-2">A prediction passes if its absolute error is at most 20% of actual cases or one case, whichever is larger. This proposed rule requires panel acceptance.</p><p class="mt-2">Tests use earlier months to predict later months. This percentage is not the probability of future cases.</p></div></details></div>
               <svg viewBox="0 0 200 200" class="mx-auto my-3 h-44 w-44 sm:h-48 sm:w-48" role="img" aria-label="Selected historical predictions within the proposed error limit"><circle cx="100" cy="100" r="78" fill="none" stroke="#e8eef4" stroke-width="12"/><circle id="sarima-score-ring" cx="100" cy="100" r="78" fill="none" stroke="#0dbd9b" stroke-width="12" stroke-linecap="round" transform="rotate(-90 100 100)" stroke-dasharray="0 491"/><text id="sarima-score" x="100" y="100" text-anchor="middle" fill="currentColor" class="text-foreground" font-size="30" font-weight="750">—</text><text x="100" y="121" text-anchor="middle" fill="#64748b" font-size="11">within error limit</text></svg>
-              <p id="sarima-score-count" class="text-center text-sm font-semibold leading-relaxed text-foreground">Run a forecast to see past performance.</p><p id="sarima-score-note" class="mt-2 text-center text-xs leading-relaxed text-muted-foreground"></p>
+              <p id="sarima-score-count" class="text-center text-sm font-semibold leading-relaxed text-foreground">Select Predict to see past performance.</p><p id="sarima-score-note" class="mt-2 text-center text-xs leading-relaxed text-muted-foreground"></p>
               <p class="mt-4 rounded-xl bg-teal-50 px-3 py-2 text-center text-[11px] leading-relaxed text-teal-900 dark:bg-teal-950/40 dark:text-teal-200">Historical test performance, not a guarantee of future cases.</p>
-              <div class="mt-5 border-t border-border pt-5"><div class="flex items-baseline justify-between gap-2"><h3 class="text-xs font-semibold text-foreground">Forecast errors</h3><span class="text-[10px] text-muted-foreground">Lower is better</span></div><div class="mt-4 grid grid-cols-3 divide-x divide-border"><div class="pr-2"><abbr class="text-[11px] font-semibold text-muted-foreground no-underline" title="Mean Absolute Error: average absolute error in cases." tabindex="0">MAE</abbr><p id="sarima-mae" class="mt-2 break-words text-xl font-bold tabular-nums text-foreground">—</p><p class="mt-1 text-[10px] text-muted-foreground">Average case error</p></div><div class="px-2"><abbr class="text-[11px] font-semibold text-muted-foreground no-underline" title="Root Mean Squared Error: gives larger mistakes more weight." tabindex="0">RMSE</abbr><p id="sarima-rmse" class="mt-2 break-words text-xl font-bold tabular-nums text-foreground">—</p><p class="mt-1 text-[10px] text-muted-foreground">Weighted case error</p></div><div class="pl-2"><abbr class="text-[11px] font-semibold text-muted-foreground no-underline" title="Mean Absolute Percentage Error for positive actual counts. Zero counts are excluded; not the accuracy percentage." tabindex="0">MAPE</abbr><p id="sarima-mape" class="mt-2 break-words text-xl font-bold tabular-nums text-foreground">—</p><p class="mt-1 text-[10px] text-muted-foreground">Percentage error</p></div></div><p id="sarima-mape-denominator" class="mt-3 text-[10px] text-muted-foreground"></p></div>
+              <div class="mt-5 border-t border-border pt-5"><div class="flex items-baseline justify-between gap-2"><h3 class="text-xs font-semibold text-foreground">Prediction errors</h3><span class="text-[10px] text-muted-foreground">Lower is better</span></div><div class="mt-4 grid grid-cols-3 divide-x divide-border"><div class="pr-2"><abbr class="text-[11px] font-semibold text-muted-foreground no-underline" title="Mean Absolute Error: average absolute error in cases." tabindex="0">MAE</abbr><p id="sarima-mae" class="mt-2 break-words text-xl font-bold tabular-nums text-foreground">—</p><p class="mt-1 text-[10px] text-muted-foreground">Average case error</p></div><div class="px-2"><abbr class="text-[11px] font-semibold text-muted-foreground no-underline" title="Root Mean Squared Error: gives larger mistakes more weight." tabindex="0">RMSE</abbr><p id="sarima-rmse" class="mt-2 break-words text-xl font-bold tabular-nums text-foreground">—</p><p class="mt-1 text-[10px] text-muted-foreground">Weighted case error</p></div><div class="pl-2"><abbr class="text-[11px] font-semibold text-muted-foreground no-underline" title="Mean Absolute Percentage Error for positive actual counts. Zero counts are excluded; not the accuracy percentage." tabindex="0">MAPE</abbr><p id="sarima-mape" class="mt-2 break-words text-xl font-bold tabular-nums text-foreground">—</p><p class="mt-1 text-[10px] text-muted-foreground">Percentage error</p></div></div><p id="sarima-mape-denominator" class="mt-3 text-[10px] text-muted-foreground"></p></div>
             </aside>
           </div>
 
           <section id="sarima-summary" class="mt-5 overflow-hidden rounded-2xl border border-border bg-card shadow-sm" aria-labelledby="sarima-summary-title">
-            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border px-5 py-4 sm:px-6"><h2 id="sarima-summary-title" class="text-lg font-bold text-foreground">Forecast Summary</h2><span class="rounded-full bg-teal-50 px-3 py-1 text-[11px] font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-200" id="sarima-method">Forecast method</span></div>
-            <div class="p-5 sm:p-6"><div id="forecast-months" class="mb-4 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]" hidden><div class="min-w-0 rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-white p-5 dark:border-teal-900 dark:from-teal-950/40 dark:to-slate-900"><p id="sarima-main-month" class="text-xs font-semibold text-teal-800 dark:text-teal-200">Forecast month</p><div class="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1"><strong id="sarima-main-estimate" class="break-words text-5xl font-bold tracking-tight tabular-nums text-foreground">—</strong><span class="text-sm text-muted-foreground">estimated cases</span></div><p id="sarima-main-range" class="mt-3 text-xs font-medium text-teal-800 dark:text-teal-200"></p><p id="sarima-main-note" class="mt-2 text-[11px] leading-relaxed text-muted-foreground"></p></div><dl class="grid min-w-0 grid-cols-1 gap-4 rounded-2xl border border-border p-5 sm:grid-cols-2"><div><dt class="text-[11px] text-muted-foreground">Selected scope</dt><dd id="sarima-summary-scope" class="mt-1 text-sm font-semibold leading-relaxed text-foreground"></dd></div><div><dt id="sarima-previous-month" class="text-[11px] text-muted-foreground">Previous recorded month</dt><dd id="sarima-previous-cases" class="mt-1 text-sm font-semibold text-foreground"></dd></div><div class="sm:col-span-2"><dt id="sarima-trend" class="text-[11px] text-muted-foreground">Projected change</dt><dd id="sarima-change" class="mt-1 text-sm font-semibold text-foreground"></dd></div></dl></div>
-              <p id="predictive-insight-text" class="text-sm leading-relaxed text-muted-foreground" aria-live="polite">Select a disease and barangay to view a demonstration forecast.</p><p id="sarima-history-summary" class="mt-2 text-xs leading-relaxed text-muted-foreground"></p><p id="sarima-evaluation-summary" class="mt-2 text-[11px] leading-relaxed text-muted-foreground"></p><p id="sarima-seasonality-note" class="mt-3 text-xs leading-relaxed text-muted-foreground" hidden></p>
+            <header class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-6"><div class="flex items-center gap-3"><span class="grid h-10 w-10 shrink-0 place-content-center rounded-xl bg-teal-100 text-teal-900 dark:bg-teal-950 dark:text-teal-100" aria-hidden="true"><i data-lucide="calendar-range" class="h-5 w-5"></i></span><div><h2 id="sarima-summary-title" class="text-lg font-bold text-foreground">Prediction Summary</h2><p class="mt-0.5 text-xs text-muted-foreground">Your selected month, estimated cases and change</p></div></div><span class="rounded-full border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-900 dark:border-teal-800 dark:bg-teal-950 dark:text-teal-100" id="sarima-method">Prediction method</span></header>
+            <div class="p-5 sm:p-6">
+              <div id="forecast-months" class="mb-5 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]" hidden>
+                <div class="min-w-0 rounded-2xl border border-teal-200 bg-teal-100/70 p-5 dark:border-teal-800 dark:bg-teal-950/70"><p id="sarima-main-month" class="text-xs font-semibold text-teal-950 dark:text-teal-100">Prediction month</p><div class="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1"><strong id="sarima-main-estimate" class="break-words text-5xl font-bold tracking-tight tabular-nums text-foreground">—</strong><span class="text-sm text-teal-950 dark:text-teal-100">estimated cases</span></div><p id="sarima-main-range" class="mt-4 rounded-lg bg-white/70 px-3 py-2 text-xs font-medium text-teal-950 dark:bg-slate-900/60 dark:text-teal-100"></p><p id="sarima-main-note" class="mt-3 text-xs leading-relaxed text-teal-950 dark:text-teal-100"></p></div>
+                <dl class="grid min-w-0 grid-cols-1 content-start gap-4 sm:grid-cols-2"><div class="rounded-xl border border-border px-4 py-3 sm:col-span-2"><dt class="text-xs text-muted-foreground">Disease and barangay</dt><dd id="sarima-summary-scope" class="mt-1 text-sm font-semibold leading-relaxed text-foreground"></dd></div><div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-900"><dt id="sarima-previous-month" class="text-xs text-muted-foreground">Previous recorded month</dt><dd id="sarima-previous-cases" class="mt-2 text-sm font-semibold text-foreground"></dd></div><div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-900"><dt id="sarima-trend" class="text-xs text-muted-foreground">Projected change</dt><dd id="sarima-change" class="mt-2 text-sm font-semibold leading-relaxed text-foreground"></dd></div></dl>
+              </div>
+              <p id="predictive-insight-text" class="text-sm leading-relaxed text-foreground" aria-live="polite">Select a disease and barangay to view a demonstration prediction.</p><p id="sarima-history-summary" class="mt-2 text-xs leading-relaxed text-muted-foreground"></p>
+              <div class="mt-4 rounded-xl border border-border bg-slate-50 px-4 py-3 dark:bg-slate-900"><p class="text-xs font-semibold text-foreground">About the estimate</p><p id="sarima-evaluation-summary" class="mt-1 text-xs leading-relaxed text-muted-foreground"></p><p id="sarima-seasonality-note" class="mt-2 text-xs leading-relaxed text-muted-foreground" hidden></p></div>
               <div id="sarima-missing" class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100" hidden><p id="sarima-missing-note"></p><details class="mt-2"><summary class="cursor-pointer font-semibold">Affected disease and barangay</summary><ul id="sarima-missing-list" class="mt-2 space-y-1"></ul></details></div>
             </div>
           </section>
-
-          <section class="mt-5 rounded-2xl border border-teal-100 bg-teal-50/30 p-5 dark:border-teal-900 dark:bg-teal-950/15 sm:p-6" aria-labelledby="sarima-recommendations-title"><h2 id="sarima-recommendations-title" class="text-lg font-bold text-teal-950 dark:text-teal-100">Automated Recommendations</h2><p class="mt-2 text-xs leading-relaxed text-muted-foreground">Suggested follow-up for MHO review, based on the displayed forecast and recorded history.</p><p id="forecast-recommendation-status" class="mt-4 text-sm text-muted-foreground" aria-live="polite">Run a forecast to see suggested follow-up.</p><ul id="forecast-recommendations" class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2" hidden></ul></section>
-          <p id="sarima-provenance" class="mt-5 text-[11px] leading-relaxed text-muted-foreground">Saved synthetic demonstration · Estimates are not confirmed future cases.</p>
+          <section class="mt-5 overflow-hidden rounded-2xl border border-border bg-card shadow-sm" aria-labelledby="sarima-recommendations-title"><header class="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4 sm:px-6"><div class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-content-center rounded-xl bg-teal-100 text-teal-900 dark:bg-teal-950 dark:text-teal-100" aria-hidden="true"><i data-lucide="clipboard-check" class="h-5 w-5"></i></span><div><h2 id="sarima-recommendations-title" class="text-lg font-bold text-foreground">Automated Recommendations</h2><p class="mt-1 text-xs leading-relaxed text-muted-foreground">Practical actions matched to the selected disease and result</p></div></div><span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-100">For MHO approval</span></header><div class="p-5 sm:p-6"><p id="forecast-recommendation-status" class="text-sm text-muted-foreground" aria-live="polite">Select Predict to see suggested actions.</p><ul id="forecast-recommendations" class="grid grid-cols-1 items-start gap-4 lg:grid-cols-2" hidden></ul></div></section>
+          <p id="sarima-provenance" class="mt-4 rounded-xl border border-border bg-slate-50 px-4 py-3 text-xs leading-relaxed text-muted-foreground dark:bg-slate-900">Data source: ITR-derived records combined with generated monthly counts · History through September 2026.</p>
 
           <!-- Compatibility hooks retained; multiple horizons and research diagnostics are not shown. -->
           <div hidden><select id="sarima-protocol"><option value="80_20">80/20</option></select><select id="sarima-evaluation-horizon"><option value="1">1</option></select><p id="sarima-other-month"></p><p id="sarima-other-estimate"></p><p id="sarima-other-range"></p><p id="sarima-other-note"></p><p id="sarima-availability"></p><p id="sarima-availability-count"></p><p id="sarima-overall-score"></p><p id="sarima-overall-note"></p><ul id="sarima-configurations"></ul><section id="sarima-calculations" hidden><p id="sarima-evaluation-label"></p><ol id="sarima-calculation-steps"></ol><table><tbody id="sarima-evaluation-rows"></tbody></table></section></div>
+          </section>
+          <section id="monthly-updates" role="tabpanel" aria-labelledby="prediction-updates-tab" tabindex="0" hidden class="mb-5 rounded-2xl border border-slate-200 bg-white p-4 text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:p-5">
+            <h2 class="text-lg font-bold">Monthly reporting and prediction updates</h2>
+            <p class="mt-3 text-sm text-slate-700 dark:text-slate-200">Confirm reporting → prepare SARIMA update → review results → publish. Case counts include new disease cases once, across all recorded outcomes; consultation follow-ups do not add cases. Pending disease classifications must be resolved first.</p>
+            <div class="mt-4 border-b border-slate-200 pb-4 dark:border-slate-700">
+              <h2 class="font-semibold">1. Confirm monthly reports</h2>
+              <div class="mt-3 flex flex-wrap items-end gap-3"><label class="block text-sm font-medium" for="monthly-report-month">Completed reporting month<input id="monthly-report-month" type="month" class="mt-2 block rounded-xl border border-slate-300 p-3 text-slate-950 dark:border-slate-600 dark:bg-slate-800 dark:text-white"></label><button id="monthly-load-reports" type="button" class="min-h-12 rounded-xl border border-slate-300 px-4 py-3 font-semibold dark:border-slate-600">Review seven barangays</button></div>
+              <div id="monthly-reports" class="mt-3"></div>
+            </div>
+            <div class="mt-4 border-b border-slate-200 pb-4 dark:border-slate-700">
+              <h2 class="font-semibold">2. Prepare a verified update</h2>
+              <p id="monthly-environment" class="mt-2 text-sm text-slate-700 dark:text-slate-200">At least 45 consecutive months of confirmed operational reports are required. Missing reports are not zero cases.</p>
+              <div class="mt-3 flex flex-wrap items-end gap-3"><label class="block text-sm font-medium" for="monthly-start">First historical month<input id="monthly-start" type="month" class="mt-2 block rounded-xl border border-slate-300 p-3 text-slate-950 dark:border-slate-600 dark:bg-slate-800 dark:text-white"></label><label class="block text-sm font-medium" for="monthly-cutoff">Last completed month<input id="monthly-cutoff" type="month" class="mt-2 block rounded-xl border border-slate-300 p-3 text-slate-950 dark:border-slate-600 dark:bg-slate-800 dark:text-white"></label><button id="monthly-create" type="button" class="min-h-12 rounded-xl bg-emerald-700 px-4 py-3 font-semibold text-white hover:bg-emerald-800">Prepare SARIMA update</button></div>
+            </div>
+            <div class="mt-4"><div class="flex flex-wrap items-center justify-between gap-3"><h2 class="font-semibold">3. Review, publish or return to a previous version</h2><button id="monthly-refresh" type="button" class="rounded-xl border border-slate-300 px-4 py-2 font-semibold dark:border-slate-600">Refresh update status</button></div><div id="monthly-runs" class="mt-3"></div><div id="monthly-review" class="mt-4 space-y-3"></div></div>
+            <p id="monthly-message" role="status" aria-live="polite" class="mt-4 text-sm font-semibold text-slate-900 dark:text-slate-100"></p>
+          </section>
         </div>
 
         <div id="view-reports" class="view-section hidden">
@@ -376,15 +409,62 @@
             <div><span class="walkin-eyebrow">Municipal consultation record</span><h1>Walk-in Patients</h1><p>Record a disease case, admission or follow-up and link it to the patient’s resident barangay.</p></div>
             
           </div>
-          <div id="walkin-tabs" class="walkin-tabs" role="tablist" aria-label="Walk-in Patients views">
-            <button id="walkin-record-tab" type="button" role="tab" aria-selected="true" aria-controls="walkin-record-panel" tabindex="0">Record Case / Visit</button>
-            <button id="walkin-recent-tab" type="button" role="tab" aria-selected="false" aria-controls="walkin-recent-panel" tabindex="-1">Recent Consultations</button>
+          <div id="walkin-tabs" class="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <button id="walkin-record-tab" type="button" aria-haspopup="dialog" aria-controls="walkin-record-panel" class="mho-walkin-icon mho-walkin-add"><i data-lucide="user-plus" class="h-5 w-5" aria-hidden="true"></i><span>Add walk-in patient</span></button>
+            <button id="walkin-recent-tab" type="button" aria-label="Refresh consultations" data-mho-hint="Refresh consultations" class="mho-walkin-icon"><i data-lucide="refresh-cw" class="h-4 w-4" aria-hidden="true"></i></button>
           </div>
-          <div id="walkin-record-panel" class="walkin-panel" role="tabpanel" aria-labelledby="walkin-record-tab" tabindex="0">
+          <div id="walkin-recent-panel" class="walkin-panel walkin-card walkin-recent" aria-label="Your recent consultations" tabindex="0">
+            <div class="walkin-recent-heading"><div><h2>Your recent consultations</h2><p>Up to 25 visits saved by your MHO account, including admissions and follow-ups. Older case entries without visit details are listed separately. The assigned barangay worker or Admin handles corrections.</p></div></div>
+            <div class="mho-directory-table" role="region" aria-label="Recent consultation records" tabindex="0"><table class="walkin-table"><thead><tr><th>Date / time</th><th>Patient</th><th>Barangay</th><th>Nature of visit</th><th>Disease / condition</th><th>Case</th></tr></thead><tbody id="walkin-recent-body"></tbody></table></div>
+            <div id="walkin-recent-pager" class="mho-numbered-pages"></div>
+          </div>
+        </div>
+        <section id="view-patient-directory" class="view-section hidden">
+          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">Municipal patient records</span><h1>Patient Directory</h1><p>Find patients across all barangays and view their disease cases, admissions and follow-up visits.</p></div></div>
+          <div id="mho-followup-tabs"></div>
+          <div id="mho-directory-panel" role="tabpanel" aria-labelledby="mho-directory-tab">
+          <form id="mho-patient-filters" class="walkin-card p-5 mb-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-search">Patient name or record ID<input id="mho-patient-search" type="search" maxlength="100" placeholder="Search name, RES-12 or REC-34" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"></label>
+            <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-barangay">Barangay<select id="mho-patient-barangay" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"><option value="all">All barangays</option></select></label>
+            <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-vital">Resident status<select id="mho-patient-vital" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"><option value="all">All records</option><option value="living">Not confirmed deceased</option><option value="deceased">Confirmed deceased</option></select></label>
+            <div class="flex gap-2"><button id="mho-patient-search-button" type="submit" class="hi-vital-button flex-1">Search</button><button id="mho-patient-reset" type="button" class="hi-vital-button">Reset</button></div>
+          </form>
+          <p class="hi-vital-note">Each linked resident appears once. Older cases without a resident link are listed separately as unlinked records; matching names are not merged automatically. Archived cases remain in the history.</p>
+          <p id="mho-patient-count" class="hi-vital-count" role="status" aria-live="polite"></p>
+          <div class="walkin-card mho-directory-card"><div class="mho-directory-table" role="region" aria-label="Patient directory records" tabindex="0"><table class="walkin-table"><thead><tr><th>Patient / record</th><th>Barangay / purok</th><th>Cases</th><th>Last consultation</th><th>Resident status</th></tr></thead><tbody id="mho-patient-body"><tr><td colspan="5">Open the directory to load records.</td></tr></tbody></table></div></div>
+          <div id="mho-patient-pager" class="mho-numbered-pages"></div>
+          </div>
+          <section id="mho-followup-panel" role="tabpanel" aria-labelledby="mho-followup-tab" hidden></section>
+        </section>
+        <section id="view-review-center" class="view-section hidden">
+          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">MHO review workspace</span><h1>Disease Review</h1><p>Review the reported conditions that need a classification.</p></div></div>
+          <div class="grid grid-cols-2 gap-2 mb-6 max-w-md border-b border-border pb-4" role="tablist" aria-label="Review queues" hidden>
+            <button id="review-disease-tab" type="button" role="tab" aria-label="Disease Review" aria-selected="true" aria-controls="view-disease-review" tabindex="0" class="hi-vital-button inline-flex items-center justify-center gap-2 aria-selected:bg-emerald-700 aria-selected:text-white aria-selected:border-emerald-700">Disease Review<span id="disease-review-count" class="hi-review-count !bg-white !text-emerald-800 !text-xs !font-semibold" hidden>0</span></button>
+            <button id="review-resident-tab" type="button" role="tab" aria-label="Resident Status" aria-selected="false" aria-controls="view-vital-review" tabindex="-1" class="hi-vital-button aria-selected:bg-emerald-700 aria-selected:text-white aria-selected:border-emerald-700">Resident Status</button>
+          </div>
+        <section id="view-vital-review" role="tabpanel" aria-labelledby="review-resident-tab" tabindex="0" hidden>
+          <div class="mb-6 flex items-start gap-4 rounded-2xl border border-border bg-card p-5 sm:p-6"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300"><i data-lucide="user-round-check" class="h-6 w-6" aria-hidden="true"></i></span><div class="min-w-0"><h2 class="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Resident Status</h2><p class="mt-2 text-sm leading-relaxed text-muted-foreground">Review reported deaths and confirm resident status while preserving the complete case and visit history.</p></div></div>
+          <div class="hi-vital-toolbar"><label for="vital-review-view">View<select id="vital-review-view"><option value="pending">Pending death reports</option><option value="deceased">Confirmed deceased residents</option></select></label><label for="vital-review-barangay">Barangay<select id="vital-review-barangay"><option value="all">All barangays</option></select></label><button id="vital-review-refresh" type="button" class="hi-vital-button">Refresh</button><button id="vital-review-export" type="button" class="hi-vital-button">Export confirmed residents</button></div>
+          <p id="vital-review-count" class="hi-vital-count" role="status"></p>
+          <p class="hi-vital-note">Confirmation records that a resident is deceased; it does not identify the cause of death. The registry counts each resident once. Disease case outcomes are retained separately.</p>
+          <div class="walkin-card"><div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Resident</th><th>Barangay</th><th>Death date</th><th>Source / reference</th><th>Action</th></tr></thead><tbody id="vital-review-body"></tbody></table></div></div>
+          <div class="hi-vital-pagination"><button id="vital-review-prev" type="button" class="hi-vital-button">Previous</button><span id="vital-review-page"></span><button id="vital-review-next" type="button" class="hi-vital-button">Next</button></div>
+        </section>
+        <section id="view-disease-review" role="tabpanel" aria-labelledby="review-disease-tab" tabindex="0">
+          <div class="mb-6 grid grid-cols-[44px_minmax(0,1fr)] items-start gap-4 rounded-2xl border border-border bg-card p-5 sm:grid-cols-[44px_minmax(0,1fr)_auto] sm:p-6"><span class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"><i data-lucide="clipboard-check" class="h-6 w-6" aria-hidden="true"></i></span><div class="min-w-0"><h2 class="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Disease Review</h2><p class="mt-2 text-sm leading-relaxed text-muted-foreground">Review conditions missing from the catalog. Match an existing disease name, add a reviewed name or request clarification.</p></div><button id="disease-review-refresh" class="hi-review-actions mho-review-refresh col-start-2 justify-self-start sm:col-start-3 sm:row-start-1" type="button" aria-label="Refresh disease review list" data-mho-hint="Refresh list"><i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i></button></div>
+          <div class="walkin-card mho-review-queue"><p class="hi-field-help">Catalog review standardizes the recorded condition. It does not establish or confirm a clinical diagnosis. Use established MHO channels for urgent reporting.</p><p id="disease-review-status" role="status" class="hi-review-message"></p><div class="mho-directory-table" role="region" aria-label="Disease review queue" tabindex="0"><table class="walkin-table"><thead class="[&_th]:!text-slate-700 dark:[&_th]:!text-slate-300"><tr><th>Case / patient</th><th>Barangay / date</th><th>Reported condition / source</th><th>Review status</th></tr></thead><tbody id="disease-review-body"></tbody></table></div></div>
+        </section>
+        </section>
+      </div>
+    </main>
+
+    <div id="walkin-record-panel" class="walkin-entry-overlay" role="dialog" aria-modal="true" aria-labelledby="walkin-dialog-title" tabindex="-1" hidden>
+      <div class="walkin-entry-window">
+        <header class="walkin-entry-heading"><div><h2 id="walkin-dialog-title">Add walk-in patient</h2></div><button id="walkin-dialog-close" type="button" aria-label="Close patient entry">×</button></header>
           <form id="mho-walkin-form" class="walkin-card walkin-form" novalidate>
-            <div class="walkin-form-intro"><strong>Patient case / visit</strong><p>Fields marked * are required. A follow-up or admission adds a consultation to an existing disease case.</p><button id="walkin-retry-options" type="button" class="walkin-retry" hidden>Retry loading choices</button></div>
+            <div class="walkin-form-intro"><p>Complete the four steps. Fields marked * are required; closing keeps your unfinished entries.</p><button id="walkin-retry-options" type="button" class="walkin-retry" hidden>Retry loading choices</button></div>
             <div id="walkin-progress" class="walkin-progress"><p id="walkin-step-status" role="status">Step 1 of 4 · Patient</p><ol><li><span>1</span>Patient</li><li><span>2</span>Consultation</li><li><span>3</span>Measurements</li><li><span>4</span>Disease &amp; notes</li></ol></div>
-            <div class="walkin-section">
+            <div id="walkin-patient-step" class="walkin-section">
               <div class="walkin-section-heading"><span class="walkin-step">1</span><div><h2>Resident details</h2><p>Use the patient’s recorded identity and home barangay.</p></div></div>
               <div class="walkin-grid">
                 <div class="walkin-full walkin-name-grid">
@@ -392,7 +472,7 @@
                   <div class="walkin-field"><label for="walkin-first">First name *</label><input id="walkin-first" autocomplete="given-name" maxlength="100" placeholder="First name" required></div>
                   <div class="walkin-field walkin-suffix"><label for="walkin-suffix">Suffix</label><select id="walkin-suffix" aria-describedby="walkin-suffix-help"><option value="">None</option><option>Jr.</option><option>Sr.</option><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option><option>IX</option><option>X</option></select><p id="walkin-suffix-help" class="walkin-help">Choose None if not applicable.</p></div>
                 </div>
-                <div class="walkin-field"><label for="walkin-birthdate">Birthdate *</label><input id="walkin-birthdate" inputmode="numeric" placeholder="MM/DD/YYYY" maxlength="10" aria-describedby="walkin-birthdate-help" required><p id="walkin-birthdate-help" class="walkin-help">MM/DD/YYYY · Enter 8 numbers; / separators are added automatically.</p></div>
+                <div class="walkin-field"><label for="walkin-birthdate">Birthdate *</label><div class="walkin-birthdate-control"><input id="walkin-birthdate" inputmode="numeric" placeholder="MM/DD/YYYY" maxlength="10" aria-describedby="walkin-birthdate-help" required><input id="walkin-birthdate-picker" type="date" min="1900-01-01" tabindex="-1" aria-hidden="true"><button id="walkin-birthdate-calendar" type="button" aria-label="Choose birthdate from calendar" hidden><i data-lucide="calendar-days" class="h-5 w-5" aria-hidden="true"></i></button></div><p id="walkin-birthdate-help" class="walkin-help">MM/DD/YYYY · Auto-format</p></div>
                 <div class="walkin-field"><label for="walkin-age">Age on consultation date</label><input id="walkin-age" placeholder="Calculated from birthdate" readonly></div>
                 <div class="walkin-field"><label for="walkin-barangay">Resident barangay *</label><select id="walkin-barangay" required><option value="">Loading barangays…</option></select></div>
                 <div class="walkin-field"><label for="walkin-purok">Purok / zone *</label><input id="walkin-purok" maxlength="100" placeholder="Within the resident’s barangay" required></div>
@@ -404,8 +484,8 @@
                 <div class="walkin-field"><label for="walkin-transaction">Mode of transaction *</label><select id="walkin-transaction"><option>Walk-in</option><option>Visited</option><option>Referral</option></select></div>
                 <div class="walkin-field"><label for="walkin-nature">Nature of visit *</label><select id="walkin-nature"><option>New consultation/case</option><option>New admission</option><option>Follow-up visit</option></select></div>
                 <div class="walkin-field"><label for="walkin-date">Consultation date *</label><input id="walkin-date" type="date" min="1900-01-01" required><p class="walkin-help">For a new case, this is the date used in disease reports.</p></div>
-                <div class="walkin-field"><label for="walkin-time-hour">Consultation time <span class="walkin-help">(optional)</span></label><div class="hi-consultation-time"><input id="walkin-time-hour" inputmode="numeric" maxlength="2" placeholder="Hour" aria-label="Consultation hour, 1 to 12"><input id="walkin-time-minute" inputmode="numeric" maxlength="2" placeholder="Min" aria-label="Consultation minutes, 00 to 59"><select id="walkin-time-period" aria-label="Consultation AM or PM"><option value="">AM/PM</option><option>AM</option><option>PM</option></select></div><p class="walkin-help">Use the recorded time in the Philippines.</p></div>
-                <div id="walkin-referral-fields" class="walkin-full walkin-referral-grid" hidden><div class="walkin-field"><label for="walkin-referred-by">Referred by <span class="walkin-help">(optional)</span></label><input id="walkin-referred-by" maxlength="500" placeholder="Provider or referring facility"></div><div class="walkin-field"><label for="walkin-referral-reason">Reason for referral *</label><textarea id="walkin-referral-reason" maxlength="1000" rows="2" placeholder="Copy the reason from the referral"></textarea></div></div>
+                <div class="walkin-field"><label for="walkin-time-hour">Consultation time *</label><div class="hi-consultation-time"><input id="walkin-time-hour" required inputmode="numeric" maxlength="2" placeholder="Hour" aria-label="Consultation hour, 1 to 12"><input id="walkin-time-minute" required inputmode="numeric" maxlength="2" placeholder="Min" aria-label="Consultation minutes, 00 to 59"><select id="walkin-time-period" aria-label="Consultation AM or PM"><option value="">AM/PM</option><option>AM</option><option>PM</option></select></div><p class="walkin-help">Use the recorded time in the Philippines.</p></div>
+                <div id="walkin-referral-fields" class="walkin-full walkin-referral-grid" hidden><div class="walkin-field"><label for="walkin-referred-by">Referring health worker / facility <span class="walkin-help">(optional)</span></label><input id="walkin-referred-by" maxlength="500" placeholder="Provider or referring facility"></div><div class="walkin-field"><label for="walkin-referral-reason">Reason for referral *</label><textarea id="walkin-referral-reason" maxlength="1000" rows="2" placeholder="Enter why the patient was referred. If verbal, indicate “Verbal referral.”"></textarea></div></div>
                 <div id="walkin-existing-case-fields" class="walkin-full walkin-linked-case" hidden><div class="walkin-field"><label for="walkin-existing-case">Existing disease case *</label><select id="walkin-existing-case" disabled><option value="">Enter patient details to find a case</option></select></div><p id="walkin-existing-case-note" class="walkin-help" role="status">Match the name, suffix, birthdate and barangay to select the original case.</p><button id="walkin-retry-matches" type="button" class="walkin-retry" hidden>Retry matching cases</button></div>
               </div>
             </div>
@@ -428,72 +508,35 @@
                 <div id="walkin-followup-plan" class="walkin-field walkin-full"></div>
               </div>
             </div>
-            <div class="walkin-form-footer"><p>New disease cases start as Active. Admissions and follow-ups preserve the original case status and disease totals.</p><div class="walkin-step-actions"><button id="walkin-back" type="button" hidden>Back</button><button id="walkin-next" type="button">Continue</button><button id="walkin-save" type="submit" disabled><i data-lucide="save" aria-hidden="true"></i> Save case / visit</button></div></div>
+            <div class="walkin-form-footer"><p>New cases start Active. Return visits keep the original case status and totals.</p><div class="walkin-step-actions"><button id="walkin-cancel" type="button">Close</button><button id="walkin-back" type="button" hidden>Back</button><button id="walkin-next" type="button">Continue</button><button id="walkin-save" type="submit" disabled><i data-lucide="save" aria-hidden="true"></i> Save case / visit</button></div></div>
             <p id="walkin-status" role="status" aria-live="polite" class="walkin-status" hidden></p>
           </form>
-          </div>
-          <div id="walkin-recent-panel" class="walkin-panel walkin-card walkin-recent" role="tabpanel" aria-labelledby="walkin-recent-tab" tabindex="0" hidden>
-            <div class="walkin-recent-heading"><div><h2>Your recent consultations</h2><p>Up to 25 visits saved by your MHO account, including admissions and follow-ups. Older case entries without visit details are listed separately. The assigned barangay worker or Admin handles corrections.</p></div></div>
-            <div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Date / time</th><th>Patient</th><th>Barangay</th><th>Nature of visit</th><th>Disease / condition</th><th>Case</th></tr></thead><tbody id="walkin-recent-body"></tbody></table></div>
-          </div>
-        </div>
-        <section id="view-patient-directory" class="view-section hidden">
-          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">Municipal patient records</span><h1>Patient Directory</h1><p>Find patients across all barangays and view their disease cases, admissions and follow-up visits.</p></div></div>
-          <div id="mho-followup-tabs"></div>
-          <div id="mho-directory-panel" role="tabpanel" aria-labelledby="mho-directory-tab">
-          <form id="mho-patient-filters" class="walkin-card p-5 mb-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-search">Patient name or record ID<input id="mho-patient-search" type="search" maxlength="100" placeholder="Search name, RES-12 or REC-34" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"></label>
-            <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-barangay">Barangay<select id="mho-patient-barangay" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"><option value="all">All barangays</option></select></label>
-            <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-vital">Resident status<select id="mho-patient-vital" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"><option value="all">All records</option><option value="living">Not confirmed deceased</option><option value="deceased">Confirmed deceased</option></select></label>
-            <div class="flex gap-2"><button id="mho-patient-search-button" type="submit" class="hi-vital-button flex-1">Search</button><button id="mho-patient-reset" type="button" class="hi-vital-button">Reset</button></div>
-          </form>
-          <p class="hi-vital-note">Each linked resident appears once. Older cases without a resident link are listed separately as unlinked records; matching names are not merged automatically. Archived cases remain in the history.</p>
-          <p id="mho-patient-count" class="hi-vital-count" role="status" aria-live="polite"></p>
-          <div class="walkin-card"><div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Patient / record</th><th>Barangay / purok</th><th>Cases</th><th>Last consultation</th><th>Resident status</th><th>History</th></tr></thead><tbody id="mho-patient-body"><tr><td colspan="6">Open the directory to load records.</td></tr></tbody></table></div></div>
-          <div class="hi-vital-pagination"><button id="mho-patient-prev" type="button" class="hi-vital-button" disabled>Previous</button><span id="mho-patient-page"></span><button id="mho-patient-next" type="button" class="hi-vital-button" disabled>Next</button></div>
-          </div>
-          <section id="mho-followup-panel" role="tabpanel" aria-labelledby="mho-followup-tab" hidden></section>
-        </section>
-        <section id="view-review-center" class="view-section hidden">
-          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">MHO review workspace</span><h1>Review Center</h1><p>Review disease classifications and resident status in one place. Choose the queue you need below.</p></div></div>
-          <div class="grid grid-cols-2 gap-2 mb-6 max-w-md border-b border-border pb-4" role="tablist" aria-label="Review queues">
-            <button id="review-disease-tab" type="button" role="tab" aria-label="Disease Review" aria-selected="true" aria-controls="view-disease-review" tabindex="0" class="hi-vital-button inline-flex items-center justify-center gap-2 aria-selected:bg-emerald-700 aria-selected:text-white aria-selected:border-emerald-700">Disease Review<span id="disease-review-count" class="hi-review-count !bg-white !text-emerald-800 !text-xs !font-semibold" hidden>0</span></button>
-            <button id="review-resident-tab" type="button" role="tab" aria-label="Resident Status" aria-selected="false" aria-controls="view-vital-review" tabindex="-1" class="hi-vital-button aria-selected:bg-emerald-700 aria-selected:text-white aria-selected:border-emerald-700">Resident Status</button>
-          </div>
-        <section id="view-vital-review" role="tabpanel" aria-labelledby="review-resident-tab" tabindex="0" hidden>
-          <div class="mb-6 flex items-start gap-4 rounded-2xl border border-border bg-card p-5 sm:p-6"><span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300"><i data-lucide="user-round-check" class="h-6 w-6" aria-hidden="true"></i></span><div class="min-w-0"><h2 class="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Resident Status</h2><p class="mt-2 text-sm leading-relaxed text-muted-foreground">Review reported deaths and confirm resident status while preserving the complete case and visit history.</p></div></div>
-          <div class="hi-vital-toolbar"><label for="vital-review-view">View<select id="vital-review-view"><option value="pending">Pending death reports</option><option value="deceased">Confirmed deceased residents</option></select></label><label for="vital-review-barangay">Barangay<select id="vital-review-barangay"><option value="all">All barangays</option></select></label><button id="vital-review-refresh" type="button" class="hi-vital-button">Refresh</button><button id="vital-review-export" type="button" class="hi-vital-button">Export confirmed residents</button></div>
-          <p id="vital-review-count" class="hi-vital-count" role="status"></p>
-          <p class="hi-vital-note">Confirmation records that a resident is deceased; it does not identify the cause of death. The registry counts each resident once. Disease case outcomes are retained separately.</p>
-          <div class="walkin-card"><div class="overflow-x-auto"><table class="walkin-table"><thead><tr><th>Resident</th><th>Barangay</th><th>Death date</th><th>Source / reference</th><th>Action</th></tr></thead><tbody id="vital-review-body"></tbody></table></div></div>
-          <div class="hi-vital-pagination"><button id="vital-review-prev" type="button" class="hi-vital-button">Previous</button><span id="vital-review-page"></span><button id="vital-review-next" type="button" class="hi-vital-button">Next</button></div>
-        </section>
-        <section id="view-disease-review" role="tabpanel" aria-labelledby="review-disease-tab" tabindex="0">
-          <div class="mb-6 grid grid-cols-[44px_minmax(0,1fr)] items-start gap-4 rounded-2xl border border-border bg-card p-5 sm:grid-cols-[44px_minmax(0,1fr)_auto] sm:p-6"><span class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"><i data-lucide="clipboard-check" class="h-6 w-6" aria-hidden="true"></i></span><div class="min-w-0"><h2 class="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Disease Review</h2><p class="mt-2 text-sm leading-relaxed text-muted-foreground">Review conditions missing from the catalog. Match an existing disease name, add a reviewed name or request clarification.</p></div><button id="disease-review-refresh" class="hi-review-actions !min-h-[44px] !m-0 col-start-2 justify-self-start sm:col-start-3 sm:row-start-1" type="button">Refresh list</button></div>
-          <div class="walkin-card"><p class="hi-field-help p-4">Catalog review standardizes the recorded condition. It does not establish or confirm a clinical diagnosis. Use established MHO channels for urgent reporting.</p><p id="disease-review-status" role="status" class="hi-review-message"></p><div class="overflow-x-auto"><table class="walkin-table"><thead class="[&_th]:!text-slate-700 dark:[&_th]:!text-slate-300"><tr><th>Case / patient</th><th>Barangay / date</th><th>Reported condition / source</th><th>Review status</th><th>Action</th></tr></thead><tbody id="disease-review-body"></tbody></table></div></div>
-        </section>
-        </section>
       </div>
-    </main>
+    </div>
+
 
     <script src="assets/js/shared/app.js"></script>
-    <script src="assets/js/shared/lazy-heatmap.js"></script>
-    <script src="assets/js/mho/mho-insights.js"></script>
-    <script src="assets/js/mho/mho-walkins.js?v=20261019-mobile"></script>
-    <script src="assets/js/mho/mho-disease-review.js"></script>
+    <script src="assets/js/shared/lazy-heatmap.js?v=20261108-keyboard"></script>
+    <script src="assets/js/mho/mho-action-guidance.js?v=20261103-prediction-wording"></script>
+    <script src="assets/js/mho/mho-insights.js?v=20261101-descriptions-only"></script>
+    <script src="assets/js/mho/mho-walkins.js?v=20261108-birthdate-picker"></script>
+    <div id="mho-cursor-tooltip" aria-hidden="true"></div>
+    <script src="assets/js/mho/mho-disease-review.js?v=20261108-smooth-review"></script>
     <script src="assets/js/mho/mho-resident-vital.js"></script>
     <script src="assets/js/mho/mho-review-center.js"></script>
-    <script src="assets/js/mho/mho-patients.js"></script>
+    <script src="assets/js/mho/mho-patients.js?v=20261108-smooth-review"></script>
     <script src="assets/js/shared/followup-tracking.js"></script>
     <script>
       lucide.createIcons();
     </script>
-    <script src="assets/js/mho/mho-shell.js"></script>
-    <script src="assets/js/mho/sarima-presentation.js?v=lowcount5500-20261026"></script>
-    <script src="assets/js/mho/mho-forecast.js?v=lowcount5500-20261026"></script>
-    <script src="assets/js/mho/mho-analytics.js?v=20261019-recorded"></script>
+    <script src="assets/js/mho/mho-shell.js?v=20261108-smooth-review"></script>
+    <script src="assets/js/mho/sarima-presentation.js?v=20261103-prediction-wording"></script>
+    <script src="assets/js/mho/operational-monthly.js?v=20261105-monthly"></script>
+    <script src="assets/js/mho/mho-forecast.js?v=20261108-shared-predictions"></script>
+    <script src="assets/js/mho/mho-analytics.js?v=20261101-concrete-actions"></script>
     <script src="assets/js/mho/mho-reports.js"></script>
-  <script src="assets/js/mho/mho-account.js"></script>
+  <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
+  <script src="assets/js/mho/mho-account.js?v=20261107-shared-account"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261031-visible4"></script>
   </body>
 </html>

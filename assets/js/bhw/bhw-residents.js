@@ -30,7 +30,6 @@
       // 4. DIRECTORY & PROFILES
       let residentDirectoryPage = 1;
       let residentDirectoryQuery = '';
-      let residentDirectoryVitalFilter = 'all';
       const residentProfilesPerPage = 12;
       async function loadResidentDirectory() {
           try {
@@ -48,15 +47,13 @@
 
       function filterDirectory() {
           const query = document.getElementById("directory-search").value.toLowerCase();
-          const vitalFilter=document.getElementById('directory-vital-filter')?.value || 'all';
-          if (query !== residentDirectoryQuery || vitalFilter !== residentDirectoryVitalFilter) {
+          if (query !== residentDirectoryQuery) {
               residentDirectoryPage = 1;
               residentDirectoryQuery = query;
-              residentDirectoryVitalFilter = vitalFilter;
           }
           const filtered = window.allResidents ? window.allResidents.filter(p => {
              const name = p.patient_name || p.first_name + " " + p.last_name || "";
-             return name.toLowerCase().includes(query)&&(vitalFilter==='all'||(vitalFilter==='deceased'?Boolean(p.is_deceased):!p.is_deceased));
+             return name.toLowerCase().includes(query);
           }) : [];
           renderDirectory(filtered);
       }
@@ -90,7 +87,6 @@
                   ${escapeText(initials.toUpperCase())}
                 </div>
                 <h2 class="font-bold text-lg mb-1 text-[hsl(var(--foreground))]">${escapeText(patientName)}</h2>
-                ${window.HealthIntelVital?.badge(res) || ''}
                 ${isSenior ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 rounded text-xs font-bold mb-2 inline-block">Senior Citizen</span>' : ''}
                 <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${escapeText(res.purok)} | ${res.is_deceased?(residentAge==null?'Age at death unknown':escapeText(residentAge)+' yrs at death'):escapeText(residentAge ?? 'N/A')+' yrs'}</p>
 
@@ -144,7 +140,7 @@
           addButton('Next', residentDirectoryPage + 1, residentDirectoryPage === totalPages);
       }
 
-      async function viewPatientProfile(residentId) {
+      async function viewPatientProfile(residentId, selectedCase = null) {
           if (!Number.isSafeInteger(Number(residentId)) || Number(residentId)<=0) {
               Swal.fire('Resident link unavailable', 'This historical case has no linked resident profile. Ask the Admin to review the source record; the system will not guess the identity.', 'info');
               return;
@@ -166,7 +162,6 @@
                   document.getElementById("profile-purok").innerText = data.purok || "Unknown";
                   document.getElementById("profile-age").innerText = HealthIntelDate.residentAge(data) ?? 'N/A';
                   if(data.is_deceased)document.getElementById('profile-age').innerText=data.death_date?`${HealthIntelDate.residentAge(data) ?? 'N/A'} (at death)`:'Age at death unknown';
-                  window.HealthIntelVital?.dossier(data);
 
                                       const tbody = document.getElementById("profile-history-body");
                     tbody.innerHTML = "";
@@ -213,6 +208,7 @@
                   }
                   if (window.HealthIntelVisits && document.getElementById('profile-visits-list')) HealthIntelVisits.renderResidentHistory(result.visits || []);
                   const modal = document.getElementById("patientProfileModal");
+                  renderBhwCaseActions(document.getElementById("bhw-selected-case-actions"), selectedCase, closeProfileModal);
                   HealthIntelModal.open(modal);
               }
           } catch(e) { console.error("Error opening dossier", e); Swal.fire('Dossier unavailable',e.message || 'Please try again later.','error'); }

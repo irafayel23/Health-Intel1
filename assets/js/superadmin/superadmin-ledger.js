@@ -60,7 +60,7 @@ function renderAuditTable() {
     if(status) status.textContent=invalid?'Choose a through date on or after the from date.':`${rows.length} of ${allAuditLogs.length} saved events match. Times use Philippine time. Read-only history.`;
     const tbody=document.getElementById('audit-table-body'), pagination=document.getElementById('audit-pagination');
     if(!rows.length) {
-        tbody.innerHTML='<tr><td colspan="7" class="p-8 text-center text-slate-500 dark:text-neutral-400">'+(invalid?'Invalid date range.':allAuditLogs.length?'No events match these filters.':'No saved audit events.')+'</td></tr>';
+        tbody.innerHTML='<tr><td colspan="6" class="p-8 text-center text-slate-500 dark:text-neutral-400">'+(invalid?'Invalid date range.':allAuditLogs.length?'No events match these filters.':'No saved audit events.')+'</td></tr>';
         pagination.classList.add('hidden');
         document.getElementById('audit-page-info').innerText='Showing 0 events';
         document.getElementById('audit-page-buttons').innerHTML='';
@@ -73,27 +73,34 @@ function renderAuditTable() {
         const id=Number(log.id), validId=Number.isSafeInteger(id)&&id>0;
         const outcome=log.outcome || 'Not recorded';
         const color=outcome==='Failed'?'text-red-600 dark:text-red-400':outcome==='Succeeded'?'text-emerald-700 dark:text-emerald-400':'text-slate-600 dark:text-neutral-400';
-        return `<tr class="border-b border-slate-200 dark:border-neutral-800">
-            <td class="p-3 text-xs break-words">${escapeText(ledgerTime(log.created_at))}</td>
-            <td class="p-3 break-words">${escapeText(log.user_id)}</td>
-            <td class="p-3 break-words">${escapeText(log.role)}</td>
-            <td class="p-3 [overflow-wrap:anywhere]"><p class="font-medium">${escapeText(log.action)}</p><p class="mt-2 text-xs text-slate-600 dark:text-neutral-400 whitespace-pre-line line-clamp-3">${escapeText(HealthIntelText.auditDetails(log))}</p></td>
-            <td class="p-3 text-xs [overflow-wrap:anywhere]">${escapeText(log.target_type?`${log.target_type}: ${log.target_id || 'Not recorded'}`:'Not recorded')}</td>
-            <td class="p-3 text-xs break-words ${color}">${escapeText(outcome)}</td>
-            <td class="sticky right-0 z-10 bg-white dark:bg-neutral-900 p-3 text-xs text-center border-l border-slate-300 dark:border-neutral-800">${validId?`<button onclick="viewLedgerEvent(${id})" class="whitespace-nowrap rounded-lg border border-slate-300 dark:border-neutral-700 px-3 py-2 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-neutral-800">View details</button>`:''}</td>
+        return `<tr ${validId?`tabindex="0" aria-label="Open ledger event ${id} details" onclick="openLedgerRow(event, ${id})" onkeydown="openLedgerRow(event, ${id})" class="cursor-pointer border-b border-slate-200 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:border-neutral-800 dark:hover:bg-neutral-800"`:'class="border-b border-slate-200 dark:border-neutral-800"'}>
+            <td class="p-3 text-xs break-words"><div class="hi-ledger-cell">${escapeText(ledgerTime(log.created_at))}</div></td>
+            <td class="p-3 break-words"><div class="hi-ledger-cell">${escapeText(log.user_id)}</div></td>
+            <td class="p-3 break-words"><div class="hi-ledger-cell">${escapeText(log.role)}</div></td>
+            <td class="p-3 [overflow-wrap:anywhere]"><p class="hi-ledger-action font-medium">${escapeText(log.action)}</p><p class="hi-ledger-summary text-xs text-slate-600 dark:text-neutral-400">${escapeText(HealthIntelText.auditDetails(log))}</p>${validId?'<span class="hi-ledger-hint" aria-hidden="true">Open event details</span>':''}</td>
+            <td class="p-3 text-xs [overflow-wrap:anywhere]"><div class="hi-ledger-cell">${escapeText(log.target_type?`${log.target_type}: ${log.target_id || 'Not recorded'}`:'Not recorded')}</div></td>
+            <td class="p-3 text-xs break-words ${color}"><div class="hi-ledger-cell">${escapeText(outcome)}</div></td>
         </tr>`;
     }).join('');
     pagination.classList.remove('hidden');
     document.getElementById('audit-page-info').innerText=`Showing ${start+1} to ${Math.min(start+AUDIT_PER_PAGE,rows.length)} of ${rows.length} matching events`;
     let buttons='';
-    const button=(page,label,selected=false)=>`<button onclick="goToAuditPage(${page})" class="rounded-lg px-3 py-2 text-sm ${selected?'bg-slate-800 text-white dark:bg-white dark:text-black':'bg-slate-100 dark:bg-neutral-800'}">${label}</button>`;
-    if(currentAuditPage>1) buttons+=button(currentAuditPage-1,'Prev');
+    const button=(page,label,selected=false,disabled=false)=>`<button ${disabled?'disabled':''} onclick="goToAuditPage(${page})" class="rounded-lg px-3 py-2 text-sm ${selected?'bg-slate-800 text-white dark:bg-white dark:text-black':'bg-slate-100 dark:bg-neutral-800'}">${label}</button>`;
+    buttons+=button(currentAuditPage-1,'Prev',false,currentAuditPage===1);
     const first=Math.max(1,Math.min(currentAuditPage-2,totalPages-4));
     for(let page=first;page<=Math.min(totalPages,first+4);page++) buttons+=button(page,page,page===currentAuditPage);
-    if(currentAuditPage<totalPages) buttons+=button(currentAuditPage+1,'Next');
+    buttons+=button(currentAuditPage+1,'Next',false,currentAuditPage===totalPages);
     document.getElementById('audit-page-buttons').innerHTML=buttons;
 }
 function goToAuditPage(page) { currentAuditPage=page; renderAuditTable(); }
+function openLedgerRow(event, id) {
+    if (event.target.closest('button, a, input, select, textarea')) return;
+    if (event.type === 'keydown') {
+        if (!['Enter', ' '].includes(event.key) || event.target !== event.currentTarget) return;
+        event.preventDefault();
+    }
+    return viewLedgerEvent(id);
+}
 function ledgerPayload(log) {
     try { const value=JSON.parse(log.details); return value && typeof value==='object' && !Array.isArray(value)?value:{}; } catch { return {}; }
 }
@@ -101,7 +108,7 @@ function viewLedgerEvent(id) {
     const log=allAuditLogs.find(row=>Number(row.id)===id);
     if(!log) return;
     const data=ledgerPayload(log);
-    const field=(label,value)=>`<div class="mb-3"><strong>${escapeText(label)}</strong><p class="whitespace-pre-wrap break-words">${escapeText(typeof value==='object'?JSON.stringify(value,null,2):value ?? 'Not recorded')}</p></div>`;
+    const field=(label,value)=>`<dl class="hi-ledger-detail-row"><dt>${escapeText(label)}</dt><dd>${escapeText(typeof value==='object'?JSON.stringify(value,null,2):value ?? 'Not recorded')}</dd></dl>`;
     let html=field('Actor',`${log.user_id} (${log.role})`)+field('Time',ledgerTime(log.created_at))+field('Action',log.action)
         +field('Outcome',log.outcome || 'Not recorded')+field('Affected record',log.target_type?`${log.target_type}: ${log.target_id || 'Not recorded'}`:'Not recorded')
         +field('Recorded details',HealthIntelText.auditDetails(log));
@@ -109,10 +116,29 @@ function viewLedgerEvent(id) {
         if(data[key]!==undefined && data[key]!==null) html+=field(label,data[key]);
     }
     if(!data.before && !data.after) html+='<p class="mb-4 text-sm">Previous/new values were not recorded for this event.</p>';
-    if(log.target_type && log.target_id) {
-        const related=allAuditLogs.filter(row=>row.target_type===log.target_type && row.target_id===log.target_id).slice(0,20);
-        html+='<h3 class="font-bold mt-5 mb-3">Recent events for this reference</h3>'+related.map(row=>field(`${ledgerTime(row.created_at)} · ${row.user_id}`,`${row.action}: ${HealthIntelText.auditDetails(row)}`)).join('');
-    }
-    html+='<p class="mt-4 text-sm">This displays saved audit evidence. Older events may lack references or outcomes. It does not verify the current state of a patient or account.</p>';
-    return Swal.fire({title:`Ledger event #${id}`,html:`<div class="text-left text-sm text-inherit max-h-[65vh] overflow-y-auto">${html}</div>`,width:760,confirmButtonText:'Close'});
+    const related=log.target_type && log.target_id ? allAuditLogs.filter(row=>row.target_type===log.target_type && row.target_id===log.target_id) : [];
+    const renderRelated = page => {
+        const total=Math.max(1,Math.ceil(related.length/5));
+        return '<div class="hi-related-event-list" role="region" aria-label="Related event cards">'+related.slice((page-1)*5,page*5).map(row=>`<article class="hi-related-event"><p class="hi-related-event-title">${escapeText(row.action)} · ${escapeText(row.outcome || 'Not recorded')}</p><p class="hi-related-event-time">${escapeText(ledgerTime(row.created_at))} · ${escapeText(row.user_id)}</p><p class="hi-related-event-details">${escapeText(HealthIntelText.auditDetails(row))}</p></article>`).join('')+'</div>'
+            + renderHistoryPagination(page, total, `${related.length} loaded events`, 'Related ledger event pages');
+    };
+    if(related.length) html+='<h3 class="font-bold mt-5 mb-3">Recent events for this reference</h3><div data-ledger-history>'+renderRelated(1)+'</div>';
+    return Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog",title:`Ledger event #${id}`,customClass:{container:'hi-ledger-modal-host',popup:'hi-ledger-modal'},html:`<div class="text-left text-sm text-inherit">${html}</div>`,width:760,confirmButtonText:'Close',didOpen:()=>{
+        const scrollBody=Swal.getHtmlContainer();
+        scrollBody.tabIndex=0;
+        const container=scrollBody.querySelector('[data-ledger-history]');
+        if(!container)return;
+        container.addEventListener('click',event=>{
+            const button=event.target.closest('[data-history-page]');
+            if(!button || !container.contains(button) || button.disabled)return;
+            const page=Number(button.dataset.historyPage);
+            if(!Number.isInteger(page) || page<1 || page>Math.ceil(related.length/5))return;
+            const body=Swal.getHtmlContainer(), top=body.scrollTop;
+            const height=container.offsetHeight;
+            if(height) container.style.minHeight=Math.max(height,parseFloat(container.style.minHeight)||0)+'px';
+            container.innerHTML=renderRelated(page);
+            container.querySelector('[aria-current="page"]')?.focus({preventScroll:true});
+            body.scrollTop=top;
+        });
+    }});
 }

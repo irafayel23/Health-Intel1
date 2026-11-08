@@ -423,3 +423,13 @@ body :is(.nav-menu, .swal2-html-container, .swal2-popup, .heatmap-info-panel)::-
   color: white !important;
   border-color: #334155 !important;
 }
+
+
+#bhw-dashboard-welcome { color: #1e40af; }
+.dark #bhw-dashboard-welcome { color: #93c5fd; }
+#bhw-dashboard-add { background: #1d4ed8; }
+#bhw-dashboard-add:hover { background: #1e40af; }
+
+#bhw-cursor-tooltip { position: fixed; z-index: 100001; width: max-content; max-width: calc(100vw - 16px); padding: 6px 10px; border-radius: 6px; background: #0f2743; color: white; font-size: .75rem; font-weight: 600; pointer-events: none; visibility: hidden; }
+#bhw-cursor-tooltip.is-visible { visibility: visible; }
+.dark #bhw-cursor-tooltip { background: #e2e8f0; color: #0f2743; }

@@ -1,62 +1,62 @@
       // ==========================================
       // DISEASE REGISTRY
       // ==========================================
-      async function loadDiseases() {
-        try {
-          const actRes = await fetch("http://localhost:3000/api/diseases");
-          const actData = await actRes.json();
-          const actBody = document.getElementById("disease-table-body");
-          actBody.innerHTML = "";
-          let actBodyHtmlBuffer = "";
-          if (actData.success) {
-            window.adminRegistryChoices=actData.data;refreshAdminDiseaseFilter();
-            actData.data.forEach((d) => {
-              actBodyHtmlBuffer += `
-                <tr>
-                  <td class="font-bold text-slate-900 dark:text-slate-100">${escapeText(d.name)}</td>
-                  <td class="text-emerald-700 dark:text-emerald-400 font-bold">Available for new cases</td>
-                  <td><button onclick="archiveDisease(${d.id})" class="admin-button-archive-disease !text-red-700 dark:!text-red-300">Archive</button></td>
-                </tr>
-              `;
-            });
-          if (actBodyHtmlBuffer === "") {
-              actBodyHtmlBuffer = `<tr><td colspan="3" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
-<div class="flex flex-col items-center justify-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No active disease names. Add a disease name to make it available in consultation forms.</span>
-</div>
-</td></tr>`;
-          }
-          actBody.innerHTML = actBodyHtmlBuffer;
-          }
-
-          const arcRes = await fetch("http://localhost:3000/api/diseases/archived");
-          const arcData = await arcRes.json();
-          const arcBody = document.getElementById("disease-archived-table-body");
-          arcBody.innerHTML = "";
-          let arcBodyHtmlBuffer = "";
-          if (arcData.success) {
-            arcData.data.forEach((d) => {
-              arcBodyHtmlBuffer += `
-                <tr>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(d.name)}</td>
-                  <td><span class="admin-badge-archived">Archived</span></td>
-                  <td><button onclick="restoreDisease(${d.id})" class="admin-button-reevaluate">Restore</button></td>
-                </tr>
-              `;
-            });
-          if (arcBodyHtmlBuffer === "") {
-              arcBodyHtmlBuffer = `<tr><td colspan="3" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
-<div class="flex flex-col items-center justify-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No archived disease names.</span>
-</div>
-</td></tr>`;
-          }
-          arcBody.innerHTML = arcBodyHtmlBuffer;
-          }
-        } catch (e) {}
+async function loadDiseases() {
+  for (const archived of [false, true]) {
+    const body = document.getElementById(archived ? 'disease-archived-table-body' : 'disease-table-body');
+    try {
+      const response = await fetch('http://localhost:3000/api/diseases' + (archived ? '/archived' : ''));
+      const result = await response.json();
+      if (!response.ok || !result.success || !Array.isArray(result.data)) throw new Error('Catalog unavailable');
+      if (!archived) {
+        window.adminRegistryChoices = result.data;
+        refreshAdminDiseaseFilter();
       }
+
+      const entries = result.data.filter(entry => Number.isSafeInteger(Number(entry.id)) && Number(entry.id) > 0);
+      body.innerHTML = entries.map(entry => {
+        const name = escapeText(entry.name);
+        return `<tr class="admin-disease-row">
+          <td><button type="button" class="admin-disease-open" aria-label="View disease details for ${name}">${name}</button><span class="admin-disease-hint" aria-hidden="true">View disease details</span></td>
+          <td><span class="admin-case-status" data-status="${archived ? 'archived' : 'available'}">${archived ? 'Archived' : 'Available for new cases'}</span></td>
+        </tr>`;
+      }).join('') || `<tr><td colspan="2" class="text-center py-12">${archived ? 'No archived disease names.' : 'No active disease names.'}</td></tr>`;
+      if (entries.length) {
+        body.querySelectorAll('.admin-disease-row').forEach((row, index) => {
+          row.addEventListener('click', () => {
+            row.querySelector('button').focus({ preventScroll: true });
+            return viewDiseaseDetails(entries[index], archived);
+          });
+        });
+      }
+    } catch {
+      body.innerHTML = '<tr><td colspan="2" class="text-center py-12">Disease names could not be loaded.</td></tr>';
+    }
+  }
+}
+
+async function viewDiseaseDetails(entry, archived) {
+  const result = await Swal.fire({
+    titleText: 'Disease details',
+    customClass: { popup: 'hi-dialog admin-personnel-dialog' },
+    html: `<dl class="admin-personnel-facts">
+      <div><dt>Disease name</dt><dd>${escapeText(entry.name)}</dd></div>
+      <div><dt>Availability</dt><dd>${archived ? 'Archived' : 'Available for new cases'}</dd></div>
+    </dl>`,
+    showCloseButton: true,
+    showCancelButton: true,
+    cancelButtonText: 'Close',
+    cancelButtonColor: '#475569',
+    confirmButtonText: archived ? 'Restore' : 'Archive',
+    confirmButtonColor: archived ? '#047857' : '#b91c1c',
+    focusCancel: true
+  });
+  if (result.isConfirmed) {
+    const id = Number(entry.id);
+    if (archived) restoreDisease(id);
+    else archiveDisease(id);
+  }
+}
 
       function openDiseaseModal() {
         document.getElementById("new_disease_name").value = "";
@@ -108,8 +108,8 @@
           text: "It will no longer be available for new BHW or MHO cases. Existing patient records and histories are retained.",
           icon: "warning",
           showCancelButton: true,
-          confirmButtonColor: "#ef4444",
-          cancelButtonColor: "#94a3b8",
+          confirmButtonColor: "#b91c1c",
+          cancelButtonColor: "#475569",
           confirmButtonText: "Yes, archive it!"
         }).then(async (result) => {
           if (result.isConfirmed) {
@@ -126,8 +126,8 @@
           text: "It will be available for new BHW and MHO cases again.",
           icon: "question",
           showCancelButton: true,
-          confirmButtonColor: "#10b981",
-          cancelButtonColor: "#94a3b8",
+          confirmButtonColor: "#047857",
+          cancelButtonColor: "#475569",
           confirmButtonText: "Yes, restore it!"
         }).then(async (result) => {
           if (result.isConfirmed) {

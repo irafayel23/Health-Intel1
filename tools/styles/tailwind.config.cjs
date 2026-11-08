@@ -1,6 +1,7 @@
 module.exports = {
   content: ['../../mho.html', '../../assets/js/shared/**/*.js', '../../assets/js/mho/**/*.js'],
   darkMode: 'class',
+  plugins: [require('./select-chevron.cjs'), require('./role-readability.cjs'), require('./clinical-readability.cjs'), require('./mho-walkin-dialog.cjs'), require('./laptop-spacing.cjs')],
   theme: {
     extend: {
       colors: {

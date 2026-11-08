@@ -174,3 +174,6 @@ body { display:block; overflow-x:clip; min-height:100svh; }
   .input-group { margin-bottom:14px; }
   .access-registration-line { margin:16px 0; padding-top:16px; }
 }
+
+/* Copyright beneath the access card; normal flow preserves small-screen wrapping. */
+.access-copyright { margin:8px 0 0; padding:0 8px; color:#475569; text-align:center; font-size:11px; line-height:1.5; }

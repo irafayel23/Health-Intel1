@@ -20,12 +20,12 @@
         <div><label for="swal-transaction">Mode of transaction *</label><select id="swal-transaction"><option value="">Select mode</option><option>Walk-in</option><option>Visited</option><option>Referral</option></select></div>
         <div><label for="swal-nature">Nature of visit *</label><select id="swal-nature"><option value="">Select nature of visit</option><option>New consultation/case</option><option>New admission</option><option>Follow-up visit</option></select></div>
         <div id="swal-referral-fields" class="hi-encode-wide" hidden><div class="hi-encode-grid">
-        <div><label for="swal-referred-by">Referred by <span class="hi-field-help">(optional)</span></label><input id="swal-referred-by" maxlength="500" placeholder="Provider or referring facility"></div>
-        <div><label for="swal-referral-reason">Reason for referral *</label><textarea id="swal-referral-reason" rows="2" maxlength="1000" placeholder="Copy the reason from the referral"></textarea></div></div></div>
+        <div><label for="swal-referred-by">Referring health worker / facility <span class="hi-field-help">(optional)</span></label><input id="swal-referred-by" maxlength="500" placeholder="Provider or referring facility"></div>
+        <div><label for="swal-referral-reason">Reason for referral *</label><textarea id="swal-referral-reason" rows="2" maxlength="1000" placeholder="Enter why the patient was referred. If verbal, indicate “Verbal referral.”"></textarea></div></div></div>
         <div><label for="swal-case-date">Consultation date *</label><input id="swal-case-date" type="date" min="1900-01-01"><p class="hi-field-help">For a new case, this is the date used in disease reports.</p></div>
-        <div><label for="swal-time-hour">Consultation time <span class="hi-field-help">(optional)</span></label><div class="hi-consultation-time">
-        <input id="swal-time-hour" inputmode="numeric" maxlength="2" placeholder="Hour" aria-label="Consultation hour, 1 to 12">
-        <input id="swal-time-minute" inputmode="numeric" maxlength="2" placeholder="Min" aria-label="Consultation minutes, 00 to 59">
+        <div><label for="swal-time-hour">Consultation time *</label><div class="hi-consultation-time">
+        <input id="swal-time-hour" required inputmode="numeric" maxlength="2" placeholder="Hour" aria-label="Consultation hour, 1 to 12">
+        <input id="swal-time-minute" required inputmode="numeric" maxlength="2" placeholder="Min" aria-label="Consultation minutes, 00 to 59">
         <select id="swal-time-period" aria-label="Consultation AM or PM"><option value="">AM/PM</option><option>AM</option><option>PM</option></select></div><p class="hi-field-help">Use the recorded time in the Philippines.</p></div>
         <div id="swal-existing-case-fields" class="hi-encode-wide" hidden><label for="swal-existing-case">Existing disease case *</label><select id="swal-existing-case"><option value="">Enter patient details to find matching cases</option></select><p id="swal-existing-case-note" class="hi-field-help" role="status">An admission or follow-up adds a visit to the selected case and does not add another disease case.</p></div></div></section>
         <section><h3>3. Measurements</h3><p class="hi-field-help">Record all four measurements from this consultation. These values do not assign a diagnosis or severity.</p><div class="hi-encode-grid">
@@ -78,15 +78,15 @@
             if(target!==null&&!['New admission','Follow-up visit'].includes(nature))throw formError('swal-nature','Choose New admission or Follow-up visit for the selected case.');
             const hour=value('swal-time-hour'),minute=value('swal-time-minute'),period=value('swal-time-period');
             let time=null;
-            if(hour||minute||period){
-                if(!/^\d{1,2}$/.test(hour)||Number(hour)<1||Number(hour)>12||!/^\d{1,2}$/.test(minute)||Number(minute)>59||!['AM','PM'].includes(period))throw Error('Complete the consultation hour (1–12), minutes (00–59) and AM/PM, or leave all three blank.');
+            {
+                if(!/^\d{1,2}$/.test(hour)||Number(hour)<1||Number(hour)>12||!/^\d{1,2}$/.test(minute)||Number(minute)>59||!['AM','PM'].includes(period))throw formError('swal-time-hour','Complete the consultation hour (1–12), minutes (00–59) and AM/PM; consultation time is required.');
                 time=String(Number(hour)%12+(period==='PM'?12:0)).padStart(2,'0')+':'+minute.padStart(2,'0');
             }
             const caseId=returning()?Number(value('swal-existing-case')):null;
             const selected=cases.find(row=>Number(row.id)===caseId);
             if(returning()&&(!Number.isSafeInteger(caseId)||caseId<1||!selected||field('swal-existing-case').disabled))throw formError('swal-existing-case','Select an eligible original disease case. Check the patient details and consultation date; record a new case only when it is a different case.');
             if(returning()&&selected.date_recorded>value('swal-case-date'))throw formError('swal-case-date','The consultation date must be on or after the original case date.');
-            if(value('swal-transaction')==='Referral'&&!value('swal-referral-reason'))throw Error('Enter the reason for referral from the available referral information.');
+            if(value('swal-transaction')==='Referral'&&!value('swal-referral-reason'))throw Error('Enter why the patient was referred. If verbal, indicate “Verbal referral.”');
             return {transaction_mode:value('swal-transaction'),nature_of_visit:nature,consultation_time:time,
                 referred_by:value('swal-referred-by'),referral_reason:value('swal-referral-reason'),blood_pressure:value('swal-bp'),temperature_c:value('swal-temperature'),height_cm:value('swal-height'),weight_kg:value('swal-weight'),case_id:caseId};
         };
@@ -183,7 +183,7 @@
             <p class="hi-visit-condition">${HealthIntelEncoding.conditionCell(v)} <span>· ${safe(v.transaction_mode)}</span></p>
             <p class="hi-field-help">Age at visit: ${safe(v.age_at_visit ?? 'Not recorded')} · Age group: ${safe(v.age_group || 'Not recorded')}${v.age_group && v.age_group!=='Not recorded'?' years':''}</p>
             <dl class="hi-visit-measurements"><div><dt>Blood pressure</dt><dd>${measured(v.blood_pressure,'mmHg')}</dd></div><div><dt>Temperature</dt><dd>${measured(v.temperature_c,'°C')}</dd></div><div><dt>Height</dt><dd>${measured(v.height_cm,'cm')}</dd></div><div><dt>Weight</dt><dd>${measured(v.weight_kg,'kg')}</dd></div></dl>
-            ${v.transaction_mode==='Referral'?`<div class="hi-visit-referral"><strong>Referral</strong><p>Referred by: ${safe(v.referred_by||'Not recorded')}</p><p>Reason: ${safe(v.referral_reason||'Not recorded')}</p></div>`:''}
+            ${v.transaction_mode==='Referral'?`<div class="hi-visit-referral"><strong>Referral</strong><p>Referring health worker / facility: ${safe(v.referred_by||'Not recorded')}</p><p>Reason: ${safe(v.referral_reason||'Not recorded')}</p></div>`:''}
             <div class="hi-visit-notes"><p><strong>Visit severity:</strong> ${safe(v.severity)}</p><p><strong>Symptoms / remarks:</strong> ${safe(v.remarks||'None recorded')}</p></div>
             ${followupHistory(v)}
         </article>`).join(''):'<div class="hi-history-empty"><strong>No consultations recorded yet</strong><p>Admissions and follow-ups saved with the updated form will appear here. Older disease cases remain available in the case history above.</p></div>';
@@ -195,7 +195,7 @@
             if(!response.ok||!result.success)throw Error(result.error||'Visit history could not be loaded.');
             const html=result.data.length?result.data.map(visit=>`<section class="hi-review-summary"><strong>${safe(visit.nature_of_visit)}</strong><p>${safe(HealthIntelDate.formatCaseDate(visit.consultation_date))} · ${safe(formatTime(visit.consultation_time))} · ${safe(visit.transaction_mode)}</p><p>Age at visit: ${safe(visit.age_at_visit ?? 'Not recorded')} · Age group: ${safe(visit.age_group || 'Not recorded')}${visit.age_group && visit.age_group!=='Not recorded'?' years':''}</p>
                 <p>BP: ${safe(visit.blood_pressure||'Not measured')} · Temperature: ${safe(visit.temperature_c==null?'Not measured':visit.temperature_c+' °C')}<br>Height: ${safe(visit.height_cm==null?'Not measured':visit.height_cm+' cm')} · Weight: ${safe(visit.weight_kg==null?'Not measured':visit.weight_kg+' kg')}</p>
-                ${visit.transaction_mode==='Referral'?`<p>Referred by: ${safe(visit.referred_by||'Not recorded')}<br>Reason: ${safe(visit.referral_reason||'Not recorded')}</p>`:''}<p>Recorded severity: ${safe(visit.severity)}<br>Symptoms / remarks: ${safe(visit.remarks||'None recorded')}</p>${followupHistory(visit)}</section>`).join(''):'<p>No structured visits were recorded for this older case. Its original case details remain in the medical dossier.</p>';
+                ${visit.transaction_mode==='Referral'?`<p>Referring health worker / facility: ${safe(visit.referred_by||'Not recorded')}<br>Reason: ${safe(visit.referral_reason||'Not recorded')}</p>`:''}<p>Recorded severity: ${safe(visit.severity)}<br>Symptoms / remarks: ${safe(visit.remarks||'None recorded')}</p>${followupHistory(visit)}</section>`).join(''):'<p>No structured visits were recorded for this older case. Its original case details remain in the medical dossier.</p>';
             Swal.fire({title:`Visits · Case #REC-${caseId}`,html:`<div class="hi-review-dialog">${html}</div>`,customClass:{popup:'hi-dialog'},confirmButtonText:'Close',width:680});
         }catch(error){Swal.fire('Visit history unavailable',error.message,'error');}
     }

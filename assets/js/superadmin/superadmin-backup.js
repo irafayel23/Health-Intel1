@@ -5,7 +5,7 @@
         if (button.disabled) return;
         button.disabled = true;
         try {
-          const result = await Swal.fire({
+          const result = await Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog",
             title: 'Database Backup',
             html: '<p>Choose a password of 12-128 characters. Keep it to open the encrypted ZIP.</p>' +
               '<label for="backup-password" class="swal2-input-label">Backup password</label><input id="backup-password" type="password" class="swal2-input" placeholder="Backup password" autocomplete="new-password">' +
@@ -24,9 +24,9 @@
           await HealthIntel.download('http://localhost:3000/api/superadmin/backup', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: result.value })
           }, 'health_intel_backup.zip');
-          Swal.fire({ title: 'Download started', text: 'Keep your backup password to open the encrypted ZIP.', icon: 'success' });
+          Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog", title: 'Download started', text: 'Keep your backup password to open the encrypted ZIP.', icon: 'success' });
         } catch (error) {
-          Swal.fire({ title: 'Backup failed', text: error.message, icon: 'error' });
+          Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog", title: 'Backup failed', text: error.message, icon: 'error' });
         } finally {
           button.disabled = false;
         }

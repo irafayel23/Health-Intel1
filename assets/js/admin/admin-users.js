@@ -1,114 +1,127 @@
-      // ==========================================
-      // IAM USER MANAGEMENT 
-      // ==========================================
-      async function loadUsers() {
-        try {
-          // Fetch Pending Users
-          const pRes = await fetch("http://localhost:3000/api/admin/pending-users");
-          const pData = await pRes.json();
-          const pTable = document.getElementById("pending-table-body");
-          pTable.innerHTML = "";
-          let pTableHtmlBuffer = "";
-          if (pData.success) {
-            pData.data.forEach((u) => {
-              pTableHtmlBuffer += `
-                <tr>
-                  <td><strong>${escapeText(u.system_id)}</strong></td>
-                  <td>${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
-                  <td>${escapeText(u.employee_id || 'N/A')}</td>
-                  <td><span class="admin-badge-pending">PENDING</span></td>
-                  <td>
-                    <button onclick="approveUserDirectly(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-approve bg-blue-700 hover:bg-blue-800 text-white">Approve</button>
-                    <button onclick="denyUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-deny bg-red-700 hover:bg-red-800 text-white">Deny</button>
-                  </td>
-                </tr>
-              `;
-            });
-          if (pTableHtmlBuffer === "") {
-              pTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
-<div class="flex flex-col items-center justify-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No records found in the database.</span>
-</div>
-</td></tr>`;
-          }
-          pTable.innerHTML = pTableHtmlBuffer;
-          }
+// The directory endpoints determine which accounts Admin may see.
+async function loadUsers() {
+  const lists = [
+    ['pending-users', 'pending-table-body', 'pending', 3],
+    ['active-users', 'active-users-table-body', 'approved', 4],
+    ['denied-users', 'denied-table-body', null, 2]
+  ];
 
-          // Fetch Active Personnel
-          const aRes = await fetch("http://localhost:3000/api/admin/active-users");
-          const aData = await aRes.json();
-          const aTable = document.getElementById("active-users-table-body");
-          aTable.innerHTML = "";
-          let aTableHtmlBuffer = "";
-          if (aData.success) {
-            aData.data.forEach((u) => {
-              aTableHtmlBuffer += `
-                <tr>
-                  <td><strong>${escapeText(u.system_id)}</strong></td>
-                  <td>${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
-                  <td class="admin-uppercase-role">${u.role}</td>
-                  <td>${u.assigned_barangay || 'Municipality'}</td>
-                  <td><span class="admin-badge-active bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200">ACTIVE</span></td>
-                  <td>
-                    <button onclick="suspendUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-suspend bg-red-700 hover:bg-red-800 text-white">Suspend Access</button>
-                  </td>
-                </tr>
-              `;
-            });
-          if (aTableHtmlBuffer === "") {
-              aTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
-<div class="flex flex-col items-center justify-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No records found in the database.</span>
-</div>
-</td></tr>`;
-          }
-          aTable.innerHTML = aTableHtmlBuffer;
-          }
+  for (const [endpoint, tableId, listStatus, columns] of lists) {
+    const table = document.getElementById(tableId);
+    try {
+      const response = await fetch("http://localhost:3000/api/admin/" + endpoint);
+      const { success, data } = await response.json();
+      if (!response.ok || !success || !Array.isArray(data)) throw new Error('Directory unavailable');
 
-          // Fetch Archived Users
-          const dRes = await fetch("http://localhost:3000/api/admin/denied-users");
-          const dData = await dRes.json();
-          const dTable = document.getElementById("denied-table-body");
-          dTable.innerHTML = "";
-          let dTableHtmlBuffer = "";
-          if (dData.success) {
-            dData.data.forEach((u) => {
-              let badgeHTML = "";
-              let btnHTML = "";
-              
-              if (u.status === 'suspended') {
-                badgeHTML = `<span class="admin-badge-suspended">ACCESS SUSPENDED</span>`;
-                btnHTML = `<button onclick="restoreSuspended(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-restore-access">Restore Access</button>`;
-              } else {
-                badgeHTML = `<span class="admin-badge-denied">DENIED REGISTRATION</span>`;
-                btnHTML = `<button onclick="undoDeny(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-reevaluate">Re-evaluate</button>`;
-              }
+      table.innerHTML = data.map(user => personnelRow(user, listStatus ?? user.status)).join('')
+        || personnelTableMessage(columns, 'No accounts in this list.');
+      table.querySelectorAll('.admin-personnel-row').forEach((row, index) => {
+        const user = data[index];
+        row.addEventListener('click', () => {
+          row.querySelector('button').focus({ preventScroll: true });
+          return openPersonnelDetails(user, listStatus ?? user.status);
+        });
+      });
+    } catch {
+      table.innerHTML = personnelTableMessage(columns, 'Accounts could not be loaded.');
+    }
+  }
+}
 
-              dTableHtmlBuffer += `
-                <tr>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(u.system_id)}</td>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
-                  <td>${badgeHTML}</td>
-                  <td>${btnHTML}</td>
-                </tr>
-              `;
-            });
-          if (dTableHtmlBuffer === "") {
-              dTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
-<div class="flex flex-col items-center justify-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No records found in the database.</span>
-</div>
-</td></tr>`;
-          }
-          dTable.innerHTML = dTableHtmlBuffer;
-          }
-        } catch (e) {
-          console.error("Error loading users:", e);
-        }
-      }
+function personnelTableMessage(columns, message) {
+  return `<tr><td colspan="${columns}" class="text-center py-12">${message}</td></tr>`;
+}
+
+function personnelStatus(status) {
+  const statuses = {
+    pending: ['Pending', 'pending'],
+    approved: ['Active', 'active bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200'],
+    suspended: ['Access suspended', 'suspended'],
+    denied: ['Registration denied', 'denied']
+  };
+  return Object.hasOwn(statuses, status) ? statuses[status] : ['Unknown', ''];
+}
+
+function personnelRow(user, status) {
+  const [label, badge] = personnelStatus(status);
+  const id = escapeText(user.system_id);
+  const name = escapeText([user.first_name, user.last_name].filter(Boolean).join(' '));
+  const role = escapeText(user.role?.toUpperCase());
+  const extraCells = status === 'pending' ? `<td>${escapeText(user.employee_id || 'N/A')}</td>`
+    : status === 'approved' ? `<td>${role}</td><td>${escapeText(user.assigned_barangay || 'Municipality')}</td>` : '';
+  return `<tr class="admin-personnel-row">
+    <td>
+      <button type="button" class="admin-personnel-open" aria-label="View profile for ${name || id} (${id})">
+        <span class="admin-personnel-name">${name || 'Unnamed account'}</span>
+        <span class="admin-personnel-id">${id}</span>
+      </button>
+    </td>
+    ${extraCells}
+    <td class="admin-personnel-status">
+      <span class="admin-badge-${badge}">${label}</span>
+      <span class="admin-personnel-hint" aria-hidden="true">View profile</span>
+    </td>
+  </tr>`;
+}
+
+function formatPersonnelDate(value) {
+  const date = new Date(value);
+  return value && !Number.isNaN(date.getTime())
+    ? new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }).format(date) + ' PHT'
+    : '';
+}
+
+async function openPersonnelDetails(user, status) {
+  const actions = {
+    pending: ['Approve', approveUserDirectly, '#1d4ed8'],
+    approved: ['Suspend Access', suspendUser, '#b91c1c'],
+    suspended: ['Restore Access', restoreSuspended, '#047857'],
+    denied: ['Re-evaluate', undoDeny, '#1d4ed8']
+  };
+  if (!user.system_id || !Object.hasOwn(actions, status)) return;
+  const [actionLabel, action, color] = actions[status];
+  const facts = [
+    ['Full name', [user.first_name, user.last_name].filter(Boolean).join(' ')],
+    ['System ID', user.system_id],
+    ['Status', personnelStatus(status)[0]],
+    ['Email', user.email],
+    ['Employee ID', user.employee_id],
+    ['Role', user.role?.toUpperCase()],
+    ['Assigned barangay', user.assigned_barangay || (status === 'approved' ? 'Municipality' : '')],
+    ['Registered', formatPersonnelDate(user.created_at)],
+    ['Suspended on', status === 'suspended' ? formatPersonnelDate(user.suspended_at) || 'Date not recorded' : '']
+  ];
+  const result = await Swal.fire({
+    titleText: `Account ${user.system_id}`,
+    html: `<dl class="admin-personnel-facts">${facts.filter(([, value]) => value).map(([label, value]) =>
+      `<div><dt>${label}</dt><dd>${escapeText(value)}</dd></div>`).join('')}</dl>`,
+    customClass: { popup: 'hi-dialog admin-personnel-dialog' },
+    showCloseButton: true,
+    showCancelButton: true,
+    cancelButtonText: 'Close',
+    cancelButtonColor: '#475569',
+    showDenyButton: status === 'pending',
+    denyButtonText: 'Deny registration',
+    denyButtonColor: '#b91c1c',
+    confirmButtonText: actionLabel,
+    confirmButtonColor: color,
+    focusCancel: true
+  });
+
+  if (result.isConfirmed) return action(user.system_id);
+  if (result.isDenied && status === 'pending') {
+    const confirmation = await Swal.fire({
+      titleText: 'Deny registration?',
+      text: `Deny the account request for ${user.system_id}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Deny registration',
+      confirmButtonColor: '#b91c1c',
+      focusCancel: true
+    });
+    if (confirmation.isConfirmed) return denyUser(user.system_id);
+  }
+}
 
       async function approveUserDirectly(temp_id) {
         Swal.fire({

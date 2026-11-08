@@ -53,7 +53,7 @@ const analyticsCountLabels={
         }
         =chart;
         ctx.save();
-        ctx.fillStyle=document.documentElement.classList.contains('dark')?'#e2e8f0':'#334155';
+        ctx.fillStyle=document.documentElement.classList.contains('dark')?'#e2e8f0':'#0f172a';
         ctx.font='600 12px sans-serif';
         chart.getDatasetMeta(0).data.forEach((bar,i)=>{const value=chart.data.datasets[0].data[i];if(value!==null)ctx.fillText(Number(value).toLocaleString('en-PH'),bar.x+8,bar.y+4);});
         ctx.restore();
@@ -74,7 +74,7 @@ const analyticsDonutTotal={
         ctx.fillStyle=dark?'#f1f5f9':'#0f172a';
         ctx.font='700 24px sans-serif';
         ctx.fillText(total.toLocaleString('en-PH'),arc.x,arc.y-7);
-        ctx.fillStyle=dark?'#cbd5e1':'#64748b';
+        ctx.fillStyle=dark?'#cbd5e1':'#0f172a';
         ctx.font='500 11px sans-serif';
         ctx.fillText('case records',arc.x,arc.y+15);
         ctx.restore();
@@ -85,23 +85,19 @@ function renderDescriptiveFindings(){
     const target=ae('descriptive-findings'),data=analyticsBreakdownData,total=Number(data.total_cases);
     target.replaceChildren();
     if(!total){target.textContent='No matching case records for these filters.';return;}
-    function finding(title,rows,key='label',format=value=>value){
-        const ranked=rows.filter(row=>Number(row.cases)>0).sort((a,b)=>Number(b.cases)-Number(a.cases));
-        const count=Number(ranked[0]?.cases||0),leaders=ranked.filter(row=>Number(row.cases)===count);
+    MHOInsights.descriptiveFindings(analyticsProfileData,data).forEach(finding=>{
         const item=document.createElement('div');item.className='py-3';
-        const term=document.createElement('dt');term.className='text-xs text-[hsl(var(--muted-foreground))]';term.textContent=title+(leaders.length>1?' · tied':'');
-        const detail=document.createElement('dd');detail.className='flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mt-1';
+        const term=document.createElement('dt');term.className='text-xs text-[hsl(var(--muted-foreground))]';term.textContent=finding.title;
+        const detail=document.createElement('dd');detail.className='mt-1';
+        const heading=document.createElement('div');heading.className='flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1';
         const name=document.createElement('span');name.className='text-sm font-semibold';
-        name.textContent=leaders.length?leaders.slice(0,2).map(row=>format(row[key])).join(', ')+(leaders.length>2?' +'+(leaders.length-2)+' more':''):'Not recorded';
-        name.title=leaders.map(row=>format(row[key])).join(', ');
+        name.textContent=finding.name;name.title=finding.names.join(', ');
         const value=document.createElement('span');value.className='text-xs text-[hsl(var(--muted-foreground))] tabular-nums';
-        value.textContent=count?count.toLocaleString('en-PH')+' · '+(count/total*100).toFixed(1)+'%'+(leaders.length>1?' each':''):'—';
-        detail.append(name,value);item.append(term,detail);target.append(item);
-    }
-    finding('Leading recorded disease',analyticsProfileData.data,'disease');
-    finding('Highest recorded barangay count',data.barangays);
-    finding('Largest recorded age group',data.ages.filter(row=>row.label!=='Not recorded'),'label',label=>label==='60+'?'60+ years':label+' years');
-    finding('Peak recorded month',data.months,'label',label=>new Intl.DateTimeFormat('en-PH',{month:'short',year:'numeric',timeZone:'Asia/Manila'}).format(new Date(label+'-01T12:00:00+08:00')));
+        value.textContent=finding.count?finding.count.toLocaleString('en-PH')+(finding.count===1?' case · ':' cases · ')+finding.share.toFixed(1)+'%'+(finding.tied?' each':''):'—';
+        const explanation=document.createElement('p');explanation.className='mt-2 text-xs leading-relaxed text-[hsl(var(--muted-foreground))]';
+        explanation.textContent=finding.explanation;
+        heading.append(name,value);detail.append(heading,explanation);item.append(term,detail);target.append(item);
+    });
 }
 function setAnalyticsBreakdown(dimension){
     analyticsBreakdownDimension=dimension==='age'?'age':'barangay';
@@ -322,7 +318,7 @@ async function updateDynamicChart(){
     ae('analytics-scope').textContent=(ae('filter-year').selectedOptions?.[0]?.textContent || filters.year)+' · '+(filters.barangay==='all'?'All barangays':filters.barangay);
     ['stat-total','stat-active','stat-recovered','stat-risk'].forEach(target=>ae(target).textContent='…');
     ae('insight-text').textContent='Loading the selected records…';
-    ae('action-text').textContent='Awaiting records.';
+    ae('action-text').textContent='Loading the recorded-case summary…';
     ae('profile-empty').textContent='Loading…';
     if(dynamicChart){
         dynamicChart.destroy();
@@ -346,7 +342,7 @@ async function updateDynamicChart(){
         analyticsProfileData=result;renderDescriptiveFindings();
         const description=MHOInsights.describeProfile(result.data,filters,result.summary);
         ae('insight-text').textContent=description.text;
-        ae('action-text').textContent=description.action;
+        ae('action-text').textContent=description.text;
         ae('profile-chart-wrap').classList.toggle('hidden',!result.data.length);
         ae('profile-empty').textContent=result.data.length?'':'No matching disease cases for this selection.';
         ae('analytics-data-context').textContent='Counts use original case dates and age at that date; follow-up visits do not add disease cases. '+(result.summary.first_recorded?`Recorded dates: ${result.summary.first_recorded} to ${result.summary.last_recorded}.`:'No matching record dates.');
@@ -395,7 +391,7 @@ async function updateDynamicChart(){
     catch{
         if(id!==analyticsRequestId)return;
         ae('insight-text').textContent='The selected records could not be loaded. Please refresh or try again.';
-        ae('action-text').textContent='Check the connection and retry.';
+        ae('action-text').textContent='The recorded-case summary is unavailable.';
         ae('profile-empty').textContent='Data unavailable; this is not a zero count.';
         ae('profile-table').textContent='Data unavailable.';
         ae('analytics-data-context').textContent='A connection error does not mean zero cases.';

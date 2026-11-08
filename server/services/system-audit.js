@@ -1,6 +1,6 @@
 const { caseIdForAudit } = require('./case-audit');
 
-const MASTER_ONLY_ACTIONS = ['Login Succeeded', 'Login Failed', 'Login Rate Limited', 'Password Changed', 'Password Reset', 'Report Export Prepared', 'Report Export Failed', 'Report Data Exported'];
+const MASTER_ONLY_ACTIONS = ['Login Succeeded', 'Concurrent Sign-in Detected', 'Session Replaced', 'Login Failed', 'Login Rate Limited', 'Password Changed', 'Password Reset', 'Report Export Prepared', 'Report Export Failed', 'Report Data Exported'];
 const roles = {bhw:'BHW', mho:'MHO', admin:'Admin', superadmin:'Superadmin'};
 function actor(user) {
     return user ? {system_id:user.system_id, role:roles[user.role] || user.role} : {system_id:'Unauthenticated', role:'Unauthenticated'};

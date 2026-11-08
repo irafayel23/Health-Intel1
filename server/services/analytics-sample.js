@@ -2,7 +2,7 @@
 const {analyticsFilters,comparisonSelection}=require('./mho-analytics');
 const {todayPeriod}=require('./report-periods');
 const {group,ranges}=require('./age-groups');
-const diseases=['Hypertension','Dengue','Influenza','Asthma','Diabetes mellitus','Pneumonia','Tuberculosis','Acute gastroenteritis','Urinary tract infection','Acute respiratory infection'];
+const {DISEASES:diseases}=require('./seasonal6200-sarima-demo');
 function sampleAnalytics(endpoint,query,places,now=new Date()){
     const filters=analyticsFilters(query),through=todayPeriod(now).start,currentYear=Number(through.slice(0,4));
     const years=Array.from({length:4},(_,i)=>currentYear-3+i),barangays=[...new Set(places)].sort(),records=[];
