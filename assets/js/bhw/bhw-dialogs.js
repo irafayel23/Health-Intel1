@@ -3,11 +3,11 @@
         let visitControl, wizard;
         return Swal.fire({title:returnVisit?'Record follow-up / admission':'Patient case / visit',width:940,customClass:{popup:'hi-dialog hi-encode-dialog'},
           html:`<div class="hi-encode"><p class="hi-encode-intro">${returnVisit?`Patient details are filled from the resident profile. This visit stays linked to #REC-${Number(returnVisit.caseId)}. Enter new measurements and notes.`:'Record a disease case or a visit linked to an existing case.'} Fields marked * are required.</p><div id="hi-visit-progress"></div>
-          <section><h3>1. Patient details</h3><div class="hi-encode-grid">
+          <section class="hi-bhw-patient-step"><h3>1. Patient details</h3><div class="hi-encode-grid">
           <div class="hi-encode-wide hi-patient-name-grid"><div><label for="swal-lname">Family name *</label><input id="swal-lname" maxlength="100" autocomplete="family-name" placeholder="Family name"></div>
           <div><label for="swal-fname">First name *</label><input id="swal-fname" maxlength="100" autocomplete="given-name" placeholder="First name"></div>
-          <div class="hi-suffix-field"><label for="swal-suffix">Suffix</label><select id="swal-suffix" aria-describedby="swal-suffix-help"><option value="">None</option><option>Jr.</option><option>Sr.</option><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option><option>IX</option><option>X</option></select><p id="swal-suffix-help" class="hi-field-help">Choose None if not applicable.</p></div></div>
-          <div><label for="swal-birthdate">Birthdate *</label><input id="swal-birthdate" type="text" inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" aria-describedby="swal-birthdate-help"><p id="swal-birthdate-help" class="hi-field-help">MM/DD/YYYY · Enter 8 numbers; / separators are added automatically.</p></div>
+          <div class="hi-suffix-field"><label for="swal-suffix">Suffix</label><select id="swal-suffix"><option value="">None</option><option>Jr.</option><option>Sr.</option><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option><option>IX</option><option>X</option></select></div></div>
+          <div><label for="swal-birthdate">Birthdate *</label><div class="hi-bhw-birthdate"><input id="swal-birthdate" type="text" inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" aria-describedby="swal-birthdate-help"><input id="swal-birthdate-picker" type="date" min="1900-01-01" tabindex="-1" aria-hidden="true" hidden><button id="swal-birthdate-calendar" type="button" aria-label="Choose birthdate from calendar" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></button></div><p id="swal-birthdate-help" class="hi-field-help">MM/DD/YYYY · Slashes are added automatically.</p></div>
           <div><label for="swal-age">Age on consultation date</label><input id="swal-age" readonly placeholder="Calculated from birthdate"></div>
           <div class="hi-encode-wide"><label for="swal-purok">Purok / zone *</label><input id="swal-purok" maxlength="100" placeholder="Enter the purok or zone"><p class="hi-field-help">Assigned barangay: <span id="swal-assigned-barangay"></span></p></div></div></section>
           ${HealthIntelVisits.markup()}
@@ -19,10 +19,12 @@
           confirmButtonText:'Save record',confirmButtonColor:'#2563eb',showCancelButton:true,showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
           didOpen:()=>{
             controls.push(HealthIntelVisits.bindBloodPressure('swal'));
+            bindBhwMeasurementEntry();
             const field=id=>document.getElementById(id),date=field('swal-case-date'),bd=field('swal-birthdate');
             date.max=window.HealthIntelDate.todayInManila();date.value=date.max;
             field('swal-assigned-barangay').textContent=window.currentBrgyName || 'Your assigned barangay';
             controls.push(HealthIntelDate.bindNumericBirthdate(bd));
+            if(!returnVisit)bindBhwBirthdatePicker(bd,date,field('swal-birthdate-picker'),field('swal-birthdate-calendar'));
             const age=()=>{const b=HealthIntelDate.parseBirthdate(bd.value);let value='';if(b&&date.value&&b<=date.value){const [by,bm,day]=b.split('-').map(Number),[cy,cm,cd]=date.value.split('-').map(Number);const n=cy-by-(cm<bm||(cm===bm&&cd<day)?1:0);if(n<=130)value=n;}field('swal-age').value=value;};
             bd.addEventListener('input',age);date.addEventListener('change',age);
             if(returnVisit){
@@ -54,6 +56,45 @@
             }catch(error){Swal.showValidationMessage(error.message);if(error.field)document.getElementById(error.field)?.focus();return false;}
           }
         }).then(result=>{if(result.isConfirmed){Swal.fire({icon:'success',title:result.value.new_case===false?`Visit saved · Case #REC-${result.value.id}`:`Case #REC-${result.value.id} saved`,text:result.value.new_case===false?'The visit was added to the original disease case. Disease totals are unchanged.':result.value.review_status==='Pending'?'The reported condition is awaiting MHO review.':'The patient case and consultation were recorded.'});isViewingArchive?loadArchivedPatients():loadPatients();loadDashboardStats();loadTrendChart();window.dispatchEvent(new Event('health-intel:cases-changed'));}else if(returnVisit&&!returnVisit.fromTracking)viewPatientProfile(returnVisit.person.id);});
+      }
+
+      function bindBhwBirthdatePicker(input, consultationDate, picker, button) {
+        if(typeof picker.showPicker!=='function')return;
+        picker.hidden=false;
+        button.hidden=false;
+        input.parentElement.classList.add('has-picker');
+        button.addEventListener('click',()=>{
+          picker.max=consultationDate.value && consultationDate.value<=consultationDate.max ? consultationDate.value : consultationDate.max;
+          const birthdate=HealthIntelDate.parseBirthdate(input.value);
+          picker.value=birthdate && birthdate<=picker.max ? birthdate : '';
+          picker.showPicker();
+        });
+        picker.addEventListener('change',()=>{
+          if(picker.value && !picker.validity.valid)return;
+          const [year,month,day]=picker.value.split('-');
+          input.value=year ? [month,day,year].join('/') : '';
+          input.dispatchEvent(new Event('input',{bubbles:true}));
+        });
+      }
+
+      function bindBhwMeasurementEntry() {
+        const fields = [
+          ['swal-bp-systolic', /^[0-9]{0,3}$/],
+          ['swal-bp-diastolic', /^[0-9]{0,3}$/],
+          ['swal-temperature', /^(?:[0-9]{1,3}(?:[.][0-9]{0,2})?)?$/],
+          ['swal-height', /^(?:[0-9]{1,3}(?:[.][0-9]{0,2})?)?$/],
+          ['swal-weight', /^(?:[0-9]{1,4}(?:[.][0-9]{0,2})?)?$/]
+        ];
+        for(const [id,format] of fields){
+          const input=document.getElementById(id);
+          const fits=text=>format.test(input.value.slice(0,input.selectionStart)+text+input.value.slice(input.selectionEnd));
+          input.addEventListener('beforeinput',event=>{
+            if(event.inputType.startsWith('insert') && event.data && !fits(event.data))event.preventDefault();
+          });
+          input.addEventListener('paste',event=>{
+            if(!fits(event.clipboardData.getData('text')))event.preventDefault();
+          });
+        }
       }
 
       async function generateBHWTodayReport() {
