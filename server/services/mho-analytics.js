@@ -28,7 +28,7 @@ function analyticsFilters(query) {
     if (typeof year !== 'string' || (year !== 'all' && (!/^\d{4}$/.test(year) || Number(year) < 1900)) ||
         typeof age !== 'string' || (age !== 'all' && !Object.hasOwn(ageRanges, age)) ||
         typeof barangay !== 'string' || !barangay.trim() || barangay.length > 255 ||
-        !['morbidity', 'mortality'].includes(category)) {
+        category !== 'morbidity') {
         const error = new Error('Select a valid year, barangay, age group and category.');
         error.status = 400;
         throw error;
@@ -36,8 +36,8 @@ function analyticsFilters(query) {
     return { year, age, barangay, category };
 }
 
-function caseWhere(filters, { includeYear = true, deathsOnly = false } = {}) {
-    const clauses = ["disease NOT LIKE '%bite%'", "disease NOT LIKE '%accident%'"];
+function caseWhere(filters, { includeYear = true, allConditions = false } = {}) {
+    const clauses = allConditions ? ['1=1'] : ["disease NOT LIKE '%bite%'", "disease NOT LIKE '%accident%'"];
     const params = [];
     if (includeYear && filters.year !== 'all') {
         clauses.push('YEAR(date_recorded) = ?'); params.push(Number(filters.year));
@@ -48,7 +48,6 @@ function caseWhere(filters, { includeYear = true, deathsOnly = false } = {}) {
     if (filters.age !== 'all') {
         clauses.push(caseAgeSql()+' BETWEEN ? AND ?'); params.push(...ageRanges[filters.age]);
     }
-    if (deathsOnly) clauses.push("status = 'Deceased'");
     return { sql: clauses.join(' AND '), params };
 }
 

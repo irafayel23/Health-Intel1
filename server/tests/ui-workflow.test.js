@@ -10,7 +10,7 @@ function loadAdminScripts(sandbox) {
     vm.runInNewContext(script('safe-text.js'),sandbox);sandbox.HealthIntelText=sandbox.window.HealthIntelText;
     vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
     const html = fs.readFileSync(path.join(__dirname,'../../admin.html'),'utf8');
-    for(const [,name] of html.matchAll(/<script src="assets\/js\/(admin\/admin-[^"]+\.js)"><\/script>/g)) {
+    for(const [,name] of html.matchAll(/<script src="assets\/js\/(admin\/admin-[^"?]+\.js)(?:\?[^" ]*)?"><\/script>/g)) {
         vm.runInNewContext(script(name),sandbox,{filename:name});
     }
 }
@@ -29,52 +29,192 @@ test('case links use explicit references and never guess IDs from unrelated or l
     ]) assert.equal(caseIdForAudit(log),null);
 });
 
-test('Admin searches exact Case IDs and displays actionable audit references safely', () => {
-    const elements = {'audit-table-body':{innerHTML:''},'audit-pagination':{classList:{remove(){},add(){}}},'audit-page-info':{},'audit-page-buttons':{}};
-    const sandbox = {console,lucide:{createIcons(){}},window:{addEventListener(){}},document:{getElementById:id=>elements[id]},HealthIntelText:null};
-    vm.runInNewContext(script('safe-text.js'),sandbox);sandbox.HealthIntelText=sandbox.window.HealthIntelText;
+test('Admin audit rows preserve system details in dialogs and open only explicit case links', async () => {
+    const elements = {'audit-table-body':{},'audit-page-info':{},'audit-page-buttons':{querySelector:()=>null}};
+    let dialog, linkedCase, focused = false;
+    const row = {querySelector:()=>({focus(){focused=true;}})};
+    const sandbox = {console,lucide:{createIcons(){}},window:{addEventListener(){}},document:{getElementById:id=>elements[id]},
+        Swal:{fire:async value=>{dialog=value;return {};}}};
     loadAdminScripts(sandbox);
     assert.equal(sandbox.matchesCaseSearch({id:5257,patient_name:'Fixture'},'REC-5257'),true);
     assert.equal(sandbox.matchesCaseSearch({id:5257,patient_name:'Fixture'},'#REC-5257'),true);
     assert.equal(sandbox.matchesCaseSearch({id:5257,patient_name:'Fixture'},'5257'),true);
     assert.equal(sandbox.matchesCaseSearch({id:52570,patient_name:'Fixture'},'REC-5257'),false);
-    vm.runInNewContext(`allAuditLogs=[{case_id:5257,action:'Patient Encoded',user_id:'QA-BHW',role:'BHW',created_at:'2026-09-30T00:00:00Z',details:JSON.stringify({case_id:5257,summary:'Created case <unsafe>'})},{case_id:null,action:'Patient Encoded',user_id:'QA-BHW',role:'BHW',created_at:'2026-09-30T00:00:00Z',details:'Older encoding'}];renderAuditTable();`,sandbox);
-    assert.match(elements['audit-table-body'].innerHTML,/viewAdminCase\(5257,true\)/);
-    assert.match(elements['audit-table-body'].innerHTML,/Created case &lt;unsafe&gt;/);
-    assert.doesNotMatch(elements['audit-table-body'].innerHTML,/Historical entry: no recorded Case ID/);
-    assert.match(elements['audit-table-body'].innerHTML,/Older encoding/);
-    assert.equal((elements['audit-table-body'].innerHTML.match(/viewAdminCase\(/g)||[]).length,1);
-    assert.doesNotMatch(elements['audit-table-body'].innerHTML,/viewAdminCase\(null/);
+    sandbox.viewAdminCase=(id, log)=>{linkedCase=[id, log.details];};
+    vm.runInNewContext("allAuditLogs=[{case_id:5257,action:'Patient Encoded',user_id:'QA-BHW',role:'BHW',details:JSON.stringify({case_id:5257,summary:'Created case <unsafe>'})},...Array.from({length:8},()=>({case_id:null,action:'Catalog update',details:'Older encoding <unsafe>'}))];renderAuditTable();",sandbox);
+    assert.match(elements['audit-table-body'].innerHTML,/Patient Encoded · #REC-5257/);
+    assert.doesNotMatch(elements['audit-table-body'].innerHTML,/Created case|Older encoding/);
+    assert.match(elements['audit-page-info'].textContent,/Showing 1–8 of 9/);
+    await sandbox.openAdminAuditEvent(0,row);
+    assert.deepEqual(linkedCase,[5257,JSON.stringify({case_id:5257,summary:'Created case <unsafe>'})]);
+    assert.equal(focused,true);
+    await sandbox.openAdminAuditEvent(1,row);
+    assert.equal(dialog.titleText,'Audit event details');
+    assert.match(dialog.html,/Older encoding &lt;unsafe&gt;/);
+    sandbox.goToAuditPage(2);
+    assert.equal((elements['audit-table-body'].innerHTML.match(/admin-audit-row/g)||[]).length,1);
+    assert.match(elements['audit-page-info'].textContent,/Showing 9–9 of 9/);
+    assert.match(elements['audit-page-buttons'].innerHTML,/aria-current="page">2/);
 });
 
-test('Admin case links select the correct records tab and explain missing resident profiles', async () => {
-    for (const archived of [false,true]) {
-        let dialog, selectedView, selectedTab, focused = false;
-        const elements = Object.fromEntries(['filter-table-brgy','filter-table-disease','filter-table-status','search-patient','search-archived-patient'].map(id=>[id,{value:''}]));
-        elements['admin-case-row-5257']={classList:{add(){focused=true;}},scrollIntoView(){}};
-        const sandbox = {console,lucide:{createIcons(){}},window:{addEventListener(){}},document:{getElementById:id=>elements[id]},
-            fetch:async()=>({ok:true,json:async()=>({success:true,case:{id:5257,is_archived:archived,resident_id:archived?42:null,patient_name:'Fixture',encoded_by:'QA-BHW'},history:[]})}),
-            Swal:{fire:async value=>{dialog=value;return {};}}};
-        vm.runInNewContext(script('safe-text.js'),sandbox);sandbox.HealthIntelText=sandbox.window.HealthIntelText;
+test('Admin audit case links open read-only case details without leaving the audit page', async () => {
+    for (const scenario of ['active','archived','unavailable']) {
+        let dialog;
+        const archived = scenario==='archived';
+        const sandbox = {console,lucide:{createIcons(){}},window:{addEventListener(){}},document:{getElementById:()=>null},
+            fetch:async()=>({ok:scenario!=='unavailable',json:async()=>({success:true,case:{id:5257,is_archived:archived,resident_id:archived?42:null,patient_name:'Fixture',encoded_by:'QA-BHW'},history:[]})}),
+            Swal:{fire:async value=>{dialog=value;return {isConfirmed:true};}}};
         loadAdminScripts(sandbox);
-        sandbox.fetchPatientRecords=async()=>{};sandbox.loadArchivedPatients=async()=>{};
-        sandbox.switchMainView=(view)=>{selectedView=view;};sandbox.switchSubView=(_,tab)=>{selectedTab=tab;};
-        sandbox.filterData=()=>{};sandbox.filterArchivedPatients=()=>{};
-        await sandbox.viewAdminCase(5257,true);
-        assert.equal(dialog.title,'Case #REC-5257');
-        assert.equal(selectedView,'view-data');assert.equal(selectedTab,archived?'archived':'active');
-        assert.equal(elements[archived?'search-archived-patient':'search-patient'].value,'REC-5257');
-        assert.equal(focused,true);assert.equal(dialog.showDenyButton,true);
-        assert.doesNotMatch(dialog.html,/No verified resident link/);
-        if(archived)assert.match(dialog.html,/RES-42/);
-        else assert.match(dialog.html,/This case is not linked to a resident profile\./);
+        sandbox.switchMainView=()=>{throw Error('Audit case should open in place');};
+        const event={case_id:5257, action:'Patient Encoded', details:'Recorded case <unsafe>'};
+        await sandbox.viewAdminCase(5257,event);
+        assert.match(dialog.html,/Recorded case &lt;unsafe&gt;/);
+        if (scenario==='unavailable') {
+            assert.equal(dialog.titleText,'Audit event details');
+            assert.match(dialog.html,/linked case could not be opened/);
+        } else {
+            assert.equal(dialog.title,'Case #REC-5257');
+            assert.equal(dialog.showDenyButton,false);
+            assert.equal(dialog.confirmButtonText,'Close');
+            if(archived)assert.match(dialog.html,/RES-42/);
+            else assert.match(dialog.html,/This case is not linked to a resident profile\./);
+        }
     }
+});
+
+test('Admin case paging reaches records past the old limit and keeps both lists independent', () => {
+    const elements = {};
+    const sandbox = {
+        console, lucide:{createIcons(){}}, window:{addEventListener(){}},
+        document:{getElementById:id=>elements[id] ||= {value:'',innerHTML:'',querySelector:()=>null}}
+    };
+    loadAdminScripts(sandbox);
+    vm.runInNewContext("allPatients = Array.from({length: 54}, (_, index) => ({id: index + 1, patient_name: 'Sample case'})); allArchivedPatients = allPatients.slice(0, 12);", sandbox);
+    sandbox.filterData();
+    assert.match(elements['admin-active-case-pages'].innerHTML, /Showing 1–10 of 54 cases/);
+    assert.match(elements['admin-active-case-pages'].innerHTML, /disabled>Previous/);
+    assert.doesNotMatch(elements['patient-table-body'].innerHTML, />View case<|>Correct<|>Archive</);
+    assert.match(elements['patient-table-body'].innerHTML, /onclick="viewAdminCase\(1\)"/);
+    assert.match(elements['patient-table-body'].innerHTML, /<button type="button" class="admin-case-open" aria-label="Open case #REC-1 for Sample case"/);
+    assert.match(elements['patient-table-body'].innerHTML, /class="admin-case-name">Sample case<\/span>\s*<span class="admin-case-id">#REC-1/);
+    assert.match(elements['patient-table-body'].innerHTML, /class="admin-case-status" data-status="active">Active/);
+    sandbox.goToAdminCasePage('active', 6);
+    assert.match(elements['admin-active-case-pages'].innerHTML, /Showing 51–54 of 54 cases/);
+    assert.match(elements['admin-active-case-pages'].innerHTML, /disabled>Next/);
+    assert.match(elements['patient-table-body'].innerHTML, /admin-case-row-54/);
+    sandbox.goToAdminCasePage('archived', 2);
+    assert.match(elements['admin-archived-case-pages'].innerHTML, /Showing 11–12 of 12 cases/);
+    assert.match(elements['admin-active-case-pages'].innerHTML, /Showing 51–54/);
+    elements['search-patient'].value = 'REC-54';
+    sandbox.filterData();
+    assert.match(elements['admin-active-case-pages'].innerHTML, /1 matching case/);
+    assert.match(elements['patient-table-body'].innerHTML, /admin-case-row-54/);
+    assert.doesNotMatch(elements['patient-table-body'].innerHTML, /admin-case-row-53/);
+    elements['search-patient'].value = 'No match';
+    sandbox.filterData();
+    assert.match(elements['patient-table-body'].innerHTML, /colspan="7"[^>]*>No matching case records/);
+});
+
+test('Admin case rows keep filters intact and defer each action until chosen in details', async () => {
+    let archived = false, decision = {}, dialog;
+    const reads = [], actions = [];
+    const elements = {
+        'search-patient': {value:'Fixture filter'},
+        'admin-case-row-42': {querySelector:()=>({focus(){}})}
+    };
+    const sandbox = {
+        console, lucide:{createIcons(){}}, window:{addEventListener(){}},
+        document:{getElementById:id=>elements[id]},
+        fetch:async url=>{
+            reads.push(url);
+            return {ok:true,json:async()=>({success:true,case:{id:42,is_archived:archived,patient_name:'<Example>'},history:[]})};
+        },
+        HealthIntelCorrections:{open:id=>actions.push(['correct',id])},
+        Swal:{fire:async options=>{dialog=options;return decision;}}
+    };
+    loadAdminScripts(sandbox);
+    sandbox.archivePatient=id=>actions.push(['archive',id]);
+    sandbox.restorePatient=id=>actions.push(['restore',id]);
+    await sandbox.viewAdminCase(42);
+    assert.deepEqual(actions,[]);
+    assert.equal(dialog.confirmButtonText,'Correct');
+    assert.equal(dialog.denyButtonText,'Archive');
+    assert.equal(dialog.denyButtonColor,'#b91c1c');
+    assert.equal(dialog.confirmButtonColor,'#1e40af');
+    assert.equal(dialog.cancelButtonColor,'#475569');
+    assert.equal(dialog.reverseButtons,undefined);
+    const archiveButton={};
+    let moved;
+    dialog.didRender({querySelector: selector=>selector==='.swal2-deny' ? archiveButton : {before:button=>{moved=button;}}});
+    assert.equal(moved,archiveButton);
+    assert.equal(dialog.focusCancel,true);
+    assert.match(dialog.html,/&lt;Example&gt;/);
+    assert.equal(elements['search-patient'].value,'Fixture filter');
+    assert.deepEqual(reads,['http://localhost:3000/api/admin/cases/42']);
+    decision = {isConfirmed:true};
+    await sandbox.viewAdminCase(42);
+    decision = {isDenied:true};
+    await sandbox.viewAdminCase(42);
+    archived = true;
+    decision = {isConfirmed:true};
+    await sandbox.viewAdminCase(42);
+    assert.equal(dialog.confirmButtonText,'Restore');
+    assert.equal(dialog.showDenyButton,false);
+    assert.deepEqual(actions,[['correct',42],['archive',42],['restore',42]]);
+});
+
+test('Admin disease rows open escaped details and route only explicit actions', async () => {
+    const actions = [], reads = [];
+    let dialog, decision = {};
+    const table = () => ({
+        innerHTML: '',
+        querySelectorAll() {
+            this.row = {
+                addEventListener(_event, fn) { this.open = fn; },
+                querySelector: () => ({focus(){}})
+            };
+            return [this.row];
+        }
+    });
+    const active = table(), archived = table();
+    const elements = {'disease-table-body': active, 'disease-archived-table-body': archived};
+    const sandbox = {
+        console, lucide:{createIcons(){}}, window:{addEventListener(){}},
+        document:{getElementById:id=>elements[id]},
+        fetch:async url=>{
+            reads.push(url);
+            return {ok:true,json:async()=>({success:true,data:[url.endsWith('/archived') ? {id:43,name:'Archived fixture'} : {id:42,name:'<Fixture>'}]})};
+        },
+        Swal:{fire:async options=>{dialog=options;return decision;}}
+    };
+    loadAdminScripts(sandbox);
+    sandbox.archiveDisease=id=>actions.push(['archive',id]);
+    sandbox.restoreDisease=id=>actions.push(['restore',id]);
+    await sandbox.loadDiseases();
+    assert.equal(sandbox.window.adminRegistryChoices[0].id,42);
+    assert.match(active.innerHTML,/&lt;Fixture&gt;/);
+    assert.match(archived.innerHTML,/Archived fixture/);
+    for (const body of [active,archived]) assert.doesNotMatch(body.innerHTML,/onclick=|>Restore<|>Archive</);
+    await active.row.open();
+    assert.equal(dialog.confirmButtonText,'Archive');
+    assert.equal(dialog.focusCancel,true);
+    assert.match(dialog.html,/&lt;Fixture&gt;/);
+    assert.deepEqual(actions,[]);
+    decision = {isConfirmed:true};
+    await active.row.open();
+    await archived.row.open();
+    assert.equal(dialog.confirmButtonText,'Restore');
+    assert.equal(dialog.confirmButtonColor,'#047857');
+    assert.equal(dialog.cancelButtonColor,'#475569');
+    assert.equal(dialog.reverseButtons,undefined);
+    assert.deepEqual(actions,[['archive',42],['restore',43]]);
+    assert.equal(reads.length,2);
 });
 
 test('Admin scripts load in HTML order and initialize all feature views with existing hooks', async () => {
     const elements = {}, events = {}, requests = [], errors = [];
     const sandbox = {console:{error:(...args)=>errors.push(args)},lucide:{createIcons(){}},window:{addEventListener:(name,fn)=>{events[name]=fn;}},
-        document:{getElementById:id=>elements[id] ||= {value:'',innerHTML:'',classList:{add(){},remove(){}}}},
+        document:{addEventListener:(name,fn)=>{events[name]=fn;},getElementById:id=>elements[id] ||= {value:'',innerHTML:'',querySelectorAll:()=>[],classList:{add(){},remove(){}}}},
         fetch:async url=>{requests.push(url);return {ok:true,json:async()=>({success:true,data:[]}),clone(){return this;}};}};
     loadAdminScripts(sandbox);
     events.DOMContentLoaded();
@@ -100,13 +240,18 @@ test('resident directory reloads after saved case changes and when its real side
     const grid = {innerHTML:''};
     const residentView = {classList:{contains:()=>false,add(){},remove(){}}};
     let residents = [];
-    const sandbox = { lucide:{createIcons(){}}, console, window:{ currentBrgyId:1, addEventListener:(name,fn)=>{events[name]=fn;} },
-        document:{ querySelectorAll:selector=>selector.includes('nav-menu')?[button]:[], addEventListener(){}, getElementById:id=>id==='directory-search'?{value:''}:id==='resident-grid'?grid:id==='view-resident-profiles'?residentView:null },
+    const purok = {value:'', replaceChildren(...options){ this.options=options; }};
+    const age = {value:''};
+    const elements = {'directory-search':{value:''}, 'resident-grid':grid, 'view-resident-profiles':residentView,
+        'resident-filter-purok':purok, 'resident-filter-age':age};
+    const sandbox = { lucide:{createIcons(){}}, console, window:{ currentBrgyId:1, currentBrgyName:'Blumentritt', addEventListener:(name,fn)=>{events[name]=fn;} },
+        Option:function(label,value){ this.label=label; this.value=value; },
+        document:{ querySelectorAll:selector=>selector.includes('nav-menu')?[button]:[], addEventListener(){}, getElementById:id=>elements[id] || null },
         escapeText:value=>String(value), fetch:async url=>{requests.push(url);return {json:async()=>({success:true,data:residents})};} };
     vm.runInNewContext(script('safe-text.js'),sandbox);
     vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
     const bhwHtml = fs.readFileSync(path.join(__dirname,'../../bhw.html'),'utf8');
-    for (const [,name] of bhwHtml.matchAll(/<script src="assets\/js\/(bhw\/bhw-(?:records|residents|dashboard|startup)\.js)"><\/script>/g)) {
+    for (const [,name] of bhwHtml.matchAll(/<script src="assets\/js\/(bhw\/bhw-(?:records|residents|dashboard|startup)\.js)(?:\?[^"]*)?"><\/script>/g)) {
         vm.runInNewContext(script(name),sandbox,{filename:name});
     }
     await sandbox.loadResidentDirectory();
@@ -114,6 +259,14 @@ test('resident directory reloads after saved case changes and when its real side
     residents = [{id:42,patient_name:'Disposable Directory',age:26,purok:'QA Zone',case_count:1}];
     await events['health-intel:cases-changed']();
     await new Promise(resolve=>setImmediate(resolve));
+    assert.match(grid.innerHTML,/Disposable Directory/);
+    assert.ok(purok.options.some(option=>option.label==='Purok Sambag'));
+    assert.ok(purok.options.some(option=>option.label==='QA Zone'));
+    age.value='senior';
+    sandbox.filterDirectory();
+    assert.match(grid.innerHTML,/No residents found/);
+    age.value='adult';
+    sandbox.filterDirectory();
     assert.match(grid.innerHTML,/Disposable Directory/);
     const before = requests.length;
     clicks.click();
@@ -216,4 +369,59 @@ test('Google verification prevents competing popups and restores its button afte
     rejectPopup({code:'auth/popup-blocked'});await new Promise(resolve=>setImmediate(resolve));
     assert.match(dialogs.at(-1).text,/blocked the Google window/);assert.equal(button.disabled,false);assert.equal(button.attributes['aria-busy'],undefined);
     element('privacy-checkbox').checked=false;click();assert.equal(requests,1);
+});
+
+test('Purok suggestions are scoped, searchable and optional', () => {
+    let barangay = 'Sta. Rosa';
+    let list;
+    function node() {
+        const el = new EventTarget();
+        const attributes = new Map();
+        return Object.assign(el, {
+            id: '', value: '', dataset: {}, children: [],
+            setAttribute: (name, value) => attributes.set(name, value),
+            getAttribute: name => attributes.get(name),
+            removeAttribute: name => attributes.delete(name),
+            replaceChildren(...items) { this.children = items; },
+            append(element) { list = element; },
+            closest: () => null,
+            style: {},
+            getBoundingClientRect: () => ({left:40, top:400, bottom:448, width:200}),
+            scrollIntoView() {},
+            remove() {},
+        });
+    }
+    const input = node();
+    input.id = 'sample-purok';
+    const window = Object.assign(new EventTarget(), {HealthIntelText:{escape:String}, innerWidth:400, innerHeight:500});
+    const scope = {window, document:{createElement:node, body:node()}, AbortController, Event};
+    vm.runInNewContext(script('encoding-controls.js'), scope);
+    scope.window.HealthIntelEncoding.bindPurokSuggestions(input, () => barangay);
+    const type = value => { input.value = value; input.dispatchEvent(new Event('input')); };
+    const key = value => {
+        const event = new Event('keydown', {cancelable:true});
+        Object.defineProperty(event, 'key', {value});
+        input.dispatchEvent(event);
+    };
+    type('r');
+    assert.equal(list.hidden, false);
+    assert.equal(list.children[0].textContent, 'Purok Relocation');
+    assert.equal(list.style.top, 'auto');
+    assert.equal(list.style.bottom, '106px');
+    key('ArrowDown');
+    key('Enter');
+    assert.equal(input.value, 'Purok Relocation');
+    assert.equal(input.getAttribute('aria-expanded'), 'false');
+    barangay = 'Caliban';
+    type('sitio mi');
+    assert.deepEqual(Array.from(list.children, el => el.textContent), ['Purok Mirasol (Sitio Mirasol)']);
+    barangay = 'Salvacion';
+    type('sen');
+    assert.deepEqual(Array.from(list.children, el => el.textContent), ['Purok Señora']);
+    type('Custom Zone 4');
+    assert.equal(list.hidden, true);
+    assert.equal(input.value, 'Custom Zone 4');
+    barangay = '';
+    type('r');
+    assert.equal(list.hidden, true);
 });

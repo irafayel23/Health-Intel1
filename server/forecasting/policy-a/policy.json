@@ -1,0 +1,127 @@
+{
+  "version": "seasonal-demo-fixed-20261025",
+  "cutoff": "2026-09",
+  "forecast_month": "2026-11",
+  "seasonal_period": 12,
+  "minimum_fit_months": 24,
+  "minimum_outer_months": 31,
+  "minimum_nonzero_fraction": 0.4,
+  "harmonic_alpha": 0.05,
+  "minimum_harmonic_strength": 0.1,
+  "minimum_lag12_correlation": 0,
+  "inner_origins": 3,
+  "minimum_effective_observations": 12,
+  "minimum_observations_per_parameter": 5,
+  "minimum_root_modulus": 1.0001,
+  "maximum_covariance_condition": 1000000000000,
+  "severe_residual_alpha": 0.01,
+  "maxiter": 100,
+  "parsimony_relative_MAE_band": 0.05,
+  "workers": 1,
+  "job_commit_MiB": 512,
+  "sampled_job_RSS_MiB": 512,
+  "call_timeout_seconds": 10,
+  "startup_timeout_seconds": 60,
+  "host_admission_MiB": 1024,
+  "validation_status": "Real-world Validation Pending",
+  "variants": {
+    "bugfix": {
+      "version": "B-capped-OCSB-and-sequential-differencing-1",
+      "candidate_templates": [
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          1
+        ]
+      ],
+      "annual_gate": true,
+      "selection": "three_complete_inner_then_5pct_k_AICc",
+      "no_complete_inner_selection": "unavailable"
+    },
+    "optimized": {
+      "version": "C-nine-SARIMA-evidence-grades-matched-validation-1",
+      "candidate_templates": [
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          1
+        ],
+        [
+          1,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          1,
+          1,
+          0
+        ],
+        [
+          1,
+          1,
+          1,
+          0
+        ],
+        [
+          1,
+          1,
+          0,
+          1
+        ],
+        [
+          0,
+          0,
+          1,
+          1
+        ]
+      ],
+      "annual_gate": false,
+      "selection": "three_complete_inner_then_5pct_AICc",
+      "no_complete_inner_selection": "current_training_AICc_with_validation_warning"
+    }
+  },
+  "main_forecast_horizon": 2,
+  "secondary_forecast_horizon": 1,
+  "selection_horizon": 1,
+  "accuracy_acceptance_rule": null
+}

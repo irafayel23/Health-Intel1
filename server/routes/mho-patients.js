@@ -7,7 +7,14 @@ function registerMhoPatientRoutes(app,db){
         catch(error){respond(res,error,'Patient directory could not be loaded. Please try again.');}
     });
     for(const kind of ['resident','legacy'])app.get('/api/mho/patients/'+kind+'/:id',async(req,res)=>{
-        try{res.json({success:true,...await patients.dossier(kind,req.params.id)});}
+        try {
+            const data = await patients.dossier(kind, req.params.id);
+            const owner = req.user?.system_id;
+            for (const entry of data.history) {
+                entry.can_manage_walkin = Boolean(owner && entry.encoded_by === owner && !entry.is_archived && entry.status !== 'Deceased');
+            }
+            res.json({ success: true, ...data });
+        }
         catch(error){respond(res,error,'Patient history could not be loaded. Please try again.');}
     });
 }

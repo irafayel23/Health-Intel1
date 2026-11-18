@@ -1,3 +1,4 @@
+const {registrationPhotoFields,isolateReviewStore}=require('./registration-photo-fixture');isolateReviewStore();
 // Regression checks use a disposable copy; email is mocked and source rows are fingerprinted.
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
@@ -28,14 +29,14 @@ before(async()=>{
     const app=require('../server');appDb=app.db;server=app.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
 });
 after(async()=>{if(server)await new Promise(r=>server.close(r));if(appDb)await appDb.end();if(db)await db.end();if(dump)await dump.cleanup();if(root){try{if(created){assert.match(name,/^health_intel_qa_fixes_verify_\d+$/);assert.notEqual(name,source.database);await root.query('DROP DATABASE `'+name+'`');}assert.equal(await fingerprint(),beforeHash,'Original database records must remain unchanged');}finally{await root.end();}}});
-async function request(route,role,body,method){if(body&&['/api/register','/api/check-email'].includes(route))body={...body,firebase_id_token:firebaseFixture.token(body.email)};return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
+async function request(route,role,body,method){if(route==='/api/register'&&body)body={...body,...await registrationPhotoFields(body.password)};if(body&&['/api/register','/api/check-email'].includes(route))body={...body,firebase_id_token:firebaseFixture.token(body.email)};return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
 const registration={role:'bhw',first_name:'QA',last_name:'Registration',assigned_barangay:null,password:'Regression-only-2026',employee_id:'QA-EMP'};
 
 test('Master Ledger records access outcomes without credentials or false attribution; Admin retains operational scope',async()=>{
     assert.equal((await request('/api/login',null,{system_id:'QA-BHW',password:'wrong-private-fixture'})).status,401);
     assert.equal((await request('/api/login',null,{system_id:{unsafe:true},password:'wrong-private-fixture'})).status,401);
     const success=await request('/api/login',null,{system_id:'QA-BHW',password:'Regression-only-2026'});
-    assert.equal(success.status,200);const signed=await success.json();
+    assert.equal(success.status,200);const signed=await success.json();tokens.bhw=signed.token;
     const master=await (await request('/api/superadmin/audit-logs','superadmin')).json();
     const failed=master.data.find(row=>row.action==='Login Failed' && row.target_id==='QA-BHW');
     assert.equal(failed.user_id,'Unauthenticated');assert.equal(failed.role,'Unauthenticated');assert.equal(failed.outcome,'Failed');
@@ -59,12 +60,19 @@ test('password changes commit with redacted audit; missing audit storage rolls b
         assert.equal((await request('/api/change-password','bhw',{current_password:'Regression-only-2026',new_password:'Changed-fixture-2026'})).status,500);
         const [[row]]=await db.query("SELECT password_hash FROM users WHERE system_id='QA-BHW'");assert.equal(row.password_hash,original.password_hash);
     } finally {await db.query('RENAME TABLE qa_password_audit_hold TO system_audit_logs');}
+    let renewedToken;
     try {
-        assert.equal((await request('/api/change-password','bhw',{current_password:'Regression-only-2026',new_password:'Changed-fixture-2026'})).status,200);
+        const changed=await request('/api/change-password','bhw',{current_password:'Regression-only-2026',new_password:'Changed-fixture-2026'});assert.equal(changed.status,200);renewedToken=(await changed.json()).token;
         const [[log]]=await db.query("SELECT details FROM system_audit_logs WHERE action='Password Changed' AND user_id='QA-BHW' ORDER BY id DESC LIMIT 1");
         assert.equal(JSON.parse(log.details).target_id,'QA-BHW');assert.ok(!log.details.includes('Changed-fixture-2026'));assert.ok(!log.details.includes(original.password_hash));
         assert.equal((await request('/api/session','bhw')).status,401);
-    } finally {await db.execute("UPDATE users SET password_hash=? WHERE system_id='QA-BHW'",[original.password_hash]);}
+    } finally {
+        if(renewedToken){
+            tokens.bhw=renewedToken;
+            const restored=await (await request('/api/change-password','bhw',{current_password:'Changed-fixture-2026',new_password:'Regression-only-2026'})).json();
+            assert.ok(restored.token);tokens.bhw=restored.token;
+        }else await db.execute("UPDATE users SET password_hash=? WHERE system_id='QA-BHW'",[original.password_hash]);
+    }
 });
 
 test('password reset and single-use code commit only with a credential-free audit entry',async()=>{
@@ -157,7 +165,7 @@ test('BHW/MHO account actions reject stale states and concurrent approvals canno
         for(const [action,[from,to]] of Object.entries(actions))for(const state of ['pending','approved','denied','suspended']){
             await db.execute('UPDATE users SET status=? WHERE system_id=?',[state,id]);
             const [[before]]=await db.query('SELECT COUNT(*) AS count FROM system_audit_logs');
-            const response=await request('/api/admin/'+action,'admin',{temp_system_id:id});
+            const response=await request('/api/admin/'+action,'admin',{temp_system_id:id,reason:'Fixture identity information needs correction'});
             assert.equal(response.status,state===from?200:409,`${role}: ${action} from ${state}`);
             const [[account]]=await db.execute('SELECT status FROM users WHERE system_id=?',[id]);
             const [[after]]=await db.query('SELECT COUNT(*) AS count FROM system_audit_logs');

@@ -4,7 +4,7 @@ const {comparisonSelection,analyticsFilters}=require('../services/mho-analytics'
 const {todayPeriod}=require('../services/report-periods');
 let f;const tokens={};
 async function api(role,path){const response=await fetch(f.base+'/api/mho/'+path,{headers:{Authorization:'Bearer '+tokens[role]}});return {status:response.status,...await response.json()};}
-before(async()=>{f=await createFixture();for(const role of ['bhw','mho']){const r=await fetch(f.base+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_id:f.users[role],password:f.password})});tokens[role]=(await r.json()).token;}
+before(async()=>{f=await createFixture();await f.db.execute("INSERT INTO disease_registry(name,classification,status) VALUES('Trend QA','Standard','Active')");for(const role of ['bhw','mho']){const r=await fetch(f.base+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_id:f.users[role],password:f.password})});tokens[role]=(await r.json()).token;}
  for(const [date,disease,status,barangay,age] of [['2023-02-01','Trend QA','Cleared',f.own,10],['2026-01-04','Trend QA','Active',f.own,10],['2026-01-15','Trend QA','Active',f.own,10],['2026-03-01','Trend QA','Deceased',f.own,70],['2026-01-01','Trend QA','Active',f.other,10]])await f.db.execute('INSERT INTO health_cases(patient_name,barangay_id,disease,date_recorded,status,severity,age,encoded_by) VALUES(?,?,?,?,?,?,?,?)',['Synthetic Trend',barangay,disease,date,status,'Mild',age,f.users.bhw]);
  for(let i=0;i<7;i++)await f.db.execute("INSERT INTO health_cases(patient_name,barangay_id,disease,date_recorded,status,severity,age,encoded_by) VALUES('Synthetic Outcome',?,?,'2022-01-01','Deceased','Mild',30,?)",[f.own,'Outcome '+i,f.users.bhw]);
  for(const date of ['2024-01-02','2024-12-31','2025-01-02','2025-12-31'])await f.db.execute("INSERT INTO health_cases(patient_name,barangay_id,disease,date_recorded,status,severity,age,encoded_by) VALUES('Synthetic Comparison',?,'Cutoff QA',?,'Cleared','Mild',40,?)",[f.own,date,f.users.bhw]);
@@ -18,7 +18,7 @@ test('trend includes every recorded year and monthly counts; visits do not multi
  assert.deepEqual((await api('mho','trend?disease=No%20matching%20condition')).data,[]);
 });
 test('dynamic choices come from configured barangays and stored years; invalid filters and wrong roles rejected',async()=>{
- const options=await api('mho','analytics-options');assert.equal(options.status,200);assert.ok(options.years.includes(2022));assert.ok(options.years.includes(2026));assert.deepEqual(options.barangays,['Synthetic Barangay A','Synthetic Barangay B']);assert.ok(options.diseases.includes('Trend QA'));
+ const options=await api('mho','analytics-options');assert.equal(options.status,200);assert.ok(options.years.includes(2022));assert.ok(options.years.includes(2026));assert.deepEqual(options.barangays,['Synthetic Barangay A','Synthetic Barangay B']);assert.ok(options.diseases.includes('Trend QA'));assert.ok(!options.diseases.includes('Outcome 0'),'Historical-only labels are not active choices');
  for(const path of ['trend?age=invalid','trend?year=invalid','trend?disease=one&disease=two'])assert.equal((await api('mho',path)).status,400);
  for(const path of ['trend','analytics-options'])assert.equal((await api('bhw',path)).status,403);
 });
@@ -66,17 +66,28 @@ test('case breakdown reconciles barangays, age groups and selected case outcomes
  assert.equal((await api('bhw','breakdown')).status,403);assert.equal((await api('mho','breakdown?age=bad')).status,400);
 });
 
-test('display-only sample graphs reconcile and never add or change saved cases',async()=>{
+test('ad-hoc display samples are retired without changing operational records or roles',async()=>{
  const [[before]]=await f.db.query('SELECT COUNT(*) AS total FROM health_cases');
- const options=await api('mho','analytics-options?sample=1'),profile=await api('mho','stats?sample=1'),data=await api('mho','breakdown?sample=1'),kpi=await api('mho','kpi?sample=1');
- assert.equal(options.sample,true);assert.equal(options.diseases.length,10);assert.equal(profile.data.length,10);
- assert.equal(kpi.total,profile.summary.total_cases);assert.equal(data.total_cases,kpi.total);assert.equal(data.barangays.length,2);assert.ok(data.barangays.every(row=>row.cases>0));assert.ok(data.ages.every(row=>row.cases>0));
- assert.equal(data.ages.reduce((sum,row)=>sum+row.cases,0),data.total_cases);assert.equal(data.months.reduce((sum,row)=>sum+row.cases,0),data.total_cases);
- const trend=await api('mho','trend?sample=1');assert.equal(trend.data.reduce((sum,row)=>sum+row.cases,0),data.total_cases);
- const mortality=await api('mho','mortality?sample=1');assert.equal(mortality.data.length,5);assert.equal(mortality.data.reduce((sum,row)=>sum+row.count,0),(await api('mho','breakdown?sample=1&category=mortality')).total_cases);
- const age=await api('mho','breakdown?sample=1&age=60%2B');assert.equal(age.ages.find(row=>row.label==='60+').cases,age.total_cases);
- const chosen=await api('mho','year-comparison?sample=1&years=2023,2026&period=same');assert.deepEqual(chosen.years,[2023,2026]);assert.equal(chosen.period,'same');
+ for(const route of ['stats','breakdown','kpi','trend','year-comparison','analytics-options','mortality']){
+  assert.equal((await api('mho',route+'?sample=1')).status,410);
+  assert.equal((await api('bhw',route+'?sample=1')).status,403);
+ }
  const [[after]]=await f.db.query('SELECT COUNT(*) AS total FROM health_cases');assert.equal(before.total,after.total);
- for(const route of ['breakdown?sample=1','stats?sample=1','analytics-options?sample=1'])assert.equal((await api('bhw',route)).status,403);
- for(const query of ['sample=invalid','sample=1&age=invalid','sample=1&sample=1'])assert.equal((await api('mho','breakdown?'+query)).status,400);
+});
+
+test('authenticated dataset routes preserve MHO/BHW roles across all seven real study assignments',async()=>{
+ const municipal=await api('mho','dataset-analytics');assert.equal(municipal.status,200);assert.equal(municipal.total,6200);
+ assert.equal((await api('bhw','dataset-analytics')).status,403);
+ const anonymous=await fetch(f.base+'/api/mho/dataset-analytics');assert.equal(anonymous.status,401);
+ const {BARANGAYS}=require('../services/seasonal6200-sarima-demo');
+ try{
+  for(const name of BARANGAYS){
+   const [row]=await f.db.execute('INSERT INTO barangays(name) VALUES(?)',[name]);
+   await f.db.execute('UPDATE users SET barangay_id=? WHERE system_id=?',[row.insertId,f.users.bhw]);
+   const headers={Authorization:'Bearer '+tokens.bhw};
+   const r=await fetch(f.base+'/api/bhw/dataset-analytics',{headers}),body=await r.json();
+   assert.equal(r.status,200);assert.deepEqual(body.options.barangays,[name]);assert.equal(body.diseases.length,10);
+   const forged=await fetch(f.base+'/api/bhw/dataset-analytics?barangay=all',{headers});assert.equal(forged.status,400);
+  }
+ }finally{await f.db.execute('UPDATE users SET barangay_id=? WHERE system_id=?',[f.own,f.users.bhw]);}
 });

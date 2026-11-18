@@ -36,3 +36,14 @@
 .dark .hi-dialog .swal2-html-container .text-slate-600 { color:#cbd5e1; }
 .dark .hi-case-details p { background:#172554; color:#bfdbfe; }
 @media (max-width:640px) { .hi-dialog.swal2-popup { padding:18px; } .hi-dialog .swal2-html-container { margin-top:16px; } }
+
+.hi-dialog.hi-correction-dialog.swal2-popup { width: min(720px, calc(100vw - 32px)) !important; }
+.hi-correction-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; }
+.hi-correction-comparison > div { display: grid; align-content: start; gap: .8rem; min-width: 0; padding: .85rem; border: 1px solid hsl(var(--border)); border-radius: .65rem; }
+.hi-correction-saved { background: hsl(var(--muted)); }
+.hi-correction-comparison h3 { font-size: .9rem; font-weight: 700; }
+.hi-correction-comparison h3 span { font-weight: 400; }
+.hi-correction-comparison dl { display: grid; gap: .8rem; }
+.hi-correction-comparison dt { font-size: .875rem; font-weight: 600; }
+.hi-correction-comparison dd { min-height: 42px; margin: 7px 0 0; padding-block: .55rem; overflow-wrap: anywhere; }
+@media (max-width: 520px) { .hi-correction-comparison { grid-template-columns: 1fr; } }

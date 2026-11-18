@@ -40,12 +40,13 @@
               const checkData = await checkRes.json();
               if(!checkRes.ok) throw new Error(checkData.error || 'Google verification could not be completed.');
               if (checkData.exists) {
-                Swal.fire({
-                  icon: "warning",
-                  title: "Email Already Registered",
-                  text: 'This email is already registered. Sign in with your official System ID or contact the administrator.',
-                  confirmButtonColor: "#0ea5e9"
-                });
+                const notices = {
+                  pending: ['Application awaiting approval', 'Your registration request has been submitted and is still being reviewed. You can sign in only after approval. If rejected, you can register again with this Google account.'],
+                  approved: ['Account already approved', 'This Google account belongs to an approved account. Sign in with your official System ID.'],
+                  suspended: ['Account access suspended', 'Contact the administrator to review your account access. Creating another registration will not restore access.']
+                };
+                const [title, text] = notices[checkData.registration_status] || ['Existing application or account', 'Contact the administrator to check your registration status.'];
+                Swal.fire({icon: 'info', title, text, confirmButtonColor: '#007f84'});
                 toggleForms("login");
                 return;
               }
@@ -80,9 +81,8 @@
           });
       });
 
-      document.getElementById("reg_role").addEventListener("change", async function() {
+      document.getElementById("reg_role").addEventListener("change", function() {
           const selectedRole = this.value;
-          const systemIdInput = document.getElementById("reg_system_id");
           const brgyGroup = document.getElementById("barangay-group");
           const brgySelect = document.getElementById("reg_barangay");
 
@@ -94,16 +94,6 @@
               brgySelect.removeAttribute('required');
               brgySelect.value = "";
           }
-
-          systemIdInput.value = "Generating...";
-          try {
-              const response = await fetch("http://localhost:3000/api/get-next-id", {
-                  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role: selectedRole })
-              });
-              const data = await response.json();
-              if (data.success) systemIdInput.value = data.next_id;
-              else systemIdInput.value = "Error";
-          } catch (error) { systemIdInput.value = "Server offline"; }
       });
 
 
@@ -111,18 +101,10 @@
       document.getElementById("profile-screen").addEventListener("submit", async function (e) {
           e.preventDefault();
 
-          const generatedId = document.getElementById("reg_system_id").value;
-          if (!generatedId || generatedId === "Generating..." || generatedId === "Error generating ID") {
-            Swal.fire({
-              icon: "warning",
-              title: "Invalid ID",
-              text: "Please select a valid role to generate your System ID.",
-            });
-            return;
-          }
-
+          if(document.getElementById('reg_password').value!==document.getElementById('reg_confirm_password').value){Swal.fire({icon:'warning',title:'Passwords do not match',text:'Enter the same new password in both fields.'});return;}
           const payload = {
-            system_id: generatedId,
+            confirm_password: document.getElementById('reg_confirm_password').value,
+            review_consent: document.getElementById('reg_review_consent').checked,
             first_name: document.getElementById("reg_first").value.trim(),
             last_name: document.getElementById("reg_last").value.trim(),
             employee_id: document.getElementById("reg_emp_id").value.trim(),
@@ -135,6 +117,7 @@
           try {
             if(!auth.currentUser || auth.currentUser.email?.toLowerCase()!==userEmail.toLowerCase() || !userEmail) throw new Error('Sign in with Google again before registering.');
             payload.firebase_id_token=await auth.currentUser.getIdToken(true);
+            payload.employee_photo=await registrationPhotoData('employee');payload.selfie_photo=await registrationPhotoData('selfie');
             const response = await fetch("http://localhost:3000/api/register", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -146,7 +129,7 @@
               Swal.fire({
                 icon: "success",
                 title: "Registration Received",
-                text: `Your profile is under review. Your official ID is ${result.system_id}. An approval email will be sent when your account is approved.`,
+                text: `Your profile is under review. Your official ID is ${result.system_id}. You will be notified of the review decision when email delivery is available.`,
                 confirmButtonColor: "var(--teal)",
               }).then(() => {
                 document.getElementById("profile-screen").reset();
@@ -169,3 +152,11 @@
             });
           }
         });
+
+function registrationPhotoData(kind){const file=document.getElementById('reg_'+kind+'_photo').files[0];if(!file||!['image/jpeg','image/png'].includes(file.type)||file.size>3*1024*1024)throw Error('Choose a JPG or PNG photo up to 3 MB for both ID and selfie.');return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Photo could not be read.'));reader.readAsDataURL(file);});}
+const registrationPreviewUrls={};
+function registrationPreview(kind){const input=document.getElementById('reg_'+kind+'_photo'),preview=document.getElementById('reg_'+kind+'_preview');if(registrationPreviewUrls[kind])URL.revokeObjectURL(registrationPreviewUrls[kind]);preview.hidden=true;if(input.files[0]){registrationPreviewUrls[kind]=URL.createObjectURL(input.files[0]);preview.src=registrationPreviewUrls[kind];preview.hidden=false;}}
+for(const kind of ['employee','selfie'])document.getElementById('reg_'+kind+'_photo').addEventListener('change',()=>registrationPreview(kind));
+document.getElementById('profile-screen').addEventListener('reset',()=>{for(const kind of ['employee','selfie']){if(registrationPreviewUrls[kind])URL.revokeObjectURL(registrationPreviewUrls[kind]);document.getElementById('reg_'+kind+'_preview').hidden=true;}});
+document.querySelectorAll('[data-registration-password]').forEach(button=>button.addEventListener('click',()=>{const input=document.getElementById(button.dataset.registrationPassword),show=input.type==='password';input.type=show?'text':'password';button.setAttribute('aria-pressed',String(show));button.setAttribute('aria-label',(show?'Hide ':'Show ')+(input.id==='reg_password'?'password':'confirm password'));}));
+document.querySelectorAll('[data-registration-camera]').forEach(button=>button.addEventListener('click',async()=>{let stream;const kind=button.dataset.registrationCamera;try{await Swal.fire({titleText:kind==='employee'?'Photograph employee ID':'Take a selfie',html:'<video id="registration-camera" class="registration-camera-video" autoplay playsinline muted></video><p>Keep the image clear and well lit.</p>',showCancelButton:true,confirmButtonText:'Use photo',cancelButtonText:'Cancel',didOpen:async()=>{try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:kind==='employee'?'environment':'user'},audio:false});const video=document.getElementById('registration-camera');if(!video){stream.getTracks().forEach(t=>t.stop());return;}video.srcObject=stream;}catch{Swal.showValidationMessage('Camera unavailable. Allow camera access or upload a photo instead.');}},preConfirm:async()=>{const video=document.getElementById('registration-camera');if(!video?.videoWidth){Swal.showValidationMessage('Wait for the camera, or cancel and upload a photo.');return false;}const canvas=document.createElement('canvas');const ratio=Math.min(1,1600/video.videoWidth,1600/video.videoHeight);canvas.width=Math.round(video.videoWidth*ratio);canvas.height=Math.round(video.videoHeight*ratio);canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.85));if(!blob)throw Error('Photo capture failed.');const files=new DataTransfer();files.items.add(new File([blob],kind+'.jpg',{type:'image/jpeg'}));document.getElementById('reg_'+kind+'_photo').files=files.files;registrationPreview(kind);return true;},willClose:()=>stream?.getTracks().forEach(t=>t.stop())});}catch{Swal.fire({icon:'error',title:'Photo unavailable',text:'Please use Upload photo instead.'});}finally{stream?.getTracks().forEach(t=>t.stop());}}));

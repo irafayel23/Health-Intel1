@@ -38,7 +38,7 @@ const actions = {
 };
 const request = (action, actor = 'admin', apiPrefix = false) => ({
     path: (apiPrefix ? '/api' : '') + '/admin/' + action,
-    body: { temp_system_id: 'QA-TARGET' },
+    body: { temp_system_id: 'QA-TARGET', reason: 'Fixture identity information needs correction' },
     user: { system_id: 'QA-ACTOR', role: actor }
 });
 
@@ -89,4 +89,23 @@ test('failed audit keeps the original account status', async () => {
     assert.equal(state.account.status, 'pending');
     assert.equal(state.epoch,0);
     assert.deepEqual(state.events, []);
+});
+
+test('only Superadmin can decline a pending Admin and the change is audited atomically',async()=>{
+    const run=(db,actor)=>accountStatus(db,request('deny-user',actor),'denied','User Request Denied');
+    for(const [actor,status,expected] of [['admin','pending',403],['superadmin','approved',409],['superadmin','denied',409]]){
+        const {db,state}=fixture('admin',status);
+        await assert.rejects(run(db,actor),error=>error.status===expected);
+        assert.equal(state.account.status,status);assert.equal(state.events.length,0);
+    }
+    const {db,state}=fixture('admin','pending');
+    await run(db,'superadmin');
+    assert.equal(state.account.status,'denied');
+    assert.equal(state.epoch,1);
+    const audit=JSON.parse(state.events[0][3]);
+    assert.deepEqual([audit.before.status,audit.after.status],['pending','denied']);
+    const failed=fixture('admin','pending',true);
+    await assert.rejects(run(failed.db,'superadmin'),/Synthetic audit failure/);
+    assert.equal(failed.state.account.status,'pending');
+    assert.equal(failed.state.epoch,0);
 });

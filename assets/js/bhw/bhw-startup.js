@@ -31,19 +31,37 @@
       });
 
 
+      let purokChoicesRequest = 0;
       async function loadPurokChoices() {
         const filter=document.getElementById('bhw-purok-filter');
         if(!filter)return;
-        try {
+        const request=++purokChoicesRequest;
+        const selected=filter.value || 'All Puroks';
+        const choices=new Map(HealthIntelEncoding.purokOptions(window.currentBrgyName)
+          .map(({value,label})=>[value,label]));
+        for(const person of [...allPatients,...(window.allResidents || [])]){
+          const value=String(person.purok || '').trim();
+          if(value&&!choices.has(value))choices.set(value,value);
+        }
+        const render=()=>{
+          const all=document.createElement('option');
+          all.value='All Puroks';all.textContent='All puroks in your barangay';
+          const options=[...choices].sort((a,b)=>a[1].localeCompare(b[1],'en',{numeric:true}))
+            .map(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;return option;});
+          filter.replaceChildren(all,...options);
+          filter.value=choices.has(selected)?selected:'All Puroks';
+        };
+        render();
+        filter.disabled=true;
+        try{
           const response=await fetch('http://localhost:3000/api/bhw/puroks');
           const result=await response.json();
-          if(!response.ok||!result.success)throw new Error('Purok choices unavailable');
-          const selected=filter.value;
-          filter.replaceChildren();
-          const all=document.createElement('option');all.value='All Puroks';all.textContent='All Puroks / Zones in your barangay';filter.append(all);
-          for(const name of result.data){const option=document.createElement('option');option.value=name;option.textContent=name;filter.append(option);}
-          if(result.data.includes(selected))filter.value=selected;
-        }catch(error){console.error('Purok choices unavailable',error);}
+          if(request!==purokChoicesRequest)return;
+          if(!response.ok||!result.success||!Array.isArray(result.data))throw Error('Purok choices could not be loaded.');
+          for(const value of result.data)if(typeof value==='string'&&value.trim())choices.set(value,value);
+          render();
+        }catch(error){if(request===purokChoicesRequest)console.error('Could not refresh report puroks',error);}
+        finally{if(request===purokChoicesRequest)filter.disabled=false;}
       }
 
       function refreshBHWSupportingViews() {
@@ -62,7 +80,7 @@
 
 
       document.addEventListener("DOMContentLoaded", async () => {
-        const userId = localStorage.getItem("active_user_id");
+        const userId = sessionStorage.getItem("active_user_id");
         if (userId) {
           const nameEl = document.getElementById('dropdown-user-name');
           if (nameEl) nameEl.innerText = userId;
@@ -72,11 +90,11 @@
             if (result.success) {
               window.currentBrgyId = result.data.barangay_id;
               window.currentBrgyName = result.data.barangay_name;
+              if (window.allResidents) refreshResidentPurokOptions();
 
               const brgyDisplay = window.currentBrgyName || "Unknown Barangay";
               document.getElementById("dynamic-portal-title").innerText = `Barangay Health Worker Portal — ${brgyDisplay}`;
-              const subtitle = document.getElementById("dynamic-dashboard-subtitle");
-              if (subtitle) subtitle.innerText = `Real-time insights for ${brgyDisplay}.`;
+              updateBhwDashboardIdentity(userId, brgyDisplay);
             }
           } catch(e) { console.error("Error fetching context:", e); }
         }

@@ -29,7 +29,7 @@ const patient=()=>({first_name:'Synthetic',last_name:'Patient',suffix:'Jr.',birt
 test('numeric storage, referral requirements and malformed types are validated without diagnosing measurements',()=>{
     assert.equal(validateVisit(undefined),null);
     const parsed=validateVisit(visit());assert.equal(parsed.temperature_c,36.5);assert.equal(parsed.weight_kg,60.25);
-    for(const change of [{transaction_mode:''},{nature_of_visit:'General'},{transaction_mode:'Referral',referral_reason:''},{consultation_time:'13:05 PM'},{consultation_time:0},{blood_pressure:0},{blood_pressure:'120 letters'},{weight_kg:-1},{height_cm:{}},{temperature_c:'36.555'}])assert.throws(()=>validateVisit({...visit(),...change}));
+    for(const change of [{consultation_time:null},{consultation_time:undefined},{consultation_time:''},{transaction_mode:''},{nature_of_visit:'General'},{transaction_mode:'Referral',referral_reason:''},{consultation_time:'13:05 PM'},{consultation_time:0},{blood_pressure:0},{blood_pressure:'120 letters'},{weight_kg:-1},{height_cm:{}},{temperature_c:'36.555'}])assert.throws(()=>validateVisit({...visit(),...change}));
     const referral=validateVisit({...visit(),transaction_mode:'Referral',referral_reason:'Synthetic facility transfer',referred_by:'QA Provider'});assert.equal(referral.referral_reason,'Synthetic facility transfer');
     for(const [key,value] of [['temperature_c',''],['height_cm',null],['weight_kg',undefined],['blood_pressure','']])assert.throws(()=>validateVisit({...visit(),[key]:value}),/Enter/);
     assert.equal(validatePatient(patient()).patient_name,'Synthetic Patient Jr.');
@@ -190,4 +190,37 @@ test('BHW and MHO plans persist per visit in both dossiers without replacing pre
     assert.equal((await db.query('SELECT COUNT(*) n FROM case_visits'))[0][0].n,before.n);
     await migrateCaseVisits(db);await migrateCaseVisits(db);
     assert.equal((await request('/patients/'+caseId+'/visits')).result.data.find(v=>v.consultation_date==='2026-10-11').followup_instructions,firstPlan.followup_instructions);
+});
+
+test('BHW and MHO encoding endpoints reject missing consultation time for every visit nature',async()=>{
+ for(const role of ['bhw','mho'])for(const nature of ['New consultation/case','New admission','Follow-up visit']){
+  const payload={...patient(),barangay_id:own,visit:{...visit(nature),consultation_time:null}};
+  const response=await request(role==='bhw'?'/patients':'/mho/walk-in-cases',role,payload);
+  assert.equal(response.status,400);assert.match(response.result.error,/consultation time/i);
+ }
+});
+
+test('new registration requires review and only an unchanged review permits a distinct profile',async()=>{
+ const data={...patient(),first_name:'DuplicateCheck',last_name:'Fixture',purok:'First Purok',patient_mode:'new'};
+ const initial=await request('/patients','bhw',data);
+ assert.equal(initial.status,201);
+ const [[original]]=await db.execute('SELECT resident_id FROM health_cases WHERE id=?',[initial.result.id]);
+ const changed={...data,first_name:'DuplicateCheck Middle',purok:'Changed Purok',date_recorded:'2026-10-02'};
+ const review=await request('/patients','bhw',changed);
+ assert.equal(review.status,409);
+ assert.equal(review.result.code,'RESIDENT_REVIEW_REQUIRED');
+ assert.deepEqual(review.result.matches.map(row=>row.id),[original.resident_id]);
+ const across=await request('/mho/walk-in-cases','mho',{...changed,barangay_id:other});
+ assert.equal(across.status,409);
+ assert.deepEqual(across.result.matches.map(row=>row.id),[original.resident_id]);
+ const linked=await request('/patients','bhw',{...data,date_recorded:changed.date_recorded,patient_mode:'existing',resident_id:original.resident_id});
+ assert.equal(linked.status,201);
+ const [[same]]=await db.execute('SELECT resident_id FROM health_cases WHERE id=?',[linked.result.id]);
+ assert.equal(same.resident_id,original.resident_id);
+ const distinct=await request('/patients','bhw',{...changed,resident_review:review.result.review});
+ assert.equal(distinct.status,201);
+ const [[different]]=await db.execute('SELECT resident_id FROM health_cases WHERE id=?',[distinct.result.id]);
+ assert.notEqual(different.resident_id,original.resident_id);
+ assert.equal((await request('/patients','bhw',{...changed,resident_review:review.result.review})).status,409);
+ assert.equal((await request('/encoding/residents?id='+original.resident_id,'admin')).status,403);
 });

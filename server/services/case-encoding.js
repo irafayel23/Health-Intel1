@@ -4,7 +4,8 @@ const { transaction } = require('./database-transaction');
 const { invalid } = require('./service-errors');
 const { caseAuditDetails } = require('./case-audit');
 const { validateVisit, saveVisit, saveExistingVisit } = require('./case-visits');
-const {guardResidentIdentity}=require('./resident-vital');
+const {selectedResident,reviewNewResident}=require('./encoding-residents');
+const {guardResidentIdentity,guardResidentVisit}=require('./resident-vital');
 
 function createCaseEncoding(db) {
     return {
@@ -18,12 +19,16 @@ function createCaseEncoding(db) {
                 if (!selectedBarangays.length) {
                     throw invalid('Select an existing barangay.');
                 }
+                const chosen=await selectedResident(connection,input,patient,brgy_id);
+                if(chosen)patient.selected_resident_id=chosen.id;
                 if (visit && visit.nature_of_visit !== 'New consultation/case') return saveExistingVisit(connection, patient, visit, brgy_id, systemId, actorRole);
-                await guardResidentIdentity(connection,patient,brgy_id);
+                const reviewedNewResident = await reviewNewResident(connection, input, patient, brgy_id, actorRole);
+                if (chosen) await guardResidentVisit(connection, chosen.id, patient.date_recorded);
+                else if (input.patient_mode !== 'new') await guardResidentIdentity(connection,patient,brgy_id);
                 const classification = await encodingClassification(connection, input, patient);
                 patient.disease = classification.disease;
                 const [duplicates] = await connection.execute(
-                    "SELECT id FROM health_cases WHERE barangay_id=? AND first_name=? AND last_name=? AND birthdate=? AND disease=? AND date_recorded=? AND (? IS NULL OR disease_reported=?) AND suffix=? LIMIT 1",
+                    "SELECT id FROM health_cases WHERE barangay_id=? AND first_name=? AND last_name=? AND birthdate=? AND disease=? AND date_recorded=? AND (? IS NULL OR disease_reported=?) AND suffix=?" + (chosen ? " AND (resident_id=? OR resident_id IS NULL)" : reviewedNewResident ? " AND resident_id IS NULL" : "") + " LIMIT 1",
                     [
                         brgy_id,
                         patient.first_name,
@@ -33,7 +38,8 @@ function createCaseEncoding(db) {
                         patient.date_recorded,
                         classification.reported,
                         classification.reported,
-                        patient.suffix
+                        patient.suffix,
+                        ...(chosen ? [chosen.id] : [])
                     ]
                 );
                 if (duplicates.length) {
@@ -44,7 +50,7 @@ function createCaseEncoding(db) {
                     error.code = 'POSSIBLE_DUPLICATE';
                     throw error;
                 }
-                const [residents] = await connection.execute(
+                const [residents] = chosen ? [[{id:chosen.id}]] : input.patient_mode === 'new' ? [[]] : await connection.execute(
                     "SELECT id FROM residents WHERE first_name=? AND last_name=? AND birthdate=? AND barangay_id=? AND TRIM(REGEXP_REPLACE(purok,'[[:space:]]+',' '))=? AND suffix=? LIMIT 2",
                     [patient.first_name, patient.last_name, patient.birthdate, brgy_id, patient.purok, patient.suffix]
                 );
@@ -105,12 +111,12 @@ function createCaseEncoding(db) {
                         caseAuditDetails(
                             result.insertId,
                             `Created case #REC-${result.insertId} · ${selectedBarangays[0].name} · Case date: ${patient.date_recorded} · Saved.`,
-                            { barangay_id: brgy_id, review_status: classification.review }
+                            { barangay_id: brgy_id, review_status: classification.review, resident_id, identity_reviewed: Boolean(reviewedNewResident) }
                         )
                     ]
                 );
                 return { id: result.insertId, visit_id: visitId, new_case: true, review_status: classification.review };
-            });
+            }, input.patient_mode === 'new' ? 'new-resident-registration' : undefined);
         }
     };
 }

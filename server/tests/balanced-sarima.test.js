@@ -27,3 +27,54 @@ test('saved SARIMA deployment requires explicit boolean opt-in while preserving 
  assert.equal(r.view.production['1'].target,'2026-10');
  assert.equal(service.forecast({disease:'ALL',barangay:'ALL'}).view.production['1'].prediction,null);
 });
+
+
+test('BHW predictions use the authenticated assignment and reject other scopes', async t => {
+    const {registerBhwSarimaRoutes}=require('../routes/balanced-sarima-routes');
+    const {createLowCountSarimaDemo}=require('../services/seasonal6200-sarima-demo');
+    const demo=createLowCountSarimaDemo({environment:'test'});
+    const options=demo.options();
+    const secret=crypto.randomBytes(48).toString('hex');
+    const user={system_id:'QA-BHW-SARIMA',role:'bhw',status:'approved',barangay_id:1,password_hash:'fixture'};
+    const db={
+        query:async()=>[[]],
+        execute:async(sql,params)=>{
+            if(sql.includes('FROM users'))return [[{...user}]];
+            if(sql.includes('FROM barangays'))return [[{name:options.barangays[params[0]-1] || 'Outside study'}]];
+            return [[]];
+        }
+    };
+    const app=express();
+    app.use('/api',createAccessControl(db,secret));
+    registerBhwSarimaRoutes(app,db,demo);
+    const server=app.listen(0,'127.0.0.1');
+    await new Promise(resolve=>server.once('listening',resolve));
+    t.after(()=>new Promise(resolve=>server.close(resolve)));
+    const endpoint='http://127.0.0.1:'+server.address().port+'/api/bhw/sarima-demo';
+    const token=jwt.sign({system_id:user.system_id,password_version:sessionVersion(user.password_hash,secret),session_epoch:0},secret,{expiresIn:'5m'});
+    const get=suffix=>fetch(endpoint+suffix,{headers:{Authorization:'Bearer '+token}});
+    assert.equal((await fetch(endpoint+'/options')).status,401);
+    for(const [index,barangay] of options.barangays.entries()){
+        user.barangay_id=index+1;
+        const selected=await (await get('/options')).json();
+        assert.deepEqual(selected.data,{barangay,diseases:options.diseases});
+        assert.equal(selected.data.diseases.length,10);
+        for(const disease of options.diseases){
+            const response=await get('?'+new URLSearchParams({disease}));
+            assert.equal(response.status,200);
+            const {data}=await response.json();
+            assert.equal(data.view.barangay,barangay);
+            assert.equal(data.view.disease,disease);
+            assert.equal(data.overall,undefined);
+        }
+    }
+    assert.equal((await get('?disease=Cough&barangay=Salvacion')).status,400);
+    assert.equal((await get('?disease=Cough&barangay_id=1')).status,403);
+    assert.equal((await get('?disease=ALL')).status,400);
+    user.barangay_id=0;
+    assert.equal((await get('/options')).status,403);
+    user.barangay_id=99;
+    assert.equal((await get('/options')).status,404);
+    user.role='mho';
+    assert.equal((await get('/options')).status,403);
+});

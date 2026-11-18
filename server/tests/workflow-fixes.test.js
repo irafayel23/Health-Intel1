@@ -1,3 +1,4 @@
+const {registrationPhotoFields,isolateReviewStore}=require('./registration-photo-fixture');isolateReviewStore();
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
@@ -20,7 +21,7 @@ before(async()=>{
     restoreFetch=fixture.install();require('nodemailer').createTransport=()=>({sendMail:async()=>({})});process.env.DB_NAME=name;process.env.DB_HOST=source.host;process.env.JWT_SECRET=secret;const app=require('../server');appDb=app.db;server=app.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
 });
 after(async()=>{if(server)await new Promise(r=>server.close(r));if(appDb)await appDb.end();if(db)await db.end();if(dump)await dump.cleanup();if(root){try{if(created){assert.match(name,/^health_intel_workflow_verify_\d+$/);assert.notEqual(name,source.database);await root.query('DROP DATABASE `'+name+'`');}assert.equal(await fingerprint(),baseline,'Source data must remain unchanged');}finally{await root.end();}}restoreFetch?.();});
-async function request(route,role,body,method){return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
+async function request(route,role,body,method){if(route==='/api/register'&&body)body={...body,...await registrationPhotoFields(body.password)};return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
 async function form(role='bhw',id=caseId){const response=await request('/api/patients/'+id+'/correction',role);assert.equal(response.status,200);return (await response.json()).data;}
 const payload=data=>({date_recorded:data.date_recorded,disease:data.disease,severity:data.severity,version:data.version,reason:'Confirmed against the original source record'});
 test('Google proof checks signatures, project, dates, provider, email verification and exact email ownership',async()=>{
@@ -94,7 +95,7 @@ test('legacy severity correction preserves missing dates/ages and cannot invent 
     const fresh=await form('admin',row.insertId);assert.equal((await request('/api/patients/'+row.insertId+'/correction','admin',{...payload(fresh),date_recorded:'2025-06-14'},'PUT')).status,409);
 });
 test('four-role rehearsal covers login, approved/pending governance, case views, MHO reports and Superadmin health',async()=>{
-    for(const role of ['bhw','mho','admin','superadmin']){const login=await request('/api/login',null,{system_id:'WORKFLOW-'+role.toUpperCase(),password:'Workflow-fixture-2026'});assert.equal(login.status,200);assert.equal((await request('/api/session',role)).status,200);}
+    for(const role of ['bhw','mho','admin','superadmin']){const login=await request('/api/login',null,{system_id:'WORKFLOW-'+role.toUpperCase(),password:'Workflow-fixture-2026'});assert.equal(login.status,200);tokens[role]=(await login.json()).token;assert.equal((await request('/api/session',role)).status,200);}
     for(const [route,role] of [['/api/bhw/context','bhw'],['/api/residents','bhw'],['/api/patients','bhw'],['/api/admin/pending-users','admin'],['/api/admin/audit-logs','admin'],['/api/diseases','admin'],['/api/mho/stats','mho'],['/api/heatmap-data','mho'],['/api/superadmin/health','superadmin'],['/api/superadmin/users','superadmin']])assert.equal((await request(route,role)).status,200,route);
     const weekly=await request('/api/mho/reports/pidsr?week=24&year=2025','mho');assert.equal(weekly.status,200);assert.match(Buffer.from(await weekly.arrayBuffer()).toString('latin1',0,5),/%PDF/);
     const health=await (await request('/api/superadmin/health','superadmin')).json();const [[auditCount]]=await db.query('SELECT COUNT(*) AS count FROM system_audit_logs');assert.equal(health.data.total_logs,auditCount.count,'Total Logs counts audit entries rather than patient cases');

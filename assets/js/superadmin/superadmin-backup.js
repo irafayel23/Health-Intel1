@@ -6,11 +6,17 @@
         button.disabled = true;
         try {
           const result = await Swal.fire({
-            title: 'Database Backup',
-            html: '<p>Choose a password of 12-128 characters. Keep it to open the encrypted ZIP.</p>' +
-              '<label for="backup-password" class="swal2-input-label">Backup password</label><input id="backup-password" type="password" class="swal2-input" placeholder="Backup password" autocomplete="new-password">' +
-              '<label for="backup-password-confirm" class="swal2-input-label">Confirm backup password</label><input id="backup-password-confirm" type="password" class="swal2-input" placeholder="Confirm password" autocomplete="new-password">',
-            showCancelButton: true, confirmButtonText: 'Create backup',
+            titleText: 'Database Backup',
+            customClass: { container: 'hi-account-container', popup: 'hi-account-dialog hi-backup-dialog', confirmButton: 'hi-backup-create', cancelButton: 'hi-account-cancel' },
+            buttonsStyling: false,
+            html: '<div class="hi-account-identity hi-backup-intro"><span class="hi-account-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 4 16 4 16 0V5M4 12v7c0 4 16 4 16 0v-7"/></svg></span><div><strong>Encrypted ZIP backup</strong><p class="hi-account-help">Protect your database copy with a password.</p></div></div>' +
+              '<div class="hi-account-fields hi-backup-fields"><div class="hi-account-field"><label for="backup-password">Backup password</label><input id="backup-password" type="password" placeholder="Enter backup password" autocomplete="new-password" minlength="12" maxlength="128" aria-describedby="backup-password-help" required></div>' +
+              '<div class="hi-account-field"><label for="backup-password-confirm">Confirm backup password</label><input id="backup-password-confirm" type="password" placeholder="Re-enter backup password" autocomplete="new-password" minlength="12" maxlength="128" required></div></div>' +
+              '<p id="backup-password-help" class="hi-account-note">Use 12–128 characters. Keep this password safe; you will need it to open the ZIP.</p>',
+            showCloseButton: true, closeButtonAriaLabel: 'Close backup dialog',
+            showCancelButton: true, cancelButtonText: 'Cancel', confirmButtonText: 'Create backup',
+            focusConfirm: false,
+            didOpen: () => document.getElementById('backup-password').focus(),
             preConfirm: () => {
               const password = document.getElementById('backup-password').value;
               const confirmation = document.getElementById('backup-password-confirm').value;
@@ -24,9 +30,9 @@
           await HealthIntel.download('http://localhost:3000/api/superadmin/backup', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: result.value })
           }, 'health_intel_backup.zip');
-          Swal.fire({ title: 'Download started', text: 'Keep your backup password to open the encrypted ZIP.', icon: 'success' });
+          Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog", title: 'Download started', text: 'Keep your backup password to open the encrypted ZIP.', icon: 'success' });
         } catch (error) {
-          Swal.fire({ title: 'Backup failed', text: error.message, icon: 'error' });
+          Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog", title: 'Backup failed', text: error.message, icon: 'error' });
         } finally {
           button.disabled = false;
         }

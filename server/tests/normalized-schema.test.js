@@ -104,3 +104,78 @@ test('normalized resident death review stays separate from case outcome and pres
  const reviewed=await api('mho','/mho/death-reports/'+reported.id+'/review',{action:'confirm',reason:'Synthetic source verification.'},'PUT');assert.equal(reviewed.status,200,JSON.stringify(reviewed));
  dossier=await api('mho','/mho/patients/resident/'+residentId);assert.equal(dossier.resident.is_deceased,1);assert.equal(dossier.history.length,1);assert.equal(dossier.visits.length,3);
 });
+
+
+test('normalized new-patient review preserves distinct people and serializes concurrent registration',async()=>{
+ const data={...patient,first_name:'Identity',last_name:'Review',patient_mode:'new',visit,purok:'Old Purok'};
+ const created=await api('bhw','/patients',data);
+ assert.equal(created.status,201);
+ const [[first]]=await f.db.execute('SELECT resident_id FROM health_cases WHERE id=?',[created.id]);
+ const changed={...data,first_name:'IDENTITY Middle',last_name:'REVIEW',purok:'New Purok'};
+ const review=await api('bhw','/patients',changed);
+ assert.equal(review.status,409);
+ assert.equal(review.code,'RESIDENT_REVIEW_REQUIRED');
+ assert.deepEqual(review.matches.map(row=>row.id),[first.resident_id]);
+ const forged=await api('bhw','/patients',{...changed,resident_review:'unverified'});
+ assert.equal(forged.status,409);
+ const selected=await api('bhw','/patients',{...data,patient_mode:'existing',resident_id:first.resident_id,date_recorded:'2026-10-15'});
+ assert.equal(selected.status,201);
+ const [[second]]=await f.db.execute('SELECT resident_id FROM health_cases WHERE id=?',[selected.id]);
+ assert.equal(second.resident_id,first.resident_id);
+ const attempts=await Promise.all([api('bhw','/patients',{...changed,resident_review:review.review}),api('bhw','/patients',{...changed,resident_review:review.review})]);
+ assert.deepEqual(attempts.map(row=>row.status).sort(),[201,409]);
+ const saved=attempts.find(row=>row.status===201);
+ const [[distinct]]=await f.db.execute('SELECT resident_id FROM health_cases WHERE id=?',[saved.id]);
+ assert.notEqual(distinct.resident_id,first.resident_id);
+});
+
+test('MHO can update, correct and archive its own walk-in case only', async () => {
+ const disease = 'Synthetic MHO Walk-in Disease';
+ assert.equal((await api('admin', '/diseases', { name: disease })).status, 200);
+ const saved = await api('mho', '/mho/walk-in-cases', { ...patient, disease, last_name: 'MhoWalkIn', barangay_id: f.own, visit });
+ assert.equal(saved.status, 201, JSON.stringify(saved));
+ const route = '/patients/' + saved.id;
+ const [[walkIn]] = await f.db.execute('SELECT resident_id FROM health_cases WHERE id=?', [saved.id]);
+ const dossier = await api('mho', '/mho/patients/resident/' + walkIn.resident_id);
+ assert.equal(dossier.status, 200, JSON.stringify(dossier));
+ assert.equal(dossier.history.find(row => row.id === saved.id).can_manage_walkin, true);
+ const other = await api('mho', '/mho/patients/resident/' + f.residents[0]);
+ assert.equal(other.history.find(row => row.id === f.cases[0]).can_manage_walkin, false);
+ const form = await api('mho', route + '/correction');
+ assert.equal(form.status, 200);
+ const correction = { date_recorded: today, disease, severity: 'Monitored', reason: 'Synthetic correction only.', version: form.data.version };
+ assert.equal((await api('mho', '/patients/' + f.cases[0] + '/correction')).status, 404);
+ assert.equal((await api('mho', '/patients/' + f.cases[0] + '/correction', correction, 'PUT')).status, 404);
+ assert.equal((await api('mho', '/patients/' + f.cases[0] + '/archive', {}, 'PUT')).status, 404);
+ const status = { new_status: 'Cleared', expected_status: 'Active' };
+ assert.equal((await api('mho', '/patients/' + f.cases[0] + '/status', status, 'PUT')).status, 404);
+ const corrected = await api('mho', route + '/correction', correction, 'PUT');
+ assert.equal(corrected.status, 200, JSON.stringify(corrected));
+ const cleared = await api('mho', route + '/status', status, 'PUT');
+ assert.equal(cleared.status, 200, JSON.stringify(cleared));
+ assert.equal((await api('mho', route + '/status', status, 'PUT')).status, 409);
+ const list = await api('mho', '/mho/walk-in-cases');
+ assert.equal(list.visits.find(row => row.case_id === saved.id).status, 'Cleared');
+ const reports = require('../services/report-data').createReportData(f.db);
+ const period = { start: today.slice(0, 7) + '-01', end: new Date(Date.UTC(Number(today.slice(0, 4)), Number(today.slice(5, 7)), 1)).toISOString().slice(0, 10) };
+ const monthlyBefore = await reports.monthly(period);
+ for (let attempt = 0; attempt < 2; attempt++) {
+   const archived = await api('mho', route + '/archive', {}, 'PUT');
+   assert.equal(archived.status, 200, JSON.stringify(archived));
+ }
+ assert.equal((await api('mho', route + '/restore', {}, 'PUT')).status, 403);
+ assert.deepEqual(await reports.monthly(period), monthlyBefore);
+ const afterArchive = await api('mho', '/mho/walk-in-cases');
+ assert.ok(!afterArchive.visits.some(row => row.case_id === saved.id));
+ const archiveList = await api('mho', '/mho/walk-in-cases?archived=true');
+ assert.equal(archiveList.status, 200);
+ assert.equal(Number(archiveList.data.find(row => row.id === saved.id).is_archived), 1);
+ assert.equal(archiveList.visits.length, 0);
+ assert.ok(archiveList.data.every(row => Number(row.is_archived) === 1));
+ const history = await api('mho', '/mho/patients/resident/' + walkIn.resident_id);
+ assert.equal(history.history.find(row => row.id === saved.id).can_manage_walkin, false);
+ const [audit] = await f.db.execute("SELECT role FROM system_audit_logs WHERE user_id=? AND action='Record Archived'", [f.users.mho]);
+ assert.deepEqual(audit, [{ role: 'MHO' }]);
+ const [[row]] = await f.db.execute('SELECT status,severity FROM health_cases WHERE id=?', [saved.id]);
+ assert.deepEqual(row, { status: 'Cleared', severity: 'Monitored' });
+});

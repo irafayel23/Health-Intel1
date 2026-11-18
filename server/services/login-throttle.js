@@ -20,7 +20,7 @@ function waitResponse(seconds) {
     return {
         status: 429,
         retryAfter: seconds,
-        body: { success: false, error: `Too many incorrect login attempts. Please wait ${seconds} seconds before trying again.`, retry_after_seconds: seconds }
+        body: { success: false, code: 'ACCOUNT_COOLDOWN', error: `Too many incorrect login attempts. Please wait ${seconds} seconds before trying again.`, retry_after_seconds: seconds }
     };
 }
 

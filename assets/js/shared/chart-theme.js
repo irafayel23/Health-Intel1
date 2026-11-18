@@ -4,7 +4,9 @@ if (window.Chart) {
         id: 'healthIntelTheme',
         beforeUpdate(chart) {
             const dark = document.documentElement.classList.contains('dark');
-            const text = dark ? '#cbd5e1' : '#475569';
+            const municipalAnalytics = !!chart.canvas?.closest('#view-analytics');
+            const profile = municipalAnalytics && chart.canvas.id === 'dynamicChart';
+            const text = dark ? '#cbd5e1' : profile ? '#000000' : municipalAnalytics ? '#0f172a' : '#475569';
             const grid = dark ? '#334155' : '#e2e8f0';
             // Change raw configuration, not Chart.js's resolved options proxy.
             const options = chart.config.options;
@@ -27,6 +29,7 @@ if (window.Chart) {
             for (const scale of Object.values(options.scales || {})) {
                 scale.ticks = scale.ticks || {};
                 scale.ticks.color = text;
+                if(profile)scale.ticks.font={...(scale.ticks.font||{}),weight:'500'};
                 scale.grid = scale.grid || {};
                 scale.grid.color = grid;
                 scale.title = scale.title || {};

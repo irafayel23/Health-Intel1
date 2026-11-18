@@ -1,0 +1,334 @@
+(() => {
+ 'use strict';
+ const $=id=>document.getElementById(id),api='/api/mho/operational-predictions';let timer,elapsedTimer,statusSequence=0,probabilityTimer,reviewedRun,latestCompletedMonth,loadedReportMonth,reportComplete=false,canPrepare=false,preparing=false,reportSequence=0;
+ const node=(tag,cls,text)=>{const e=document.createElement(tag);e.className=cls||'';if(text!==undefined)e.textContent=text;return e;};
+ let confirmedCount=null,lastRuns=[],pastRunsKey;
+ const fmt=x=>typeof x==='number'&&Number.isFinite(x)?x.toFixed(2):'Unavailable';
+ const base=()=>window.HealthIntel?.apiOrigin||'http://localhost:3000';
+ async function request(route,body){const response=await fetch(base()+api+route,body===undefined?{cache:'no-store'}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const value=await response.json().catch(()=>({}));if(!response.ok||!value.success)throw Error(value.error||'The monthly update service could not complete this request.');return value.data;}
+ const message=(text,id='monthly-message')=>{const e=$(id);if(e)e.textContent=text;};
+ function button(label,action,primary=false){const b=node('button',primary?'mho-monthly-button mho-monthly-primary':'mho-monthly-button',label);b.type='button';b.addEventListener('click',async()=>{b.disabled=true;try{await action();}catch(e){message(e.message);}finally{b.disabled=false;}});return b;}
+ async function approval(title,text){if(window.Swal)return (await window.Swal.fire({icon:'warning',title,text,showCancelButton:true,confirmButtonText:'Confirm',focusCancel:true,customClass:{popup:'hi-dialog'}})).isConfirmed;return window.confirm(title+'\n'+text);}
+
+ function clearReports(){
+    reportSequence++;
+    loadedReportMonth='';
+    reportComplete=false;
+    confirmedCount=null;
+    renderSteps();
+    $('monthly-load-reports').disabled=false;
+    $('monthly-load-reports').textContent='Load reports';
+    $('monthly-reports').replaceChildren();
+    $('monthly-report-summary').textContent='Load the reports for this month to see their confirmation status.';
+ }
+ async function loadReports(){
+    const month=$('monthly-report-month').value;
+    if(!month||month>latestCompletedMonth||(trainingMode()===mixedMode&&month<firstReport))throw Error('Choose a completed reporting month within the selected history source.');
+    const sequence=++reportSequence;
+    loadedReportMonth=month;
+    reportComplete=false;
+    confirmedCount=null;
+    renderSteps();
+    const summary=$('monthly-report-summary'),host=$('monthly-reports'),load=$('monthly-load-reports');
+    summary.textContent='Loading barangay reports…';
+    load.disabled=true;
+    try {
+        const rows=await request('/reports?month='+encodeURIComponent(month));
+        if(sequence!==reportSequence)return;
+        host.replaceChildren();
+        const confirmed=rows.filter(r=>r.confirmed&&!r.pending).length;
+        confirmedCount=confirmed;
+        reportComplete=confirmed===7;
+        renderSteps();
+        load.textContent='Refresh reports';
+        summary.textContent=confirmed+' of 7 barangays confirmed. '+(reportComplete?'Reporting is complete for this month.':'Confirm the remaining reports before using this month.');
+        for(const r of rows){
+            const line=node('div','mho-monthly-row'),copy=node('div');
+            const status=node('p','mho-monthly-badge',r.pending?'Pending disease review':r.stale?'Changed · review again':r.confirmed?'Confirmed complete':'Awaiting confirmation');
+            status.dataset.state=r.pending||r.stale?'attention':r.confirmed?'confirmed':'waiting';
+            copy.append(node('p','font-semibold',r.barangay),node('p','text-sm',r.total+' eligible cases · '+r.pending+' pending classifications · '+r.other+' outside the prediction categories'),status);
+            const decision=button(r.confirmed?'Reopen report':'Confirm complete',async()=>{
+                const description=r.confirmed?'Confirm this report again before preparing another update.':'Check that all cases were entered and reviewed. Confirm zero only when the report is complete.';
+                if(!await approval(r.confirmed?'Reopen this monthly report?':'Confirm reporting is complete?',r.barangay+' · '+month+'. '+description))return;
+                if($('monthly-report-month').value!==month)return;
+                await request('/reports',{month,barangay:r.barangay,complete:!r.confirmed});
+                if($('monthly-report-month').value===month)await loadReports();
+            },!r.confirmed);
+            if(r.pending&&!r.confirmed)decision.disabled=true;
+            line.append(copy,decision);
+            host.append(line);
+        }
+    }catch(e){
+        if(sequence===reportSequence){
+            host.replaceChildren();
+            summary.textContent='Could not load reports. '+e.message;
+        }
+    }finally{if(sequence===reportSequence)load.disabled=false;}
+ }
+ const mixedMode='dataset_plus_reports';
+ const trainingMode=()=>$('monthly-history-source').value===mixedMode?mixedMode:'operational';
+ const datasetStart='2023-01',firstReport='2026-10';
+ const monthIndex=value=>Number(value.slice(0,4))*12+Number(value.slice(5))-1;
+ const shiftMonth=(month,delta)=>{
+    const index=monthIndex(month)+delta;
+    return Math.floor(index/12)+'-'+String(index%12+1).padStart(2,'0');
+ };
+ const monthLabel=value=>new Intl.DateTimeFormat('en',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(value+'-01T00:00:00Z'));
+ function updateRange(){
+    const start=$('monthly-start'),cutoffField=$('monthly-cutoff'),cutoff=cutoffField.value;
+    const mixed=trainingMode()===mixedMode;
+    const reports=$('monthly-report-month');
+    reports.min=mixed?firstReport:'1900-01';
+    cutoffField.min=mixed?firstReport:'1903-09';
+    cutoffField.max=mixed&&shiftMonth(datasetStart,119)<latestCompletedMonth?shiftMonth(datasetStart,119):latestCompletedMonth;
+    start.readOnly=mixed;
+    $('monthly-start-field').hidden=mixed;
+    $('monthly-dataset-summary').hidden=!mixed;
+    $('monthly-history-description').hidden=mixed;
+    message(mixed?'· Dataset-backed preview':'· Operational reports','monthly-target-source');
+    renderSteps();
+    $('monthly-use-range').hidden=mixed;
+    message(mixed?'History starts':'First confirmed month','monthly-start-label');
+    message(mixed?'The dataset supplies January 2023 through September 2026. Confirm all seven barangays for each month you add, starting in October 2026.':'Use at least 45 consecutive months of confirmed reports from all seven barangays (3 years and 9 months).','monthly-history-description');
+    if(mixed){
+        start.value=datasetStart;start.min=datasetStart;start.max=datasetStart;
+        if(reports.value<firstReport&&latestCompletedMonth>=firstReport){reports.value=firstReport;clearReports();}
+    }
+    if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(cutoff)||cutoff>cutoffField.max||cutoff<cutoffField.min){
+        $('monthly-use-range').disabled=true;
+        message('—','monthly-forecast-month');
+        message('—','monthly-new-reports');
+        message('Choose a valid last completed month.','monthly-range-help');
+        return;
+    }
+    $('monthly-use-range').disabled=false;
+    if(!mixed){
+        start.min=shiftMonth(cutoff,-119);
+        if(start.min<'1900-01')start.min='1900-01';
+        start.max=shiftMonth(cutoff,-44);
+    }
+    const count=start.value?monthIndex(cutoff)-monthIndex(start.value)+1:null;
+    const picked=count===null?'':count<1?'The first month must come before the last month. ':count+' months selected. ';
+    message(monthLabel(shiftMonth(cutoff,1)),'monthly-forecast-month');
+    if(mixed)message(cutoff===firstReport?monthLabel(firstReport):monthLabel(firstReport)+' – '+monthLabel(cutoff),'monthly-new-reports');
+    message(mixed?picked+'Includes '+(monthIndex(cutoff)-monthIndex(firstReport)+1)+' new report month(s). Results are available for MHO review.':
+        picked+'A 45-month range ending '+monthLabel(cutoff)+' starts in '+monthLabel(start.max)+'.','monthly-range-help');
+ }
+ async function review(run,focus=false){clearTimeout(probabilityTimer);reviewedRun=run;const data=await request('/runs/'+run),host=$('monthly-review');if(!host||reviewedRun!==run)return;host.replaceChildren();const mixed=data.mode===mixedMode;
+ const heading=node('h3','text-lg font-semibold',mixed?'Dataset-backed forecast preview':'Candidate review');
+ heading.tabIndex=-1;
+ host.append(heading);
+ if(focus)heading.focus();
+ if(mixed)host.append(node('p','text-sm','Historical dataset through September 2026 and confirmed reports from October 2026 onward. The historical dataset includes generated counts. These results are for MHO review.'));
+ if(!data.overall){host.append(node('p','text-sm',`${data.run.status}: ${data.run.error||'The fitting run has not completed.'}`));return;}
+ host.append(node('p','text-sm text-slate-800 dark:text-slate-200',`${data.context.main_target}: ${data.available}/70 accepted SARIMA predictions. ${data.current_data_matches?'Confirmed input records still match.':'Records changed since fitting; reconfirm and prepare a new version.'}`));
+ if(mixed&&data.current_data_matches)host.append(node('p','text-sm','Review the forecasts by disease and barangay below. This dataset-backed preview stays in Monthly Updates. After the forecast month ends, confirm its reports to prepare the following month’s forecast.'));
+ const probability=data.probability;
+ if(!mixed)host.append(node('p','text-sm text-slate-800 dark:text-slate-200',probability?.status==='prepared'
+  ? `Experimental probabilities ${data.run.status==='published'?'published':'prepared'} for ${probability.available}/70 selections.`
+  : probability?.status==='invalid'?'The experimental probability file could not be verified. Ask the maintainer to check it.'
+  : probability?.status==='calculating'?'Calculating experimental probabilities. You can leave this page and return to review the version.'
+  : probability?.status==='failed'?'Experimental probability preparation failed. Retry or publish SARIMA alone.'
+  : 'Experimental probability unavailable.'));
+ if(probability?.status==='calculating'&&!$('monthly-updates').hidden)probabilityTimer=setTimeout(()=>review(run).catch(e=>message(e.message)),5000);
+ if(!mixed&&data.run.status==='ready'&&data.current_data_matches&&data.available>0&&!['prepared','invalid','calculating'].includes(probability?.status)){
+  host.append(button('Prepare experimental probabilities',async()=>{
+   if(!await approval('Confirm genuine reporting history','I verified that the selected months contain complete, genuine case reports and exclude test and demonstration records. I confirm the final target-month outcomes are still unknown.'))return;
+   message('Calculating experimental probabilities…');
+   await request('/runs/'+run+'/probability',{genuine_history_reviewed:true,outcomes_unknown:true});
+   await review(run);
+   message('');
+  }));
+ }
+ for(const p of ['80_20','70_30']){const m=data.overall[p]['1'];host.append(node('p','text-sm text-slate-800 dark:text-slate-200',`${p==='80_20'?'Primary 80/20':'Separate 70/30'}: ${m.within_tolerance_hits}/${m.available} within proposed limit (${fmt(m.within_tolerance_pct)}%); ${m.available}/${m.attempted} available. MAE ${fmt(m.MAE)}, RMSE ${fmt(m.RMSE)}, positive-only MAPE ${fmt(m.MAPE_positive_pct)}%.`));}
+ const wrap=node('div','overflow-x-auto mt-3'),table=node('table','w-full text-left text-sm');const head=node('thead','bg-slate-100 dark:bg-slate-800');const hr=node('tr');for(const text of ['Disease / barangay','Next month','Historical score','MAE / RMSE / MAPE','Configuration / limitation'])hr.append(node('th','p-3',text));head.append(hr);table.append(head);const body=node('tbody');for(const s of data.scopes){const m=s.metrics,row=node('tr','border-b border-slate-200 dark:border-slate-700');for(const t of [s.disease+' / '+s.barangay,fmt(s.prediction),`${m.within_tolerance_hits}/${m.available} (${fmt(m.within_tolerance_pct)}%) · ${m.unavailable} missing`,`${fmt(m.MAE)} / ${fmt(m.RMSE)} / ${fmt(m.MAPE_positive_pct)}%`,s.configuration+' · '+(s.prediction===null?s.reason:s.annual_supported?'Annual screen supported':'Annual seasonal evidence weak or uncertain')])row.append(node('td','p-3 align-top',t));body.append(row);}table.append(body);wrap.append(table);host.append(wrap);
+ if(!mixed&&data.current_data_matches&&data.available>0&&(data.run.status==='published'||!['invalid','calculating'].includes(probability?.status)))host.append(button(data.run.status==='published'?'Select this published version (rollback)':'Review and publish this version',async()=>{if(!await approval('Publish this operational version?',`${data.context.main_target}: ${data.available}/70 predictions available. Unavailable results stay unavailable. Experimental probability estimates, if prepared, publish with this version. Historical percentages measure past test performance.`))return;await request('/publish',{run_id:run,acknowledged:true,probability_sha256:probability?.sha256||null});message('Operational version published.');$('prediction-source-panel').hidden=false;selectPanel(0);$('prediction-results-tab').focus();$('prediction-source').value='operational';await window.refreshSarimaSource?.();},true));
+ if(data.run.status==='published')host.append(button('Assess actual outcomes',async()=>{const outcome=await request('/outcomes/'+run);const m=outcome.metrics;message(`${outcome.target} observed outcomes (${outcome.evaluation_type.replaceAll('_',' ')}): ${m.available}/${m.attempted} predictions available; MAE ${fmt(m.MAE)}, RMSE ${fmt(m.RMSE)}, within proposed limit ${m.within_tolerance_hits}/${m.available}.`);}));
+ }
+
+ function showPublication(state){
+    const published=Boolean(state.publication?.run_id);
+    const badge=$('monthly-publication');
+    badge.textContent=published?'Operational predictions published':'No operational version published';
+    badge.dataset.state=published?'confirmed':'waiting';
+ }
+ function showWorkerStatus(state,title,description='',diagnostic=''){
+    $('monthly-environment').dataset.state=state;
+    message(title,'monthly-worker-title');
+    message(description,'monthly-worker-message');
+    message(diagnostic,'monthly-worker-diagnostic');
+    $('monthly-worker-details').hidden=!diagnostic;
+    if(!diagnostic)$('monthly-worker-details').open=false;
+    $('monthly-check-worker').hidden=state!=='attention';
+ }
+ const isUpdating=run=>['queued','running'].includes(run.status);
+ function renderSteps(){
+    const cutoff=$('monthly-cutoff').value,mode=trainingMode();
+    const matching=lastRuns.filter(run=>run.cutoff===cutoff&&(run.mode||'operational')===mode);
+    const updating=matching.some(isUpdating);
+    const verified=matching.some(run=>['ready','published'].includes(run.status));
+    const reportsDone=loadedReportMonth===cutoff&&reportComplete;
+    const reportsNeedReview=loadedReportMonth===cutoff&&confirmedCount!==null&&!reportsDone;
+    const activeStep=updating?'train':reportsNeedReview?'reports':verified?'review':reportsDone?'train':'reports';
+    const reportStatus=loadedReportMonth===cutoff&&confirmedCount!==null?confirmedCount+' of 7 confirmed':updating||verified?'Confirmed for run':'Awaiting review';
+    message(reportStatus,'monthly-step-report-status');
+    message(updating?'In progress':verified?'Complete':reportsDone?'Ready to prepare':'Waiting for reports','monthly-step-training-status');
+    message(verified&&!updating?'Results available':'Awaiting results','monthly-step-review-status');
+    for(const step of ['reports','train','review']){
+        const item=$('monthly-step-'+step);
+        item.setAttribute('aria-current',step===activeStep?'step':'false');
+        item.dataset.complete=String(step==='reports'?(reportsDone||(!reportsNeedReview&&(updating||verified))):step==='train'&&verified&&!updating);
+    }
+ }
+ function elapsedLabel(createdAt){
+    const seconds=Math.max(0,Math.floor((Date.now()-createdAt)/1000));
+    const hours=Math.floor(seconds/3600),minutes=String(Math.floor(seconds/60)%60).padStart(2,'0');
+    return 'Elapsed since queued: '+hours+':'+minutes+':'+String(seconds%60).padStart(2,'0');
+ }
+ function renderRun(run,published,clocks){
+    const updating=isUpdating(run);
+    const line=node('div',updating?'mho-monthly-row mho-monthly-active-run':'mho-monthly-row'),copy=node('div');
+    const labels={ready:'Ready to review',published:'Previously published',queued:'Queued for training',running:'Training and historical testing',failed:'Failed'};
+    const badge=node('p','mho-monthly-badge',published?'Currently published':labels[run.status]||run.status);
+    badge.dataset.state=published||run.status==='ready'?'confirmed':run.status==='failed'?'attention':'waiting';
+    copy.append(node('p','font-semibold',monthLabel(shiftMonth(run.cutoff,1))+' forecast'),badge);
+    copy.append(node('p','mho-monthly-run-context',(run.mode===mixedMode?'Dataset-backed preview':'Operational reports')+' · History through '+monthLabel(run.cutoff)));
+    const completed=run.progress?.completed;
+    if(updating){
+        const hasCount=Number.isInteger(completed)&&completed>=0&&completed<=70;
+        const label=hasCount?completed+' of 70 combinations processed':'Waiting for the worker to report progress';
+        const meta=node('div','mho-monthly-progress-meta'),progress=node('progress','mho-monthly-progress');
+        meta.append(node('p','',label));
+        const queuedAt=Date.parse(run.created_at);
+        if(Number.isFinite(queuedAt)){
+            const clock=node('p','',elapsedLabel(queuedAt));
+            meta.append(clock);
+            clocks.push(()=>{clock.textContent=elapsedLabel(queuedAt);});
+        }
+        progress.max=70;
+        if(hasCount)progress.value=completed;
+        progress.setAttribute('aria-label',label);
+        copy.append(meta,progress,node('p','mho-monthly-run-context','10 diseases across 7 barangays'));
+    }
+    if(run.status==='failed'){
+        const reason=run.progress?.message||run.error||'Training ended before results could be verified.';
+        copy.append(node('p','text-sm',reason.includes('host_memory_pressure')?'Training stopped because available memory was low.':reason));
+    }
+    line.append(copy);
+    if(!updating)line.append(button(run.status==='failed'?'View failure details':'Review version',()=>review(run.id,true)));
+    return line;
+ }
+ async function loadStatus(){
+    clearTimeout(timer);
+    const sequence=++statusSequence;
+    const check=$('monthly-check-worker');
+    check.disabled=true;
+    try{
+        const state=await request('/status'),host=$('monthly-runs');
+        if(sequence!==statusSequence)return;
+        clearInterval(elapsedTimer);
+        showPublication(state);
+        lastRuns=state.runs;
+        renderSteps();
+        const active=lastRuns.some(isUpdating);
+        canPrepare=state.python_configured===true&&(state.worker_ready===true||state.worker_ready===undefined&&state.worker_platform==='Windows bounded worker')&&!active;
+        $('monthly-create').disabled=!canPrepare||preparing;
+        if(active)showWorkerStatus('running','Update in progress','');
+        else if(canPrepare)showWorkerStatus('ready','Training worker ready','');
+        else showWorkerStatus('attention','Training unavailable','You can still confirm monthly reports.',state.worker_message||state.worker_platform||'The server did not report a ready training worker.');
+        const clocks=[],activeRuns=lastRuns.filter(isUpdating);
+        const verified=lastRuns.filter(run=>!isUpdating(run)&&run.status!=='failed');
+        const failed=lastRuns.filter(run=>run.status==='failed');
+        const rows=[...activeRuns,...verified].map(run=>renderRun(run,state.publication?.run_id===run.id,clocks));
+        if(!rows.length)rows.push(node('p','text-sm','Prepare an update to see its progress and results here.'));
+        host.replaceChildren(...rows);
+        $('monthly-past-attempts').hidden=!failed.length;
+        message('('+failed.length+')','monthly-past-count');
+        const key=JSON.stringify(failed);
+        if(key!==pastRunsKey){
+            $('monthly-past-runs').replaceChildren(...failed.map(run=>renderRun(run,false,clocks)));
+            pastRunsKey=key;
+        }
+        if(active&&!$('monthly-updates').hidden){
+            timer=setTimeout(loadStatus,10000);
+            if(clocks.length)elapsedTimer=setInterval(()=>clocks.forEach(tick=>tick()),1000);
+        }
+    }catch(e){
+        if(sequence!==statusSequence)return;
+        clearInterval(elapsedTimer);
+        canPrepare=false;
+        $('monthly-create').disabled=true;
+        showWorkerStatus('attention','Training status unavailable','Check again to retry.',e.message);
+    }finally{if(sequence===statusSequence)check.disabled=false;}
+ }
+ function selectPanel(index){
+  const tabs=[$('prediction-results-tab'),$('prediction-updates-tab')],panels=[$('prediction-results-panel'),$('monthly-updates')];
+  tabs.forEach((tab,i)=>{tab.setAttribute('aria-selected',String(i===index));tab.setAttribute('tabindex',i===index?'0':'-1');panels[i].hidden=i!==index;});
+  if(index===1){if(loadedReportMonth)loadReports();if(reviewedRun)review(reviewedRun).catch(e=>message(e.message));return loadStatus();}
+  statusSequence++;
+  clearTimeout(probabilityTimer);clearTimeout(timer);clearInterval(elapsedTimer);
+ }
+
+ function initialize(){
+    if(!$('monthly-updates'))return;
+    const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit'}).formatToParts(new Date());
+    let year=Number(parts.find(p=>p.type==='year').value),month=Number(parts.find(p=>p.type==='month').value)-1;
+    if(!month){month=12;year--;}
+    latestCompletedMonth=year+'-'+String(month).padStart(2,'0');
+    for(const id of ['monthly-report-month','monthly-cutoff'])$(id).max=latestCompletedMonth;
+    $('monthly-cutoff').min='1903-09';
+    $('monthly-report-month').value=latestCompletedMonth;
+    $('monthly-cutoff').value=latestCompletedMonth;
+    updateRange();
+    $('monthly-history-source').addEventListener('change',updateRange);
+    $('monthly-start').addEventListener('input',updateRange);
+    $('monthly-cutoff').addEventListener('input',updateRange);
+    $('monthly-use-range').addEventListener('click',()=>{$('monthly-start').value=$('monthly-start').max;updateRange();});
+    const refreshReports=()=>{if(loadedReportMonth&&!$('monthly-updates').hidden)loadReports();};
+    window.addEventListener?.('health-intel:classification-reviewed',refreshReports);
+    document.querySelector('[data-target="view-predictive"]')?.addEventListener('click',refreshReports);
+    $('monthly-report-month').addEventListener('change',clearReports);
+    $('monthly-load-reports').addEventListener('click',()=>loadReports().catch(e=>{$('monthly-report-summary').textContent=e.message;}));
+    $('monthly-refresh').addEventListener('click',loadStatus);
+    $('monthly-check-worker').addEventListener('click',loadStatus);
+    $('monthly-create').addEventListener('click',async()=>{
+        if(!canPrepare||preparing)return;
+        const tell=text=>message(text,'monthly-prepare-message');
+        const b=$('monthly-create'),start=$('monthly-start').value,cutoff=$('monthly-cutoff').value,mode=trainingMode();
+        if(!start||!cutoff||start>cutoff||cutoff>latestCompletedMonth){tell('Choose a valid range of completed reporting months.');return;}
+        const count=monthIndex(cutoff)-monthIndex(start)+1;
+        if(count<45||count>120){tell('Choose 45 to 120 months in a row. Use the 45-month range button for the minimum.');return;}
+        if(loadedReportMonth>=(mode===mixedMode?firstReport:start)&&loadedReportMonth<=cutoff&&!reportComplete){
+            tell('Finish confirming all seven reports for '+loadedReportMonth+' before preparing this update.');
+            return;
+        }
+        preparing=true;
+        b.disabled=true;
+        tell('');
+        try{
+            const description=mode===mixedMode?'Train with the historical dataset and newer confirmed reports. Review the resulting preview below.':'The system checks all selected months for complete reports before starting. Your current predictions stay available while the update runs.';
+            if(!await approval('Prepare a new SARIMA update?',description))return;
+            if(start!==$('monthly-start').value||cutoff!==$('monthly-cutoff').value||mode!==trainingMode())return;
+            const run=await request('/runs',{start,cutoff,mode});
+            tell(['ready','published'].includes(run.status)?'A verified version already exists for these reports. Review it below.':'Update requested. Follow its progress in Training progress and results.');
+            await loadStatus();
+        }catch(e){tell(e.message);}
+        finally{preparing=false;b.disabled=!canPrepare;}
+    });
+    $('prediction-source').addEventListener('change',()=>window.selectSarimaSource?.());
+    const tabs=[$('prediction-results-tab'),$('prediction-updates-tab')];
+    tabs.forEach((tab,index)=>{
+        tab.addEventListener('click',()=>selectPanel(index));
+        tab.addEventListener('keydown',event=>{
+            const target=event.key==='Home'?0:event.key==='End'?1:['ArrowLeft','ArrowRight'].includes(event.key)?1-index:null;
+            if(target===null)return;
+            event.preventDefault();
+            selectPanel(target);
+            tabs[target].focus();
+        });
+    });
+    selectPanel(0);
+ }
+
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);else initialize();
+})();

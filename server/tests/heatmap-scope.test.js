@@ -18,6 +18,11 @@ function fixture(role='bhw',assignment=2){
    const scoped=/WHERE b\.id = \?/.test(sql);assert.equal(params.length,scoped?3:2);
    return [barangays.filter(b=>!scoped||b.barangay_id===params[2]).map(b=>({...b,...(params[0]&&params[0]!=='Cough'?{cases:0,mild:0}:{})}))];
   }
+  if(sql.includes('DATE_FORMAT(h.date_recorded')){
+   const scoped=/AND h\.barangay_id = \?/.test(sql);assert.equal(params.length,scoped?3:2);
+   assert.match(sql,/Case Reporting Excluded/);assert.doesNotMatch(sql,/is_archived|h\.status = 'Active'/);
+   return [[]];
+  }
   if(sql.includes('FROM health_cases h')){
    const scoped=/AND h\.barangay_id = \?/.test(sql);assert.equal(params.length,scoped?3:2);
    return [barangays.filter(b=>(!scoped||b.barangay_id===params[2])&&(!params[0]||params[0]==='Cough')).map(b=>({barangay_id:b.barangay_id,severity:'Mild',disease:'Cough',cases:b.cases}))];
@@ -39,9 +44,10 @@ function fixture(role='bhw',assignment=2){
 }
 test('BHW map returns only canonical assigned barangay in both totals and disease-detail queries',async()=>{
  const f=fixture();const r=await f.request();assert.equal(r.status,200);assert.equal(r.body.data.length,1);assert.equal(r.body.data[0].id,2);
- assert.equal(r.body.data[0].cases,3);assert.deepEqual(r.body.data[0].diseases_by_severity.mild,[{disease:'Cough',cases:3}]);
+ assert.equal(r.body.data[0].cases,3);assert.equal(r.body.data[0].activity.provisional,true);assert.equal(r.body.data[0].activity.observed_cases,0);assert.deepEqual(r.body.data[0].diseases_by_severity.mild,[{disease:'Cough',cases:3}]);
  const maps=f.calls.filter(c=>c.sql.includes('FROM barangays b')||c.sql.includes('FROM health_cases h'));
- assert.equal(maps.length,2);assert.ok(maps.every(c=>c.params.at(-1)===2));
+ assert.ok(!Object.hasOwn(r.body.data[0],'purok_counts'));
+ assert.equal(maps.length,3);assert.ok(maps.every(c=>c.params.at(-1)===2));
  assert.ok(r.body.data.every(b=>!('patient_name' in b)&&!('resident_id' in b)));
 });
 test('BHW cannot spoof another barangay or bypass scope with null/empty query filters',async()=>{
@@ -60,6 +66,7 @@ test('missing or invalid BHW assignments fail closed without querying municipal 
 test('MHO municipal heatmap keeps all seven barangays and full aggregate totals',async()=>{
  const f=fixture('mho',null),r=await f.request();assert.equal(r.status,200);assert.equal(r.body.data.length,7);
  assert.equal(r.body.data.reduce((s,b)=>s+b.cases,0),35);
+ assert.ok(r.body.data.every(b=>!Object.hasOwn(b,'purok_counts')));
  assert.ok(f.calls.filter(c=>c.sql.includes('FROM barangays')||c.sql.includes('FROM health_cases')).every(c=>c.params.length===2));
 });
 test('disease filter, no-active-case state and authentication remain scoped',async()=>{

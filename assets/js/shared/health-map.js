@@ -3,8 +3,26 @@
 // 1. REAL GIS HEATMAP USING LEAFLET.JS
 // ==========================================
 
+// Public OpenStreetMap landmarks for aggregate case displays.
+// Village nodes for four barangays, building centers for the two barangay halls.
+const barangayMapAnchors = new Map([
+    ['Alegria', [10.6437925, 123.0836283]], // node 5164954968
+    ['Blumentritt', [10.6168903, 123.024629]], // node 12383768082
+    ['Caliban', [10.5848369, 123.071639]], // node 9319868102
+    ['Cansilayan', [10.5595243, 123.0187053]], // way 1340802275
+    ['Salvacion', [10.6204991, 123.0628055]], // node 12402668937
+    ['Sta. Rosa', [10.57327875, 123.1013825]], // way 1296617860
+]);
+
+function useBarangayMapAnchor(barangay) {
+    const coordinates = barangayMapAnchors.get(barangay.name);
+    if (!coordinates) return barangay;
+    const [lat, lng] = coordinates;
+    return { ...barangay, lat, lng };
+}
+
 // Check if the map container exists before loading
-const mapContainer = document.getElementById("murciaMap") || document.getElementById("bhwMap");
+const mapContainer = document.getElementById("murciaMap");
 
 if (mapContainer) {
     // Initialize the map and set the view perfectly over Murcia, Negros Occidental
@@ -20,9 +38,48 @@ if (mapContainer) {
     const mapCircles = [];
     const mapLabels = [];
     const status = document.getElementById('heatmap-status');
-    const heatView = window.HealthIntelHeatView?.bind(map,mapContainer,{onChange:()=>hideDetails()});
-    const caseBreakdown = window.HealthIntelMapBreakdown?.bind(mapContainer,{onOpen:()=>hideDetails()});
+    const summaryOnly = mapContainer.dataset.mapMode === 'summary';
+    const heatView = summaryOnly ? null : window.HealthIntelHeatView?.bind(map,mapContainer,{onChange:()=>{hideDetails();layoutLabels();}});
+    const caseBreakdown = summaryOnly ? null : window.HealthIntelMapBreakdown?.bind(mapContainer,{onOpen:()=>hideDetails()});
     let initialViewSet = false;
+    let boundaries;
+    let boundaryData;
+    let assignedNames;
+    let boundariesReady = false;
+    const boundaryStatus = document.getElementById('heatmap-boundary-status');
+    const boundaryPane = map.createPane('barangayBoundaries');
+    boundaryPane.style.zIndex = '425';
+
+    function drawBoundaries() {
+        if (!boundaryData || boundaries || (summaryOnly && !assignedNames)) return;
+        try {
+            const layer = L.geoJSON(boundaryData, {
+                filter: feature => !summaryOnly || assignedNames.has(feature.properties.name),
+                renderer: L.canvas({ pane: 'barangayBoundaries' }),
+                style: { color: '#3730a3', weight: 2, dashArray: '5 4', fillOpacity: 0.06 },
+                onEachFeature: (feature, polygon) => polygon.bindTooltip(feature.properties.name),
+                attribution: 'Barangay boundaries: NAMRIA/PSA via OCHA COD-AB'
+            });
+            if (!layer.getBounds().isValid()) throw new Error('Barangay boundaries unavailable.');
+            boundaries = layer.addTo(map);
+            boundaryStatus.textContent = summaryOnly
+                ? 'Dashed outline shows the indicative barangay boundary.'
+                : 'Dashed outlines show indicative pilot barangay boundaries.';
+        } catch {
+            boundaryStatus.textContent = 'Barangay boundaries are unavailable. Case totals can still be viewed.';
+        }
+    }
+    fetch('assets/img/maps/murcia-pilot-barangays.geojson', { signal: AbortSignal.timeout(4000) })
+        .then(response => {
+            if (!response.ok) throw new Error('Barangay boundaries unavailable.');
+            return response.json();
+        })
+        .then(data => { boundaryData = data; drawBoundaries(); })
+        .catch(() => { boundaryStatus.textContent = 'Barangay boundaries are unavailable. Case totals can still be viewed.'; })
+        .finally(() => {
+            boundariesReady = true;
+            fitBarangays();
+        });
 
     // Position the details inside the map so hovering never requires panning.
     const detailsPanel = document.createElement('div');
@@ -121,43 +178,71 @@ if (mapContainer) {
     window.addEventListener('resize', positionDetails);
 
     function layoutLabels() {
-        if (mapContainer.offsetHeight === 0) return;
-        const occupied = [];
         const size = map.getSize();
-        const markers = mapCircles.map(marker => {
+        if (!size.x || !size.y || !mapContainer.offsetHeight) return;
+
+        const compact = map.getZoom() <= 12 || size.x < 540;
+        mapContainer.classList.toggle('heatmap-compact-markers', compact);
+        const boxes = mapCircles.map(marker => {
             const point = map.latLngToContainerPoint(marker.getLatLng());
-            return {left:point.x-46,right:point.x+46,top:point.y-46,bottom:point.y+46};
+            const radius = (marker.getElement()?.offsetWidth || 0) / 2;
+            return {point, radius};
         });
-        const offsets = [[0, 0], [0, 42], [-104, 0], [104, 0], [0, -130], [-104, -42], [104, -42], [-104, 42], [104, 42]];
-        mapLabels.forEach(label => {
+        const occupied = boxes.filter(({radius}) => radius > 0).map(({point, radius}) => ({
+            left:point.x-radius, right:point.x+radius, top:point.y-radius, bottom:point.y+radius,
+        }));
+        const mapRect = mapContainer.getBoundingClientRect();
+        for (const control of mapContainer.querySelectorAll('.leaflet-control-zoom, .heatmap-expand-controls, .heatmap-view-switch, .heatmap-intensity-legend, .leaflet-control-attribution')) {
+            if (!control.offsetWidth || !control.offsetHeight) continue;
+            const rect = control.getBoundingClientRect();
+            occupied.push({left:rect.left-mapRect.left, right:rect.right-mapRect.left,
+                top:rect.top-mapRect.top, bottom:rect.bottom-mapRect.top});
+        }
+
+        mapLabels.forEach((label, index) => {
             const content = label.getElement()?.firstElementChild;
             if (!content) return;
-            const point = map.latLngToContainerPoint(label.getLatLng());
-            const width = content.offsetWidth;
-            const height = content.offsetHeight;
-            let chosen = offsets[0];
-            for (const offset of offsets) {
-                const box = { left: point.x - 44 + offset[0], top: point.y + 49 + offset[1] };
-                box.right = box.left + width;
-                box.bottom = box.top + height;
-                const withinMap = box.left >= 4 && box.top >= 4 && box.right <= size.x - 4 && box.bottom <= size.y - 4;
-                const overlaps = [...occupied,...markers].some(other => box.left < other.right + 5 && box.right > other.left - 5 && box.top < other.bottom + 5 && box.bottom > other.top - 5);
-                if (withinMap && !overlaps) { chosen = offset; break; }
+            const {point, radius} = boxes[index];
+            const gap = radius + 7;
+            const position = () => {
+                const width = content.offsetWidth;
+                const height = content.offsetHeight;
+                const left = -width / 2;
+                const top = -height / 2;
+                const candidates = [
+                    [left, gap], [gap, top], [-gap-width, top], [left, -gap-height],
+                    [gap, gap], [-gap-width, gap], [gap, -gap-height], [-gap-width, -gap-height],
+                ];
+                for (const [x, y] of candidates) {
+                    const box = {left:point.x+x, top:point.y+y, right:point.x+x+width, bottom:point.y+y+height};
+                    if (box.left < 4 || box.top < 4 || box.right > size.x-4 || box.bottom > size.y-4) continue;
+                    if (occupied.some(other => box.left < other.right+4 && box.right > other.left-4 &&
+                        box.top < other.bottom+4 && box.bottom > other.top-4)) continue;
+                    occupied.push(box);
+                    content.style.setProperty('--label-offset-x', x+'px');
+                    content.style.setProperty('--label-offset-y', y+'px');
+                    return true;
+                }
+                return false;
+            };
+            content.classList.remove('heatmap-label-name-only');
+            let placed = position();
+            if (!placed && content.querySelector('.heatmap-marker-attention')) {
+                content.classList.add('heatmap-label-name-only');
+                placed = position();
             }
-            const left = point.x - 44 + chosen[0];
-            const top = point.y + 49 + chosen[1];
-            occupied.push({ left, top, right: left + width, bottom: top + height });
-            content.style.setProperty('--label-offset-x', `${chosen[0]}px`);
-            content.style.setProperty('--label-offset-y', `${chosen[1]}px`);
+            content.style.visibility = placed ? 'visible' : 'hidden';
         });
     }
     map.on('zoomend moveend resize', layoutLabels);
 
     function fitBarangays() {
-        if (!initialViewSet && mapCircles.length && mapContainer.offsetHeight > 0) {
-            map.fitBounds(L.featureGroup(mapCircles).getBounds(), { padding: [45, 45], maxZoom: mapContainer.id === 'bhwMap' ? 14 : 12, animate: false });
-            initialViewSet = true;
-        }
+        if (initialViewSet || !boundariesReady || !mapContainer.offsetHeight) return;
+        const bounds = boundaries?.getBounds() ?? L.latLngBounds([]);
+        if (mapCircles.length) bounds.extend(L.featureGroup(mapCircles).getBounds());
+        if (!bounds.isValid()) return;
+        map.fitBounds(bounds, { padding: [45, 45], maxZoom: summaryOnly ? 14 : 12, animate: false });
+        initialViewSet = true;
     }
 
     function escapeMapText(value) {
@@ -173,7 +258,9 @@ if (mapContainer) {
     refreshButton.className='mb-3 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800';
     refreshButton.textContent='Refresh map';
     refreshButton.setAttribute('aria-label','Refresh map case totals');
-    status?.before(refreshButton);
+    const iconOnly = mapContainer.id === 'murciaMap';
+    if(iconOnly){refreshButton.className='heatmap-expand-button';refreshButton.innerHTML="<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 7v5h-5M4 17v-5h5\"/><path d=\"M6 8a7 7 0 0 1 11-2l3 3M4 15l3 3a7 7 0 0 0 11-2\"/></svg>";refreshButton.dataset.mhoHint='Refresh map';}
+    else status?.before(refreshButton);
     let loading=false;
     let pendingRefresh=false;
     let loaded=false;
@@ -181,7 +268,7 @@ if (mapContainer) {
     function refreshMap() {
       if(loading){pendingRefresh=true;return;}
       loading=true;refreshButton.disabled=true;
-      refreshButton.textContent='Refreshing…';
+      if(!iconOnly)refreshButton.textContent='Refreshing…';
       return fetch('http://localhost:3000/api/heatmap-data')
       .then(response => {
           if (!response.ok) throw new Error('Unable to load active case totals.');
@@ -190,11 +277,9 @@ if (mapContainer) {
       .then(result => {
           if (!result.success) throw new Error('Unable to load active case totals.');
 
-          const barangays = result.data;
-          if (mapContainer.id === 'bhwMap') {
-              const title = document.getElementById('bhw-heatmap-title');
-              if (title) title.textContent = barangays.length === 1 ? `${barangays[0].name} Heatmap` : 'Your Barangay Heatmap';
-          }
+          const barangays = result.data.map(useBarangayMapAnchor);
+          assignedNames = new Set(barangays.map(row => row.name));
+          drawBoundaries();
           heatView?.update(barangays);
           const refreshedAt = new Date(result.fetched_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
           caseBreakdown?.update(barangays,refreshedAt);
@@ -207,25 +292,23 @@ if (mapContainer) {
           mapCircles.length=0;mapLabels.length=0;
 
           barangays.forEach((brgy) => {
-              // Equal-sized rings show the mix of recorded severities, not area-level risk.
-              const own=mapContainer.id === 'bhwMap' && String(brgy.id) === String(window.currentBrgyId);
+              // Equal-sized circles classify recent recorded case activity independently of patient severity.
               const circle = L.marker([brgy.lat, brgy.lng], {
-                icon: L.divIcon({className:'heatmap-summary-marker'+(own?' heatmap-summary-own':''),html:HealthIntelMapDetails.marker(brgy),iconSize:[88,88],iconAnchor:[44,44]}),
+                icon: L.divIcon({className:'heatmap-summary-marker',html:HealthIntelMapDetails.marker(brgy),iconSize:[88,88],iconAnchor:[44,44]}),
                 keyboard:false,
                 bubblingMouseEvents: false,
               }).addTo(map);
 
-              const {counts}=HealthIntelMapDetails.composition(brgy);
-              const attention=[counts.high_risk?`${counts.high_risk} High Risk`:'',counts.monitored?`${counts.monitored} Monitored`:'',counts.unknown?`${counts.unknown} Unknown`:''].filter(Boolean).join(' · ');
+              const attention=[HealthIntelMapDetails.classification(brgy).label + ' · case volume'];
 
               const label = L.marker([brgy.lat, brgy.lng], {
                   interactive: false,
                   keyboard: false,
                   icon: L.divIcon({
                       className: 'heatmap-label',
-                      html: `<div class="heatmap-label-content"><strong>${escapeMapText(brgy.name)}</strong>${attention?`<span class="heatmap-marker-attention">${attention}</span>`:''}</div>`,
-                      iconSize: [88, 34],
-                      iconAnchor: [44, 17]
+                      html: `<div class="heatmap-label-content"><strong>${escapeMapText(brgy.name)}</strong>${attention.map(item=>`<span class="heatmap-marker-attention">${item}</span>`).join('')}</div>`,
+                      iconSize: [0, 0],
+                      iconAnchor: [0, 0]
                   })
               }).addTo(map);
               mapLabels.push(label);
@@ -237,7 +320,7 @@ if (mapContainer) {
               const circleElement = circle.getElement();
               circleElement.setAttribute('tabindex', '0');
               circleElement.setAttribute('role', 'button');
-              circleElement.setAttribute('aria-label', HealthIntelMapDetails.summary(brgy)+' Open severity details.');
+              circleElement.setAttribute('aria-label', HealthIntelMapDetails.summary(brgy)+' Open barangay assessment and patient severity details.');
               circleElement.addEventListener('focus', () => {if (!restoringMarkerFocus) showDetails(circle, details);});
               circleElement.addEventListener('blur', scheduleHideDetails);
               circleElement.addEventListener('keydown', event => {
@@ -252,7 +335,9 @@ if (mapContainer) {
                   showDetails(circle,details,true,hadDetailsFocus);detailsPanel.querySelector('.heatmap-info-body').scrollTop=oldScroll;
               }
           });
-          if (status) status.textContent = `Select Barangay Summary for severity rings or Heat View for relative case intensity. Updated: ${refreshedAt} (Philippine time). Neither view is an outbreak-risk rating.`;
+          if (status) status.textContent = summaryOnly
+              ? 'Locally configured case-volume bands over the current calendar month through today; open a marker for the calculation and separate active totals. Updated: ' + refreshedAt + ' (Philippine time).'
+              : `Barangay Summary shows month-to-date case volume. Heat View uses the same monthly bands: green 1-10, orange 11-20, red 21+. Updated: ${refreshedAt} (Philippine time). Neither view is an outbreak-risk rating.`;
           fitBarangays();
           layoutLabels();
           loaded=true;
@@ -261,7 +346,7 @@ if (mapContainer) {
           caseBreakdown?.markStale();
           if (status) status.textContent = loaded?'Refresh failed. Showing the last loaded totals. Try Refresh map again.':'Map data could not be loaded. Check the connection and use Refresh map.';
           console.error('Error loading heatmap data:', error);
-      }).finally(()=>{loading=false;refreshButton.disabled=false;refreshButton.textContent='Refresh map';if(pendingRefresh){pendingRefresh=false;refreshMap();}});
+      }).finally(()=>{loading=false;refreshButton.disabled=false;if(!iconOnly)refreshButton.textContent='Refresh map';if(pendingRefresh){pendingRefresh=false;refreshMap();}});
     }
     refreshButton.addEventListener('click',refreshMap);
     window.addEventListener('health-intel:cases-changed',refreshMap);
@@ -272,6 +357,10 @@ if (mapContainer) {
     const fullscreen=HealthIntelMapFullscreen.bind(mapContainer,()=>{
         map.invalidateSize({animate:false});heatView?.resize();positionDetails();layoutLabels();
     });
+    if(iconOnly){
+        fullscreen.controls.append(refreshButton);
+        if(caseBreakdown)fullscreen.controls.append(caseBreakdown.button);
+    }
     L.DomEvent.disableClickPropagation(fullscreen.controls);
     L.DomEvent.disableScrollPropagation(fullscreen.controls);
     refreshMap();

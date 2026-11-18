@@ -1,5 +1,6 @@
 const {invalid}=require('./service-errors');
 const {createCaseRecords}=require('./case-records');
+const {reportingExcluded}=require('./case-reporting');
 
 function positive(value,label) {
     if(!/^\d+$/.test(String(value))||!Number.isSafeInteger(Number(value))||Number(value)<1)throw invalid('Select a valid '+label+'.');
@@ -9,11 +10,12 @@ function createMhoPatients(db) {
     const records=createCaseRecords(db);
     return {
         async list(input) {
-            const page=input.page===undefined?1:positive(input.page,'page');
+            const paging=require('./list-pagination').pagination(input);
+            const page=paging.page,size=paging.size;
             if(typeof input.q!=='undefined' && typeof input.q!=='string')throw invalid('Enter a text search.');
             const search=(input.q||'').trim();if(search.length>100)throw invalid('Search using no more than 100 characters.');
             const barangay=input.barangay_id && input.barangay_id!=='all'?positive(input.barangay_id,'barangay'):null;
-            const vital=input.vital||'all';if(!['all','living','deceased'].includes(vital))throw invalid('Select a valid resident status.');
+            if (input.vital && input.vital !== 'all') throw invalid('This directory filter is no longer available.');
             const base=`SELECT 'resident' AS kind,r.id,r.patient_name,r.first_name,r.last_name,r.suffix,
                 DATE_FORMAT(r.birthdate,'%Y-%m-%d') AS birthdate,r.age,r.purok,r.barangay_id,b.name AS barangay_name,
                 COALESCE(v.is_deceased,0) AS is_deceased,DATE_FORMAT(v.death_date,'%Y-%m-%d') AS death_date
@@ -24,12 +26,11 @@ function createMhoPatients(db) {
                 FROM health_cases h LEFT JOIN barangays b ON b.id=h.barangay_id WHERE h.resident_id IS NULL`;
             const conditions=[],params=[];
             if(barangay){conditions.push('d.barangay_id=?');params.push(barangay);}
-            if(vital!=='all'){conditions.push('d.kind=\'resident\' AND d.is_deceased=?');params.push(vital==='deceased'?1:0);}
             if(search){conditions.push("(COALESCE(d.patient_name,CONCAT_WS(' ',d.first_name,d.last_name,d.suffix)) LIKE ? ESCAPE '!' OR CONCAT(IF(d.kind='resident','RES-','REC-'),d.id) LIKE ? ESCAPE '!')");const pattern='%'+search.replace(/[!%_]/g,c=>'!'+c)+'%';params.push(pattern,pattern);}
             const where=conditions.length?' WHERE '+conditions.join(' AND '):'';
             const [[count]]=await db.execute('SELECT COUNT(*) AS total FROM ('+base+') d'+where,params);
-            const pages=Math.max(1,Math.ceil(count.total/25)),current=Math.min(page,pages);
-            const [rows]=await db.execute('SELECT d.* FROM ('+base+') d'+where+' ORDER BY d.last_name,d.first_name,d.kind,d.id LIMIT 25 OFFSET '+((current-1)*25),params);
+            const pages=Math.max(1,Math.ceil(count.total/size)),current=Math.min(page,pages);
+            const [rows]=await db.execute('SELECT d.* FROM ('+base+') d'+where+' ORDER BY d.last_name,d.first_name,d.kind,d.id LIMIT '+size+' OFFSET '+((current-1)*size),params);
             // History totals are calculated only for this page, rather than loading every patient history.
             for(const kind of ['resident','legacy']){
                 const selected=rows.filter(row=>row.kind===kind);if(!selected.length)continue;
@@ -42,7 +43,7 @@ function createMhoPatients(db) {
                 const byId=new Map(stats.map(row=>[row.lookup_id,row]));
                 for(const row of selected)Object.assign(row,{case_count:0,active_count:0,archived_count:0,last_consultation:null},byId.get(row.id)||{});
             }
-            return {data:rows,total:Number(count.total),page:current,page_count:pages,page_size:25};
+            return {data:rows,total:Number(count.total),page:current,page_count:pages,page_size:size};
         },
         async dossier(kind,value) {
             const id=positive(value,kind==='resident'?'resident':'case');
@@ -53,7 +54,8 @@ function createMhoPatients(db) {
             }
             const cases=await records.caseById(id);if(!cases.length||cases[0].resident_id!==null)throw invalid('Unlinked historical case not found. Refresh the directory.',404);
             const [visits]=await db.execute("SELECT v.*,DATE_FORMAT(h.birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(v.next_followup_date,'%Y-%m-%d') AS next_followup_date,DATE_FORMAT(v.consultation_date,'%Y-%m-%d') AS consultation_date,TIME_FORMAT(v.consultation_time,'%H:%i') AS consultation_time,h.disease,h.disease_reported,h.disease_review_status FROM case_visits v JOIN health_cases h ON h.id=v.case_id WHERE v.case_id=? ORDER BY v.consultation_date DESC,v.id DESC",[id]);
-            return {kind,resident:{...cases[0],is_deceased:null,death_date:null},history:cases,visits:visits.map(require('./age-groups').visitFields)};
+            const [[state]]=await db.execute(`SELECT ${reportingExcluded('?')} AS reporting_excluded`,[id]);
+            return {kind,resident:{...cases[0],is_deceased:null,death_date:null},history:[{...cases[0],...state}],visits:visits.map(require('./age-groups').visitFields)};
         }
     };
 }
