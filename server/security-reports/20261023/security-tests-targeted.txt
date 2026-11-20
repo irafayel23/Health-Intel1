@@ -1,0 +1,12 @@
+✔ proxy headers cannot override the direct peer when proxy trust is disabled (64.2946ms)
+✔ patched proxy parser distinguishes untrusted IPv6 addresses from loopback (2.1757ms)
+✔ updated mysql driver retains parameter escaping and defaults local files off (86.7504ms)
+✔ email helper enforces TLS and access restrictions and composes mail with updated Nodemailer (72.5583ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 546.7973

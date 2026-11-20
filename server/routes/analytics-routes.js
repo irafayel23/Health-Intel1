@@ -1,18 +1,27 @@
 const { createDashboardData } = require('../services/dashboard-data');
 const { createDiseaseRegistryHandlers, createDiseaseRegistryData } = require('../services/disease-registry');
 const { analyticsFilters, caseWhere, comparisonSelection, sendAnalyticsError } = require('../services/mho-analytics');
-const {sampleAnalytics}=require('../services/analytics-sample');
+const {registerDatasetAnalytics,FIRST_LIVE_CASE_DATE}=require('../services/dataset-analytics');
+
+const { dailyBhwEntries } = require('../services/daily-bhw-entries');
 
 function registerAnalyticsRoutes(app, db) {
     const dashboard = createDashboardData(db);
     const registry = createDiseaseRegistryHandlers(db);
     const catalog = createDiseaseRegistryData(db);
-    // Auth/role middleware runs before these display-only sample responses.
-    app.get(['/api/mho/stats','/api/mho/kpi','/api/mho/trend','/api/mho/year-comparison','/api/mho/analytics-options','/api/mho/mortality','/api/mho/breakdown'],async(req,res,next)=>{
+    registerDatasetAnalytics(app, db);
+    app.get('/api/mho/daily-bhw-entries', async (req, res) => {
+        res.set('Cache-Control', 'no-store');
+        try {
+            res.json({ success: true, ...await dailyBhwEntries(db, req.query) });
+        } catch (error) {
+            sendAnalyticsError(res, error);
+        }
+    });
+    // Retire ad-hoc display samples; historical views use the preserved CSV.
+    app.get(['/api/mho/stats','/api/mho/kpi','/api/mho/trend','/api/mho/year-comparison','/api/mho/analytics-options','/api/mho/disease-distribution','/api/mho/breakdown'],async(req,res,next)=>{
         if(req.query.sample===undefined)return next();
-        if(req.query.sample!=='1')return res.status(400).json({success:false,error:'Invalid sample-data selection.'});
-        try{res.json(sampleAnalytics(req.path.split('/').at(-1),req.query,await dashboard.analyticsBarangays()));}
-        catch(error){sendAnalyticsError(res,error);}
+        return res.status(410).json({success:false,error:'Display samples are retired. Choose the historical dataset view or operational records.'});
     });
     // ==========================================
     // 8. DASHBOARD STATS & ANALYTICS
@@ -101,7 +110,7 @@ function registerAnalyticsRoutes(app, db) {
     app.get('/api/mho/stats', async (req, res) => {
         try {
             const filters = analyticsFilters(req.query);
-            const where = caseWhere(filters, { deathsOnly: filters.category === 'mortality' });
+            const where = caseWhere(filters);
             const { rows, summary } = await dashboard.diseaseSummary(where);
             summary.leading_categories = rows.filter((row) => row.cases === rows[0]?.cases).length;
             res.json({ success: true, data: rows.slice(0, 10), summary, filters });
@@ -121,11 +130,22 @@ function registerAnalyticsRoutes(app, db) {
     // ==========================================
     // MHO KPI STATS API
     // ==========================================
+    app.get('/api/mho/kpi-cases', async (req, res) => {
+        res.set('Cache-Control', 'no-store');
+        try {
+            const where = caseWhere(analyticsFilters(req.query));
+            res.json({ success: true, ...await dashboard.kpiCases(where, req.query) });
+        } catch (error) {
+            sendAnalyticsError(res, error);
+        }
+    });
     app.get('/api/mho/kpi', async (req, res) => {
         try {
             const filters = analyticsFilters(req.query);
-            const where = caseWhere(filters);
-            const counts = await dashboard.kpi(where);
+            const where = caseWhere(filters, { includeYear: false });
+            const recorded = caseWhere(filters, { allConditions: true });
+            const counts = await dashboard.kpi(where, recorded, FIRST_LIVE_CASE_DATE);
+            res.set('Cache-Control', 'no-store');
             res.json({ success: true, ...counts, filters });
         } catch (error) {
             if (!error.status) console.error('KPI Error:', error);
@@ -142,7 +162,7 @@ function registerAnalyticsRoutes(app, db) {
     });
 
     app.get('/api/mho/breakdown',async(req,res)=>{
-        try{const filters=analyticsFilters(req.query);const data=await dashboard.breakdown(caseWhere(filters,{deathsOnly:filters.category==='mortality'}),filters);res.json({success:true,...data,filters});}
+        try{const filters=analyticsFilters(req.query);const data=await dashboard.breakdown(caseWhere(filters),filters);res.json({success:true,...data,filters});}
         catch(error){sendAnalyticsError(res,error);}
     });
 
@@ -214,16 +234,16 @@ function registerAnalyticsRoutes(app, db) {
     });
 
     // ==========================================
-    // MHO LEADING MORTALITY API
+    // MHO DISEASE DISTRIBUTION API
     // ==========================================
-    app.get('/api/mho/mortality', async (req, res) => {
+    app.get('/api/mho/disease-distribution', async (req, res) => {
         try {
             const filters = analyticsFilters(req.query);
-            const where = caseWhere(filters, { deathsOnly: true });
-            const rows = await dashboard.mortality(where);
+            const where = caseWhere(filters);
+            const rows = await dashboard.diseaseDistribution(where);
             res.json({ success: true, data: rows, filters });
         } catch (error) {
-            if (!error.status) console.error('Mortality Error:', error);
+            if (!error.status) console.error('Disease distribution error:', error);
             sendAnalyticsError(res, error);
         }
     });

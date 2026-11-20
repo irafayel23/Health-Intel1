@@ -32,6 +32,32 @@ test('Cough Salvacion uses 6/9 and October ~70, never pooled 86.17% or November 
  assert.equal(d.metrics.within_tolerance_hits,6);assert.equal(d.metrics.available,9);
  assert(!d.explanation.includes('65 cases'));assert.notEqual(d.score,100*517/600);
 });
+test('forecast calculations match the selected saved fit across all 70 combinations',()=>{
+ const {createLowCountSarimaDemo}=require('../services/seasonal6200-sarima-demo');
+ const demo=createLowCountSarimaDemo();
+ const saved=require('../data/seasonal-sarima-6200/snapshot.json');
+ let equations=0;
+ for (const {disease,barangay} of saved.scopes) {
+  const d=P.derive(demo.forecast({disease,barangay}));
+  const calculation=P.modelCalculation(d);
+  assert.equal(calculation.priorYearCases,d.view.history.at(-12));
+  assert.equal(calculation.prediction,d.prediction);
+  assert.deepEqual(calculation.terms.map(term=>term.value),
+   ['intercept','ar.L1','ar.S.L12','ma.L1','ma.S.L12'].filter(key=>key in d.forecast.diagnostics.params).map(key=>d.forecast.diagnostics.params[key]));
+  assert(calculation.equation.startsWith('c + seasonal AR coefficient × prior-year cases ='));
+  if (calculation.equation.includes('Not applicable')) {
+   assert(calculation.fullEquation.startsWith('Estimated '));
+  } else {
+   assert.equal(calculation.fullEquation,null);
+   assert(calculation.equation.endsWith(P.format(d.prediction,4)));
+  }
+  if (calculation.equation) equations++;
+  if (disease==='Cough' && barangay==='Salvacion') {
+   assert.match(calculation.equation,/4\.716673.*-0\.155235.*× 6.*3\.7853/);
+  }
+ }
+ assert.equal(equations,70);
+});
 test('all 18 aggregate backtests use complete component sums, never averaged scores or partial predictions',()=>{
  const views=Object.values(snapshot.views),near=(a,b)=>assert(Math.abs(a-b)<1e-7);
  for(const v of views.filter(v=>v.disease==='ALL'||v.barangay==='ALL')){
@@ -93,7 +119,7 @@ function app({width=700,fetcher}={}){
  let requestCount=0;
  const fetch=async url=>{
   requestCount++;if(fetcher){const handled=await fetcher(url,requestCount);if(handled)return handled;}
-  const u=new URL(url),data=u.pathname.endsWith('/options')?service.options():service.forecast(Object.fromEntries(u.searchParams));
+  const u=new URL(url),data=u.pathname.endsWith('/operational-predictions/publication')?{publication:null}:u.pathname.endsWith('/options')?service.options():service.forecast(Object.fromEntries(u.searchParams));
   return {ok:true,json:async()=>({success:true,data})};
  };
  const context={window:{HealthIntelSarimaPresentation:P,HealthIntel:{apiOrigin:'http://localhost:3000'}},document,fetch,URLSearchParams,AbortController,setTimeout,clearTimeout,requestAnimationFrame:f=>f(),console};
@@ -125,7 +151,7 @@ test('chart sizing, keyboard/arrow inspection and native tooltip use the actual 
  for(const width of [280,320,390,700,1000]){
   const a=app({width});await settle();a.select('Cough','Salvacion');await a.run();
   const svg=a.els['sarima-chart'].children[0],point=allNodes(svg).find(e=>e.attributes['data-month']==='2026-10');point.focus();
-  assert(a.els['sarima-chart-readout'].textContent.includes('69.69 estimated cases'));assert(a.els['sarima-chart-readout'].textContent.includes('46.81–92.57'));
+  assert(a.els['sarima-chart-readout'].textContent.includes('70 estimated cases'));assert(a.els['sarima-chart-readout'].textContent.includes('46.81–92.57'));
   a.els['sarima-previous-point'].dispatch('click');assert(a.els['sarima-chart-readout'].textContent.includes('September 2026'));
   a.els['sarima-next-point'].dispatch('click');assert(a.els['sarima-chart-readout'].textContent.includes('October 2026'));
   assert.equal(a.els['sarima-next-point'].disabled,true);assert.equal(a.els['run-forecast-button'].disabled,false);
@@ -139,7 +165,7 @@ test('selection changes and failed requests clear stale predictions and leave re
 });
 test('empty initial state and options failure do not fabricate a forecast',async()=>{
  const a=app({fetcher:async()=>{throw Error('offline');}});await settle();assert.equal(a.els['run-forecast-button'].textContent,'Retry loading');
- assert(a.els['sarima-state'].textContent.includes('Could not load'));assert(!a.els['sarima-chart'].children.some(n=>n.tagName==='svg'));
+ assert(a.els['sarima-state'].textContent.includes('Publication status unavailable'));assert(!a.els['sarima-chart'].children.some(n=>n.tagName==='svg'));
 });
 test('a delayed old response cannot replace a newer selected scope',async()=>{
  let release,hold=false;const a=app({fetcher:async url=>{if(hold&&url.includes('disease=Cough'))return new Promise(resolve=>{release=resolve;});}});await settle();

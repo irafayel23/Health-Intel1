@@ -1,0 +1,21 @@
+{
+  "records": 3150,
+  "histories": 70,
+  "months": 45,
+  "combined_cases": 6200,
+  "generated_cases": 6108,
+  "itr_cases_preserved": 92,
+  "generated_groups": [
+    3054,
+    3054
+  ],
+  "added_generated_cases": 608,
+  "zero_cells": 0,
+  "minimum_monthly_cell": 1,
+  "maximum_monthly_cell": 8,
+  "mean_cases_per_history_month": 1.9682539682539681,
+  "old_generated_cells_not_reduced": true,
+  "exact_itr_cell_equality": true,
+  "model_fits": 0,
+  "performance_evaluated": false
+}

@@ -1,9 +1,10 @@
+const {reportingExcluded}=require("./case-reporting");
 const {caseAgeSql,ageGroupSql}=require('./age-groups');
 function createReportData(db) {
     return {
         async monthly(period) {
             const [rows] = await db.execute(
-                `SELECT h.disease,h.status,d.category,${ageGroupSql(caseAgeSql('h'))} AS age_group,COUNT(*) as count FROM health_cases h LEFT JOIN disease_registry d ON d.name=h.disease WHERE h.date_recorded>=? AND h.date_recorded<? GROUP BY h.disease,h.status,d.category,age_group ORDER BY count DESC`,
+                `SELECT h.disease,h.status,d.category,${ageGroupSql(caseAgeSql('h'))} AS age_group,COUNT(*) as count FROM health_cases h LEFT JOIN disease_registry d ON d.name=h.disease WHERE h.date_recorded>=? AND h.date_recorded<? AND NOT ${reportingExcluded('h.id')} GROUP BY h.disease,h.status,d.category,age_group ORDER BY count DESC`,
                 [period.start, period.end]
             );
             return rows;

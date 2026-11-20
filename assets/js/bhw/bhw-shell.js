@@ -32,3 +32,32 @@
         }
       }
 
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tooltip = document.getElementById('bhw-cursor-tooltip');
+    if (!tooltip) return;
+    const selector = '[data-bhw-hint], [data-mho-hint]';
+    const hide = () => tooltip.classList.remove('is-visible');
+
+    document.addEventListener('pointermove', event => {
+        const target = event.target.closest(selector);
+        if (event.pointerType !== 'mouse' || !target || target.disabled) return hide();
+        tooltip.textContent = target.dataset.bhwHint || target.dataset.mhoHint;
+        const { clientWidth, clientHeight } = document.documentElement;
+        const left = Math.max(8, Math.min(event.clientX + 14, clientWidth - tooltip.offsetWidth - 8));
+        const below = event.clientY + 18;
+        const top = below + tooltip.offsetHeight + 8 <= clientHeight ? below : Math.max(8, event.clientY - tooltip.offsetHeight - 10);
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        tooltip.classList.add('is-visible');
+    });
+    document.addEventListener('pointerout', event => {
+        const target = event.target.closest(selector);
+        if (target && !target.contains(event.relatedTarget)) hide();
+    });
+    document.addEventListener('scroll', hide, true);
+    document.addEventListener('click', hide, true);
+    window.addEventListener('blur', hide);
+    window.addEventListener('health-intel:map-fullscreen-change', hide);
+});

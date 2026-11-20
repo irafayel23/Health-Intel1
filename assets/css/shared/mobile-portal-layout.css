@@ -1,0 +1,45 @@
+@media (max-width: 900px) {
+  html:has(body.bhw-portal) { scroll-padding-top: 64px; }
+  body.hi-portal.bhw-portal:not(.swal2-shown) { display: block; height: auto; overflow: visible; }
+  body.hi-portal.bhw-portal.hi-menu-open { overflow: hidden; }
+  body.bhw-portal > #portal-main { display: block; height: auto; min-height: 100dvh; overflow: clip; }
+  body.hi-portal.bhw-portal > #portal-main > header { position: sticky; top: 0; }
+  body.hi-portal.bhw-portal .bhw-page-scroll {
+    overflow: visible;
+    padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+  }
+  .bhw-portal :is(#patients-pagination, #resident-pagination, #bhw-followup-panel .hi-vital-pagination) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+  }
+  .bhw-portal :is(#patients-pagination, #resident-pagination, #bhw-followup-panel .hi-vital-pagination) button {
+    min-width: 44px;
+    min-height: 44px;
+    padding-inline: 8px;
+  }
+  #bhw-followup-page { white-space: nowrap; }
+
+  .hi-portal #superadmin-sidebar { overflow-x: hidden; }
+  #superadmin-sidebar .hi-sidebar-brand {
+    flex: 0 0 auto;
+    height: auto;
+    min-width: 0;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  #superadmin-sidebar .hi-sidebar-logo { width: 32px; height: 32px; flex: 0 0 32px; margin: 0; }
+  #superadmin-sidebar .hi-brand-name { min-width: 0; font-size: .875rem; overflow-wrap: anywhere; }
+  #superadmin-sidebar .nav-item { display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; }
+  #superadmin-sidebar .nav-item svg { flex-shrink: 0; }
+  .hi-portal #superadmin-sidebar + main > header { flex-wrap: nowrap; }
+  .hi-portal #superadmin-sidebar + main #superadmin-view-title {
+    min-width: 0;
+    font-size: clamp(1rem, 4.5vw, 1.375rem);
+    line-height: 1.15;
+  }
+  #superadmin-sidebar + main .superadmin-header-controls { margin-left: 0; }
+  #superadmin-sidebar + main #overview-account-id { display: none; }
+}

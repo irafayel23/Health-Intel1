@@ -31,7 +31,7 @@
         }
         function render(){
             button.replaceChildren();const text=document.createElement('span');text.className='min-w-0';optionText(text,select.selectedOptions[0]);button.append(text);
-            const arrow=document.createElement('span');arrow.className='hi-select-arrow';arrow.setAttribute('aria-hidden','true');arrow.textContent='⌄';button.append(arrow);button.disabled=select.disabled;
+            const arrow=document.createElement('span');arrow.className='hi-select-arrow';arrow.setAttribute('aria-hidden','true');const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('fill','none');svg.setAttribute('stroke','currentColor');svg.setAttribute('stroke-width','2');svg.setAttribute('stroke-linecap','round');svg.setAttribute('stroke-linejoin','round');const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d','m6 9 6 6 6-6');svg.append(path);arrow.append(svg);button.append(arrow);button.disabled=select.disabled;
             const query=(search?.value||'').trim().toLocaleLowerCase();
             const all=[...select.options].filter(o=>!o.disabled&&(allowEmpty||o.value));
             const normal=all.filter(o=>o.value!==UNLISTED),ranked=normal.filter(o=>Number(o.dataset?.topRank)>0);
@@ -54,7 +54,7 @@
                 menu.style.width=menuWidth+'px';menu.style.left=Math.max(left+8,Math.min(rect.left,left+width-menuWidth-8))+'px';menu.style.maxHeight=Math.max(0,Math.min(460,up?above:below))+'px';menu.style.top=up?'auto':rect.bottom+6+'px';menu.style.bottom=up?innerHeight-rect.top+6+'px':'auto';
             }
         }
-        function open(){if(select.disabled)return;browseAll=false;if(search)search.value='';render();menu.hidden=false;position();button.setAttribute('aria-expanded','true');if(search)search.focus({preventScroll:true});setActive(Math.max(0,options.findIndex(o=>o.selected)));}
+        function open(){if(select.disabled)return;const host=select.closest('[aria-modal="true"],.swal2-popup')||document.body;if(menu.parentElement!==host)host.append(menu);menu.inert=false;browseAll=false;if(search)search.value='';render();menu.hidden=false;position();button.setAttribute('aria-expanded','true');if(search)search.focus({preventScroll:true});setActive(Math.max(0,options.findIndex(o=>o.selected)));}
         function keys(event){
             if(search&&event.currentTarget===button&&event.key.length===1&&!event.ctrlKey&&!event.metaKey&&!event.altKey){event.preventDefault();if(menu.hidden)open();search.value+=event.key;render();setActive(0);search.focus();return;}
             if(['Escape','ArrowDown','ArrowUp','Home','End','Enter'].includes(event.key))event.stopPropagation();
@@ -70,6 +70,146 @@
         const observer=new MutationObserver(render);observer.observe(select,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});render();
         const api={refresh:render,destroy(){events.abort();observer.disconnect();menu.remove();button.remove();select.classList.remove('hi-select-native');select.tabIndex=0;select.required=required;if(oldHidden===null)select.removeAttribute('aria-hidden');else select.setAttribute('aria-hidden',oldHidden);wrap.before(select);wrap.remove();delete select._hiSelect;}};select._hiSelect=api;return api;
     }
+
+    const puroksByBarangay = new Map([
+        ['blumentritt', ['Sunrise', 'Sambag', 'Maasin', 'Stop']],
+        ['salvacion', ['Biri', 'Paghidaet', 'Riles', 'Bomba', 'Señora', 'Bernabe']],
+        ['minoyan', ['1', '3', '5', 'New Site', 'Gayas', 'PNOC1']],
+        ['caliban', ['Lacson', 'Proper', 'Mirasol']],
+        ['cansilayan', ['Daisy', 'Santan', 'Dampsite', 'Gladiulus', 'Liero']],
+        ['alegria', ['Fortune', 'Kalubihan']],
+        ['santa rosa', ['Relocation', 'Puncian', 'Laroca', 'Old Barrio', 'Tayum-an', 'Baha']],
+    ]);
+
+    const normalizePurokText = value => String(value || '').trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+
+    function purokOptions(barangayName) {
+        const barangay = normalizePurokText(barangayName).replace(/^sta\.?\s+/, 'santa ');
+        return (puroksByBarangay.get(barangay) || []).map(name => ({
+            value: 'Purok ' + name,
+            label: barangay === 'caliban' && name === 'Mirasol' ? 'Purok Mirasol (Sitio Mirasol)' : 'Purok ' + name
+        }));
+    }
+
+    function bindPurokSuggestions(input, getBarangay) {
+        const events = new AbortController();
+        const on = (el, name, callback) => el.addEventListener(name, callback, { signal: events.signal });
+        const list = document.createElement('div');
+        list.id = input.id + '-suggestions';
+        list.className = 'hi-select-list hi-purok-suggestions';
+        list.setAttribute('role', 'listbox');
+        list.setAttribute('aria-label', 'Purok and zone suggestions');
+        const host = input.closest('[aria-modal="true"],.swal2-popup') || document.body;
+        host.append(list);
+        input.setAttribute('role', 'combobox');
+        input.setAttribute('aria-autocomplete', 'list');
+        input.setAttribute('aria-controls', list.id);
+        input.autocomplete = 'off';
+        let options = [], active = -1;
+
+        function close() {
+            list.hidden = true;
+            input.setAttribute('aria-expanded', 'false');
+            input.removeAttribute('aria-activedescendant');
+            active = -1;
+        }
+        function position() {
+            if (list.hidden) return;
+            const rect = input.getBoundingClientRect();
+            const viewport = window.visualViewport;
+            const left = viewport?.offsetLeft ?? 0;
+            const top = viewport?.offsetTop ?? 0;
+            const right = left + (viewport?.width ?? window.innerWidth);
+            const bottom = top + (viewport?.height ?? window.innerHeight);
+            const scrollPanel = input.closest('.walkin-section,.swal2-html-container');
+            const panel = scrollPanel?.getBoundingClientRect();
+            const gap = 6;
+            const lowerEdge = Math.min(bottom - 8, panel?.bottom ?? bottom);
+            const upperEdge = Math.max(top + 8, panel?.top ?? top);
+            if (!rect.width || rect.bottom <= upperEdge || rect.top >= lowerEdge) {
+                close();
+                return;
+            }
+            const below = lowerEdge - rect.bottom - gap;
+            const above = rect.top - upperEdge - gap;
+            const openAbove = below < 150 && above > below;
+            const height = Math.min(192, openAbove ? above : below);
+            if (height < 44) {
+                close();
+                return;
+            }
+            const width = Math.min(Math.max(rect.width, 200), right - left - 16);
+            list.style.width = width + 'px';
+            list.style.maxHeight = height + 'px';
+            list.style.left = Math.max(left + 8, Math.min(rect.left, right - width - 8)) + 'px';
+            list.style.top = openAbove ? 'auto' : rect.bottom + gap + 'px';
+            list.style.bottom = openAbove ? window.innerHeight - rect.top + gap + 'px' : 'auto';
+        }
+        function choose(value) {
+            input.value = value;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            close();
+        }
+        function render() {
+            close();
+            const query = normalizePurokText(input.value).replace(/^purok(?:\s+|$)/, '');
+            options = purokOptions(getBarangay()).flatMap(({value,label}, index) => {
+                if (!normalizePurokText(label.slice(6)).includes(query)) return [];
+                const option = document.createElement('div');
+                option.className = 'hi-select-option';
+                option.id = list.id + '-' + index;
+                option.textContent = label;
+                option.setAttribute('role', 'option');
+                option.dataset.purokValue = value;
+                return [option];
+            });
+            list.replaceChildren(...options);
+            list.hidden = !options.length;
+            input.setAttribute('aria-expanded', String(!list.hidden));
+            position();
+        }
+        close();
+        on(list, 'mousedown', event => event.preventDefault());
+        on(list, 'click', event => {
+            const option = event.target.closest('[data-purok-value]');
+            if (option) choose(option.dataset.purokValue);
+        });
+        on(input, 'focus', render);
+        on(input, 'input', render);
+        on(input, 'blur', close);
+        on(window, 'resize', position);
+        window.addEventListener('scroll', event => {
+            if (event.target !== list) position();
+        }, { capture: true, signal: events.signal });
+        if (window.visualViewport) {
+            on(window.visualViewport, 'resize', position);
+            on(window.visualViewport, 'scroll', position);
+        }
+        on(input, 'keydown', event => {
+            if (event.key === 'Escape' && !list.hidden) {
+                event.stopPropagation();
+                close();
+            } else if (event.key === 'Enter' && !list.hidden && active >= 0) {
+                event.preventDefault();
+                choose(options[active].dataset.purokValue);
+            } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+                if (list.hidden) render();
+                if (list.hidden) return;
+                event.preventDefault();
+                options[active]?.removeAttribute('data-active');
+                active = event.key === 'ArrowDown' ? (active + 1) % options.length : (active <= 0 ? options.length - 1 : active - 1);
+                const option = options[active];
+                option.dataset.active = 'true';
+                input.setAttribute('aria-activedescendant', option.id);
+                const bounds = list.getBoundingClientRect();
+                const row = option.getBoundingClientRect();
+                if (row.top < bounds.top) list.scrollTop += row.top - bounds.top;
+                else if (row.bottom > bounds.bottom) list.scrollTop += row.bottom - bounds.bottom;
+            }
+        });
+        return { close, destroy() { events.abort(); list.remove(); } };
+    }
+
     const conditionHelp='Top recorded diseases appear first. Search all diseases for other catalog choices. Use Condition not listed only when the full catalog has no match.';
     function conditionMarkup(prefix){return `<div class="hi-condition-field"><label for="${prefix}-disease">Reported disease / condition *</label><select id="${prefix}-disease" aria-label="Reported disease or condition"><option value="">Loading conditions…</option></select><p class="hi-field-help" id="${prefix}-disease-note">${conditionHelp}</p><div id="${prefix}-unlisted" class="hi-unlisted-fields" hidden><label for="${prefix}-reported">Reported condition *</label><input id="${prefix}-reported" maxlength="255" placeholder="Enter the condition exactly as reported"><label for="${prefix}-source">Source / reference *</label><input id="${prefix}-source" maxlength="500" placeholder="For example: clinic referral or patient report"><p class="hi-field-help">This case will be saved for MHO review. Recording it does not establish a diagnosis.</p></div></div>`;}
     function populateConditions(prefix,data){const select=document.getElementById(prefix+'-disease');const current=select.value;select.replaceChildren(new Option('Select reported condition',''));for(const item of data){const option=new Option(item.name,item.name);option.dataset.title=item.name;option.dataset.topRank=String(item.top_rank||'');option.dataset.detail=Number(item.recorded_count)>0?`${Number(item.recorded_count)} recorded case${Number(item.recorded_count)===1?'':'s'}${item.top_rank?' · Rank '+Number(item.top_rank):''}`:'No recorded cases in this scope';select.add(option);}const unlisted=new Option('Condition not listed — send to MHO review',UNLISTED);unlisted.dataset.title=unlisted.textContent;unlisted.dataset.detail='Only if the condition is missing from the full disease catalog.';select.add(unlisted);if([...select.options].some(o=>o.value===current))select.value=current;select.disabled=false;select._hiSelect?.refresh();}
@@ -81,6 +221,6 @@
     function choiceDate(value){if(!value)return 'Not recorded';const date=new Date(value+'T00:00:00Z');return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric'}).format(date):'Not recorded';}
     function caseChoice(row){const label=`${conditionLabel(row)} · ${row.status||'Status not recorded'}`,detail=`Case ID: REC-${Number(row.id)} · Original case: ${choiceDate(row.date_recorded)} · Last consultation: ${choiceDate(row.last_consultation)}`;return {label,detail,text:label+' · '+detail};}
     function caseOption(row){const choice=caseChoice(row),option=new Option(choice.text,String(row.id));option.dataset.title=choice.label;option.dataset.detail=choice.detail;return option;}
-    function caseSummary(row,nature){return nature?`This ${nature.toLowerCase()} will be added to Case ID: REC-${Number(row.id)}. The original disease case stays unchanged.`:`Choose New admission or Follow-up visit for Case ID: REC-${Number(row.id)}. Enter fresh measurements and notes.`;}
-    window.HealthIntelEncoding={enhanceSelect,conditionMarkup,populateConditions,bindCondition,conditionPayload,conditionLabel,conditionCell,caseChoice,caseOption,caseSummary,escape,pending};
+    function caseSummary(row,nature){return nature?`This ${nature.toLowerCase()} will be added to Case ID: REC-${Number(row.id)}. The original disease case stays unchanged.`:`Choose Follow-up Visit for Case ID: REC-${Number(row.id)}. Enter fresh measurements and notes.`;}
+    window.HealthIntelEncoding={enhanceSelect,bindPurokSuggestions,purokOptions,conditionMarkup,populateConditions,bindCondition,conditionPayload,conditionLabel,conditionCell,caseChoice,caseOption,caseSummary,escape,pending};
 })();

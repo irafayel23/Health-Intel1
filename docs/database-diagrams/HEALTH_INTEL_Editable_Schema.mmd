@@ -1,0 +1,164 @@
+erDiagram
+    account_session_epochs {
+        varchar system_id PK
+        bigint epoch
+    }
+    barangays {
+        int id PK
+        varchar name
+        int total_population
+        decimal latitude
+        decimal longitude
+    }
+    case_visits {
+        int id PK
+        int case_id FK
+        date consultation_date
+        time consultation_time
+        enum transaction_mode
+        enum nature_of_visit
+        varchar referred_by
+        varchar referral_reason
+        varchar blood_pressure
+        decimal temperature_c
+        decimal height_cm
+        decimal weight_kg
+        enum severity
+        text remarks
+        varchar encoded_by
+        timestamp created_at
+        date next_followup_date
+        varchar followup_instructions
+    }
+    disease_registry {
+        int id PK
+        varchar name
+        enum category
+        varchar classification
+        enum status
+        datetime deleted_at
+        tinyint is_archived
+        varchar qa_name_key UK
+    }
+    health_cases {
+        int id PK
+        int resident_id FK
+        varchar first_name
+        varchar last_name
+        date birthdate
+        int age
+        varchar purok
+        text remarks
+        varchar disease
+        int barangay_id FK
+        varchar encoded_by FK
+        enum status
+        enum severity
+        date date_recorded
+        datetime created_at
+        datetime updated_at
+        datetime deleted_at
+        varchar patient_name
+        tinyint is_archived
+        int disease_id FK
+        enum disease_review_status
+        varchar disease_reported
+        varchar condition_source
+        varchar disease_review_note
+        varchar disease_reviewed_by
+        datetime disease_reviewed_at
+        varchar suffix
+    }
+    login_attempt_limits {
+        char account_key PK
+        tinyint failure_count
+        tinyint lock_level
+        bigint blocked_until
+    }
+    password_resets {
+        int id PK
+        varchar email
+        varchar token
+        datetime expires_at
+    }
+    predictions {
+        int id PK
+        int barangay_id FK
+        int disease_id FK
+        date predicted_date
+        float predicted_cases
+        float confidence_lower_bound
+        float confidence_upper_bound
+        datetime generated_at
+    }
+    residents {
+        int id PK
+        varchar first_name
+        varchar last_name
+        varchar patient_name
+        date birthdate
+        int age
+        varchar purok
+        int barangay_id FK
+        timestamp created_at
+        varchar suffix
+    }
+    resident_death_reports {
+        int id PK
+        int resident_id FK
+        date reported_death_date
+        varchar source
+        varchar note
+        varchar reported_by
+        timestamp reported_at
+        enum status
+        varchar reviewed_by
+        timestamp reviewed_at
+        varchar review_reason
+    }
+    resident_vital_status {
+        int resident_id PK,FK
+        tinyint is_deceased
+        date death_date
+        int report_id FK
+        varchar confirmed_by
+        timestamp confirmed_at
+        int version
+    }
+    revoked_api_sessions {
+        char token_hash PK
+        bigint expires_at
+    }
+    system_audit_logs {
+        int id PK
+        varchar user_id
+        varchar action
+        datetime timestamp
+        varchar role
+        text details
+    }
+    users {
+        varchar system_id PK
+        varchar first_name
+        varchar last_name
+        enum role
+        int barangay_id FK
+        varchar password_hash
+        enum status
+        varchar email
+        varchar employee_id
+        datetime created_at
+        varchar qa_email_key UK
+    }
+    health_cases ||--o{ case_visits : "case_id"
+    disease_registry |o--o{ health_cases : "disease_id"
+    residents |o--o{ health_cases : "resident_id"
+    barangays |o--o{ health_cases : "barangay_id"
+    users |o--o{ health_cases : "encoded_by"
+    barangays |o--o{ predictions : "barangay_id"
+    disease_registry |o--o{ predictions : "disease_id"
+    barangays ||--o{ residents : "barangay_id"
+    residents ||--o{ resident_death_reports : "resident_id"
+    resident_death_reports |o--o{ resident_vital_status : "report_id"
+    residents ||--o| resident_vital_status : "resident_id"
+    barangays |o--o{ users : "barangay_id"

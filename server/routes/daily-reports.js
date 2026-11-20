@@ -3,6 +3,7 @@ const {dailyReportData,dailyReportPdf}=require('../services/daily-report');
 const {createSystemAudit}=require('../services/system-audit');
 
 function registerDailyReportRoutes(app,db) {
+    require('./daily-submissions').registerDailySubmissions(app,db);
     const audit=createSystemAudit(db);
     for(const role of ['bhw','mho'])for(const kind of ['today','daily'])app.get(`/api/${role}/reports/${kind}`,async(req,res)=>{
         try {

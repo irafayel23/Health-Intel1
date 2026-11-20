@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node scripts/run-tests.js",
     "start": "node server.js",
+    "superadmin:create": "node scripts/create-superadmin.js",
     "deploy:check": "node scripts/check-deployment.js",
     "test:first-fixes": "node --test tests/first-fixes.test.js",
     "test:phase-two": "node --test tests/first-fixes.test.js tests/phase-two.test.js",
@@ -27,6 +28,7 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.24.6",
     "nodemailer": "^10.2.1",
-    "pdfkit": "^0.15.0"
+    "pdfkit": "^0.15.0",
+    "sharp": "^0.35.5"
   }
 }

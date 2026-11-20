@@ -1,0 +1,24 @@
+[
+  {
+    "from": "BHW follow-up/admission",
+    "to": "Select matching original disease case",
+    "type": "include"
+  },
+  {
+    "from": "MHO follow-up/admission",
+    "to": "Select matching original disease case",
+    "type": "include"
+  },
+  {
+    "from": "Request condition clarification",
+    "to": "Review reported conditions and disease classification",
+    "type": "extend",
+    "condition": "Source information requires clarification"
+  },
+  {
+    "from": "Register a new catalog condition",
+    "to": "Review reported conditions and disease classification",
+    "type": "extend",
+    "condition": "Reviewed condition has no suitable existing catalog entry"
+  }
+]

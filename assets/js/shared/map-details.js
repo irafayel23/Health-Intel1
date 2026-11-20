@@ -15,16 +15,45 @@
         return {total,counts,segments};
     }
 
+    function classification(barangay) {
+        const activity=barangay.activity;
+        if(activity?.status==='assessed'&&activity.provisional===true&&['none','mild','monitored','high_risk'].includes(activity.tone))
+            return {tone:activity.tone,label:{none:'No recorded cases',mild:'Mild',monitored:'Monitored',high_risk:'High Risk'}[activity.tone]};
+        return {tone:'none',label:'Not assessed'};
+    }
+
+    function activityMarkup(barangay) {
+        const activity=barangay.activity, state=classification(barangay);
+        const period=activity?.period?.current;
+        const line=(label,value)=>`<div><dt>${label}</dt><dd>${escape(value)}</dd></div>`;
+        const dates=period?`${period.start} to ${period.through} (Philippine dates)`:'Unavailable';
+        const details=activity?.details||[];
+        return `<section class="heatmap-surveillance" aria-label="Barangay case volume">
+            <h4>Barangay case-activity classification</h4><p class="heatmap-assessment-label"><span class="heatmap-assessment-dot heatmap-assessment-${state.tone}" aria-hidden="true"></span>${state.label}</p>
+            <p class="heatmap-details-note">Locally configured case-volume bands · not official outbreak-risk thresholds.</p>
+            <dl>${line('Assessment scope',activity?.scope||'Unavailable')}${line('Current month through today',dates)}${line('New recorded cases',activity?.observed_cases??'Unavailable')}
+            ${line('Mild (green)','1-10 cases')}${line('Monitored (orange)','11-20 cases')}${line('High Risk (red)','21 or more cases')}${line('Zero cases','Neutral gray')}</dl>
+            <p class="heatmap-details-note"><strong>Why this color:</strong> ${escape(activity?.reason||'Case-activity data is unavailable. Refresh the map to retry.')}</p>
+            <details class="heatmap-activity-method"><summary>Calculation and tracked disease bands</summary>
+            <p class="heatmap-details-note">The circle uses the same month-to-date total shown at its center: 0 = neutral gray, 1-10 = Mild (green), 11-20 = Monitored (orange), and 21 or more = High Risk (red). The overall total includes eligible cases awaiting disease review and cases outside the ten tracked categories. Each disease row below uses the same ranges for its own count. Previous months and individual patient severity do not change these bands.</p>
+            ${details.length?`<div class="heatmap-table-scroll" role="region" tabindex="0" aria-label="Statistical disease activity"><table class="heatmap-disease-table"><thead><tr><th>Disease</th><th>This month</th><th>Band</th></tr></thead><tbody>${details.map(row=>`<tr><td>${escape(row.disease)}</td><td>${count(row.current)}</td><td>${escape(row.label)}</td></tr>`).join('')}</tbody></table></div>`:''}
+            <p class="heatmap-details-note">Local case records only; the generated forecasting dataset is not used. Valid archived and cleared cases remain in their original recording period. Excluded test and duplicate records are left out. Pending classifications do not contribute to a disease-specific band. Follow-up visits do not add cases. Dates use the recorded case date, not symptom onset.</p>
+            <p class="heatmap-details-note">A day with no record contributes zero recorded cases, not proof of complete reporting or absence of illness. The ranges are locally chosen display bands; they do not adjust for disease, seasonality or population. Individual High Risk severity never sets the map color. MHO must investigate signals.</p>
+            ${activity?.pending_cases||activity?.other_cases?`<p class="heatmap-details-notice">${count(activity.pending_cases)} current cases await classification; ${count(activity.other_cases)} are outside these ten categories. MHO staff review pending classifications in Disease Review.</p>`:''}
+            </details>
+        </section>`;
+    }
+
     function marker(barangay) {
-        const {total,segments}=composition(barangay);
-        let offset=0;
-        const rings=segments.map(segment=>{const start=offset;offset+=segment.percent;return `<circle class="heatmap-ring-${segment.key}" cx="44" cy="44" r="35" pathLength="100" stroke-dasharray="${segment.percent} ${100-segment.percent}" stroke-dashoffset="${-start}"></circle>`;}).join('');
-        return `<svg class="heatmap-donut" viewBox="0 0 88 88" aria-hidden="true"><circle class="heatmap-donut-surface" cx="44" cy="44" r="41"></circle><g class="heatmap-donut-rings"><circle class="heatmap-ring-none" cx="44" cy="44" r="35"></circle>${rings}</g><text class="heatmap-donut-total" x="44" y="44">${total}</text><text class="heatmap-donut-caption" x="44" y="59">active</text></svg>`;
+        const state=classification(barangay);
+        const total=Number.isSafeInteger(barangay.activity?.observed_cases)?count(barangay.activity.observed_cases):count(barangay.cases);
+        const caption=barangay.activity?.period?'this month':'active';
+        return `<svg class="heatmap-donut" viewBox="0 0 88 88" aria-hidden="true"><circle class="heatmap-donut-surface" cx="44" cy="44" r="41"></circle><g class="heatmap-donut-rings"><circle class="heatmap-ring-${state.tone}" cx="44" cy="44" r="35"></circle></g><text class="heatmap-donut-total" x="44" y="44">${total}</text><text class="heatmap-donut-caption" x="44" y="59">${caption}</text></svg>`;
     }
 
     function summary(barangay) {
         const {total,counts}=composition(barangay);
-        return `${barangay.name}: ${total} active ${total===1?'case':'cases'}. ${counts.mild} Mild, ${counts.monitored} Monitored, ${counts.high_risk} High Risk${counts.unknown?`, ${counts.unknown} unknown severity`:''}.`;
+        return `${barangay.name}: locally configured barangay case volume ${classification(barangay).label}. ${count(barangay.activity?.observed_cases)} new recorded cases this month. ${total} active ${total===1?'case':'cases'}. ${counts.mild} Mild, ${counts.monitored} Monitored, ${counts.high_risk} High Risk${counts.unknown?`, ${counts.unknown} unknown severity`:''}.`;
     }
 
     function render(barangay, refreshedAt, titleId) {
@@ -42,23 +71,23 @@
         const missing = {disease:'Breakdown unavailable',total:0};
         for (const [key] of columns) {missing[key] = Math.max(0,counts[key]-sorted.reduce((sum,row) => sum+row[key],0));missing.total += missing[key];}
         if (missing.total) sorted.push(missing);
-        const tone = counts.high_risk ? 'high' : counts.monitored ? 'monitored' : counts.unknown ? 'incomplete' : total ? 'mild' : 'none';
         const metric = ([key,label]) => `<div class="heatmap-metric heatmap-metric-${key}"><dt><span class="heatmap-details-dot" aria-hidden="true"></span>${label}</dt><dd>${counts[key]}</dd></div>`;
         let x=0;
         const segments = [...severities,['unknown','Unknown']].map(([key]) => {const start=x;x+=counts[key];return counts[key]?`<rect class="heatmap-segment-${key}" x="${start}" y="0" width="${counts[key]}" height="8"></rect>`:'';}).join('');
         const breakdown = sorted.length ? `<div class="heatmap-table-scroll" role="region" tabindex="0" aria-label="Disease breakdown table"><table class="heatmap-disease-table"><caption>Active cases by recorded severity</caption><thead><tr><th scope="col">Disease</th>${columns.map(([,label])=>`<th scope="col">${label}</th>`).join('')}<th scope="col">Total</th></tr></thead><tbody>${sorted.map(row=>`<tr${row===missing?' class="heatmap-breakdown-missing"':''}><th scope="row">${escape(row.disease)}</th>${columns.map(([key])=>`<td>${row[key]}</td>`).join('')}<td><strong>${row.total}</strong></td></tr>`).join('')}</tbody><tfoot><tr><th scope="row">Total</th>${columns.map(([key])=>`<td>${counts[key]}</td>`).join('')}<td>${total}</td></tr></tfoot></table></div>` : '<p class="heatmap-details-empty">No active disease cases recorded.</p>';
         return `<header class="heatmap-info-header"><div><p class="heatmap-details-eyebrow">Barangay summary</p><h3 id="${escape(titleId)}">${escape(barangay.name)}</h3></div><button type="button" class="heatmap-info-close" aria-label="Close barangay details">&times;</button></header>
             <div class="heatmap-info-body" role="region" tabindex="0" aria-label="Barangay case summary">
-                <div class="heatmap-details-total"><strong>${total}</strong><span>Active ${total===1?'case':'cases'}</span></div>
+                <h4 class="heatmap-patient-heading">Individual patient severity</h4>
+                <div class="heatmap-details-total"><strong>${total}</strong><span>Currently active ${total===1?'case':'cases'}<br>All recording dates</span></div>
                 <dl class="heatmap-metrics">${severities.map(metric).join('')}</dl>
                 ${counts.unknown?`<p class="heatmap-details-notice">${counts.unknown} ${counts.unknown===1?'case has':'cases have'} unknown severity. Included in the active total.</p>`:''}
                 ${x?`<svg class="heatmap-composition" viewBox="0 0 ${x} 8" preserveAspectRatio="none" aria-hidden="true">${segments}</svg>`:''}
                 <section class="heatmap-breakdown"><h4>Disease breakdown</h4>${breakdown}${missing.total?`<p class="heatmap-details-note">Disease details are unavailable for ${missing.total} ${missing.total===1?'case':'cases'} in this map summary. Counts remain included above.</p>`:''}</section>
                 ${count(barangay.pending_classification)?`<p class="heatmap-details-notice">${count(barangay.pending_classification)} active ${count(barangay.pending_classification)===1?'case needs':'cases need'} disease classification review. Included in the totals above.</p>`:''}
-                <aside class="heatmap-color-reason heatmap-color-${tone}"><strong>How to read this marker</strong><p>${total?'Each colored ring segment shows its share of active cases. The center shows the total.':'Gray means no active cases are recorded.'}${counts.high_risk?` ${counts.high_risk} High Risk ${counts.high_risk===1?'case needs':'cases need'} attention.`:''}${counts.monitored?` ${counts.monitored} Monitored ${counts.monitored===1?'case is':'cases are'} recorded.`:''}</p></aside>
-                <p class="heatmap-details-note">Colors summarize recorded case severity, not disease ratings or outbreak risk.</p>
+                ${activityMarkup(barangay)}
+                <p class="heatmap-details-note">Circle color shows locally configured case volume; its center counts new recorded cases in the current calendar month through today. Individual patient severity and current active totals are separate. This does not confirm an outbreak.</p>
                 <footer class="heatmap-details-footer"><p>Updated ${escape(refreshedAt)} <span>(Philippine time)</span></p><p>Barangay totals only · Circles are not outbreak boundaries.</p></footer>
             </div>`;
     }
-    window.HealthIntelMapDetails={render,marker,composition,summary};
+    window.HealthIntelMapDetails={render,marker,composition,summary,classification};
 })();

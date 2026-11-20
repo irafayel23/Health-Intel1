@@ -1,0 +1,328 @@
+
+> health-intel-backend@1.0.0 test
+> node scripts/run-tests.js
+
+✔ stale BHW/MHO actions cannot approve suspended or denied accounts or duplicate an audit (10.0961ms)
+✔ valid BHW/MHO transitions preserve actor attribution and before/after status (2.2389ms)
+✔ account service independently rejects forbidden actor/target roles (0.8931ms)
+✔ failed audit keeps the original account status (0.4192ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+➔ LOGIN SUCCESS: QA-DIRECTORY-MHO
+✔ age groups include infants and every boundary; missing and invalid values never become zero (4701.7552ms)
+✔ birthday between case and follow-up changes visit group while preserving original case group across BHW/MHO histories and reports (345.671ms)
+✔ legacy unknown ages stay visible as Not recorded in grouped exports instead of being counted as infants (17.6725ms)
+✔ numeric storage, referral requirements and malformed types are validated without diagnosing measurements (4698.5527ms)
+✔ follow-up plans accept independent optional fields, multiline instructions and future dates; reject invalid dates and unsafe values (2.2278ms)
+✔ new disease case atomically saves consultation, suffix and resident identity (183.3372ms)
+✔ follow-up and admission keep original case, resident, disease date, severity and report counts (365.7729ms)
+✔ missing required measurements are refused before saving any visit or case (118.8542ms)
+✔ referral stores its source and reason; switching away from referral clears unused referral inputs (121.2431ms)
+✔ returning visits reject mismatched identities, other barangays, missing cases and earlier dates (104.4255ms)
+✔ duplicate concurrent visits have one winner and failed audit writes roll back the whole visit (126.6569ms)
+✔ suffix distinguishes otherwise identical profiles and duplicate detection still blocks the same case (65.0333ms)
+✔ MHO saves structured consultations and exact identity lookup preserves barangay and suffix boundaries (361.0823ms)
+✔ today reports isolate dates and barangays, include returns to older cases, and enforce roles (451.7261ms)
+✔ BHW and MHO plans persist per visit in both dossiers without replacing previous plans or increasing disease counts (444.7285ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-ADMIN
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+➔ LOGIN SUCCESS: QA-DIRECTORY-MHO
+✔ Admin adds name → BHW selects it and saves consultation → MHO finds the same case and visit (5841.6737ms)
+✔ BHW unlisted wording → MHO links existing disease → both histories update without another case or visit (242.4744ms)
+✔ MHO approves a new unlisted disease → Admin catalog and BHW/MHO choices share the reviewed name (133.5194ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+✔ BHW patient and resident APIs preserve date-only birthday and original case date (5396.5219ms)
+✔ real BHW response matches original case for follow-up and admission without changing the entered birthday (18.5075ms)
+✔ BHW follow-up plans validate on save, preserve multiline advice, and escape history text (11.817ms)
+✔ BHW dropdown excludes earlier dates, wrong identities, archives and dates after confirmed death; date edits clear selection (80.8829ms)
+✔ BHW return shortcut loads only the selected resident and pins the original case across date and nature changes (37.0314ms)
+✔ BHW history shortcut refuses archives, deceased residents and conflicting or incomplete identities (62.5273ms)
+✔ BHW shortcut admission and follow-up save visits without changing original cases or resident counts (80.5423ms)
+✔ extra spaces in new or historical purok text reuse one resident and save normalized new addresses (17.1789ms)
+✔ multiple cases show explicit dates, status and last consultation without choosing a case automatically (84.5531ms)
+✔ distinct suffixes, birthdays and genuinely different addresses remain separate (73.6507ms)
+✔ ambiguous pre-existing profiles are refused for review instead of being silently merged (50.5538ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+➔ LOGIN SUCCESS: QA-DIRECTORY-MHO
+➔ LOGIN SUCCESS: QA-DIRECTORY-ADMIN
+✔ selected daily exports retrieve backdated cases and return visits by encounter date with enforced role/barangay scope (5255.5854ms)
+✔ today follows the Manila day, including midnight, leap days and year boundaries (32.7124ms)
+✔ selected daily periods validate calendar dates and reject future dates using the Manila day (3.4224ms)
+✔ date controls default to Manila today, reset to Today, validate dates and send the selected day for each role (3.8083ms)
+✔ daily PDFs paginate both sections, retain every row and label zero activity honestly (123.7089ms)
+✔ failed daily reports return an honest error and audit failure without database details (82.6013ms)
+✔ production configuration rejects incomplete secrets, public root DB access and unchecked proxy trust (3.1353ms)
+✔ single-origin host exposes only public pages/assets and never repository/private files (255.1923ms)
+✔ separate static frontends normalize portal paths before loading relative scripts (28.2138ms)
+✔ local API-only mode keeps the existing separate frontend behavior (19.2964ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+➔ LOGIN SUCCESS: QA-DIRECTORY-MHO
+➔ LOGIN SUCCESS: QA-DIRECTORY-ADMIN
+➔ LOGIN SUCCESS: QA-DIRECTORY-SUPERADMIN
+✔ session checks tolerate different collations on users and session epochs (5206.9398ms)
+✔ municipal directory is MHO-only, paged, and includes other barangays and archived legacy entries (139.1591ms)
+✔ directory searches treat wildcard characters literally and validate filters (180.623ms)
+✔ MHO patient history retains archived cases and all visits without merging unlinked names (106.8563ms)
+✔ directory return-visit target is rechecked even beyond the latest 50 cases and saves only a visit (952.9397ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-MHO
+✔ logout persists server revocation, cannot be replayed, and keeps a separate login active (146.2161ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+✔ suspend and restore invalidate all older sessions, but a new login works (288.9195ms)
+✔ failed status audit rolls back the epoch together with status (50.8669ms)
+✔ session tokens require an expiry and invalid epochs fail closed (9.023ms)
+✔ unlisted encoding requires a source, saves a stable ID/resident/audit, and stays visible in totals and maps (4366.8139ms)
+✔ approved selection uses a stable registry ID; historical-only or archived choices cannot seed new cases (42.7626ms)
+✔ MHO classification retains identity/source/status/severity, updates the same case and links its Admin audit history (228.5261ms)
+✔ new category approval is atomic, prevents duplicates, becomes selectable, and cannot silently resolve another pending case (155.411ms)
+✔ clarification returns to the same BHW case; other barangays and stale reviewers cannot overwrite it (172.2642ms)
+✔ concurrent reviewers have one winner; duplicate or archived cases cannot be resolved and partial registry additions roll back (340.8379ms)
+✔ disease choices rank recorded cases in the authorized scope, keep the full catalog and exclude pending classification (2307.8251ms)
+✔ name-only catalog entries reach both consultation forms; archive retains cases and restore re-enables choices (387.5071ms)
+✔ real SQL backup restores all tables and rows without altering the source (2364.8689ms)
+✔ all protected routes reject anonymous requests (208.8654ms)
+➔ LOGIN SUCCESS: TEST-MHO-001
+✔ login works, and expired, forged, pending, denied and suspended sessions fail (450.1122ms)
+✔ role separation protects administrative actions, backup and MHO analytics (104.401ms)
+✔ BHW data reads and writes cannot cross barangay boundaries or spoof an encoder (102.7408ms)
+✔ BHW and MHO heatmaps show disease aggregates for each recorded severity (91.276ms)
+✔ BHW purok choices stay within assigned barangay and map rejects invalid disease filters (17.8185ms)
+✔ birthdate display accepts only real MM/DD/YYYY dates and stores ISO dates (25.1205ms)
+✔ suspending an account revokes its existing token immediately (22.7866ms)
+✔ protected MHO reports still return PDFs (159.7087ms)
+✔ forecast remains available, returns local history and contains no fabricated accuracy (5011.0555ms)
+✔ Superadmin backup downloads an encrypted ZIP with restorable SQL and rejects weak passwords (488.1677ms)
+✔ page scripts exist and parse (38.2167ms)
+✔ browser session helper attaches tokens only to the API, clears logout and propagates errors (5.3757ms)
+✔ MHO age, year, barangay, outcome and comparison filters count the correct records (106.5405ms)
+✔ MHO descriptions handle ties, all years, empty records, zero estimates and changing forecasts (6.6287ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+➔ LOGIN SUCCESS: QA-DIRECTORY-MHO
+✔ rehearsal: BHW creates one case with an initial plan; both roles see the same due-today plan (2643.7278ms)
+✔ rehearsal: MHO records a return on the same case, replacing the initial plan with a future review (243.0854ms)
+✔ rehearsal: another recorded consultation without a new date ends pending tracking and preserves all three visits (75.0681ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+➔ LOGIN SUCCESS: QA-DIRECTORY-MHO
+➔ LOGIN SUCCESS: QA-DIRECTORY-ADMIN
+➔ LOGIN SUCCESS: QA-DIRECTORY-SUPERADMIN
+✔ tracking uses the Philippines date, one latest plan per case, and scoped counts across all buckets (3111.1571ms)
+✔ anonymous, cross-role and cross-barangay requests are denied; malformed filters cannot widen the query (82.9861ms)
+✔ recorded returns clear or replace pending plans without changing original cases, residents, reports or previous advice (112.3318ms)
+✔ backdated entries cannot reactivate an old plan, and same-day unknown-time returns supersede the previous saved plan (18.0367ms)
+✔ each case keeps its own plan; unlinked or conflicting identities are visible for review but cannot use the return shortcut (42.8268ms)
+✔ filtered queues paginate on the server, clamp stale pages and escape SQL search wildcards (333.6805ms)
+✔ frontend chronology uses the same date and saved-visit tie rule as the API without mutating history (3.0164ms)
+✔ forecast capacity rejects invalid limits and duplicate release cannot create extra slots (3.6982ms)
+✔ simultaneous requests start one worker; completion permits the next request (8.5947ms)
+✔ disconnected and failed workers hold capacity until exit, then recover (1.9799ms)
+➔ LOGIN SUCCESS: QA-LOGIN-A
+✔ API blocks the fifth wrong password, including a correct password during the wait; blocked retries do not extend it (904.4653ms)
+✔ waits escalate 60 to 300 to 900 seconds, stay capped at 900 and survive new service instances (258.8907ms)
+➔ LOGIN SUCCESS: QA-LOGIN-A
+➔ LOGIN SUCCESS: QA-LOGIN-B
+✔ successful API login clears a partial failure streak; other accounts remain usable (749.3111ms)
+✔ parallel attempts through separate guards cannot skip the fifth-failure threshold (111.3476ms)
+✔ existing storage works without granting the application CREATE TABLE privileges (11.2167ms)
+✔ unknown valid IDs get the same threshold; correct pending credentials do not count as password failures (150.6141ms)
+✔ invalid request shapes stay generic and do not write account counters (25.0199ms)
+✔ failed audit writes roll back counter updates and never issue a token (114.1118ms)
+✔ existing connection limit still stops attempts spread over different account IDs (158.9888ms)
+✔ one disease row combines severities and explains the proportional marker without classifying the barangay (3.7865ms)
+✔ unknown severity is explicit even when the API does not provide its disease details (0.4956ms)
+✔ legacy missing breakdown is shown honestly; known disease names are not invented (1.4385ms)
+✔ patient-controlled names, disease labels, dates and color explanations are escaped (0.9563ms)
+✔ empty, High Risk and incomplete summaries use the correct state with no invented trend (0.8705ms)
+✔ 18 Mild and 1 Monitored occupy their actual shares and do not turn the whole marker orange (0.6466ms)
+✔ missing and inconsistent breakdowns remain unknown and empty markers avoid invalid SVG values (0.4357ms)
+✔ bhwMap expands the existing map, makes the background inert and restores DOM, accessibility and focus on exit (5.2996ms)
+✔ murciaMap expands the existing map, makes the background inert and restores DOM, accessibility and focus on exit (1.8777ms)
+✔ fullscreen focus wraps inside map controls and repeated toggles do not leave anchors or inert background behind (3.0712ms)
+✔ leaving the page restores the map without losing a pre-existing body class (1.7098ms)
+✔ swal blood pressure uses independent numeric fields and preserves the API value (4.8939ms)
+✔ swal clearing or resetting pressure does not reuse the previous consultation (2.6324ms)
+✔ walkin blood pressure uses independent numeric fields and preserves the API value (1.6136ms)
+✔ walkin clearing or resetting pressure does not reuse the previous consultation (1.4707ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+➔ LOGIN SUCCESS: QA-DIRECTORY-MHO
+✔ trend includes every recorded year and monthly counts; visits do not multiply cases (2666.3009ms)
+✔ dynamic choices come from configured barangays and stored years; invalid filters and wrong roles rejected (95.199ms)
+✔ deceased donut receives all categories, not a truncated top five (21.6004ms)
+✔ grouped disease comparison includes every available year and keeps single-year previous-year mode (96.3633ms)
+✔ comparison accepts chosen nonadjacent years and applies the same Philippine month/day cutoff (295.8517ms)
+✔ comparison cutoff uses the Philippine date including midnight and leap day (1.1452ms)
+✔ case breakdown reconciles barangays, age groups and selected case outcomes without multiplying visits (298.0166ms)
+✔ display-only sample graphs reconcile and never add or change saved cases (99.7015ms)
+➔ LOGIN SUCCESS: QA-DIRECTORY-BHW
+➔ LOGIN SUCCESS: QA-DIRECTORY-MHO
+➔ LOGIN SUCCESS: QA-DIRECTORY-ADMIN
+✔ physical clinical schema separates facts and migration is idempotent (3028.1541ms)
+✔ normalized BHW creation derives identity and disease through references (59.5093ms)
+✔ follow-up and admission add visits, preserve original case and keep barangay checks (118.7723ms)
+✔ unlisted review, clarification and classification operate on separated review records (375.5841ms)
+✔ correction, archive, restore, analytics and follow-up reads retain the API contract (365.0388ms)
+✔ normalized daily, weekly and monthly report endpoints generate downloadable PDFs (152.404ms)
+✔ query compatibility rewrites read sources only and rejects unparameterized clinical inserts (0.7928ms)
+✔ MHO can approve a new catalog condition; archive status is derived rather than independently writable (59.9453ms)
+✔ twenty simultaneous normalized saves keep one case and one initial visit per request (471.255ms)
+✔ infant age zero is derived without storing a duplicated age field (18.8877ms)
+✔ normalized resident death review stays separate from case outcome and preserves history (129.0913ms)
+✔ BHW initial load failure exposes retry and a successful retry restores the list (3.6217ms)
+✔ BHW failed refresh keeps the last loaded rows and identifies them as stale (2.4819ms)
+✔ BHW navigation coalesces pending reads but a save refresh supersedes outdated data (3.0235ms)
+✔ BHW switches to archived rows without displaying a late active-list response (2.493ms)
+➔ LOGIN SUCCESS: PHASE2-BHW
+✔ patient encoding stores explicit date, severity, computed age and resident link; duplicates are blocked (3266.1797ms)
+✔ invalid dates, missing severity, archived and unknown disease names cannot become cases (186.3994ms)
+✔ reset codes are hashed, generic responses hide account existence, bad attempts survive new handler instances (316.5737ms)
+➔ LOGIN SUCCESS: PHASE2-BHW
+✔ expired and superseded codes fail; weak passwords fail; concurrent correct resets have one winner (554.0303ms)
+✔ public recovery routes use mock mail, single-use codes and per-address request limits (188.7729ms)
+Password-recovery email delivery failed. Check the private SMTP configuration.
+✔ failed email delivery removes its new code without claiming an email was sent (34.7412ms)
+✔ email injection and bcrypt truncation are rejected; age validation handles birthdays (1.3907ms)
+✔ CSV preparation keeps provenance and missing reports, holds duplicates and unmapped diseases, excludes injuries (2.5906ms)
+✔ Phone drawer hides inactive navigation and closes on backdrop, selection and Escape (5.5348ms)
+✔ Drawer traps keyboard focus while allowing an open confirmation dialog to own Escape (1.9748ms)
+✔ Resizing releases inert content and desktop toggle continues to call original portal behavior (2.2028ms)
+✔ Fullscreen map keeps navigation inert across breakpoints and releases the correct content on exit (2.6461ms)
+✔ Configured API origins clear localhost ports and retain explicit deployment ports (40.3323ms)
+✔ HTTPS pages use their own origin by default while local HTTP keeps the existing API origin (3.7253ms)
+✔ newborn age zero survives the BHW dossier and both Admin record views (74.8316ms)
+✔ BHW feature scripts initialize context, records, residents and charts in HTML order (36.4085ms)
+✔ BHW case changes refresh visible supporting views and defer hidden directories until opened (15.6808ms)
+✔ BHW resident rendering preserves escaped cards, newborn age, search and dossier hooks (14.2274ms)
+✔ Resident pagination bounds controls, keeps patient paging independent and resets search to the first page (20.9867ms)
+✔ MHO split scripts retain API charts, filter refresh and report downloads (39.9956ms)
+✔ MHO navigation keeps the requested workflow order and defaults to Philippine month and ISO week (12.6729ms)
+✔ Superadmin logout uses clear wording, respects cancel and clears the session on confirmation (8.6889ms)
+✔ Superadmin startup, ledger Sync and canceled backup survive script separation (10.6206ms)
+✔ Superadmin distinguishes account states and never treats a denied account as suspended (14.1866ms)
+✔ Admin Access searches identity fields, filters status and requires a confirmed suspension reason (12.609ms)
+✔ Admin account details escape saved identity/reasons and report missing history without inventing it (10.589ms)
+✔ Superadmin restart control gives manual instructions without a request or false success (8.5308ms)
+✔ Master Ledger filters combine actor, role, action and Philippine dates; details escape text and retain recorded changes (9.3255ms)
+✔ Access-page scripts retain Google verification, registration and login handoffs (16.1668ms)
+✔ Access-page recovery continues across the screen helper and reset scripts (6.4238ms)
+✔ connected and archived pages resolve local scripts, styles, images and page links (61.8442ms)
+➔ LOGIN SUCCESS: QA-BHW
+Login Error: Error: Table 'health_intel_qa_fixes_verify_15788.system_audit_logs' doesn't exist
+    at invoke (C:\Users\User\Downloads\Final proj\proposal\server\services\normalized-schema.js:106:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async Object.record (C:\Users\User\Downloads\Final proj\proposal\server\services\system-audit.js:13:13)
+    at async C:\Users\User\Downloads\Final proj\proposal\server\routes\auth-routes.js:188:13
+    at async C:\Users\User\Downloads\Final proj\proposal\server\services\login-throttle.js:46:33
+    at async transaction (C:\Users\User\Downloads\Final proj\proposal\server\services\database-transaction.js:9:22)
+    at async C:\Users\User\Downloads\Final proj\proposal\server\routes\auth-routes.js:143:29 {
+  code: 'ER_NO_SUCH_TABLE',
+  errno: 1146,
+  sqlState: '42S02',
+  sqlMessage: "Table 'health_intel_qa_fixes_verify_15788.system_audit_logs' doesn't exist",
+  sql: 'INSERT INTO system_audit_logs(user_id,role,action,details) VALUES(?,?,?,?)'
+}
+✔ Master Ledger records access outcomes without credentials or false attribution; Admin retains operational scope (4305.9557ms)
+Change Password Error: Error: Table 'health_intel_qa_fixes_verify_15788.system_audit_logs' doesn't exist
+    at invoke (C:\Users\User\Downloads\Final proj\proposal\server\services\normalized-schema.js:106:49)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async Object.record (C:\Users\User\Downloads\Final proj\proposal\server\services\system-audit.js:13:13)
+    at async C:\Users\User\Downloads\Final proj\proposal\server\services\account-credentials.js:13:17
+    at async transaction (C:\Users\User\Downloads\Final proj\proposal\server\services\database-transaction.js:9:22)
+    at async Object.updatePassword (C:\Users\User\Downloads\Final proj\proposal\server\services\account-credentials.js:11:13)
+    at async C:\Users\User\Downloads\Final proj\proposal\server\routes\auth-routes.js:90:13 {
+  code: 'ER_NO_SUCH_TABLE',
+  errno: 1146,
+  sqlState: '42S02',
+  sqlMessage: "Table 'health_intel_qa_fixes_verify_15788.system_audit_logs' doesn't exist",
+  sql: 'INSERT INTO system_audit_logs(user_id,role,action,details) VALUES(?,?,?,?)'
+}
+✔ password changes commit with redacted audit; missing audit storage rolls back the password (387.6837ms)
+✔ password reset and single-use code commit only with a credential-free audit entry (195.3427ms)
+✔ report exports are server-attributed, scoped and honest about browser delivery (125.9799ms)
+✔ registration rejects markup and allocates numeric IDs atomically despite stale previews (103.2905ms)
+✔ simultaneous normalized duplicate emails have one winner and database uniqueness also applies (90.0017ms)
+✔ registry rejects markup, concurrent duplicate names and duplicate archived categories (40.1759ms)
+✔ status updates append follow-up notes and do not erase existing remarks (46.8458ms)
+✔ failed audit writes roll back patient edits; archive/restore records the real actor role (303.5188ms)
+✔ account actions and their audit entry commit together with accurate Superadmin attribution (86.9928ms)
+✔ BHW/MHO account actions reject stale states and concurrent approvals cannot reverse suspension (1600.5279ms)
+✔ Superadmin Admin access enforces current states, saves reasons atomically and scopes account history (682.3115ms)
+✔ BHW and MHO encoding roll back new residents and cases when their audit cannot be saved (604.0094ms)
+✔ monthly report inputs use case date, include requested archived history and exclude other months/years (119.5731ms)
+✔ monthly PDF contains the selected period and registry category rather than a hardcoded category (77.1971ms)
+✔ weekly PDF uses ISO week/year boundaries and does not label an empty dataset outbreak-free (218.6092ms)
+✔ date periods reject invalid weeks and years, and forecasting rejects unknown barangays before spawning (23.6178ms)
+✔ safe text helper escapes HTML delimiters and shared JavaScript files parse (10.6909ms)
+✔ weekly PDFs retain every row, repeat column headings and keep the complete signature together (264.9041ms)
+✔ monthly review copies paginate long conditions without losing entries or asserting certification (94.2785ms)
+✔ case-level Deceased labels do not auto-confirm a resident; multiple cases remain one profile (1749.143ms)
+✔ death reports validate source, dates, roles and barangay; concurrent duplicates have one winner (156.6808ms)
+✔ only MHO confirms; duplicate review fails and the registry counts a resident once (129.0561ms)
+✔ known death dates block new cases and returns for both roles, including a changed purok; backdated entries remain possible (153.5145ms)
+✔ corrections require MHO, version and reason; date corrections and clearing preserve clinical history (79.3392ms)
+✔ rejection permits corrected resubmission; unknown death date blocks visits until dated; failed audit rolls back confirmation (158.2503ms)
+✔ proxy headers cannot override the direct peer when proxy trust is disabled (71.5496ms)
+✔ patched proxy parser distinguishes untrusted IPv6 addresses from loopback (2.8043ms)
+✔ updated mysql driver retains parameter escaping and defaults local files off (84.1782ms)
+✔ email helper enforces TLS and access restrictions and composes mail with updated Nodemailer (89.5781ms)
+✔ saved theme survives reload, labels describe the next action, and existing charts refresh (4.6463ms)
+✔ blocked browser storage does not prevent theme toggling (1.3914ms)
+✔ chart colors follow the theme after scale replacement without changing data or hidden grids (1.6087ms)
+✔ custom modal traps focus, closes with Escape, and restores previous background isolation and focus (3.5948ms)
+✔ case links use explicit references and never guess IDs from unrelated or legacy encoding details (1.2248ms)
+✔ Admin searches exact Case IDs and displays actionable audit references safely (34.0934ms)
+✔ Admin case links select the correct records tab and explain missing resident profiles (12.8793ms)
+✔ Admin scripts load in HTML order and initialize all feature views with existing hooks (16.9178ms)
+✔ resident directory reloads after saved case changes and when its real sidebar tab opens (9.9552ms)
+✔ BHW PDFs explain empty periods and preserve surveillance location filters (5.7519ms)
+✔ Admin archive and restore keep failed saves in the dialog instead of claiming success (15.8495ms)
+✔ PDF loading retries a failed plugin without downloading the core library again (4.7606ms)
+✔ account and registry failures show errors without refreshing or reporting success (14.4041ms)
+✔ catalog creation retains the form on rejected saves and submits only a trimmed name on success (6.1485ms)
+✔ Google verification prevents competing popups and restores its button after failure (2.9445ms)
+Firebase verification rejected: signature_or_project_claim_JsonWebTokenError
+Firebase verification rejected: signature_or_project_claim_JsonWebTokenError
+Firebase verification rejected: signature_or_project_claim_TokenExpiredError
+Firebase verification rejected: token_time_claim
+Firebase verification rejected: token_time_claim
+Firebase verification rejected: email_not_verified
+Firebase verification rejected: unexpected_sign_in_provider
+Firebase verification rejected: project_or_subject_claim
+Firebase verification rejected: token_time_claim
+Firebase verification rejected: token_time_claim
+Firebase verification rejected: email_mismatch
+Firebase verification rejected: signature_or_project_claim_JsonWebTokenError
+Firebase verification rejected: unexpected_token_header
+Firebase verification unavailable: public certificates could not be loaded.
+✔ Google proof checks signatures, project, dates, provider, email verification and exact email ownership (2837.9886ms)
+✔ certificate cache expires, rotates keys and fails closed when Google is unavailable (14.2046ms)
+Firebase verification rejected: missing_or_oversized_token
+Firebase verification rejected: missing_or_oversized_token
+Firebase verification rejected: unexpected_token_header
+Firebase verification rejected: unexpected_token_header
+Firebase verification rejected: email_mismatch
+Firebase verification rejected: email_mismatch
+Firebase verification rejected: email_not_verified
+Firebase verification rejected: email_not_verified
+✔ registration and email checking refuse missing or mismatched Google proof; valid registration remains pending (192.2458ms)
+✔ BHW corrections are barangay-limited, while MHO and Superadmin cannot edit clinical records (42.1715ms)
+✔ MHO can encode a walk-in into the resident barangay without gaining BHW editing access (422.1239ms)
+✔ reviewed corrections recalculate case age, retain identity and notes, and log before/after/reason/actor (40.0602ms)
+✔ correction refuses future/impossible/pre-birth dates, unknown/archived categories, missing reason and no-op (113.5263ms)
+✔ two simultaneous editors have one winner and the second cannot overwrite the first (90.9229ms)
+✔ correction cannot create a duplicate resident/disease/date case or bypass archive review (481.2806ms)
+✔ failed correction audit rolls back all changed fields (199.1496ms)
+✔ legacy severity correction preserves missing dates/ages and cannot invent a person link (162.5561ms)
+➔ LOGIN SUCCESS: WORKFLOW-BHW
+➔ LOGIN SUCCESS: WORKFLOW-MHO
+➔ LOGIN SUCCESS: WORKFLOW-ADMIN
+➔ LOGIN SUCCESS: WORKFLOW-SUPERADMIN
+✔ four-role rehearsal covers login, approved/pending governance, case views, MHO reports and Superadmin health (1015.1925ms)
+✔ new BHW cases appear in resident directory and Admin sees their saved actions (919.1128ms)
+✔ BHW rehearsal checks all seven barangay assignments and keeps patient lists local (1968.3417ms)
+✔ shared correction and MHO walk-in scripts parse without changing existing page hooks (11.1184ms)
+ℹ tests 227
+ℹ suites 0
+ℹ pass 227
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24683.4028

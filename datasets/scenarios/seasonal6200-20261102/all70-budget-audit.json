@@ -1,0 +1,492 @@
+[
+  {
+    "Barangay": "Salvacion",
+    "Disease": "Cough",
+    "old_generated": 161,
+    "added": 18,
+    "new_generated": 179
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "Cough",
+    "old_generated": 177,
+    "added": 20,
+    "new_generated": 197
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "Cough",
+    "old_generated": 186,
+    "added": 21,
+    "new_generated": 207
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "Cough",
+    "old_generated": 168,
+    "added": 19,
+    "new_generated": 187
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "Cough",
+    "old_generated": 168,
+    "added": 19,
+    "new_generated": 187
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "Cough",
+    "old_generated": 177,
+    "added": 20,
+    "new_generated": 197
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "Cough",
+    "old_generated": 171,
+    "added": 19,
+    "new_generated": 190
+  },
+  {
+    "Barangay": "Salvacion",
+    "Disease": "URTI",
+    "old_generated": 101,
+    "added": 11,
+    "new_generated": 112
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "URTI",
+    "old_generated": 65,
+    "added": 7,
+    "new_generated": 72
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "URTI",
+    "old_generated": 53,
+    "added": 6,
+    "new_generated": 59
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "URTI",
+    "old_generated": 66,
+    "added": 7,
+    "new_generated": 73
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "URTI",
+    "old_generated": 82,
+    "added": 9,
+    "new_generated": 91
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "URTI",
+    "old_generated": 61,
+    "added": 7,
+    "new_generated": 68
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "URTI",
+    "old_generated": 67,
+    "added": 7,
+    "new_generated": 74
+  },
+  {
+    "Barangay": "Salvacion",
+    "Disease": "Infection all types",
+    "old_generated": 70,
+    "added": 8,
+    "new_generated": 78
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "Infection all types",
+    "old_generated": 83,
+    "added": 9,
+    "new_generated": 92
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "Infection all types",
+    "old_generated": 65,
+    "added": 7,
+    "new_generated": 72
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "Infection all types",
+    "old_generated": 63,
+    "added": 7,
+    "new_generated": 70
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "Infection all types",
+    "old_generated": 64,
+    "added": 7,
+    "new_generated": 71
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "Infection all types",
+    "old_generated": 66,
+    "added": 7,
+    "new_generated": 73
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "Infection all types",
+    "old_generated": 57,
+    "added": 6,
+    "new_generated": 63
+  },
+  {
+    "Barangay": "Salvacion",
+    "Disease": "ARI",
+    "old_generated": 70,
+    "added": 8,
+    "new_generated": 78
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "ARI",
+    "old_generated": 68,
+    "added": 7,
+    "new_generated": 75
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "ARI",
+    "old_generated": 59,
+    "added": 7,
+    "new_generated": 66
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "ARI",
+    "old_generated": 73,
+    "added": 8,
+    "new_generated": 81
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "ARI",
+    "old_generated": 50,
+    "added": 6,
+    "new_generated": 56
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "ARI",
+    "old_generated": 69,
+    "added": 8,
+    "new_generated": 77
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "ARI",
+    "old_generated": 83,
+    "added": 9,
+    "new_generated": 92
+  },
+  {
+    "Barangay": "Salvacion",
+    "Disease": "Fever unknown origin",
+    "old_generated": 63,
+    "added": 7,
+    "new_generated": 70
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "Fever unknown origin",
+    "old_generated": 69,
+    "added": 8,
+    "new_generated": 77
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "Fever unknown origin",
+    "old_generated": 62,
+    "added": 7,
+    "new_generated": 69
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "Fever unknown origin",
+    "old_generated": 70,
+    "added": 8,
+    "new_generated": 78
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "Fever unknown origin",
+    "old_generated": 59,
+    "added": 6,
+    "new_generated": 65
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "Fever unknown origin",
+    "old_generated": 66,
+    "added": 7,
+    "new_generated": 73
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "Fever unknown origin",
+    "old_generated": 72,
+    "added": 8,
+    "new_generated": 80
+  },
+  {
+    "Barangay": "Salvacion",
+    "Disease": "Hypertension",
+    "old_generated": 61,
+    "added": 7,
+    "new_generated": 68
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "Hypertension",
+    "old_generated": 61,
+    "added": 7,
+    "new_generated": 68
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "Hypertension",
+    "old_generated": 73,
+    "added": 8,
+    "new_generated": 81
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "Hypertension",
+    "old_generated": 72,
+    "added": 8,
+    "new_generated": 80
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "Hypertension",
+    "old_generated": 66,
+    "added": 7,
+    "new_generated": 73
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "Hypertension",
+    "old_generated": 75,
+    "added": 8,
+    "new_generated": 83
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "Hypertension",
+    "old_generated": 57,
+    "added": 6,
+    "new_generated": 63
+  },
+  {
+    "Barangay": "Salvacion",
+    "Disease": "Influenza",
+    "old_generated": 71,
+    "added": 8,
+    "new_generated": 79
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "Influenza",
+    "old_generated": 64,
+    "added": 7,
+    "new_generated": 71
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "Influenza",
+    "old_generated": 73,
+    "added": 8,
+    "new_generated": 81
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "Influenza",
+    "old_generated": 77,
+    "added": 8,
+    "new_generated": 85
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "Influenza",
+    "old_generated": 73,
+    "added": 8,
+    "new_generated": 81
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "Influenza",
+    "old_generated": 59,
+    "added": 6,
+    "new_generated": 65
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "Influenza",
+    "old_generated": 66,
+    "added": 7,
+    "new_generated": 73
+  },
+  {
+    "Barangay": "Salvacion",
+    "Disease": "Acute Gastroenteritis",
+    "old_generated": 56,
+    "added": 6,
+    "new_generated": 62
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "Acute Gastroenteritis",
+    "old_generated": 53,
+    "added": 6,
+    "new_generated": 59
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "Acute Gastroenteritis",
+    "old_generated": 64,
+    "added": 7,
+    "new_generated": 71
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "Acute Gastroenteritis",
+    "old_generated": 69,
+    "added": 8,
+    "new_generated": 77
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "Acute Gastroenteritis",
+    "old_generated": 64,
+    "added": 7,
+    "new_generated": 71
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "Acute Gastroenteritis",
+    "old_generated": 74,
+    "added": 8,
+    "new_generated": 82
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "Acute Gastroenteritis",
+    "old_generated": 73,
+    "added": 8,
+    "new_generated": 81
+  },
+  {
+    "Barangay": "Salvacion",
+    "Disease": "Vertigo",
+    "old_generated": 67,
+    "added": 7,
+    "new_generated": 74
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "Vertigo",
+    "old_generated": 74,
+    "added": 8,
+    "new_generated": 82
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "Vertigo",
+    "old_generated": 79,
+    "added": 9,
+    "new_generated": 88
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "Vertigo",
+    "old_generated": 58,
+    "added": 6,
+    "new_generated": 64
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "Vertigo",
+    "old_generated": 66,
+    "added": 7,
+    "new_generated": 73
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "Vertigo",
+    "old_generated": 70,
+    "added": 8,
+    "new_generated": 78
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "Vertigo",
+    "old_generated": 69,
+    "added": 8,
+    "new_generated": 77
+  },
+  {
+    "Barangay": "Salvacion",
+    "Disease": "All types of skin disease",
+    "old_generated": 61,
+    "added": 7,
+    "new_generated": 68
+  },
+  {
+    "Barangay": "Alegria",
+    "Disease": "All types of skin disease",
+    "old_generated": 81,
+    "added": 9,
+    "new_generated": 90
+  },
+  {
+    "Barangay": "Blumentritt",
+    "Disease": "All types of skin disease",
+    "old_generated": 81,
+    "added": 9,
+    "new_generated": 90
+  },
+  {
+    "Barangay": "Caliban",
+    "Disease": "All types of skin disease",
+    "old_generated": 71,
+    "added": 8,
+    "new_generated": 79
+  },
+  {
+    "Barangay": "Cansilayan",
+    "Disease": "All types of skin disease",
+    "old_generated": 76,
+    "added": 8,
+    "new_generated": 84
+  },
+  {
+    "Barangay": "Sta. Rosa",
+    "Disease": "All types of skin disease",
+    "old_generated": 73,
+    "added": 8,
+    "new_generated": 81
+  },
+  {
+    "Barangay": "Minoyan",
+    "Disease": "All types of skin disease",
+    "old_generated": 69,
+    "added": 8,
+    "new_generated": 77
+  }
+]

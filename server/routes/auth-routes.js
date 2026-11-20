@@ -1,7 +1,6 @@
 const { createAccountCredentials } = require('../services/account-credentials');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const {
     normalizeEmail,
     validPassword,
@@ -11,12 +10,13 @@ const {
 } = require('../config/security-config');
 const { createPasswordRecovery } = require('../services/password-recovery');
 const { createRegistrationHandlers } = require('../services/registration');
+const { createAdminInvitations, createAdminInvitationHandler } = require('../services/admin-invitations');
 const { createSystemAudit } = require('../services/system-audit');
 const { createLoginThrottle } = require('../services/login-throttle');
-const crypto = require('node:crypto');
-const { createSessionSecurity } = require('../services/session-security');
+const { singleSessionLogin } = require('../services/single-session-login');
+const { tokenHash, createSessionSecurity } = require('../services/session-security');
 
-function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) {
+function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions, publicOrigin } = {}) {
     const credentials = createAccountCredentials(db);
     const audit = createSystemAudit(db);
     const attemptedId = req => typeof req.body?.system_id==='string' && /^[A-Za-z0-9_-]{1,64}$/.test(req.body.system_id) ? req.body.system_id : null;
@@ -24,7 +24,8 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) 
         summary:reason, outcome:'Failed', target_type:'Account', target_id:attemptedId(req),
         attribution:user?'Credentials verified; access refused':'Unverified account identifier; not proof the account owner made this attempt'
     });
-    const registration = createRegistrationHandlers(db);
+    const invitations = createAdminInvitations(JWT_SECRET);
+    const registration = createRegistrationHandlers(db, { invitations });
     const loginThrottle = createLoginThrottle(db, loginThrottleOptions);
     const sessions = createSessionSecurity(db);
     app.post('/api/logout', async (req,res) => {
@@ -42,7 +43,7 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) 
         handler: async (req,res) => {
             try { await failedLogin(req,'Login attempt blocked by rate limit.',null,'Login Rate Limited');
                 const seconds = Math.max(1, Math.ceil((Number(req.rateLimit.resetTime) - Date.now()) / 1000) || 60);
-                res.set('Retry-After', String(seconds)).status(429).json({success:false,error:`Too many login attempts from this connection. Please wait ${seconds} seconds.`,retry_after_seconds:seconds});
+                res.set('Retry-After', String(seconds)).status(429).json({success:false,code:'CONNECTION_COOLDOWN',error:`Too many login attempts from this connection. Please wait ${seconds} seconds.`,retry_after_seconds:seconds});
             } catch { console.error('Login audit unavailable.'); res.status(503).json({success:false,error:'Unable to record the login attempt. Please try again later.'}); }
         }
     });
@@ -60,6 +61,26 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) 
     app.post('/api/get-next-id', registrationLimiter, registration.previewId);
     app.post('/api/check-email', registrationLimiter, registration.checkEmail);
     app.post('/api/register', registrationLimiter, registration.register);
+    const invitationSenderLimit = rateLimit({
+        windowMs: 60 * 60 * 1000,
+        max: 10,
+        standardHeaders: true,
+        legacyHeaders: false,
+        keyGenerator: req => req.user.system_id,
+        message: { success: false, error: 'Too many Admin invitation attempts. Try again in an hour.' }
+    });
+    const invitationRecipientLimit = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 1,
+        standardHeaders: true,
+        legacyHeaders: false,
+        skip: req => !normalizeEmail(req.body?.email),
+        skipFailedRequests: true,
+        requestWasSuccessful: (req, res) => res.locals.adminInviteAccepted === true,
+        keyGenerator: req => normalizeEmail(req.body?.email),
+        message: { success: false, error: 'An invitation was recently sent to this address. Wait 15 minutes before resending.' }
+    });
+    app.post('/api/superadmin/admin-invitations', invitationSenderLimit, invitationRecipientLimit, createAdminInvitationHandler(db, invitations, { publicOrigin, sendEmail, emailConfigured }));
 
     // ==========================================
     // CHANGE PASSWORD
@@ -87,9 +108,14 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) 
             }
 
             const hashedNewPassword = await bcrypt.hash(new_password, 10);
-            await credentials.updatePassword(system_id, hashedNewPassword, req.user);
+            const renewed = await credentials.updatePassword(system_id, hashedNewPassword, req.user, user, async connection => {
+                const active = await sessions.active(connection, system_id);
+                const bearer = /^Bearer ([^\s]+)$/i.exec(req.get('Authorization') || '')?.[1];
+                if (!active || !bearer || active.token_hash !== tokenHash(bearer)) throw Error('Session changed; sign in again.');
+                return singleSessionLogin(connection, {...user,password_hash:hashedNewPassword}, JWT_SECRET, sessions, {get:name=>req.get(name),body:{}});
+            });
 
-            res.json({ success: true, message: 'Password updated. Please sign in again.' });
+            res.json({...renewed.body, message:'Password updated.'});
         } catch (error) {
             console.error('Change Password Error:', error);
             res.status(500).json({ success: false, error: 'Database error.' });
@@ -173,27 +199,7 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions } = {}) 
                 return {status:403,body:{ success: false, error: 'Account suspended. Please contact MHO HR.' }};
             }
 
-            const token = jwt.sign(
-                {
-                    system_id: user.system_id,
-                    role: user.role,
-                    jti: crypto.randomUUID(),
-                    session_epoch: await sessions.epoch(connection, user.system_id),
-                    password_version: sessionVersion(user.password_hash, JWT_SECRET)
-                },
-                JWT_SECRET,
-                { expiresIn: '8h', algorithm: 'HS256' }
-            );
-
-            await loginAudit.record(user,'Login Succeeded',{summary:`Signed in as ${user.system_id}.`,target_type:'Account',target_id:user.system_id,outcome:'Succeeded'});
-            console.log(`➔ LOGIN SUCCESS: ${user.system_id}`);
-            return {status:200,body:{
-                success: true,
-                token: token,
-                role: user.role,
-                system_id: user.system_id,
-                redirect: `/${user.role}.html`
-            }};
+            return singleSessionLogin(connection, user, JWT_SECRET, sessions, req);
             });
             if (outcome.alreadyBlocked) await failedLogin(req,'Login attempt blocked by account cooldown.',null,'Login Rate Limited');
             if (outcome.retryAfter) res.set('Retry-After', String(outcome.retryAfter));

@@ -36,7 +36,7 @@ function validatePatient(body) {
     if (age<0 || age>130) throw new Error('Check the birthdate and case date; the recorded age must be between 0 and 130.');
     if (!['Mild','Monitored','High Risk'].includes(body.severity)) throw new Error('Select the recorded severity: Mild, Monitored or High Risk.');
     const status=body.status === undefined ? 'Active' : body.status;
-    if (!['Active','Cleared','Deceased'].includes(status)) throw new Error('Select a valid case status.');
+    if (!['Active','Cleared'].includes(status)) throw new Error('Select a valid case status.');
     return {first_name,last_name,suffix,patient_name:first_name+' '+last_name+(suffix?' '+suffix:''),birthdate,age,purok,disease,remarks,date_recorded,severity:body.severity,status};
 }
 function validateSuffix(value) {

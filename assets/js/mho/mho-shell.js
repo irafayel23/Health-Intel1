@@ -7,3 +7,46 @@ function toggleSidebar() {}
 function toggleDarkMode() {
     HealthIntelTheme.toggle();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const tooltip = document.getElementById('mho-cursor-tooltip');
+    const selector = '[data-mho-hint]';
+    const hide = () => tooltip.classList.remove('is-visible');
+
+    document.addEventListener('pointermove', event => {
+        const target = event.target.closest(selector);
+        if (event.pointerType !== 'mouse' || !target || target.disabled) return hide();
+        tooltip.textContent = target.dataset.mhoHint;
+        const {clientWidth,clientHeight} = document.documentElement;
+        const left = Math.max(8, Math.min(event.clientX + 14, clientWidth - tooltip.offsetWidth - 8));
+        const below = event.clientY + 18;
+        const top = below + tooltip.offsetHeight + 8 <= clientHeight
+            ? below : Math.max(8, event.clientY - tooltip.offsetHeight - 10);
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+        tooltip.classList.add('is-visible');
+    });
+    document.addEventListener('pointerout', event => {
+        const target = event.target.closest(selector);
+        if (target && !target.contains(event.relatedTarget)) hide();
+    });
+    document.addEventListener('scroll', hide, true);
+    document.addEventListener('click', hide, true);
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') hide(); });
+    window.addEventListener('blur', hide);
+    window.addEventListener('health-intel:map-fullscreen-change', hide);
+});
+
+function renderMhoPages(host, page, total, label) {
+    const first = Math.max(1, Math.min(page - 2, total - 4));
+    const last = Math.min(total, first + 4);
+    const controls = [];
+    for (let number = first; number <= last; number++) {
+        controls.push(`<button type="button" data-mho-page="${number}" aria-label="Page ${number}" ${number === page ? 'aria-current="page"' : ''}>${number}</button>`);
+    }
+    host.innerHTML = `<span role="status">Page ${page} of ${total}</span><nav aria-label="${label}">
+        <button type="button" data-mho-page="${page - 1}" ${page === 1 ? 'disabled' : ''}>Previous</button>
+        ${controls.join('')}
+        <button type="button" data-mho-page="${page + 1}" ${page === total ? 'disabled' : ''}>Next</button>
+    </nav>`;
+}

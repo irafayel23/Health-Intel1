@@ -1,4 +1,6 @@
-function createCaseMapData(db) {
+const {periods,assess}=require('./map-activity');
+const {reportingExcluded}=require('./case-reporting');
+function createCaseMapData(db, now=()=>new Date()) {
     return {
         async trend(barangay_id) {
             let baseFilter = `WHERE is_archived = FALSE AND YEAR(date_recorded) = YEAR(CURDATE())`;
@@ -62,6 +64,16 @@ function createCaseMapData(db) {
                     `,
                 params
             );
+            const activityNow=now(), window=periods(activityNow);
+            const [activityRows]=await db.execute(
+                `SELECT h.barangay_id, DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,
+                    COALESCE(d.name,h.disease) AS disease, h.disease_review_status, COUNT(*) AS cases
+                 FROM health_cases h LEFT JOIN disease_registry d ON d.id=h.disease_id
+                 WHERE h.date_recorded>=? AND h.date_recorded<? AND NOT ${reportingExcluded('h.id')}
+                   ${scoped ? 'AND h.barangay_id = ?' : ''}
+                 GROUP BY h.barangay_id, DATE_FORMAT(h.date_recorded,'%Y-%m-%d'), COALESCE(d.name,h.disease), h.disease_review_status`,
+                scoped ? [window.start,window.end,barangayId] : [window.start,window.end]
+            );
             const diseasesByBarangay = new Map();
             const severityKeys = { Mild: 'mild', Monitored: 'monitored', 'High Risk': 'high_risk' };
             for (const row of diseaseRows) {
@@ -84,26 +96,8 @@ function createCaseMapData(db) {
                     cases - severityCounts.mild - severityCounts.monitored - severityCounts.high_risk
                 );
 
-                let risk = 'No active cases';
-                let color = '#64748b';
-                let colorReason = 'No active, non-archived cases are recorded.';
-                if (severityCounts.high_risk > 0) {
-                    risk = 'High Risk';
-                    color = '#dc2626';
-                    colorReason = 'At least one active case is recorded as High Risk.';
-                } else if (severityCounts.monitored > 0) {
-                    risk = 'Monitored';
-                    color = '#ea580c';
-                    colorReason = 'At least one active case is Monitored; none is recorded as High Risk.';
-                } else if (severityCounts.unknown > 0) {
-                    risk = 'Severity incomplete';
-                    color = '#7c3aed';
-                    colorReason = 'Some active cases have missing or unrecognized severity.';
-                } else if (cases > 0) {
-                    risk = 'Mild';
-                    color = '#16a34a';
-                    colorReason = 'All active cases are recorded as Mild.';
-                }
+                const activity=assess(activityRows,r.barangay_id,disease,activityNow);
+                const color={mild:'#16a34a',monitored:'#d97706',high_risk:'#dc2626',none:'#64748b'}[activity.tone];
 
                 return {
                     id: r.barangay_id,
@@ -119,9 +113,10 @@ function createCaseMapData(db) {
                         high_risk: []
                     },
                     high_risk_diseases: diseasesByBarangay.get(String(r.barangay_id))?.high_risk || [],
-                    risk: risk,
+                    activity,
+                    risk: activity.label,
                     color: color,
-                    color_reason: colorReason
+                    color_reason: activity.reason
                 };
             });
             return data;

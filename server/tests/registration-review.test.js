@@ -1,0 +1,127 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),sharp=require('sharp');
+const {image,createEvidenceStore}=require('../services/registration-evidence');
+const {createRegistrationHandlers}=require('../services/registration');
+async function photo(){return 'data:image/png;base64,'+(await sharp({create:{width:240,height:240,channels:3,background:'#64748b'}}).png().toBuffer()).toString('base64');}
+function fixture(invitations){const rows=[],events=[];const db={async getConnection(){return this;},async query(){return [[{name:'isolated-unit-fixture'}]];},async beginTransaction(){this.before=structuredClone(rows);},async commit(){},async rollback(){rows.splice(0,rows.length,...this.before);},release(){},async execute(sql,args){if(sql.includes('GET_LOCK'))return [[{acquired:1}]];if(sql.includes('RELEASE_LOCK'))return [[]];if(sql.startsWith("SELECT status FROM users WHERE system_id=? AND role='superadmin'"))return [rows.filter(r=>r.system_id===args[0]&&r.role==='superadmin')];if(sql.includes('JSON_EXTRACT'))return [events.filter(a=>a[2]==='Admin Invitation Accepted'&&JSON.parse(a[3]).invitation_id===args[0])];if(sql.includes('last_number'))return [[{last_number:rows.length}]];if(sql.startsWith('SELECT system_id'))return [rows.filter(r=>r.email===args[0]||r.system_id===args[1])];if(sql.startsWith('INSERT INTO users')){const invited=sql.includes("'admin',NULL");rows.push({system_id:args[0],email:invited?args[4]:args[6],status:invited?'approved':'pending',role:invited?'admin':args[3]});return [{}];}if(sql.startsWith('UPDATE users')){Object.assign(rows.find(r=>r.system_id===args[6]),{status:'pending',email:args[4]});return [{}];}if(sql.startsWith('SELECT action,details'))return [events.map(a=>({action:a[2],details:a[3],created_at:'2026-11-14T14:00:00Z'}))];if(sql.includes('system_audit_logs')){events.push(args);return [{}];}throw Error('Unexpected fixture query');}};const saved=new Map(),owners=new Map();const evidence={read:id=>saved.get(id),owner:uid=>owners.get(uid),save(id,data){saved.set(id,data);owners.set(data.uid,id);}};const handlers=createRegistrationHandlers(db,{verify:async(token,email)=>{if(token!=='fixture-proof')throw Object.assign(Error('Invalid proof'),{status:401});return {uid:'fixture-subject',email};},evidence,invitations});async function call(name,body){let status=200,result;await handlers[name]({body},{status(n){status=n;return this;},json(v){result=v;}});return {status,...result};}return {rows,events,evidence,call};}
+const base={role:'mho',first_name:'Fixture',last_name:'Applicant',employee_id:'EMP-QA',email:'fixture@example.invalid',password:'Fixture-password-2026',confirm_password:'Fixture-password-2026',review_consent:true,firebase_id_token:'fixture-proof'};
+test('photos decoded, re-encoded and encrypted outside public storage',async()=>{const encoded=await image(await photo());assert(encoded.startsWith('data:image/jpeg;base64,'));const folder=fs.mkdtempSync(path.join(os.tmpdir(),'hi-registration-fixture-'));try{const store=createEvidenceStore(folder);store.save('MHO-QA',{uid:'fixture-uid',employee_photo:encoded,selfie_photo:encoded});assert.equal(store.owner('fixture-uid'),'MHO-QA');assert.equal(store.read('MHO-QA').employee_photo,encoded);for(const name of fs.readdirSync(folder).filter(x=>x.endsWith('.enc')))assert(!fs.readFileSync(path.join(folder,name)).includes(Buffer.from('data:image')));assert.equal(createEvidenceStore(folder).owner('fixture-uid'),'MHO-QA');}finally{assert(path.dirname(folder)===os.tmpdir());fs.rmSync(folder,{recursive:true,force:true});}});
+test('invalid, oversized and too-small images fail closed',async()=>{await assert.rejects(image('data:image/svg+xml;base64,PHN2Zz4='));await assert.rejects(image('data:image/jpeg;base64,YmFk'));const tiny=await sharp({create:{width:10,height:10,channels:3,background:'white'}}).png().toBuffer();await assert.rejects(image('data:image/png;base64,'+tiny.toString('base64')));await assert.rejects(image('data:image/png;base64,'+'A'.repeat(4200001)));});
+test('pending and rejected applicants resubmit one application; approved and suspended stay protected',async()=>{const f=fixture(),p=await photo(),body={...base,employee_photo:p,selfie_photo:p};const first=await f.call('register',body);assert.equal(first.status,200);assert.equal(f.rows[0].status,'pending');assert.equal((await f.call('checkEmail',body)).exists,false);assert.equal((await f.call('register',body)).system_id,first.system_id);assert.equal(f.rows.length,1);f.rows[0].status='denied';assert.equal((await f.call('checkEmail',body)).exists,false);const retry=await f.call('register',body);assert.equal(retry.system_id,first.system_id);assert.equal(f.rows.length,1);assert.equal(f.rows[0].status,'pending');assert.equal(f.events.length,2);for(const status of ['approved','suspended']){f.rows[0].status=status;assert.equal((await f.call('register',body)).status,409);assert.equal((await f.call('checkEmail',body)).exists,true);}f.rows[0].email='changed@example.invalid';assert.equal((await f.call('register',{...body,email:'new@example.invalid'})).status,409);});
+test('Admin registration requires a valid single-use invitation from an active Superadmin',async()=>{
+ const {createAdminInvitations,createAdminInvitationHandler}=require('../services/admin-invitations');
+ const {rules}=require('../middleware/access-control');
+ const rule=rules.find(([method,pattern])=>method==='POST'&&pattern.test('/superadmin/admin-invitations'));
+ assert.deepEqual(rule[2],['superadmin']);
+ const invites=createAdminInvitations('fixture-secret-not-a-real-credential');
+ const issuer='SUPER-QA';
+ const token=invites.issue(base.email,issuer);
+ assert.throws(()=>invites.read(token,'other@example.invalid'),{status:403});
+ assert.throws(()=>invites.read(token.slice(0,-8),base.email),{status:403});
+ const {sign}=require('jsonwebtoken');
+ const {createHmac}=require('node:crypto');
+ const expired=sign({email:base.email,sub:issuer},createHmac('sha256','fixture-secret-not-a-real-credential').update('health-intel:admin-invitation:v1').digest(),{audience:'health-intel-admin-invite',expiresIn:-1,jwtid:'expired'});
+ assert.throws(()=>invites.read(expired,base.email),{status:403});
+ const f=fixture(invites),p=await photo(),body={...base,role:'admin',employee_photo:p,selfie_photo:p};
+ assert.equal((await f.call('register',body)).status,403);
+ assert.equal((await f.call('register',{...body,admin_invitation:token})).status,403);
+ f.rows.push({system_id:issuer,status:'approved',role:'superadmin'});
+ assert.equal((await f.call('register',{...body,admin_invitation:token,firebase_id_token:'invalid'})).status,401);
+ const submitted=await f.call('register',{...body,admin_invitation:token});
+ assert.equal(submitted.success,true);
+ assert.match(submitted.system_id,/^ADM-/);
+ assert.equal(f.rows.find(r=>r.system_id===submitted.system_id).status,'pending');
+ assert.equal((await f.call('register',{...body,admin_invitation:token})).status,409);
+ const handler=createAdminInvitationHandler({},invites);
+ let status;
+ await handler({user:{role:'admin'},body:{email:base.email}},{set(){},status(value){status=value;return this;},json(){}});
+ assert.equal(status,403);
+});
+test('Admin invitations use a branded email and keep invitation tokens out of API responses',async()=>{
+ const {createAdminInvitations,createAdminInvitationHandler}=require('../services/admin-invitations');
+ const invitations=createAdminInvitations('fixture-secret-not-a-real-credential');
+ const db={execute:async()=>[[]]};
+ for(const mode of ['sent','failed','not_configured']){
+  let result,calls=0;
+  const handler=createAdminInvitationHandler(db,invitations,{
+   publicOrigin:'https://portal.example.invalid',emailConfigured:()=>mode!=='not_configured',
+   sendEmail:async mail=>{
+    calls++;
+    assert.equal(mail.to,base.email);
+    assert.match(mail.html,/Logo-Health-Intel[.]png/);
+    assert.match(mail.html,/Accept invitation/);
+    const link=new URL(mail.text.split('\n').at(-1));
+    assert.equal(link.origin,'https://portal.example.invalid');
+    assert.ok(mail.html.includes('href="'+link.href+'"'));
+    assert.equal(invitations.read(link.hash.slice('#admin-invite='.length),base.email).sub,'SUPER-QA');
+    if(mode==='failed')throw Error('Fixture failure');
+    return {accepted:[base.email]};
+   }
+  });
+  await handler({user:{role:'superadmin',system_id:'SUPER-QA'},body:{email:base.email}},{set(){},json(body){result=body;}});
+  assert.equal(result.email_delivery,mode);
+  assert.equal(calls,mode==='not_configured'?0:1);
+  assert.equal(result.token,undefined);
+ }
+});
+test('Admin audit converts the database event instant into ISO time for Philippine rendering',async()=>{
+ const {createAccountDirectory}=require('../services/account-directory');
+ const instant=Date.parse('2026-11-19T13:21:00Z')/1000;
+ const directory=createAccountDirectory({execute:async sql=>{
+  assert.match(sql,/UNIX_TIMESTAMP\(timestamp\) AS created_epoch/);
+  return [[{id:1,created_epoch:instant},{id:2,created_epoch:null}]];
+ }});
+ const [event,missing]=await directory.adminAudit();
+ assert.equal(event.created_at,'2026-11-19T13:21:00.000Z');
+ assert.equal(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Manila',timeStyle:'short'}).format(new Date(event.created_at)),'21:21');
+ assert.equal(missing.created_at,null);
+});
+test('Google proof, employee ID, password match and consent are enforced',async()=>{const p=await photo(),body={...base,employee_photo:p,selfie_photo:p};for(const patch of [{firebase_id_token:'bad'},{confirm_password:'wrong'},{review_consent:false},{employee_id:''},{selfie_photo:''},{role:'superadmin'}]){const f=fixture();assert.notEqual((await f.call('register',{...body,...patch})).status,200);assert.equal(f.rows.length,0);}});
+
+test('reviewer guards refuse other roles; rejection mail success/failure is explicit',async()=>{const {rules}=require('../middleware/access-control');const rule=rules.find(([method,pattern])=>method==='GET'&&pattern.test('/admin/registration-evidence/MHO-001'));assert.deepEqual(rule[2],['admin','superadmin']);const {registerIdentityRoutes}=require('../routes/identity-routes');for(const mode of ['sent','failed','not_configured']){const routes=new Map();let calls=0;registerIdentityRoutes({get(){},post(route,handler){routes.set(route,handler);}},{},{},{mailReady:()=>mode!=='not_configured',changeStatus:async()=>({email:'fixture@example.invalid'}),notify:async message=>{calls++;assert.equal(message.to,'fixture@example.invalid');if(mode==='failed')throw Error('Mock transport failure');}});let result;await routes.get('/api/admin/deny-user')({body:{},user:{role:'admin'}},{json(v){result=v;}});assert.equal(result.success,true);assert.equal(result.email_delivery,mode);assert.equal(calls,mode==='not_configured'?0:1);}});
+test('registration and reviewer UI preserve fields, confirmation and local-only private storage',()=>{const root=path.join(__dirname,'../..'),html=fs.readFileSync(path.join(root,'index.html'),'utf8');for(const id of ['reg_emp_id','reg_employee_photo','reg_selfie_photo','reg_password','reg_confirm_password','reg_review_consent'])assert(html.includes('id="'+id+'"'));const admin=fs.readFileSync(path.join(root,'assets/js/admin/admin-users.js'),'utf8');assert(admin.includes("const review=status==='pending'?await registrationReview"));assert(admin.includes('preConfirm:()=>confirmRegistrationReview(review)'));assert(admin.includes('review_confirmed:reviewConfirmed'));for(const page of ['admin.html','superadmin.html'])assert(fs.readFileSync(path.join(root,page),'utf8').includes('shared/registration-review.js'));});
+
+test('approval of photo-backed registration requires explicit review; wrong-role access denied',async()=>{const {accountStatus}=require('../services/account-status');for(const role of ['admin','superadmin','bhw']){let updated=false;const db={getConnection:async()=>db,beginTransaction:async()=>{},commit:async()=>{},rollback:async()=>{},release(){},execute:async sql=>{if(sql.startsWith('SELECT'))return [[{system_id:'MHO-QA',status:'pending',role:'mho'}]];updated=true;return [[]];}};await assert.rejects(accountStatus(db,{body:{system_id:'MHO-QA'},user:{role},path:'/api/admin/approve-user'},'approved','User Approved',{evidence:{read:()=>({employee_photo:'fixture'})}}));assert.equal(updated,false);}});
+
+test('failed submission removes only its own evidence and subject reservation',()=>{const directory=fs.mkdtempSync(path.join(os.tmpdir(),'hi-registration-fixture-'));try{const store=createEvidenceStore(directory);store.save('MHO-QA',{uid:'qa-subject',submission:'first'});store.restore('MHO-QA',null,'qa-subject','first');assert.equal(store.read('MHO-QA'),null);assert.equal(store.owner('qa-subject'),undefined);store.save('MHO-QA',{uid:'new-subject',submission:'second'});store.restore('MHO-QA',null,'qa-subject','first');assert.equal(store.read('MHO-QA').submission,'second');}finally{assert.equal(path.dirname(directory),os.tmpdir());fs.rmSync(directory,{recursive:true,force:true});}});
+
+test('verified email check distinguishes pending from approval and permits rejected reapplication',async()=>{
+ const f=fixture();f.rows.push({system_id:'MHO-QA',email:base.email,status:'pending'});
+ for(const status of ['pending','approved','suspended','denied']){
+  f.rows[0].status=status;const result=await f.call('checkEmail',base);
+  const blocked=['approved','suspended'].includes(status);assert.equal(result.exists,blocked);assert.equal(result.registration_status,blocked?status:null);
+  assert.equal(result.system_id,undefined);
+ }
+ assert.equal((await f.call('checkEmail',{...base,firebase_id_token:'bad'})).status,401);
+});
+
+test('review decisions require the latest submission and a valid rejection reason',async()=>{
+ const {accountStatus}=require('../services/account-status');
+ for(const body of [{review_submission:'old',reason:'ID unreadable'},{review_submission:'current'},{review_submission:'current',reason:'x'.repeat(501)},{review_submission:'current',reason:'<script>'}]){
+  let updated=false;const db={getConnection:async()=>db,beginTransaction:async()=>{},commit:async()=>{},rollback:async()=>{},release(){},execute:async sql=>{if(sql.startsWith('SELECT'))return [[{system_id:'MHO-QA',status:'pending',role:'mho'}]];updated=true;throw Error('Write must not happen');}};
+  await assert.rejects(accountStatus(db,{body:{system_id:'MHO-QA',...body},user:{role:'admin'},path:'/api/admin/deny-user'},'denied','User Request Denied',{evidence:{read:()=>({submission:'current'})}}));assert.equal(updated,false);
+ }
+});
+test('rejection reason is escaped and included in the notification email',async()=>{
+ const {registerIdentityRoutes}=require('../routes/identity-routes');const routes=new Map();let message;
+ registerIdentityRoutes({get(){},post(route,handler){routes.set(route,handler);}},{},{},{mailReady:()=>true,changeStatus:async()=>({email:'fixture@example.invalid',rejection_reason:'Photo unreadable & cropped',rejection_submission:3}),notify:async m=>{message=m;}});
+ let response;await routes.get('/api/admin/deny-user')({body:{},user:{role:'admin'}},{json(v){response=v;}});
+ assert.equal(response.email_delivery,'sent');assert(message.html.includes('Photo unreadable &amp; cropped'));assert(message.html.includes('Submission 3'));assert(message.html.includes('same Google account'));
+});
+
+test('successful pending/rejected submissions count 1,2,3,4; invalid attempts do not increment',async()=>{
+ const f=fixture(),p=await photo(),body={...base,employee_photo:p,selfie_photo:p};let id;
+ for(let n=1;n<=4;n++){
+  if(n===4)f.rows[0].status='denied';
+  const result=await f.call('register',body);assert.equal(result.status,200);id??=result.system_id;assert.equal(result.system_id,id);assert.equal(f.rows.length,1);assert.equal(f.evidence.read(id).submission_count,n);
+ }
+ await f.call('register',{...body,confirm_password:'mismatch'});assert.equal(f.evidence.read(id).submission_count,4);
+ const {registrationHistory}=require('../services/registration-history');
+ const [metadata]=await registrationHistory({execute:async()=>[f.events.map(e=>({action:e[2],details:e[3],created_at:'2026-11-14T14:00:00Z'}))]},f.rows,f.evidence);
+ assert.equal(metadata.submission_count,4);assert.equal(metadata.registration_history.length,3);
+});
+test('photo-backed pre-counter requests reconstruct only recorded resubmissions',async()=>{
+ const {registrationHistory}=require('../services/registration-history');const e={read:id=>id==='QA'?{submitted_at:'2026-11-14T14:00:00Z'}:null};
+ const audit={action:'Registration Resubmitted',details:JSON.stringify({target_id:'QA',target_type:'Account',outcome:'Succeeded'}),created_at:'2026-11-14T14:00:00Z'};
+ const [known,legacy]=await registrationHistory({execute:async()=>[[audit,audit]]},[{system_id:'QA'},{system_id:'legacy'}],e);
+ assert.equal(known.submission_count,3);assert.equal(legacy.submission_count,undefined);
+});

@@ -1,0 +1,16 @@
+{
+  "independent_csv_validation": true,
+  "tables": 4,
+  "monthly_records_each": 3150,
+  "combined_cases": 5592,
+  "unchanged_itr": 92,
+  "separate_generated_groups": [
+    2750,
+    2750
+  ],
+  "all70cumulative_totals_preserved": true,
+  "duplicate_month_scope_keys": 0,
+  "protected_unchanged_files": 267,
+  "new_zero_cells": 0,
+  "model_performance_evaluated": false
+}

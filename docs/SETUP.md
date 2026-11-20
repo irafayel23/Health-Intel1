@@ -4,17 +4,15 @@ Verified local Node.js environment on Windows as of 23 October 2026: **Node.js v
 
 After the runtime update, the user reported `npm audit` with zero vulnerabilities and `npm test` with 227 passed, zero failed and zero skipped. The follow-up review independently confirmed the installed runtime versions, a valid installed direct dependency tree, compatible Node engine ranges for all locked dependencies, and successful loading of bcrypt, Express, mysql2 and Nodemailer. No dependency reinstall, package/lockfile changes or application changes were needed. These checks concern the local Windows environment; they do not establish the deployed Azure runtime version. See the [maintenance follow-up](../server/security-reports/20261023/REPORT.md#local-runtime-follow-up).
 
-## Existing installation
+## Local installation
 
-1. Start MySQL in XAMPP. The current local database is `health_intel`.
-2. Open a terminal in `proposal/server` and run `npm ci` when installing on another machine.
-3. Create a Python environment with `python -m venv .venv`, then run `.venv\Scripts\python.exe -m pip install -r requirements.txt` on Windows.
-4. Copy `.env.example` to `.env` on a fresh installation and configure the database and email. Keep `.env` private. Keep the local JWT secret and virtual environment under `server/`; never commit them. Do not overwrite a working configuration.
-5. Run `npm start`. The API uses port 3000 unless PORT is configured.
-6. Serve the frontend from `proposal` using your existing local frontend server and open `index.html`. Frontend requests default to `http://localhost:3000`. A different deployment can set `window.HEALTH_INTEL_API_ORIGIN` before `assets/js/shared/api-session.js` loads.
+1. Start a local MySQL-compatible server. For a new machine, obtain a trusted backup of the [current normalized schema](DATABASE.md) and restore it into a separate local database before starting Health-Intel. Use a synthetic fixture for testing. An empty database or a backup of the older eight-table schema is insufficient.
+2. Keep the complete project folder, including the root `assets/` directory. The API imports shared files from it. Open a terminal in `proposal/server` and run `npm ci` to install the locked dependencies.
+3. On a fresh installation, copy `.env.example` to `.env` and set the database host, port, username, password and database name for that local database. Preserve any existing configuration. Keep credentials private.
+4. For the local Predictions experience matching Azure, set `HOST=127.0.0.1`, `SERVE_FRONTEND=true`, `ENABLE_EXPERIMENTAL_CMP=true` and `ENABLE_SAVED_PREDICTION_EXTRAS=true` in the existing private `server/.env`, preserving other settings. From `server/`, run `npm start` and open `http://localhost:3000/` (or the configured port). MHO and BHW share the saved SARIMA + conditional-pooled COM-Poisson presentation; BHW remains limited to its assigned barangay. These local opt-ins do not publish a new operational model.
+5. Check `/healthz` for an HTTP 200 response, then sign in with a local test account and open a role page that reads records. The first check verifies HTTP serving. The second verifies database access.
 
-For a fresh database, restore a trusted SQL backup containing the eight documented tables. Creating an empty database alone is insufficient. There is no automatic, verified CSV-to-patient import script.
-
+The MHO Predictions page serves saved SARIMA results through Node.js. Python is needed only for separate research scripts that declare it as a dependency. If you use a separate frontend server, omit `SERVE_FRONTEND=true` and serve the project root. Set `window.HEALTH_INTEL_API_ORIGIN` before `assets/js/shared/api-session.js` if the API address differs from `http://localhost:3000`.
 ## Private configuration
 
 For a future shared host, use [deployment preparation](deployment_guide.md) and its reviewed templates. `npm run deploy:check` performs a read-only production configuration/tool check; it does not establish public deployment readiness. MHO exports remain review copies until the [MHO report review](MHO_REPORT_REVIEW.md) is completed.
@@ -95,3 +93,16 @@ The MHO sidebar has **Walk-in Patients** for patients presenting at the Municipa
 The form refuses future/impossible dates, dates before a known birthdate, unknown correction categories, changes to archived categories, potential duplicate cases and simultaneous stale edits. Known birthdates recalculate age at the corrected case date. Missing birthdates preserve the stored age. Historical records without a resident link or complete name/birthdate can receive a severity correction, but date/disease corrections require source/profile review first. Archived cases must be restored before correction. No bulk correction or resident matching is performed.
 
 This batch's file rollback is `../.rollback/20260927-verification-corrections/Undo-Workflow-Fixes.ps1`. Run with `-CheckOnly` first. It preserves database records and refuses to overwrite later edits. Undoing files does not reverse any subsequently saved case corrections; review those individually using their audit entry.
+
+## Create a local Superadmin
+
+Start MySQL in XAMPP. Open PowerShell and run these commands from the project folder.
+
+```powershell
+cd "C:\Users\User\Downloads\Final proj\proposal\server"
+npm.cmd run superadmin:create
+```
+
+Enter the person's first name, last name, and a recovery email that belongs to them. Choose and confirm a password in the hidden prompts. Check the displayed local database name, then type `CREATE` to save. Sign in at http://localhost:3000/ with the printed Superadmin ID and your chosen password. Run `npm.cmd start` from the same folder if the site is stopped.
+
+The command uses the same local database settings as Health-Intel. It refuses duplicate emails and allocates the next Superadmin ID. If you already have an account and have lost the password, use the login page's password recovery when email delivery is configured.

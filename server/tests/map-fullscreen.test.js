@@ -3,7 +3,7 @@ function fixture(id){
     const listeners={},windowListeners={},document={activeElement:null,addEventListener:(key,fn)=>listeners[key]=fn};
     function element(tag='div'){
         const attrs=new Map(),classes=new Set();
-        const e={tagName:tag,children:[],parentNode:null,inert:false,hidden:false,disabled:false,tabIndex:tag==='button'?0:-1,textContent:'',className:'',style:{},getBoundingClientRect:()=>({height:500}),
+        const e={tagName:tag,children:[],parentNode:null,inert:false,hidden:false,disabled:false,tabIndex:tag==='button'?0:-1,textContent:'',className:'',style:{},dataset:{},getBoundingClientRect:()=>({height:500}),
             classList:{add:(...names)=>names.forEach(n=>classes.add(n)),remove:(...names)=>names.forEach(n=>classes.delete(n)),contains:n=>classes.has(n)},
             getAttribute:name=>attrs.has(name)?attrs.get(name):null,setAttribute:(name,value)=>attrs.set(name,String(value)),removeAttribute:name=>attrs.delete(name),
             append(...nodes){for(const node of nodes){node.remove();node.parentNode=e;e.children.push(node);}},
@@ -21,8 +21,8 @@ function fixture(id){
 }
 for(const id of ['bhwMap','murciaMap'])test(id+' expands the existing map, makes the background inert and restores DOM, accessibility and focus on exit',()=>{
     const f=fixture(id),button=f.control.button,originalControl=f.control.controls;
-    assert.equal(button.textContent,'Fullscreen');assert.equal(button.getAttribute('aria-controls'),id);
-    button.click();assert.equal(f.container.parentNode,f.document.body);assert.equal(f.main.children[0].style.height,'500px');assert.equal(f.container.classList.contains('heatmap-expanded'),true);assert.equal(f.container.getAttribute('aria-modal'),'true');assert.equal(f.main.inert,true);assert.equal(f.document.activeElement,button);assert.equal(button.getAttribute('aria-expanded'),'true');assert.equal(f.control.controls,originalControl);
+    assert.equal(button.dataset.mhoHint,'Open fullscreen map');assert.equal(button.getAttribute('aria-controls'),id);
+    button.click();assert.equal(f.container.parentNode,f.document.body);assert.equal(f.main.children[0].style.height,'500px');assert.equal(f.container.classList.contains('heatmap-expanded'),true);assert.equal(f.container.getAttribute('aria-modal'),'true');assert.equal(f.main.inert,true);assert.equal(f.document.activeElement,button);assert.equal(button.getAttribute('aria-expanded'),'true');assert.equal(button.dataset.mhoHint,'Exit fullscreen map');assert.equal(f.control.controls,originalControl);
     assert.equal(f.key('Escape'),true);assert.equal(f.container.parentNode,f.main);assert.deepEqual(f.main.children,[f.container,f.next]);assert.equal(f.main.inert,false);assert.equal(f.other.inert,true);assert.equal(f.container.getAttribute('role'),'region');assert.equal(f.container.getAttribute('aria-label'),'Original map');assert.equal(f.container.getAttribute('aria-modal'),null);assert.equal(button.getAttribute('aria-expanded'),'false');assert.equal(f.document.activeElement,button);assert.equal(f.layouts(),2);
 });
 test('fullscreen focus wraps inside map controls and repeated toggles do not leave anchors or inert background behind',()=>{
@@ -40,4 +40,16 @@ test('an open breakdown dialog keeps its native Escape handling without exiting 
     f.listeners.keydown({key:'Escape',target:{closest:selector=>selector==='.heatmap-case-dialog[open]'},preventDefault(){prevented=true;}});
     assert.equal(prevented,false);assert.equal(f.container.classList.contains('heatmap-expanded'),true);
     assert.equal(f.key('Escape'),true);assert.equal(f.container.classList.contains('heatmap-expanded'),false);
+});
+
+test('MHO F shortcut toggles a visible map and ignores typing, modifiers and hidden maps',()=>{
+    const f=fixture('murciaMap');
+    const press=(options={})=>{let prevented=false;f.listeners.keydown({key:'f',target:{closest:()=>null},preventDefault(){prevented=true;},stopPropagation(){},...options});return prevented;};
+    assert.equal(press({ctrlKey:true}),false);
+    assert.equal(press({target:{closest:()=>({})}}),false);
+    f.container.hidden=true;assert.equal(press(),false);f.container.hidden=false;
+    assert.equal(press(),true);assert.equal(f.container.classList.contains('heatmap-expanded'),true);
+    assert.equal(press(),true);assert.equal(f.container.classList.contains('heatmap-expanded'),false);
+    const bhw=fixture('bhwMap');bhw.listeners.keydown({key:'f',target:{closest:()=>null},preventDefault(){throw Error('BHW shortcut unexpectedly activated');}});
+    assert.equal(bhw.container.classList.contains('heatmap-expanded'),false);
 });

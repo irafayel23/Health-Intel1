@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "experimental": true,
+  "binding": {
+    "mode": "saved_verified_mixed_demonstration_results",
+    "dataset_sha256": "49b4ca92eff35bc574b61f46cde982a35b4d843b84d71228158e1941829c84e7",
+    "snapshot_sha256": "bf574e642abdee4813b08d62179daf693c3929d56646afd5d099ed966bb561ac",
+    "sarima_version": "seasonal6200-policyA-SARIMA-v1",
+    "sarima_policy_sha256": "fa9b008d8e4c3d4d8c205ec17007c3c70b6687325666c331f66119f1195507b9",
+    "cutoff": "2026-09",
+    "target": "2026-10",
+    "horizon": 1,
+    "cmp_policy": "conditional-pooled-CMP",
+    "cmp_policy_sha256": "0cbff37d20f6aaa6b2f494b227c1792dc3eef5b465e2e2ef425e32acf25a9e58",
+    "cmp_source_sha256": "a8b63e08c7fe9c11193cdebb48117d677bb25d8bfa662599430cb6f3a6656d0c",
+    "october_sha256": "8770e2c841e29b665b4b5412bb377da884a825a6a40fd4e20dd545aa3d57b3b4"
+  },
+  "results_sha256": "bcce83fde73fd60017d3a6c5e2c61b8e0bc3b54ded8963c4a68a21a716d4a9e4",
+  "preview_sha256": "8ea57a9e1eb4fa063856d39d0ef9c1f30e650ea70bfdd4597728ed76662777b6"
+}

@@ -13,8 +13,8 @@ before(async()=>{
 after(async()=>{await fixture?.close();});
 // Execute the current production matching code with actual synthetic API responses.
 async function frontend(rows,nature,changes={},returnVisit=null){
-    const fields=new Map(),field=id=>{if(!fields.has(id))fields.set(id,{value:'',disabled:false,hidden:false,options:[],handlers:{},_hiSelect:{refresh(){}},addEventListener(key,callback){(this.handlers[key]??=[]).push(callback);},replaceChildren(...options){this.options=options;this.value=options[0]?.value||'';},add(option){this.options.push(option);}});return fields.get(id);};
-    const values={'swal-fname':patient.first_name,'swal-lname':patient.last_name,'swal-suffix':'','swal-birthdate':'04/10/1975','swal-case-date':'2026-10-14','swal-nature':nature,'swal-transaction':'Walk-in','swal-bp':'120/80','swal-temperature':'36.5','swal-height':'165','swal-weight':'60',...changes};for(const [id,value] of Object.entries(values))field(id).value=value;
+    const fields=new Map(),field=id=>{if(!fields.has(id))fields.set(id,{value:'',dataset:{},disabled:false,hidden:false,options:[],handlers:{},_hiSelect:{refresh(){}},addEventListener(key,callback){(this.handlers[key]??=[]).push(callback);},replaceChildren(...options){this.options=options;this.value=options[0]?.value||'';},add(option){this.options.push(option);}});return fields.get(id);};
+    const values={'swal-fname':patient.first_name,'swal-lname':patient.last_name,'swal-suffix':'','swal-birthdate':'04/10/1975','swal-case-date':'2026-10-14','swal-nature':nature,'swal-transaction':'Walk-in','swal-time-hour':'9','swal-time-minute':'15','swal-time-period':'AM','swal-bp':'120/80','swal-temperature':'36.5','swal-height':'165','swal-weight':'60',...changes};for(const [id,value] of Object.entries(values))field(id).value=value;
     const requests=[];
     const context={AbortController,Intl,Date,document:{getElementById:field},Option:class{constructor(text,value){this.text=text;this.textContent=text;this.value=value;this.dataset={};}},HealthIntelText:{escape:String},fetch:async url=>{requests.push(url);return {ok:true,json:async()=>returnVisit?({success:true,history:rows,resident:{is_deceased:0,death_date:null}}):({success:true,data:rows})};}};context.window=context;vm.createContext(context);
     for(const file of ['date-format.js','encoding-controls.js','patient-visits.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared',file),'utf8'),context,{filename:file});
@@ -60,7 +60,7 @@ test('BHW return shortcut loads only the selected resident and pins the original
         assert.deepEqual(form.requests,['http://localhost:3000/api/residents/'+residentId+'/dossier']);
         assert.deepEqual(form.choices(),[caseId]);assert.equal(form.field('swal-existing-case').value,String(caseId));
         assert.throws(()=>form.control.consultation(),/nature of visit/);
-        form.change('swal-nature','New consultation/case');assert.throws(()=>form.control.consultation(),/admission or Follow-up/);
+        form.change('swal-nature','New consultation/case');assert.throws(()=>form.control.consultation(),/Choose Follow-up Visit/);
         form.change('swal-nature','Follow-up visit');assert.equal(form.control.consultation().case_id,caseId);
         form.change('swal-case-date','2026-09-30');assert.deepEqual(form.choices(),[]);assert.throws(()=>form.control.consultation(),/eligible original/);
         form.change('swal-case-date','2026-10-14');assert.equal(form.control.consultation().case_id,caseId);

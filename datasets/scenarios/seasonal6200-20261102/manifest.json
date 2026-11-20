@@ -1,0 +1,15 @@
+{
+  "status": "candidate_not_installed_not_evaluated",
+  "files": {
+    "all70-budget-audit.json": "a141dd54a12496bedc089d2da5c59464c0f8c876b51b3f9031ce7c7325ce55b7",
+    "combined_monthly.csv": "49b4ca92eff35bc574b61f46cde982a35b4d843b84d71228158e1941829c84e7",
+    "dataset-validation.json": "b45db65c6f8249eff58355adb35cebd6769c133390c7141edf71ef9284b27cf6",
+    "generation-freeze.json": "86e52a322314b197a01f73a8a33f758355a9a1e9d05de52a5a2a7d4f79ff1af4",
+    "generation-policy.json": "0d902611757ffc7c438a72f719682a643ff19f891f1752f4bf22fba5bd324a2c",
+    "independent-validation.json": "ceb755f170759a6f32b84901b8611cceb88e072e3e9767ba804adae812978459",
+    "itr_monthly_preserved.csv": "551791af7d7560c5b8f844918c8727b6024751141fdea8e23c1b7f88c00c44e1",
+    "README.md": "66464ccf9a9ee5013724deaf6298315de48f3904bb015c5bac9e8c0cabd6f401",
+    "synthetic_group_a.csv": "af4c1fd93d39b4dfa5e59ec9c55d27c605d82eec84c64748a83075331514d1af",
+    "synthetic_group_b.csv": "a7c52264009ebd7f3b2d3af4293fdc686a1cceaa0622771eacc6b03e9844ddd1"
+  }
+}

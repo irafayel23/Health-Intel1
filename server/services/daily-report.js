@@ -1,5 +1,8 @@
+const path = require('node:path');
 const PDFDocument = require('pdfkit');
 const {caseAgeSql,visitAgeSql,ageGroupSql}=require('./age-groups');
+
+const facilitySeal = path.join(__dirname, '../../assets/img/murcia-main-primary-care.png');
 
 // Summaries contain no resident names or identifiers. A return visit is counted
 // in the visit section, not again as a newly recorded disease case.
@@ -30,30 +33,47 @@ async function dailyReportData(db, user, period) {
     return {cases, visits, scopeLabel, caseCount:total(cases), visitCount:total(visits)};
 }
 
+function renderReportHeading(doc, title, subtitle) {
+    const left=doc.page.margins.left, width=doc.page.width-left-doc.page.margins.right;
+    const ink="#163546", muted="#425c6a", teal="#126259";
+    doc.image(facilitySeal,left,49,{fit:[50,50]});
+    doc.font('Helvetica-Bold').fontSize(9).fillColor(teal)
+        .text('MURCIA MAIN  /  PRIMARY CARE FACILITY',left+63,49,{width:width-63});
+    doc.fontSize(20).fillColor(ink)
+        .text(title,left+63,64,{width:width-63});
+    doc.font('Helvetica').fontSize(10).fillColor(muted)
+        .text(subtitle,left+63,91,{width:width-63});
+    doc.font('Helvetica-Bold').fontSize(8).fillColor('#9a3412')
+        .text('ACADEMIC SAMPLE - NOT FOR OFFICIAL SUBMISSION',left,114,{width});
+    doc.moveTo(left,131).lineTo(left+width,131).lineWidth(1).strokeColor('#cadbd9').stroke();
+    doc.y=140;
+}
+
 function renderDailyReport(doc, data, period, role, options={}) {
     const day=options.daily?'the selected date':'today';
     const left=42, width=511, bottom=()=>doc.page.height-doc.page.margins.bottom;
     const date=new Date(period.start+'T00:00:00Z').toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric',timeZone:'UTC'});
-    function pageHeading(continued=false) {
-        doc.font('Helvetica-Bold').fontSize(8).fillColor('#9a3412').text('ACADEMIC SAMPLE - NOT FOR OFFICIAL SUBMISSION',left,42,{width,align:'center'});
-        doc.fontSize(18).fillColor('#0f172a').text(`${role.toUpperCase()} - ${options.daily?'Daily':'Today'} report${continued?' (continued)':''}`,left,62,{width});
-        doc.font('Helvetica').fontSize(10).fillColor('#475569').text(`${date} | Asia/Manila | ${data.scopeLabel}`,left,doc.y+8,{width});
-        doc.moveDown();
-    }
+    const ink='#163546', muted='#425c6a', teal='#126259';
+    const pageHeading = (continued=false) => renderReportHeading(doc,
+        `${role.toUpperCase()} ${options.daily?'Daily':'Today'} Report${continued?' (continued)':''}`,
+        `${date}  |  ${data.scopeLabel}  |  Philippine time`);
     pageHeading();
-    doc.fontSize(11).fillColor('#0f172a').text(`Recorded disease cases: ${data.caseCount}    |    Consultations: ${data.visitCount}`,left,doc.y,{width});
-    doc.fontSize(9).fillColor('#475569').text(`Cases use the recorded case date; consultations use the visit date. Follow-ups and admissions under an existing case do not add a disease case. Includes archived records dated ${day}; classification and case status are current.`,left,doc.y+10,{width});
-    doc.text(`Older records without structured visit details appear only in the case section. This report covers ${day} and can change when late entries or corrections are saved. It is not a frozen copy of an earlier download.`,left,doc.y+6,{width});
-    doc.text('Age groups (years): 0-5, 6-12, 13-17, 18-59, 60+. Cases use age on the case date; visits use age on the consultation date. Missing usable age is Not recorded.',left,doc.y+6,{width});
-    doc.moveDown();
+    const cardWidth=(width-12)/2;
+    for(const [index,label,total] of [[0,'Recorded disease cases',data.caseCount],[1,'Consultations',data.visitCount]]){
+        const x=left+index*(cardWidth+12);
+        doc.roundedRect(x,145,cardWidth,60,7).fill('#eaf4f2');
+        doc.font('Helvetica-Bold').fontSize(10).fillColor(teal).text(label,x+13,157,{width:cardWidth-26});
+        doc.fontSize(23).fillColor(ink).text(String(total),x+13,173,{width:cardWidth-26});
+    }
+    doc.y=218;
     function table(title, columns, rows, empty) {
         const heading=()=>{
             doc.font('Helvetica-Bold').fontSize(12).fillColor('#0f172a').text(title,left,doc.y+8,{width});
             doc.fontSize(9);
             const y=doc.y+10, height=Math.max(...columns.map(c=>doc.heightOfString(c.label,{width:c.width-12})))+16;
-            doc.rect(left,y,width,height).fill('#e2e8f0');
+            doc.rect(left,y,width,height).fill('#e1eeec');
             let x=left;
-            for(const c of columns){doc.fillColor('#334155').text(c.label,x+6,y+8,{width:c.width-12});x+=c.width;}
+            for(const c of columns){doc.fillColor(ink).text(c.label,x+6,y+8,{width:c.width-12});x+=c.width;}
             doc.y=y+height;
         };
         const newPage=()=>{doc.addPage();pageHeading(true);heading();};
@@ -80,6 +100,13 @@ function renderDailyReport(doc, data, period, role, options={}) {
         {label:'Barangay',key:'barangay',width:80},{label:'Recorded condition',key:'condition_label',width:125},
         {label:'Nature of visit',key:'nature_of_visit',width:95},{label:'Transaction',key:'transaction_mode',width:75},{label:'Age group',key:'age_group',width:80},{label:'Visits',key:'count',width:56}
     ],data.visits,`No structured consultations are dated ${day} in this scope.`);
+
+    if(doc.y+120>bottom()){doc.addPage();pageHeading(true);}
+    doc.font('Helvetica-Bold').fontSize(10).fillColor(ink).text('How counts are calculated',left,doc.y+12,{width});
+    doc.font('Helvetica').fontSize(9).fillColor(muted);
+    doc.text('Cases use the recorded case date and include archived cases. Consultations use the visit date. Follow-ups and admissions for existing cases count as consultations. Older cases without visit details appear in the case table.',left,doc.y+5,{width});
+    doc.text('The report uses current classifications and case statuses. Generate it again after saving corrections or late entries.',left,doc.y+5,{width});
+    doc.text('Age groups (years) are 0-5, 6-12, 13-17, 18-59 and 60+. Age is based on the case or visit date. Unavailable ages appear as Not recorded.',left,doc.y+5,{width});
 }
 
 function dailyReportPdf(data, period, role, options={}) {
@@ -89,4 +116,4 @@ function dailyReportPdf(data, period, role, options={}) {
         try {renderDailyReport(doc,data,period,role,options);doc.end();} catch(error) {doc.destroy();reject(error);}
     });
 }
-module.exports={dailyReportData,renderDailyReport,dailyReportPdf};
+module.exports={dailyReportData,renderDailyReport,dailyReportPdf,renderReportHeading};

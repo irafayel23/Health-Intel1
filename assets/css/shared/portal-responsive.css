@@ -84,6 +84,32 @@
     .hi-portal #superadmin-sidebar + main > header { padding:0; }
 }
 @media (max-width:600px) {
+    .bhw-profile-footer,
+    .mho-patient-profile.swal2-popup .swal2-actions.bhw-case-actions {
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:6px;
+        padding:8px 12px;
+    }
+    .bhw-profile-footer .bhw-case-actions:not(:empty) { display:contents; }
+    :is(.bhw-profile-footer,.mho-patient-profile .bhw-case-actions) .bhw-case-action-label {
+        grid-column:1 / -1;
+        margin:0;
+    }
+    .bhw-profile-footer button,
+    .mho-patient-profile.swal2-popup .swal2-actions.bhw-case-actions > button {
+        width:100%;
+        min-height:44px;
+        margin:0;
+        padding:6px 8px;
+        font-size:.85rem;
+        line-height:1.2;
+    }
+    .bhw-profile-footer > button:only-of-type { grid-column:2; }
+    .bhw-profile-footer:has(.bhw-case-actions button) > button { grid-column:auto; }
+    #view-review-center .mho-review-heading { grid-template-columns:44px minmax(0,1fr) auto; gap:10px; }
+    #view-review-center #disease-review-refresh { grid-area:1 / 3; justify-self:end; }
+    .hi-admin-invite-dialog .swal2-textarea { resize:vertical; overflow-wrap:anywhere; }
     .hi-portal .hi-wrap-actions { flex-wrap:wrap; gap:10px; }
     .hi-portal .hi-stack-small { flex-direction:column; align-items:stretch; }
     .hi-portal .hi-grid-small { grid-template-columns:minmax(0,1fr); }
@@ -97,3 +123,162 @@
 @media (prefers-reduced-motion:reduce) {
     .hi-portal #sidebar, .hi-portal #main-sidebar, .hi-portal #superadmin-sidebar { transition:none; }
 }
+
+/* Let keyboard users bypass the portal navigation. */
+.hi-portal .hi-skip-link {
+  position: fixed;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 0.75rem;
+  z-index: 1000;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  background: #0f172a;
+  color: #fff;
+  font-weight: 600;
+  transform: translateY(calc(-100% - 1rem));
+}
+
+.hi-portal .hi-skip-link:focus {
+  transform: none;
+  outline: 2px solid #2563eb;
+  outline-offset: 3px;
+}
+/* Admin portals share the BHW light-mode sidebar palette. */
+html:not(.dark) .hi-portal :is(#main-sidebar, #superadmin-sidebar) {
+  background-color: #f1f5f9;
+  border-right: 1px solid #cbd5e1;
+}
+html:not(.dark) .hi-portal :is(#main-sidebar, #superadmin-sidebar) .nav-item { color: #334155; }
+html:not(.dark) .hi-portal :is(#main-sidebar, #superadmin-sidebar) .nav-item:hover {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+html:not(.dark) .hi-portal :is(#main-sidebar, #superadmin-sidebar) .nav-item.active {
+  background-color: rgb(59 130 246 / 10%);
+  color: #1d4ed8;
+  border-left-width: 0;
+}
+html:not(.dark) .hi-portal #main-sidebar #sidebar-text,
+html:not(.dark) .hi-portal #superadmin-sidebar .hi-brand-name > span:first-child {
+  background-image: linear-gradient(to right, #2563eb, #06b6d4);
+  background-clip: text;
+  color: transparent;
+}
+
+/* One logout treatment across all portal sidebars. */
+.hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 48px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  transform: none;
+}
+html:not(.dark) .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out {
+  background-color: rgb(59 130 246 / 10%);
+  color: #1d4ed8;
+}
+html:not(.dark) .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out:is(:hover, :focus-visible) {
+  background-color: rgb(239 68 68 / 10%);
+  color: #b91c1c;
+}
+.hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+.dark .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out {
+  background-color: rgb(59 130 246 / 10%);
+  color: #93c5fd;
+}
+.dark .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar) .nav-item.sign-out:is(:hover, :focus-visible) {
+  background-color: rgb(248 113 113 / 12%);
+  color: #f87171;
+}
+
+@media (min-width:901px) {
+  .hi-portal :is(#sidebar, #main-sidebar, #superadmin-sidebar).hi-sidebar-collapsed .nav-item.sign-out {
+    justify-content: center;
+    gap: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.registration-review{margin-top:20px;padding:16px;border:1px solid #94a3b8;border-radius:14px;text-align:left}.registration-review h3{font-weight:700}.registration-review p{font-size:13px;margin:6px 0 14px}.registration-review-images{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}.registration-review figure{margin:0;min-width:0}.registration-review img{width:100%;max-height:300px;object-fit:contain;border:1px solid #94a3b8;border-radius:10px}.registration-review label{display:flex;gap:10px;margin-top:14px;align-items:flex-start}.registration-review input{width:18px;height:18px;flex-shrink:0}
+
+/* Registration rejection: a readable reason and correction note in one dialog. */
+.registration-denial-form { text-align:left; font-size:14px; line-height:1.6; }
+.registration-denial-form p { margin:0 0 20px; }
+.registration-denial-form label { display:block; font-weight:600; }
+.registration-denial-form .swal2-select,.registration-denial-form .swal2-textarea { display:block; box-sizing:border-box; width:100%; max-width:100%; margin:8px 0 18px; padding:12px; border:1px solid #cbd5e1; border-radius:10px; background:#f8fafc; color:#0f172a; font:inherit; }
+.registration-denial-form .swal2-textarea { min-height:100px; resize:vertical; }
+.registration-denial-form select:focus-visible,.registration-denial-form textarea:focus-visible { outline:3px solid #2563eb; outline-offset:2px; }
+.dark .registration-denial-form .swal2-select,.dark .registration-denial-form .swal2-textarea { background:#1e293b; color:#f1f5f9; border-color:#64748b; }
+
+.registration-submission-badge { display:inline-block; margin-top:6px; padding:4px 9px; border-radius:8px; font-size:12px; font-weight:600; line-height:1.5; background:#eff6ff; color:#1d4ed8; }
+.registration-submission-history { margin:16px 0; padding:16px; text-align:left; border:1px solid #cbd5e1; border-radius:12px; font-size:13px; line-height:1.6; }
+.registration-submission-history details { margin-top:12px; }.registration-submission-history summary { cursor:pointer;font-weight:600; }.registration-submission-history ol { padding-left:20px; }.registration-submission-history li { padding:10px 0;border-bottom:1px solid #cbd5e1; }
+.dark .registration-submission-badge { background:#172554;color:#bfdbfe; }
+
+/* Compact rejection dialog; keep actions visible even at small sizes/high zoom. */
+.swal2-container.registration-denial-container { padding:16px; overflow:hidden; }
+.swal2-popup.registration-denial-dialog { box-sizing:border-box; display:flex!important; flex-direction:column; width:720px; max-width:100%; height:auto; max-height:calc(100dvh - 32px); margin:auto; border-radius:16px; padding:0; overflow:hidden; }
+.registration-denial-dialog .swal2-title { flex-shrink:0; margin:0; padding:16px 56px 16px 24px; border-bottom:1px solid #e2e8f0; font-size:22px; text-align:left; }
+.registration-denial-dialog .swal2-close { position:absolute; top:8px; right:12px; }
+.registration-denial-dialog .swal2-html-container { flex:0 1 auto; min-height:0; margin:0; padding:16px 24px; overflow:auto; text-align:left; }
+.registration-denial-dialog .registration-denial-form { width:100%; max-width:860px; margin:0 auto; }
+.registration-denial-dialog .swal2-actions { flex-shrink:0; align-self:stretch; justify-content:flex-end; margin:0; padding:12px 24px; border-top:1px solid #e2e8f0; }
+.registration-denial-dialog .swal2-validation-message { flex-shrink:0; margin:0; padding:8px 24px; }
+.registration-denial-dialog .registration-denial-form p { margin-bottom:12px; }
+.registration-denial-dialog .swal2-select,.registration-denial-dialog .swal2-textarea { margin:6px 0 12px; padding:10px 12px; }
+.registration-denial-dialog .swal2-textarea { height:96px; min-height:72px; max-height:120px; resize:none; }
+@media(max-height:600px){.registration-denial-dialog .swal2-title{padding-block:12px;font-size:21px;}.registration-denial-dialog .swal2-html-container{padding-block:12px;}.registration-denial-dialog .swal2-actions{padding-block:10px;}.registration-denial-dialog .registration-denial-form p{margin-bottom:12px;}.registration-denial-dialog .swal2-textarea{height:90px;}}
+
+.hi-case-download { display: flex; flex-wrap: wrap; align-items: end; gap: .65rem 1rem; margin-bottom: 1rem; padding: .85rem 1rem; border: 1px solid #cbd5e1; border-radius: .75rem; text-align: left; }
+.hi-case-download label { flex: 1 1 15rem; min-width: 0; font-size: .875rem; font-weight: 600; }
+.hi-case-download select { display: block; width: 100%; margin-top: .3rem; padding: .55rem .65rem; }
+.hi-case-download .hi-vital-button { border-color: #0f766e; color: #fff; background: #0f766e; }
+.hi-case-download .hi-vital-button:hover { background: #115e59; }
+.hi-case-download .hi-vital-button:disabled { opacity: .55; cursor: default; }
+.hi-case-download p { flex-basis: 100%; margin: 0; font-size: .875rem; }
+.hi-case-download p:empty { display: none; }
+.dark .hi-case-download { border-color: #475569; }
+
+/* Loading feedback for all four portals. */
+[data-portal-loading]::before,
+.nav-item[data-portal-nav-loading]::after {
+    content: "";
+    display: inline-block;
+    width: .9em;
+    height: .9em;
+    box-sizing: border-box;
+    border: 2px solid currentColor;
+    border-inline-end-color: transparent;
+    border-radius: 50%;
+}
+[data-portal-loading]::before {
+    margin-inline-end: .5em;
+    vertical-align: -.14em;
+}
+.nav-item[data-portal-nav-loading] { position: relative; }
+.nav-item[data-portal-nav-loading]::after {
+    position: absolute;
+    inset-inline-end: 5px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+    [data-portal-loading]::before,
+    .nav-item[data-portal-nav-loading]::after {
+        animation: hi-portal-loading-spin .85s linear infinite;
+    }
+}
+@keyframes hi-portal-loading-spin { to { transform: rotate(360deg); } }

@@ -3,18 +3,26 @@ const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const { sessionVersion } = require('../config/security-config');
-const { createSessionSecurity } = require('../services/session-security');
+const { createSessionSecurity, tokenHash } = require('../services/session-security');
 
 const publicEndpoints = new Set([
     'POST /login', 'POST /register', 'POST /get-next-id', 'POST /check-email',
     'POST /forgot-password', 'POST /reset-password'
 ]);
 const rules = [
+    ['GET', /^\/admin\/registration-evidence\/[^/]+$/, ['admin','superadmin']],
+    ['GET', /^\/bhw\/dataset-analytics$/, ['bhw']],
+    ['GET', /^\/mho\/dataset-analytics$/, ['mho']],
+    ['GET', /^\/bhw\/operational-predictions\/(status|options|prediction)$/, ['bhw']],
+    ['GET', /^\/mho\/operational-predictions\/(status|publication|reports|options|prediction|runs\/[a-f0-9-]{36}|outcomes\/[a-f0-9-]{36})$/, ['mho']],
+    ['POST', /^\/mho\/operational-predictions\/(reports|runs|runs\/[a-f0-9-]{36}\/probability|publish)$/, ['mho']],
     ['GET', /^\/bhw\/followups$/, ['bhw']],
+    ['GET', /^\/bhw\/sarima-demo(?:\/options)?$/, ['bhw']],
     ['GET', /^\/mho\/followups$/, ['mho']],
     ['GET', /^\/mho\/sarima-demo(?:\/options)?$/, ['mho']],
     ['GET', /^\/session$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['POST', /^\/logout$/, ['bhw', 'mho', 'admin', 'superadmin']],
+    ['GET', /^\/encoding\/residents$/, ['bhw', 'mho']],
     ['GET', /^\/mho\/patients(?:\/(?:resident|legacy)\/\d+)?$/, ['mho']],
     ['POST', /^\/change-password$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['GET', /^\/admin\/(pending-users|active-users|denied-users|audit-logs)$/, ['admin', 'superadmin']],
@@ -22,12 +30,16 @@ const rules = [
     ['POST', /^\/admin\/(approve-user|deny-user|undo-deny|suspend-user|restore-suspended)$/, ['admin', 'superadmin']],
     ['GET', /^\/superadmin\/(pending-admins|health|users|audit-logs)$/, ['superadmin']],
     ['GET', /^\/superadmin\/admins\/[^/]+\/history$/, ['superadmin']],
-    ['POST', /^\/superadmin\/(approve-admin|backup)$/, ['superadmin']],
+    ['POST', /^\/superadmin\/(approve-admin|backup|admin-invitations)$/, ['superadmin']],
     ['GET', /^\/bhw\/context$/, ['bhw']],
     ['GET', /^\/bhw\/(encoding-options|puroks)$/, ['bhw']],
     ['GET', /^\/bhw\/report-data$/, ['bhw']],
+    ['GET', /^\/admin\/reports\/daily-submissions(?:\/pdf)?$/, ['admin']],
+    ['GET', /^\/bhw\/reports\/daily-submission$/, ['bhw']],
+    ['POST', /^\/bhw\/reports\/daily-submission$/, ['bhw']],
     ['GET', /^\/bhw\/reports\/(today|daily)$/, ['bhw']],
     ['GET', /^\/mho\/disease-reviews$/, ['mho']],
+    ['PUT', /^\/mho\/cases\/\d+\/reporting-eligibility$/, ['mho']],
     ['PUT', /^\/mho\/disease-reviews\/\d+$/, ['mho']],
     ['PUT', /^\/patients\/\d+\/condition-clarification$/, ['bhw']],
     ['GET', /^\/mho\/walk-in-(options|cases)$/, ['mho']],
@@ -35,23 +47,20 @@ const rules = [
     ['POST', /^\/mho\/walk-in-cases$/, ['mho']],
     ['GET', /^\/(patients(?:\/archived)?|residents(?:\/\d+\/dossier)?|bhw-trend|bhw-stats)$/, ['bhw', 'admin']],
     ['POST', /^\/patients$/, ['bhw']],
-    ['POST', /^\/residents\/\d+\/death-report$/, ['bhw']],
-    ['GET', /^\/mho\/resident-status$/, ['mho']],
-    ['PUT', /^\/mho\/death-reports\/\d+\/review$/, ['mho']],
-    ['PUT', /^\/mho\/residents\/\d+\/vital-status$/, ['mho']],
-    ['GET', /^\/mho\/reports\/deceased-residents$/, ['mho']],
+    ['GET', /^\/patients\/\d+\/case-summary\.pdf$/, ['bhw', 'mho']],
     ['GET', /^\/patients\/\d+\/visits$/, ['bhw', 'admin']],
-    ['PUT', /^\/patients\/\d+\/status$/, ['bhw']],
-    ['GET', /^\/patients\/\d+\/correction$/, ['bhw', 'admin']],
-    ['PUT', /^\/patients\/\d+\/correction$/, ['bhw', 'admin']],
-    ['PUT', /^\/patients\/\d+\/(archive|restore)$/, ['bhw', 'admin']],
+    ['PUT', /^\/patients\/\d+\/status$/, ['bhw', 'mho']],
+    ['GET', /^\/patients\/\d+\/correction$/, ['bhw', 'admin', 'mho']],
+    ['PUT', /^\/patients\/\d+\/correction$/, ['bhw', 'admin', 'mho']],
+    ['PUT', /^\/patients\/\d+\/archive$/, ['bhw', 'admin', 'mho']],
+    ['PUT', /^\/patients\/\d+\/restore$/, ['bhw', 'admin']],
     ['GET', /^\/heatmap-data$/, ['bhw', 'mho', 'admin']],
     ['GET', /^\/diseases$/, ['bhw', 'mho', 'admin']],
     ['GET', /^\/diseases\/archived$/, ['admin']],
     ['POST', /^\/diseases$/, ['admin']],
     ['PUT', /^\/diseases\/\d+\/(archive|restore)$/, ['admin']],
     ['GET', /^\/(mho-stats|analytics\/demographics|get-predictions|predict)$/, ['mho']],
-    ['GET', /^\/mho\/(stats|kpi|yoy|trend|year-comparison|analytics-options|mortality|breakdown|reports\/(fhsis|pidsr|today|daily))$/, ['mho']]
+    ['GET', /^\/mho\/(stats|kpi|kpi-cases|yoy|trend|year-comparison|analytics-options|disease-distribution|breakdown|daily-bhw-entries|reports\/(fhsis|pidsr|today|daily))$/, ['mho']]
 ];
 
 function loadJwtSecret() {
@@ -73,7 +82,7 @@ function loadJwtSecret() {
 
 function createAccessControl(db, secret) {
     const sessions = createSessionSecurity(db);
-    const deny = (res, status, error, code) => res.status(status).json({ success: false, error, code });
+    const deny = (res, status, error, code, reason) => res.status(status).json({ success: false, error, code, ...(reason ? {reason} : {}) });
     return async (req, res, next) => {
         if (publicEndpoints.has(`${req.method} ${req.path}`)) return next();
         const bearer = /^Bearer ([^\s]+)$/i.exec(req.get('Authorization') || '');
@@ -81,7 +90,7 @@ function createAccessControl(db, secret) {
         let claims;
         try {
             claims = jwt.verify(bearer[1], secret, { algorithms: ['HS256'] });
-            if (typeof claims.system_id !== 'string' || !Number.isSafeInteger(claims.exp)) throw new Error('Invalid identity or expiry');
+            if (typeof claims.system_id !== 'string' || !Number.isSafeInteger(claims.exp) || claims.purpose) throw new Error('Invalid identity or expiry');
         } catch {
             return deny(res, 401, 'Your session has expired. Please sign in again.', 'SESSION_INVALID');
         }
@@ -100,8 +109,17 @@ function createAccessControl(db, secret) {
             const epoch = claims.session_epoch === undefined ? 0 : claims.session_epoch;
             // Query by the canonical ID: existing MySQL tables can have different collations.
             const currentEpoch = await sessions.epoch(db, user.system_id);
+            const endedResponse = async () => {
+                const active = await sessions.active(db, user.system_id);
+                const otherSignIn = active && Number(active.session_epoch) === currentEpoch &&
+                    active.password_version === claims.password_version && active.token_hash !== tokenHash(bearer[1]);
+                return deny(res, 401, 'This session has ended. Please sign in again.', 'SESSION_REPLACED', otherSignIn ? 'OTHER_SIGN_IN' : undefined);
+            };
             if (!Number.isSafeInteger(epoch) || epoch < 0 || epoch !== currentEpoch || await sessions.revoked(bearer[1])) {
-                return deny(res, 401, 'This session has ended. Please sign in again.', 'SESSION_INVALID');
+                return await endedResponse();
+            }
+            if (claims.session_mode === 'single' && !await sessions.isActive(user.system_id, bearer[1])) {
+                return await endedResponse();
             }
             req.authToken = bearer[1];
             req.authExpiry = claims.exp;

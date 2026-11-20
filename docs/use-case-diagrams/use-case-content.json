@@ -1,0 +1,170 @@
+[
+  {
+    "actor": "Barangay Health Worker\n(BHW)",
+    "use_case": "Record disease cases and initial consultations",
+    "x": 610,
+    "y": 133
+  },
+  {
+    "actor": "Barangay Health Worker\n(BHW)",
+    "use_case": "Add follow-up / admission to the original case",
+    "x": 610,
+    "y": 224
+  },
+  {
+    "actor": "Barangay Health Worker\n(BHW)",
+    "use_case": "View resident profiles and case / visit histories",
+    "x": 610,
+    "y": 315
+  },
+  {
+    "actor": "Barangay Health Worker\n(BHW)",
+    "use_case": "Record return advice and track follow-ups",
+    "x": 610,
+    "y": 406
+  },
+  {
+    "actor": "Barangay Health Worker\n(BHW)",
+    "use_case": "Update status, correct, archive or restore cases",
+    "x": 610,
+    "y": 497
+  },
+  {
+    "actor": "Barangay Health Worker\n(BHW)",
+    "use_case": "Report unlisted conditions and provide clarification",
+    "x": 610,
+    "y": 588
+  },
+  {
+    "actor": "Barangay Health Worker\n(BHW)",
+    "use_case": "Report resident death for MHO review",
+    "x": 610,
+    "y": 679
+  },
+  {
+    "actor": "Barangay Health Worker\n(BHW)",
+    "use_case": "View barangay dashboard and case map",
+    "x": 610,
+    "y": 770
+  },
+  {
+    "actor": "Barangay Health Worker\n(BHW)",
+    "use_case": "Export daily barangay reports",
+    "x": 610,
+    "y": 861
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "Record walk-in cases and consultations",
+    "x": 1270,
+    "y": 133
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "Add follow-up / admission to the original case",
+    "x": 1270,
+    "y": 224
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "Search patient directory and view case / visit histories",
+    "x": 1270,
+    "y": 315
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "Record return advice and track follow-ups",
+    "x": 1270,
+    "y": 406
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "Review reported conditions and disease classification",
+    "x": 1270,
+    "y": 497
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "Review resident death reports and confirm / correct status",
+    "x": 1270,
+    "y": 588
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "Explore descriptive analytics and year comparisons",
+    "x": 1270,
+    "y": 679
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "View municipal case map and severity details",
+    "x": 1270,
+    "y": 770
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "View demonstration forecasts",
+    "x": 1270,
+    "y": 861
+  },
+  {
+    "actor": "Municipal Health Officer\n(MHO)",
+    "use_case": "Export daily, weekly and monthly reports",
+    "x": 1270,
+    "y": 952
+  },
+  {
+    "actor": "System Administrator\n(Admin)",
+    "use_case": "Manage BHW / MHO access (approve, deny, suspend, restore)",
+    "x": 610,
+    "y": 1245
+  },
+  {
+    "actor": "System Administrator\n(Admin)",
+    "use_case": "Inspect patient cases and consultation histories",
+    "x": 610,
+    "y": 1344
+  },
+  {
+    "actor": "System Administrator\n(Admin)",
+    "use_case": "Correct, archive or restore case records",
+    "x": 610,
+    "y": 1443
+  },
+  {
+    "actor": "System Administrator\n(Admin)",
+    "use_case": "Add, archive or restore disease catalog entries",
+    "x": 610,
+    "y": 1542
+  },
+  {
+    "actor": "System Administrator\n(Admin)",
+    "use_case": "Review operational audit records",
+    "x": 610,
+    "y": 1641
+  },
+  {
+    "actor": "Super Administrator\n(Superadmin)",
+    "use_case": "Manage Admin access (approve, suspend, restore)",
+    "x": 1270,
+    "y": 1285
+  },
+  {
+    "actor": "Super Administrator\n(Superadmin)",
+    "use_case": "Monitor system health and record totals",
+    "x": 1270,
+    "y": 1391
+  },
+  {
+    "actor": "Super Administrator\n(Superadmin)",
+    "use_case": "Review master audit ledger",
+    "x": 1270,
+    "y": 1497
+  },
+  {
+    "actor": "Super Administrator\n(Superadmin)",
+    "use_case": "Download encrypted database backups",
+    "x": 1270,
+    "y": 1603
+  }
+]

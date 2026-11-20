@@ -2,14 +2,20 @@ const {test,before,after}=require('node:test'),assert=require('node:assert/stric
 const {createFixture}=require('./helpers/directory-session-fixture');
 let fixture;const tokens={};
 async function request(route,role='mho',body,method){return fetch(fixture.base+'/api'+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
-async function login(role){const r=await request('/login',null,{system_id:fixture.users[role],password:fixture.password});assert.equal(r.status,200);return (await r.json()).token;}
+async function login(role){
+    const body={system_id:fixture.users[role],password:fixture.password};
+    let r=await request('/login',null,body),result=await r.json();
+    // Tests which deliberately open another browser must now explicitly confirm.
+    if(result.code==='SESSION_CONFLICT'){r=await request('/login',null,{...body,replace_existing:true,takeover_token:result.takeover_token});result=await r.json();}
+    assert.equal(r.status,200);return result.token;
+}
 before(async()=>{fixture=await createFixture();for(const role of Object.keys(fixture.users))tokens[role]=await login(role);});
 after(async()=>{await fixture?.close();});
 test('session checks tolerate different collations on users and session epochs',async()=>{
     const [[column]]=await fixture.db.query("SHOW FULL COLUMNS FROM users WHERE Field='system_id'");
     const alternate=column.Collation==='utf8mb4_unicode_ci'?'utf8mb4_general_ci':'utf8mb4_unicode_ci';
     await fixture.db.query('ALTER TABLE account_session_epochs MODIFY system_id VARCHAR(50) CHARACTER SET utf8mb4 COLLATE '+alternate+' NOT NULL');
-    for(const id of Object.values(fixture.users))await fixture.db.execute('INSERT INTO account_session_epochs(system_id,epoch) VALUES(?,0)',[id]);
+    for(const id of Object.values(fixture.users))await fixture.db.execute('INSERT INTO account_session_epochs(system_id,epoch) VALUES(?,0) ON DUPLICATE KEY UPDATE system_id=VALUES(system_id)',[id]);
     for(const role of Object.keys(fixture.users))assert.equal((await request('/session',role)).status,200);
 });
 test('municipal directory is MHO-only, paged, and includes other barangays and archived legacy entries',async()=>{
@@ -57,12 +63,13 @@ test('directory return-visit target is rechecked even beyond the latest 50 cases
         const original=profile.history.find(h=>h.id===fixture.cases[0]);assert.equal(original.severity,'Mild');assert.equal(original.date_recorded,'2025-01-01');assert.equal(original.status,'Active');
     }finally{if(extras.length)await fixture.db.execute('DELETE FROM health_cases WHERE id IN ('+extras.map(()=>'?').join(',')+')',extras);}
 });
-test('logout persists server revocation, cannot be replayed, and keeps a separate login active',async()=>{
-    const old=tokens.mho,other=await login('mho');assert.notEqual(old,other,'Each login has its own token');
+test('logout persists server revocation, cannot be replayed, and keeps other accounts active',async()=>{
+    const old=tokens.mho,other=await login('mho');assert.notEqual(old,other,'Confirmed replacement has its own token');
+    assert.equal((await request('/session','mho')).status,401,'Confirmed replacement revokes the original');tokens.mho=other;
     assert.equal((await request('/logout','mho',{},'POST')).status,200);assert.equal((await request('/session','mho')).status,401);
     const {createAccessControl}=require('../middleware/access-control');const app=require('express')();app.use('/api',createAccessControl(fixture.db,fixture.secret));app.get('/api/session',(_,res)=>res.json({success:true}));const fresh=app.listen(0,'127.0.0.1');await new Promise(r=>fresh.once('listening',r));
     try{assert.equal((await fetch('http://127.0.0.1:'+fresh.address().port+'/api/session',{headers:{Authorization:'Bearer '+old}})).status,401,'Revocation survives a new access-control instance');}finally{await new Promise(r=>fresh.close(r));}
-    tokens.mho=other;assert.equal((await request('/session')).status,200);
+    assert.equal((await request('/session','admin')).status,200);tokens.mho=await login('mho');assert.equal((await request('/session')).status,200);
     const [revocations]=await fixture.db.query('SELECT token_hash,expires_at FROM revoked_api_sessions');assert.ok(revocations.length);assert.ok(revocations.every(row=>/^[a-f0-9]{64}$/.test(row.token_hash)&&row.token_hash!==old),'Raw tokens must not be stored');
 });
 test('suspend and restore invalidate all older sessions, but a new login works',async()=>{

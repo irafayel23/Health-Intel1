@@ -15,18 +15,31 @@
             const diseaseLocked = classificationPending ? 'disabled' : locked;
             const note = !data.identity_ready ? 'This historical record needs source/profile review before date or disease changes. Recorded severity can still be corrected.' : data.has_birthdate ? 'Age on the case date is recalculated when the date changes.' : 'No birthdate is recorded. The existing age will be preserved.';
             const saved = await Swal.fire({
-                title: 'Correct Case Record', width: 620, customClass:{popup:'hi-dialog'}, confirmButtonText: 'Save correction', showCancelButton: true,
+                title: 'Correct Case Record', width: 720, customClass:{popup:'hi-dialog hi-correction-dialog'}, confirmButtonText: 'Save correction', showCancelButton: true,
                 showLoaderOnConfirm: true, allowOutsideClick: () => !Swal.isLoading(),
                 html: `<div class="text-left space-y-4">
-                    <p class="text-sm text-slate-600 dark:text-slate-300">Case #REC-${escape(data.id)}. Changes require a reason and retain previous values in the audit trail.</p>
-                    <label class="block text-sm font-medium" for="correction-date">Case date</label>
-                    <input id="correction-date" type="date" class="w-full rounded-lg border px-3 py-2 disabled:opacity-60" value="${escape(data.date_recorded)}" ${locked}>
-                    <label class="block text-sm font-medium" for="correction-disease">Recorded disease / case</label>
-                    <select id="correction-disease" class="w-full rounded-lg border px-3 py-2 disabled:opacity-60" ${diseaseLocked}>${options}</select>
-                    <label class="block text-sm font-medium" for="correction-severity">Recorded severity</label>
-                    <select id="correction-severity" class="w-full rounded-lg border px-3 py-2"><option value="">Select recorded severity</option>${['Mild','Monitored','High Risk'].map(name => `<option ${name === data.severity ? 'selected' : ''}>${name}</option>`).join('')}</select>
+                    <p class="text-sm text-slate-600 dark:text-slate-300">Case #REC-${escape(data.id)}. Edit the proposed values below. The original values and your justification are saved in the audit trail.</p>
+                    <div class="hi-correction-comparison">
+                        <div class="hi-correction-saved">
+                            <h3>Saved values <span>(read-only)</span></h3>
+                            <dl>
+                                <div><dt>Case date</dt><dd>${escape(data.date_recorded || 'Not recorded')}</dd></div>
+                                <div><dt>Recorded disease / case</dt><dd>${escape((classificationPending && data.disease_reported) || data.disease || 'Not recorded')}</dd></div>
+                                <div><dt>Recorded severity</dt><dd>${escape(data.severity || 'Not recorded')}</dd></div>
+                            </dl>
+                        </div>
+                        <div class="hi-correction-proposed">
+                            <h3>Proposed values</h3>
+                            <div><label class="block text-sm font-medium" for="correction-date">Case date</label>
+                                <input id="correction-date" type="date" class="w-full rounded-lg border px-3 py-2 disabled:opacity-60" value="${escape(data.date_recorded)}" ${locked}></div>
+                            <div><label class="block text-sm font-medium" for="correction-disease">Recorded disease / case</label>
+                                <select id="correction-disease" class="w-full rounded-lg border px-3 py-2 disabled:opacity-60" ${diseaseLocked}>${options}</select></div>
+                            <div><label class="block text-sm font-medium" for="correction-severity">Recorded severity</label>
+                                <select id="correction-severity" class="w-full rounded-lg border px-3 py-2"><option value="" disabled hidden ${['Mild','Monitored','High Risk'].includes(data.severity) ? '' : 'selected'}>Select recorded severity</option>${['Mild','Monitored','High Risk'].map(name => `<option ${name === data.severity ? 'selected' : ''}>${name}</option>`).join('')}</select></div>
+                        </div>
+                    </div>
                     <p class="text-xs text-slate-600 dark:text-slate-300">${escape(note)}${classificationPending ? ' MHO must review the reported condition before its category changes.' : ''}</p>
-                    <label class="block text-sm font-medium" for="correction-reason">Reason for correction</label>
+                    <label class="block text-sm font-medium" for="correction-reason">Justification for correction</label>
                     <textarea id="correction-reason" rows="3" maxlength="1000" class="w-full rounded-lg border px-3 py-2" placeholder="Explain what was entered incorrectly and how you confirmed the correction."></textarea>
                 </div>`,
                 preConfirm: async () => {

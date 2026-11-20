@@ -1,116 +1,161 @@
-      // ==========================================
-      // IAM USER MANAGEMENT 
-      // ==========================================
-      async function loadUsers() {
-        try {
-          // Fetch Pending Users
-          const pRes = await fetch("http://localhost:3000/api/admin/pending-users");
-          const pData = await pRes.json();
-          const pTable = document.getElementById("pending-table-body");
-          pTable.innerHTML = "";
-          let pTableHtmlBuffer = "";
-          if (pData.success) {
-            pData.data.forEach((u) => {
-              pTableHtmlBuffer += `
-                <tr>
-                  <td><strong>${escapeText(u.system_id)}</strong></td>
-                  <td>${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
-                  <td>${escapeText(u.employee_id || 'N/A')}</td>
-                  <td><span class="admin-badge-pending">PENDING</span></td>
-                  <td>
-                    <button onclick="approveUserDirectly(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-approve bg-blue-700 hover:bg-blue-800 text-white">Approve</button>
-                    <button onclick="denyUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-deny bg-red-700 hover:bg-red-800 text-white">Deny</button>
-                  </td>
-                </tr>
-              `;
-            });
-          if (pTableHtmlBuffer === "") {
-              pTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
-<div class="flex flex-col items-center justify-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No records found in the database.</span>
-</div>
-</td></tr>`;
-          }
-          pTable.innerHTML = pTableHtmlBuffer;
-          }
+// The directory endpoints determine which accounts Admin may see.
+const ADMIN_PERSONNEL_PER_PAGE = 10;
+const adminPersonnelLists = [
+  ['pending-users', 'pending-table-body', 'pending', 3],
+  ['active-users', 'active-users-table-body', 'approved', 4],
+  ['denied-users', 'denied-table-body', null, 2]
+];
+const adminPersonnelState = Object.fromEntries(adminPersonnelLists.map(([, id]) => [id, { data: [], page: 1, error: false }]));
 
-          // Fetch Active Personnel
-          const aRes = await fetch("http://localhost:3000/api/admin/active-users");
-          const aData = await aRes.json();
-          const aTable = document.getElementById("active-users-table-body");
-          aTable.innerHTML = "";
-          let aTableHtmlBuffer = "";
-          if (aData.success) {
-            aData.data.forEach((u) => {
-              aTableHtmlBuffer += `
-                <tr>
-                  <td><strong>${escapeText(u.system_id)}</strong></td>
-                  <td>${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
-                  <td class="admin-uppercase-role">${u.role}</td>
-                  <td>${u.assigned_barangay || 'Municipality'}</td>
-                  <td><span class="admin-badge-active bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200">ACTIVE</span></td>
-                  <td>
-                    <button onclick="suspendUser(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-suspend bg-red-700 hover:bg-red-800 text-white">Suspend Access</button>
-                  </td>
-                </tr>
-              `;
-            });
-          if (aTableHtmlBuffer === "") {
-              aTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
-<div class="flex flex-col items-center justify-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No records found in the database.</span>
-</div>
-</td></tr>`;
-          }
-          aTable.innerHTML = aTableHtmlBuffer;
-          }
+async function loadUsers() {
+  for (const [endpoint, tableId] of adminPersonnelLists) {
+    const state = adminPersonnelState[tableId];
+    try {
+      const response = await fetch('http://localhost:3000/api/admin/' + endpoint);
+      const { success, data } = await response.json();
+      if (!response.ok || !success || !Array.isArray(data)) throw new Error('Directory unavailable');
+      state.data = data;
+      state.error = false;
+    } catch {
+      state.data = [];
+      state.error = true;
+    }
+    renderAdminPersonnelList(tableId);
+  }
+}
 
-          // Fetch Archived Users
-          const dRes = await fetch("http://localhost:3000/api/admin/denied-users");
-          const dData = await dRes.json();
-          const dTable = document.getElementById("denied-table-body");
-          dTable.innerHTML = "";
-          let dTableHtmlBuffer = "";
-          if (dData.success) {
-            dData.data.forEach((u) => {
-              let badgeHTML = "";
-              let btnHTML = "";
-              
-              if (u.status === 'suspended') {
-                badgeHTML = `<span class="admin-badge-suspended">ACCESS SUSPENDED</span>`;
-                btnHTML = `<button onclick="restoreSuspended(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-restore-access">Restore Access</button>`;
-              } else {
-                badgeHTML = `<span class="admin-badge-denied">DENIED REGISTRATION</span>`;
-                btnHTML = `<button onclick="undoDeny(${escapeText(JSON.stringify(u.system_id))})" class="admin-button-reevaluate">Re-evaluate</button>`;
-              }
+function renderAdminPersonnelList(tableId, requestedPage = adminPersonnelState[tableId]?.page) {
+  const config = adminPersonnelLists.find(([, id]) => id === tableId);
+  if (!config) return;
+  const [, , listStatus, columns] = config;
+  const state = adminPersonnelState[tableId];
+  const pages = Math.max(1, Math.ceil(state.data.length / ADMIN_PERSONNEL_PER_PAGE));
+  state.page = Math.min(pages, Math.max(1, Number.isInteger(requestedPage) ? requestedPage : 1));
+  const start = (state.page - 1) * ADMIN_PERSONNEL_PER_PAGE;
+  const visible = state.data.slice(start, start + ADMIN_PERSONNEL_PER_PAGE);
+  const table = document.getElementById(tableId);
+  table.innerHTML = visible.map(user => personnelRow(user, listStatus ?? user.status)).join('')
+    || personnelTableMessage(columns, state.error ? 'Accounts could not be loaded.' : 'No accounts in this list.');
+  table.querySelectorAll('.admin-personnel-row').forEach((row, index) => {
+    const user = visible[index];
+    row.addEventListener('click', () => {
+      row.querySelector('button').focus({ preventScroll: true });
+      return openPersonnelDetails(user, listStatus ?? user.status);
+    });
+  });
+  const pager = document.getElementById(tableId + '-pagination');
+  if (!pager) return;
+  if (state.error) { pager.innerHTML = ''; return; }
+  const info = state.data.length ? 'Page ' + state.page + ' of ' + pages + ' · Showing ' + (start + 1) + '–' + Math.min(start + ADMIN_PERSONNEL_PER_PAGE, state.data.length) + ' of ' + state.data.length + ' accounts' : '0 accounts';
+  const button = (target, label, attrs = '') => '<button type="button" onclick="goToAdminPersonnelPage(&quot;' + tableId + '&quot;, ' + target + ')" ' + attrs + '>' + label + '</button>';
+  let controls = '';
+  if (state.data.length) {
+    controls = button(state.page - 1, 'Previous', state.page === 1 ? 'disabled' : '');
+    const first = Math.max(1, Math.min(state.page - 2, pages - 4));
+    for (let number = first; number <= Math.min(first + 4, pages); number++) {
+      controls += button(number, number, number === state.page ? 'aria-current="page"' : 'aria-label="Page ' + number + '"');
+    }
+    controls += button(state.page + 1, 'Next', state.page === pages ? 'disabled' : '');
+  }
+  pager.innerHTML = '<span role="status" aria-live="polite" aria-atomic="true">' + info + '</span><div class="admin-case-page-buttons">' + controls + '</div>';
+}
 
-              dTableHtmlBuffer += `
-                <tr>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(u.system_id)}</td>
-                  <td class="font-medium text-slate-700 dark:text-slate-300">${escapeText(u.first_name)} ${escapeText(u.last_name)}</td>
-                  <td>${badgeHTML}</td>
-                  <td>${btnHTML}</td>
-                </tr>
-              `;
-            });
-          if (dTableHtmlBuffer === "") {
-              dTableHtmlBuffer = `<tr><td colspan="12" class="text-center py-12 text-slate-600 dark:text-slate-400 italic">
-<div class="flex flex-col items-center justify-center gap-2">
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
-<span>No records found in the database.</span>
-</div>
-</td></tr>`;
-          }
-          dTable.innerHTML = dTableHtmlBuffer;
-          }
-        } catch (e) {
-          console.error("Error loading users:", e);
-        }
-      }
+function goToAdminPersonnelPage(tableId, page) {
+  if (!Object.hasOwn(adminPersonnelState, tableId)) return;
+  renderAdminPersonnelList(tableId, page);
+  globalThis.HealthIntelPagination?.showStart(tableId);
+}
 
-      async function approveUserDirectly(temp_id) {
+function personnelTableMessage(columns, message) {
+  return `<tr><td colspan="${columns}" class="text-center py-12">${message}</td></tr>`;
+}
+
+function personnelStatus(status) {
+  const statuses = {
+    pending: ['Pending', 'pending'],
+    approved: ['Active', 'active bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-200'],
+    suspended: ['Access suspended', 'suspended'],
+    denied: ['Registration denied', 'denied']
+  };
+  return Object.hasOwn(statuses, status) ? statuses[status] : ['Unknown', ''];
+}
+
+function personnelRow(user, status) {
+  const [label, badge] = personnelStatus(status);
+  const id = escapeText(user.system_id);
+  const name = escapeText([user.first_name, user.last_name].filter(Boolean).join(' '));
+  const role = escapeText(user.role?.toUpperCase());
+  const extraCells = status === 'pending' ? `<td>${escapeText(user.employee_id || 'N/A')}</td>`
+    : status === 'approved' ? `<td>${role}</td><td>${escapeText(user.assigned_barangay || 'Municipality')}</td>` : '';
+  return `<tr class="admin-personnel-row">
+    <td>
+      <button type="button" class="admin-personnel-open" aria-label="View profile for ${name || id} (${id})">
+        <span class="admin-personnel-name">${name || 'Unnamed account'}</span>
+        <span class="admin-personnel-id">${id}</span>${status==='pending'?registrationSubmissionBadge(user):''}
+      </button>
+    </td>
+    ${extraCells}
+    <td class="admin-personnel-status">
+      <span class="admin-badge-${badge}">${label}</span>
+      <span class="admin-personnel-hint" aria-hidden="true">View profile</span>
+    </td>
+  </tr>`;
+}
+
+function formatPersonnelDate(value) {
+  const date = new Date(value);
+  return value && !Number.isNaN(date.getTime())
+    ? new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }).format(date) + ' PHT'
+    : '';
+}
+
+async function openPersonnelDetails(user, status) {
+  const actions = {
+    pending: ['Approve', approveUserDirectly, '#1d4ed8'],
+    approved: ['Suspend Access', suspendUser, '#b91c1c'],
+    suspended: ['Restore Access', restoreSuspended, '#047857'],
+    denied: ['Re-evaluate', undoDeny, '#1d4ed8']
+  };
+  if (!user.system_id || !Object.hasOwn(actions, status)) return;
+  const [actionLabel, action, color] = actions[status];
+  const facts = [
+    ['Full name', [user.first_name, user.last_name].filter(Boolean).join(' ')],
+    ['System ID', user.system_id],
+    ['Status', personnelStatus(status)[0]],
+    ['Email', user.email],
+    ['Employee ID', user.employee_id],
+    ['Role', user.role?.toUpperCase()],
+    ['Assigned barangay', user.assigned_barangay || (status === 'approved' ? 'Municipality' : '')],
+    ['Registered', formatPersonnelDate(user.created_at)],
+    ['Suspended on', status === 'suspended' ? formatPersonnelDate(user.suspended_at) || 'Date not recorded' : '']
+  ];
+  const review=status==='pending'?await registrationReview(user.system_id):{html:'',required:false};
+  const result = await Swal.fire({
+    preConfirm:()=>confirmRegistrationReview(review),
+    titleText: `Account ${user.system_id}`,
+    html: `<dl class="admin-personnel-facts">${facts.filter(([, value]) => value).map(([label, value]) =>
+      `<div><dt>${label}</dt><dd>${escapeText(value)}</dd></div>`).join('')}</dl>${review.html}`,
+    customClass: { popup: 'hi-dialog admin-personnel-dialog' },
+    showCloseButton: true,
+    closeButtonAriaLabel: 'Close account details',
+    showCancelButton: true,
+    cancelButtonText: 'Close',
+    cancelButtonColor: '#475569',
+    showDenyButton: status === 'pending',
+    denyButtonText: 'Deny registration',
+    denyButtonColor: '#b91c1c',
+    confirmButtonText: actionLabel,
+    confirmButtonColor: color,
+    focusCancel: true
+  });
+
+  if (result.isConfirmed) return action(user.system_id, review.required, review.submission);
+  if (result.isDenied && status === 'pending') {
+    return denyUser(user.system_id, review.submission);
+  }
+}
+
+      async function approveUserDirectly(temp_id, reviewConfirmed=false, reviewSubmission) {
         Swal.fire({
           title: "Approve Employee?", text: `Are you sure you want to approve ${temp_id}?`, icon: "question",
           showCancelButton: true, confirmButtonColor: "#0ea5e9", confirmButtonText: "Yes, Approve"
@@ -119,7 +164,7 @@
             try {
               const res = await fetch("http://localhost:3000/api/admin/approve-user", {
                 method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ temp_system_id: temp_id }),
+                body: JSON.stringify({ temp_system_id: temp_id, review_confirmed:reviewConfirmed, review_submission:reviewSubmission }),
               });
               const data = await res.json();
               if (data.success) {
@@ -135,8 +180,9 @@
         });
       }
 
-      async function denyUser(id) {
-        if (await saveUserAction('deny-user', { temp_system_id: id })) loadUsers();
+      async function denyUser(id, reviewSubmission) {
+        const decision=await registrationDenial(id,reviewSubmission);
+        if(decision.isConfirmed){await loadUsers();registrationDecisionNotice(decision.value);}
       }
       
       async function undoDeny(id) {
@@ -176,6 +222,7 @@
           });
           const data = await response.json();
           if (!response.ok || !data.success) throw new Error(data.error || 'Account change could not be saved.');
+          if(action==='deny-user')await Swal.fire({icon:data.email_delivery==='sent'?'success':'warning',title:data.email_delivery==='sent'?'Registration declined':'Declined — email not sent',text:data.message,confirmButtonColor:'#007f84'});
           return true;
         } catch (error) {
           await Swal.fire('Account not updated', error.message || 'Please try again.', 'error');

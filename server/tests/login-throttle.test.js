@@ -6,6 +6,7 @@ const mysql = require('mysql2/promise');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const { registerAuthRoutes } = require('../routes/auth-routes');
+const { migrateSessionSecurity } = require('../services/session-security');
 const { createLoginThrottle, migrateLoginThrottle, accountKey } = require('../services/login-throttle');
 
 const name = `health_intel_login_verify_${process.pid}_${crypto.randomBytes(4).toString('hex')}`;
@@ -24,8 +25,12 @@ before(async () => {
         await db.execute("INSERT INTO users VALUES (?,'bhw',?,?)", [id,status,hash]);
     }
     await migrateLoginThrottle(db);
+    await migrateSessionSecurity(db);
 });
 beforeEach(async () => {
+    await db.query('DELETE FROM account_active_sessions');
+    await db.query('DELETE FROM account_session_epochs');
+    await db.query('DELETE FROM revoked_api_sessions');
     await db.query('DELETE FROM login_attempt_limits');
     await db.query('DELETE FROM system_audit_logs');
     clock = 1791450000000;

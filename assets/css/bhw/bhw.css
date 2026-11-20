@@ -423,3 +423,255 @@ body :is(.nav-menu, .swal2-html-container, .swal2-popup, .heatmap-info-panel)::-
   color: white !important;
   border-color: #334155 !important;
 }
+
+
+#bhw-dashboard-welcome { color: #1e40af; }
+.dark #bhw-dashboard-welcome { color: #93c5fd; }
+#bhw-dashboard-add { background: #1d4ed8; }
+#bhw-dashboard-add:hover { background: #1e40af; }
+
+#bhw-cursor-tooltip { position: fixed; z-index: 100001; width: max-content; max-width: calc(100vw - 16px); padding: 6px 10px; border-radius: 6px; background: #0f2743; color: white; font-size: .75rem; font-weight: 600; pointer-events: none; visibility: hidden; }
+#bhw-cursor-tooltip.is-visible { visibility: visible; }
+.dark #bhw-cursor-tooltip { background: #e2e8f0; color: #0f2743; }
+
+/* Match the MHO walk-in palette in the BHW case / visit form. */
+.hi-bhw-entry-dialog.swal2-popup { --hi-form-accent: #047857; }
+.dark .hi-bhw-entry-dialog.swal2-popup { --hi-form-accent: #6ee7b7; }
+.hi-bhw-entry-dialog.hi-encode-dialog.swal2-popup {
+  width: min(980px, calc(100vw - 24px)) !important;
+  height: min(780px, calc(100dvh - 24px));
+  max-height: none !important;
+  padding: 0;
+  border-radius: 20px;
+  --bhw-entry-padding: 24px;
+  --bhw-entry-error: #b91c1c;
+}
+.dark .hi-bhw-entry-dialog.swal2-popup { --bhw-entry-error: #fda4af; }
+.hi-bhw-entry-dialog.swal2-popup .swal2-title {
+  text-align: start;
+  padding: 16px 68px 16px var(--bhw-entry-padding);
+  min-height: 66px;
+  border-bottom: 1px solid var(--hi-form-border);
+}
+.hi-bhw-entry-dialog.swal2-popup .swal2-html-container { margin: 0; padding: 0; scrollbar-gutter: auto; }
+.hi-bhw-entry-dialog #hi-visit-progress { padding: 12px var(--bhw-entry-padding) 8px; }
+.hi-bhw-entry-dialog .hi-visit-steps { margin-bottom: 0; }
+.hi-bhw-entry-dialog .hi-visit-steps li { padding: 0 0 8px; }
+.hi-bhw-entry-dialog .hi-encode-intro { margin: 12px var(--bhw-entry-padding) 0; }
+.hi-bhw-entry-dialog .hi-encode > section {
+  padding: 18px var(--bhw-entry-padding);
+  border: 0;
+  margin: 0;
+}
+.hi-bhw-entry-dialog .hi-bhw-patient-step > .hi-encode-grid { margin-top: 0; row-gap: 14px; }
+.hi-bhw-entry-dialog .hi-bhw-patient-step input:not([type=date]) { border-color: var(--hi-form-border); }
+.hi-bhw-entry-dialog .hi-bhw-patient-step input[readonly] {
+  background: var(--hi-form-hover);
+  color: var(--hi-form-muted);
+}
+.hi-bhw-entry-dialog .hi-encode :is(input,select,textarea):focus:not([readonly]) {
+  border-color: var(--hi-form-accent);
+  outline: 1px solid var(--hi-form-accent);
+}
+.hi-bhw-entry-dialog .hi-encode input[aria-invalid=true] { border-color: var(--bhw-entry-error); }
+.hi-bhw-entry-dialog .hi-encode input[aria-invalid=true]:focus { border-color: var(--bhw-entry-error); outline-color: var(--bhw-entry-error); box-shadow: none; }
+.hi-bhw-entry-dialog .hi-bhw-field-error { margin: 5px 0 0; color: var(--bhw-entry-error); font-size: 13px; }
+.hi-bhw-entry-dialog.swal2-popup .swal2-actions {
+  width: 100%;
+  margin: 0;
+  padding: 12px var(--bhw-entry-padding);
+  flex-wrap: wrap;
+  background: var(--hi-form-hover);
+}
+.hi-bhw-entry-dialog .swal2-actions > button { margin: 0; }
+.hi-bhw-entry-dialog .hi-visit-back { min-height: 48px; }
+.hi-bhw-entry-dialog .hi-bhw-entry-note { margin: 0 auto 0 0; flex: 1 1 240px; text-align: start; font-size: 14px; color: var(--hi-form-text); }
+.hi-bhw-entry-dialog.swal2-popup .swal2-validation-message { order: 1; margin: 0; padding: 10px var(--bhw-entry-padding); text-align: start; color: var(--bhw-entry-error); background: color-mix(in srgb, var(--bhw-entry-error) 7%, var(--hi-form-bg)); }
+@media (min-width: 900px) {
+  .hi-bhw-entry-dialog .hi-bhw-patient-step > .hi-encode-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .hi-bhw-entry-dialog.hi-encode-dialog.swal2-popup { --bhw-entry-padding: 16px; }
+  .hi-bhw-entry-dialog .hi-bhw-entry-note { flex-basis: 100%; }
+}
+@media (max-height: 500px) {
+  .hi-bhw-entry-dialog .hi-bhw-entry-note { display: none; }
+}
+.hi-bhw-entry-dialog .swal2-close {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 12px;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--hi-form-hover);
+  color: var(--hi-form-text);
+}
+.hi-bhw-entry-dialog .swal2-close:hover:not(:disabled) { background: var(--hi-form-border); color: var(--hi-form-text); }
+.hi-bhw-entry-dialog .swal2-close:focus-visible { outline: 2px solid var(--hi-form-accent); outline-offset: 2px; }
+.hi-bhw-entry-dialog .swal2-close:disabled { opacity: .55; cursor: wait; }
+.hi-bhw-entry-dialog .hi-visit-steps [data-stage=current] { color: var(--hi-form-accent); }
+.hi-bhw-entry-dialog .hi-visit-steps [data-stage=current] .hi-step-number { background: #047857; }
+.hi-bhw-entry-dialog .hi-visit-steps [data-stage=complete] { border-color: #34d399; }
+.hi-bhw-entry-dialog .hi-encode input:focus,
+.hi-bhw-entry-dialog .hi-encode textarea:focus,
+.hi-bhw-entry-dialog .hi-select-trigger:focus-visible,
+.hi-bhw-entry-dialog .hi-select-trigger[aria-expanded=true],
+.hi-bhw-entry-dialog .swal2-confirm:focus-visible { box-shadow: 0 0 0 3px #10b98140; }
+
+[aria-label="Filter patient records"] label { display:flex; align-items:center; gap:.5rem; font-size:.875rem; }
+[aria-label="Filter patient records"] select, [aria-label="Filter patient records"] button { border:1px solid #cbd5e1; border-radius:.5rem; background:var(--card,white); color:inherit; padding:.5rem .75rem; }
+#bhw-dashboard-content section[role="button"] { cursor:pointer; }
+#bhw-dashboard-content section[role="button"]:focus-visible { outline:3px solid #2563eb; outline-offset:2px; }
+
+.bhw-dashboard-case-list { max-height: 55vh; overflow: auto; text-align: left; }
+.bhw-dashboard-case-list table { width: 100%; border-collapse: collapse; }
+.bhw-dashboard-case-list th, .bhw-dashboard-case-list td { padding: .75rem; border-bottom: 1px solid #cbd5e1; }
+
+.bhw-dashboard-case-list th { font-size: .8rem; color: #475569; background: #f1f5f9; }
+.bhw-dashboard-case-list td small { display: block; color: #64748b; margin-top: .2rem; }
+.bhw-popup-case { color: #1d4ed8; font-weight: 600; text-align: left; }
+.bhw-popup-case:hover { text-decoration: underline; }
+.bhw-popup-case:focus-visible, .bhw-popup-pages button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.bhw-popup-pages { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding-top: 1rem; font-size: .875rem; }
+.bhw-popup-pages button { border: 1px solid #cbd5e1; border-radius: .5rem; padding: .5rem .75rem; margin-left: .5rem; }
+.bhw-popup-pages button:disabled { opacity: .5; }
+.dark .bhw-dashboard-case-list th { background: #1e293b; color: #e2e8f0; }
+.dark .bhw-popup-case { color: #93c5fd; }
+
+.bhw-dashboard-popup .swal2-actions { width: 100%; justify-content: flex-end; padding-right: 1.5rem; box-sizing: border-box; }
+
+.bhw-dashboard-case-list { border: 1px solid #dbe4ef; border-radius: 1rem; }
+.bhw-dashboard-case-list table { min-width: 700px; }
+.bhw-dashboard-case-list th { background: #e5edf4; color: #334155; font-size: .875rem; }
+.bhw-dashboard-case-list th, .bhw-dashboard-case-list td { padding: 1rem; }
+.bhw-popup-row { cursor: pointer; }
+.bhw-popup-row:hover, .bhw-popup-row:focus-within { background: #e8f0f8; }
+.bhw-popup-case { text-decoration: underline; }
+.bhw-popup-active { color: #c2410c; font-weight: 600; }
+.bhw-popup-cleared { color: #15803d; font-weight: 600; }
+.bhw-popup-pages { justify-content: flex-end; }
+.bhw-popup-pages button { margin-left: 0; }
+.bhw-popup-pages [aria-current="page"] { color: white; background: #1d4ed8; border-color: #1d4ed8; }
+.dark .bhw-popup-row:hover, .dark .bhw-popup-row:focus-within { background: #334155; }
+
+/* Case-list dialogs share the resident profile's rounded frame and footer. */
+.swal2-popup.bhw-dashboard-popup {
+  box-sizing: border-box;
+  display: flex !important;
+  flex-direction: column;
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #dbe4ef;
+  border-radius: 18px;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 20px 60px #0f172a38;
+}
+.bhw-dashboard-popup .swal2-title {
+  padding: 1.25rem 4rem 1.25rem 1.5rem;
+  background: #e5edf4;
+  color: #0f172a;
+  font-size: 1.25rem;
+  text-align: left;
+}
+.bhw-dashboard-popup .swal2-close { position: absolute; top: .75rem; right: .75rem; color: #334155; }
+.bhw-dashboard-popup .swal2-html-container { min-height: 0; overflow: auto; margin: 0; padding: 1.5rem; font-size: .875rem; }
+.bhw-dashboard-popup .swal2-actions {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #dbe4ef;
+}
+.bhw-dashboard-popup .swal2-styled.swal2-confirm {
+  margin: 0;
+  padding: .7rem 1.2rem;
+  border: 1px solid #dbe4ef;
+  border-radius: .5rem;
+  background: #fff;
+  color: #0f172a;
+  font-size: .875rem;
+  font-weight: 600;
+}
+.bhw-dashboard-popup .swal2-styled.swal2-confirm:hover { background: #f1f5f9; }
+.bhw-dashboard-popup .swal2-styled.swal2-confirm:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.dark .swal2-popup.bhw-dashboard-popup { background: #0f172a; color: #f1f5f9; border-color: #334155; }
+.dark .bhw-dashboard-popup .swal2-title { background: #1e293b; color: #f1f5f9; }
+.dark .bhw-dashboard-popup .swal2-close { color: #e2e8f0; }
+.dark .bhw-dashboard-popup .swal2-actions { border-color: #334155; }
+.dark .bhw-dashboard-popup .swal2-styled.swal2-confirm { background: #1e293b; color: #f1f5f9; border-color: #475569; }
+.dark .bhw-dashboard-popup .swal2-styled.swal2-confirm:hover { background: #334155; }
+
+/* Keep both case table and dialog scrollbars compact. */
+body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-dashboard-case-list) {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 transparent;
+}
+body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-dashboard-case-list)::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-dashboard-case-list)::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 6px;
+}
+body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-dashboard-case-list)::-webkit-scrollbar-track { background: transparent; }
+body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-dashboard-case-list)::-webkit-scrollbar-button { display: none; }
+
+.bhw-case-transition-status { margin: 0 0 .75rem; font-size: .875rem; }
+.bhw-case-transition-status:empty { margin: 0; }
+.bhw-case-details-enter,
+#patientProfileModal.bhw-case-profile-transition > .hi-dossier {
+  animation: bhw-case-details-enter 360ms cubic-bezier(.2,.7,.25,1) both;
+}
+@keyframes bhw-case-details-enter {
+  from { opacity: 0; transform: translateY(32px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bhw-case-details-enter,
+  .bhw-dashboard-popup.swal2-popup,
+  #patientProfileModal.bhw-case-profile-transition,
+  #patientProfileModal.bhw-case-profile-transition > .hi-dossier { animation: none; }
+}
+
+/* Recorded severity uses the same labeled badges in case tables and dialogs. */
+.bhw-severity {
+  display: inline-flex;
+  align-items: center;
+  border-radius: .4rem;
+  padding: .2rem .6rem;
+  font-size: .8rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.bhw-severity-mild { color: #166534; background: #f0fdf4; }
+.bhw-severity-monitored { color: #92400e; background: #fffbeb; }
+.bhw-severity-high-risk { color: #991b1b; background: #fef2f2; }
+.bhw-severity-unknown { color: #475569; background: #f1f5f9; }
+.dark .bhw-severity-mild { color: #bbf7d0; background: #14532d; }
+.dark .bhw-severity-monitored { color: #fde68a; background: #78350f; }
+.dark .bhw-severity-high-risk { color: #fecaca; background: #7f1d1d; }
+.dark .bhw-severity-unknown { color: #cbd5e1; background: #334155; }
+
+.bhw-summary-map { position: relative; width: 100%; height: clamp(340px, 62vh, 680px); margin-top: .75rem; border-radius: 1rem; overflow: hidden; }
+
+/* Keep mobile navigation reachable while the dashboard scrolls. */
+@media (max-width: 900px) {
+  body.hi-portal > #portal-main { padding-top: 0; overflow: hidden; }
+  body.hi-portal > #portal-main > header {
+    position: relative;
+    flex-shrink: 0;
+    height: 64px;
+    background: hsl(var(--card));
+  }
+  body.hi-portal .bhw-page-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    scrollbar-width: auto;
+  }
+  body.hi-portal .bhw-page-scroll::-webkit-scrollbar { display: initial; }
+}

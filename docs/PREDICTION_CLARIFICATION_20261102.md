@@ -1,0 +1,13 @@
+# Prediction clarification for CODEX-1 and CODEX-2
+
+Owner request, 2 November 2026: use Predict / Prediction in user-facing discussion of estimating next-month disease cases. In statistical methodology, future time-series prediction is forecasting; naming does not change SARIMA mathematics or explain errors. This note does not authorize a UI rename, model replacement, dataset regeneration or integration by itself.
+
+Owner wants an explanation and a plan for predictions to incorporate newly encoded cases. Current service reads frozen September2026 history / October2026 saved results and does not retrain. New cases/consultations are stored in operational MySQL; return visits must not count as new disease cases. Proposed engineering work: validated monthly aggregates, explicit completeness/missingness, versioned offline SARIMA fits, tested atomic result activation and rollback. Update next-month predictions after a month is closed; partial current-month data require a separately evaluated nowcasting approach.
+
+Dataset option: a separately frozen synthetic seasonal scenario can be generated under documented assumptions, with realistic moderate noise and occasional shocks. It may be easier for SARIMA, but no percentage is guaranteed and it would test a different scenario, not prove the algorithm improved. Preserve actual ITR counts; generated cases remain generated. Current combined5592 data provenance is5500generated +92ITR-derived, not50/50 verified actual/synthetic. No new scenario has been generated.
+
+Evaluation remains primary36/9 (Jan2023-Dec2025 / Jan-Sep2026) and secondary31/14. The three earlier inner targets choose settings inside training: for Jan2026 these are Oct/Nov/Dec2025, each predicted using only earlier observations. Nine outer test months are separate from this setting-selection step. Longer inner windows have already been tested with mixed outcomes; do not repeat without reviewing saved evidence.
+
+Current root-cause evidence:64/70 current fits weak/uncertain annual evidence. Cough/Salvacion has no zero months in45months, weak annual coefficient, and misses high and low realizations. Generator has flat Cough profile plus random multinomial allocation/shocks. No proven formula/mapping/date bug found that explains the errors. All results on inspected periods remain exploratory. Proposed tolerance is max(1,.20*actual), not disease occurrence probability.
+
+Communication: only this Health-Intel chat is visible in the current account; no separate CODEX-2 destination was available for direct messaging. This shared file and handoff are the account-independent record. No application, data, model, MySQL or Azure changes.

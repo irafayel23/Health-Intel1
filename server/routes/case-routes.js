@@ -5,10 +5,12 @@ const { validatePatient } = require('../services/patient-validation');
 const { respond } = require('../services/service-errors');
 const { createCaseLifecycleHandlers } = require('../services/case-lifecycle');
 const { createReportExport } = require('../services/report-export');
+const { searchResidents } = require('../services/encoding-residents');
 const { caseVisits } = require('../services/case-visits');
 
 function registerCaseRoutes(app, db, corrections) {
     const encoding = createCaseEncoding(db);
+    app.get('/api/encoding/residents',async(req,res)=>{try{res.json({success:true,data:await searchResidents(db,req.user,req.query)});}catch(error){respond(res,error,'Patient profiles could not be loaded. Please try again.');}});
     const mapData = createCaseMapData(db);
     const records = createCaseRecords(db);
     const cases = createCaseLifecycleHandlers(db);
@@ -58,8 +60,9 @@ function registerCaseRoutes(app, db, corrections) {
     });
     app.get('/api/mho/walk-in-cases', async (req, res) => {
         try {
-            const rows = await records.recentWalkIns(req.user.system_id);
-            res.json({ success: true, data: rows, visits: await records.recentMhoVisits(req.user.system_id) });
+            const archived = req.query.archived === "true";
+            const rows = await records.recentWalkIns(req.user.system_id, archived);
+            res.json({ success: true, data: rows, visits: archived ? [] : await records.recentMhoVisits(req.user.system_id) });
         } catch {
             res.status(503).json({ success: false, error: 'Walk-in cases could not be loaded.' });
         }
@@ -92,6 +95,8 @@ function registerCaseRoutes(app, db, corrections) {
             const result = await encoding.save(patient, req.body, brgy_id, req.user.system_id, actorRole);
             res.status(201).json({ success: true, message: 'Patient case saved.', ...result });
         } catch (error) {
+            if (error.code === 'RESIDENT_REVIEW_REQUIRED')
+                return res.status(409).json({ success: false, code: error.code, error: error.message, matches: error.matches, review: error.review });
             if (error.code === 'POSSIBLE_DUPLICATE')
                 return res.status(409).json({ success: false, code: error.code, error: error.message });
             if (error.status) return respond(res, error, 'The case could not be saved.');
@@ -133,6 +138,7 @@ function registerCaseRoutes(app, db, corrections) {
     // READ ACTIVE (Filtered by Barangay)
     app.get('/api/patients', async (req, res) => {
         try {
+            if(req.query.page!==undefined||req.query.page_size!==undefined)return res.json({success:true,...await require('../services/case-directory').caseDirectory(db,req.user,req.query)});
             const rows = await records.patients(req.query);
             res.json({ success: true, data: rows });
         } catch (error) {
@@ -143,11 +149,14 @@ function registerCaseRoutes(app, db, corrections) {
     app.get('/api/residents', async (req, res) => {
         const { barangay_id } = req.query;
         try {
+            if(req.query.page!==undefined||req.query.page_size!==undefined){
+                const result=await require('../services/resident-directory').residentDirectory(db,req.user,req.query);
+                return res.json({success:true,...result});
+            }
             const rows = await records.residents(barangay_id);
             res.json({ success: true, data: rows });
         } catch (error) {
-            console.error('Residents error:', error);
-            res.status(500).json({ success: false, error: 'Database error' });
+            respond(res,error,'Resident profiles could not be loaded.');
         }
     });
 
@@ -173,10 +182,11 @@ function registerCaseRoutes(app, db, corrections) {
     app.get('/api/patients/archived', async (req, res) => {
         const { barangay_id } = req.query;
         try {
+            if(req.query.page!==undefined||req.query.page_size!==undefined)return res.json({success:true,...await require('../services/case-directory').caseDirectory(db,req.user,req.query,true)});
             const rows = await records.archivedPatients(barangay_id);
             res.json({ success: true, data: rows });
         } catch (error) {
-            res.status(500).json({ success: false, error: 'Database error' });
+            respond(res,error,'Archived records could not be loaded.');
         }
     });
 

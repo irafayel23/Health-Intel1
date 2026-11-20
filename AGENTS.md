@@ -27,6 +27,8 @@ The Markdown owner record is an agreement, not an atomic filesystem lock or auto
 - Preserve authorization, BHW barangay restrictions, account/session invalidation, database facade and clinical history. Do not run migrations, imports, seed scripts, restore operations or live writes merely to inspect or document the project.
 - Do not reset, clean, stash, stage, commit or push without authorization. Preserve the security checkpoint and unrelated work. Do not change Azure, firewall, VM size, deployment configuration or production resources without explicit scope authorization. Documentation work does not authorize application changes.
 
+- Keep prospective probability validation separate from the demonstration. Follow [the MHO validation checklist](docs/CMP_MHO_VALIDATION_CHECKLIST_20261107.md) and its linked operating guide for reviewed operational exports, an independently retained receipt and later complete actuals. Keep frozen model versions and unavailable results identifiable. Treat retrospective and synthetic findings separately.
+
 ## End every task
 
 1. Check actual changed files and relevant diffs against the initial state; verify no unrelated work was overwritten.

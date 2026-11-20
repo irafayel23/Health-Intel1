@@ -1,4 +1,13 @@
 const {caseAgeSql,ageGroupSql,ranges}=require('./age-groups');
+const { pagination, pageResult } = require('./list-pagination');
+const { invalid } = require('./service-errors');
+
+const KPI_CASES = {
+    active: "status = 'Active' AND is_archived = FALSE",
+    recovered: "status IN ('Cleared','Recovered')",
+    highRisk: "status = 'Active' AND is_archived = FALSE AND severity = 'High Risk'"
+};
+
 function createDashboardData(db) {
     return {
         async analyticsBarangays() {
@@ -81,16 +90,33 @@ function createDashboardData(db) {
             return { places, categories };
         },
 
-        async kpi(where) {
+        async kpi(where, recorded, firstLiveDate) {
             const [[counts]] = await db.execute(
                 `SELECT COUNT(*) as total,
-                        COALESCE(SUM(status = 'Active' AND is_archived = FALSE),0) as active,
-                        COALESCE(SUM(status IN ('Cleared','Recovered')),0) as recovered,
-                        COALESCE(SUM(status = 'Active' AND is_archived = FALSE AND severity = 'High Risk'),0) as highRisk
+                        COALESCE(SUM(${KPI_CASES.active}),0) as active,
+                        COALESCE(SUM(${KPI_CASES.recovered}),0) as recovered,
+                        COALESCE(SUM(${KPI_CASES.highRisk}),0) as highRisk,
+                        (SELECT COUNT(*) FROM health_cases WHERE date_recorded >= ? AND ${recorded.sql}) as recordedAfterDataset
                         FROM health_cases WHERE ${where.sql}`,
-                where.params
+                [firstLiveDate, ...recorded.params, ...where.params]
             );
             return counts;
+        },
+
+        async kpiCases(where, query) {
+            if (typeof query.kind !== 'string' || !Object.hasOwn(KPI_CASES, query.kind)) throw invalid('Choose a case list.');
+            const paging = pagination(query, 10);
+            const selection = `FROM health_cases WHERE (${where.sql}) AND (${KPI_CASES[query.kind]})`;
+            const [[{ total }]] = await db.execute(`SELECT COUNT(*) AS total ${selection}`, where.params);
+            const { offset, ...page } = pageResult(total, paging);
+            const [data] = page.total ? await db.execute(`SELECT id AS case_id, resident_id, patient_name, purok,
+                COALESCE((SELECT b.name FROM barangays b WHERE b.id = h.barangay_id), 'Not recorded') AS barangay,
+                CASE WHEN disease_review_status IN ('Pending','Clarification')
+                    THEN COALESCE(NULLIF(disease_reported,''),disease) ELSE disease END AS disease,
+                severity, status
+                FROM health_cases h WHERE (${where.sql}) AND (${KPI_CASES[query.kind]})
+                ORDER BY date_recorded DESC, id DESC LIMIT ? OFFSET ?`, [...where.params, page.page_size, offset]) : [[]];
+            return { data, ...page };
         },
 
         async yearComparison(where, previousYear, currentYear) {
@@ -108,7 +134,7 @@ function createDashboardData(db) {
         async analyticsOptions() {
             const [years] = await db.execute("SELECT DISTINCT YEAR(date_recorded) as year FROM health_cases WHERE date_recorded IS NOT NULL ORDER BY year DESC");
             const [barangays] = await db.execute('SELECT name FROM barangays ORDER BY name');
-            const [diseases] = await db.execute("SELECT DISTINCT disease FROM health_cases WHERE disease NOT LIKE '%bite%' AND disease NOT LIKE '%accident%' ORDER BY disease");
+            const [diseases] = await db.execute("SELECT name AS disease FROM disease_registry WHERE status='Active' AND is_archived=0 ORDER BY name");
             return { years: years.map(row => Number(row.year)), barangays: barangays.map(row => row.name), diseases: diseases.map(row => row.disease) };
         },
 
@@ -148,7 +174,7 @@ function createDashboardData(db) {
                 total_cases:barangays.reduce((sum,row)=>sum+Number(row.cases),0),unknown_age_cases:ageCounts.get('Not recorded')||0};
         },
 
-        async mortality(where) {
+        async diseaseDistribution(where) {
             const [rows] = await db.execute(
                 `SELECT disease, COUNT(*) as count FROM health_cases WHERE ${where.sql} GROUP BY disease ORDER BY count DESC, disease ASC`,
                 where.params

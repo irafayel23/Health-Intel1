@@ -3,14 +3,29 @@ let analyticsRequestId=0,comparisonRequestId=0,analyticsOptionsRequestId=0,dynam
 let analyticsBreakdownDimension='barangay',analyticsBreakdownData=null,analyticsProfileData=null;
 const ae=id=>document.getElementById(id);
 function selectedAnalyticsFilters(){
-    return Object.fromEntries(['year','barangay','age','category'].map(k=>[k,ae('filter-'+k).value]));
+    const filters = Object.fromEntries(['year','barangay','age'].map(k=>[k,ae('filter-'+k).value]));
+    const month = ae('filter-month').value;
+    if (month && month !== 'all') filters.month = month;
+    return filters;
 }
-async function analyticsJson(path,filters){
-    const response=await fetch('http://localhost:3000/api/mho/'+path+'?'+new URLSearchParams(filters));
-    const result=await response.json();
-    if(!response.ok||!result.success)throw Error('Unavailable');
-    return result;
+const analyticsMonthFormat = new Intl.DateTimeFormat('en-PH', {month:'long', timeZone:'UTC'});
+function analyticsPeriodLabel(filters) {
+    const year = filters.year === 'all' ? 'All years' : filters.year;
+    if (!filters.month) return year;
+    const label = analyticsMonthFormat.format(new Date('2000-' + filters.month + '-01T00:00:00Z'));
+    return filters.year === 'all' ? label + ' · All years' : label + ' ' + year;
 }
+const dashboardChartMonths = ['profile', 'breakdown', 'trend', 'distribution'];
+function setDashboardChartMonth(month) {
+    ae('filter-month').value = month;
+    return updateDynamicChart();
+}
+let municipalDatasetRequest;
+async function analyticsJson(path, filters) {
+    municipalDatasetRequest ??= MunicipalDataset.create((...args) => fetch(...args));
+    return municipalDatasetRequest(path, filters);
+}
+
 function analyticsTable(id,headings,rows){
     const target=ae(id);
     target.replaceChildren();
@@ -53,7 +68,7 @@ const analyticsCountLabels={
         }
         =chart;
         ctx.save();
-        ctx.fillStyle=document.documentElement.classList.contains('dark')?'#e2e8f0':'#334155';
+        ctx.fillStyle=document.documentElement.classList.contains('dark')?'#e2e8f0':'#0f172a';
         ctx.font='600 12px sans-serif';
         chart.getDatasetMeta(0).data.forEach((bar,i)=>{const value=chart.data.datasets[0].data[i];if(value!==null)ctx.fillText(Number(value).toLocaleString('en-PH'),bar.x+8,bar.y+4);});
         ctx.restore();
@@ -74,7 +89,7 @@ const analyticsDonutTotal={
         ctx.fillStyle=dark?'#f1f5f9':'#0f172a';
         ctx.font='700 24px sans-serif';
         ctx.fillText(total.toLocaleString('en-PH'),arc.x,arc.y-7);
-        ctx.fillStyle=dark?'#cbd5e1':'#64748b';
+        ctx.fillStyle=dark?'#cbd5e1':'#0f172a';
         ctx.font='500 11px sans-serif';
         ctx.fillText('case records',arc.x,arc.y+15);
         ctx.restore();
@@ -85,27 +100,24 @@ function renderDescriptiveFindings(){
     const target=ae('descriptive-findings'),data=analyticsBreakdownData,total=Number(data.total_cases);
     target.replaceChildren();
     if(!total){target.textContent='No matching case records for these filters.';return;}
-    function finding(title,rows,key='label',format=value=>value){
-        const ranked=rows.filter(row=>Number(row.cases)>0).sort((a,b)=>Number(b.cases)-Number(a.cases));
-        const count=Number(ranked[0]?.cases||0),leaders=ranked.filter(row=>Number(row.cases)===count);
+    MHOInsights.descriptiveFindings(analyticsProfileData,data).filter(finding=>data.ages.length || !finding.title.startsWith('Largest recorded age')).forEach(finding=>{
         const item=document.createElement('div');item.className='py-3';
-        const term=document.createElement('dt');term.className='text-xs text-[hsl(var(--muted-foreground))]';term.textContent=title+(leaders.length>1?' · tied':'');
-        const detail=document.createElement('dd');detail.className='flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 mt-1';
+        const term=document.createElement('dt');term.className='text-xs text-[hsl(var(--muted-foreground))]';term.textContent=finding.title;
+        const detail=document.createElement('dd');detail.className='mt-1';
+        const heading=document.createElement('div');heading.className='flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1';
         const name=document.createElement('span');name.className='text-sm font-semibold';
-        name.textContent=leaders.length?leaders.slice(0,2).map(row=>format(row[key])).join(', ')+(leaders.length>2?' +'+(leaders.length-2)+' more':''):'Not recorded';
-        name.title=leaders.map(row=>format(row[key])).join(', ');
+        name.textContent=finding.name;name.title=finding.names.join(', ');
         const value=document.createElement('span');value.className='text-xs text-[hsl(var(--muted-foreground))] tabular-nums';
-        value.textContent=count?count.toLocaleString('en-PH')+' · '+(count/total*100).toFixed(1)+'%'+(leaders.length>1?' each':''):'—';
-        detail.append(name,value);item.append(term,detail);target.append(item);
-    }
-    finding('Leading recorded disease',analyticsProfileData.data,'disease');
-    finding('Highest recorded barangay count',data.barangays);
-    finding('Largest recorded age group',data.ages.filter(row=>row.label!=='Not recorded'),'label',label=>label==='60+'?'60+ years':label+' years');
-    finding('Peak recorded month',data.months,'label',label=>new Intl.DateTimeFormat('en-PH',{month:'short',year:'numeric',timeZone:'Asia/Manila'}).format(new Date(label+'-01T12:00:00+08:00')));
+        value.textContent=finding.count?finding.count.toLocaleString('en-PH')+(finding.count===1?' case · ':' cases · ')+finding.share.toFixed(1)+'%'+(finding.tied?' each':''):'—';
+        const explanation=document.createElement('p');explanation.className='mt-2 text-xs leading-relaxed text-[hsl(var(--muted-foreground))]';
+        explanation.textContent=finding.explanation;
+        heading.append(name,value);detail.append(heading,explanation);item.append(term,detail);target.append(item);
+    });
 }
 function setAnalyticsBreakdown(dimension){
     analyticsBreakdownDimension=dimension==='age'?'age':'barangay';
-    const age=analyticsBreakdownDimension==='age';
+    const age=false;
+    analyticsBreakdownDimension='barangay';
     for(const [id,selected]of [['breakdown-barangay-tab',!age],['breakdown-age-tab',age]]){
         const tab=ae(id);tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;
         tab.classList.toggle('bg-[hsl(var(--background))]',selected);tab.classList.toggle('shadow-sm',selected);tab.classList.toggle('text-[hsl(var(--muted-foreground))]',!selected);
@@ -115,7 +127,7 @@ function setAnalyticsBreakdown(dimension){
     const data=analyticsBreakdownData,rows=age?data.ages:data.barangays,total=Number(data.total_cases);
     ae('breakdown-chart-wrap').classList.toggle('hidden',!total);
     ae('breakdownChart').setAttribute('aria-label','Recorded case counts by '+(age?'age group':'barangay')+', '+total.toLocaleString('en-PH')+' matching cases');
-    ae('breakdown-context').textContent=total?total.toLocaleString('en-PH')+' matching case records. '+(age?Number(data.unknown_age_cases).toLocaleString('en-PH')+' have no usable age. ':'')+'Uses the selected year, barangay, age and outcome. Blank bars mean no matching records.':'No matching case records for this selection.';
+    ae('breakdown-context').textContent=total?total.toLocaleString('en-PH')+' matching case records. '+(age?Number(data.unknown_age_cases).toLocaleString('en-PH')+' have no usable age. ':'')+'Uses the selected period and barangay.':'No matching case records for this selection.';
     if(total)replaceAnalyticsChart('breakdownChartInst','breakdownChart',{
         type:'bar',plugins:[analyticsCountLabels],data:{labels:rows.map(row=>age&&row.label!=='Not recorded'?row.label+' years':row.label),datasets:[{label:'Recorded cases',data:rows.map(row=>Number(row.cases)||null),backgroundColor:age?'#8b5cf6':'#3b82f6',borderRadius:5,maxBarThickness:24}]},
         options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{right:44}},plugins:{legend:{display:false},tooltip:{callbacks:{label:item=>Number(item.raw).toLocaleString('en-PH')+' cases · '+(Number(item.raw)/total*100).toFixed(1)+'%'}}},scales:{x:{beginAtZero:true,ticks:{precision:0}},y:{grid:{display:false}}}}
@@ -132,22 +144,27 @@ async function fetchAnalyticsBreakdown(filters,id){
         ae('breakdown-table').textContent='Data unavailable.';ae('descriptive-findings').textContent='Findings unavailable. Refresh to try again.';
     }
 }
+let kpiRequestId=0;
 async function fetchLiveMHOStats(filters,id){
-    const ids={
-        total:'stat-total',active:'stat-active',recovered:'stat-recovered',highRisk:'stat-risk'
-    }
-    ;
-    try{
-        const result=await analyticsJson('kpi',filters);
-        if(id!==analyticsRequestId)return;
-        Object.entries(ids).forEach(([key,target])=>ae(target).textContent=Number(result[key]).toLocaleString('en-PH'));
-        ae('analytics-kpi-context').textContent='These filters apply to totals, the health profile and trends. Year comparison has its own year choices. Counts are disease cases, not unique patients or visits. Active totals exclude archived records; outcomes reflect current status.';
-    }
-    catch{
-        if(id!==analyticsRequestId)return;
-        Object.values(ids).forEach(target=>ae(target).textContent='Unavailable');
-        ae('analytics-kpi-context').textContent='Totals unavailable. A connection error does not mean zero cases.';
-    }
+    const request=++kpiRequestId;
+    const ids={active:'stat-active',recovered:'stat-recovered',highRisk:'stat-risk'};
+    const validCount=value=>value!=null&&Number.isSafeInteger(Number(value))&&Number(value)>=0;
+    ae('stat-total-period').textContent=analyticsPeriodLabel(filters);
+    ae('analytics-kpi-context').textContent='Recorded cases combine the historical dataset through September 2026 and live cases dated October 2026 onward. The other cards use current patient records. Charts show the historical dataset.';
+    const query=fetch('/api/mho/kpi?'+new URLSearchParams(filters))
+        .then(async response=>{
+            const result=await response.json();
+            if(!response.ok||!result.success)throw Error('Patient totals unavailable');
+            return result;
+        });
+    const [live,history]=await Promise.allSettled([query,analyticsJson('kpi',filters)]);
+    if(request!==kpiRequestId||id!==analyticsRequestId)return;
+    const counts=live.value;
+    Object.entries(ids).forEach(([key,target])=>{
+        ae(target).textContent=validCount(counts?.[key])?Number(counts[key]).toLocaleString('en-PH'):'Unavailable';
+    });
+    ae('stat-total').textContent=validCount(counts?.recordedAfterDataset)&&validCount(history.value?.total)
+        ?(Number(counts.recordedAfterDataset)+Number(history.value.total)).toLocaleString('en-PH'):'Unavailable';
 }
 async function fetchAnalyticsTrend(filters,id){
     try{
@@ -167,16 +184,16 @@ async function fetchAnalyticsTrend(filters,id){
         const periods=annual?(values.size?Array.from({
             length:Math.max(...values.keys())-Math.min(...values.keys())+1
         }
-        ,(_,i)=>Math.min(...values.keys())+i):[]):Array.from({
+        ,(_,i)=>Math.min(...values.keys())+i):[]):filters.month?[Number(filters.month)]:Array.from({
             length:12
         }
         ,(_,i)=>i+1);
         const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         const labels=periods.map(p=>annual?String(p)+(p===result.current_year?' · YTD':''):months[p-1]),data=periods.map(p=>values.get(p)??null);
-        ae('yoy-title').textContent='Recorded cases over time · '+(annual?'All years':filters.year+(Number(filters.year)===result.current_year?' · Year to date':''));
-        ae('yoy-context').textContent=(result.data.length?'Counts use original case dates, not follow-up visits. ':'No matching trend records. ')+(annual?'The current year is partial (YTD). ':'Monthly totals for the selected year. ')+'Gaps mean no matching records, not confirmed zero reporting. Reporting completeness is unverified.';
+        ae('yoy-title').textContent='Recorded cases over time · '+analyticsPeriodLabel(filters);
+        ae('yoy-context').textContent=(result.data.length?'Counts use the dataset reporting month. ':'No matching trend records. ')+(annual?(filters.month?'Selected month in each dataset year. ':'Dataset totals by year. '):'Monthly dataset totals. ')+'Coverage ends September 2026; October–December 2026 are not included.';
         replaceAnalyticsChart('yoyChartInst','yoyMorbidityChart',{
-            type:'line',data:{
+            type:filters.month?'bar':'line',data:{
                 labels,datasets:[{
                     label:disease||'Recorded cases',data,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.08)',fill:true,tension:0.15,spanGaps:false,pointRadius:4,borderWidth:2
                 }
@@ -211,12 +228,12 @@ async function fetchAnalyticsTrend(filters,id){
         ae('trend-table').textContent='Data unavailable.';
     }
 }
-async function fetchAnalyticsMortality(filters,id){
+async function fetchAnalyticsDiseaseDistribution(filters,id){
     try{
-        const result=await analyticsJson('mortality',filters);
+        const result=await analyticsJson('disease-distribution',filters);
         if(id!==analyticsRequestId)return;
         const rows=result.data,total=rows.reduce((sum,row)=>sum+Number(row.count),0);
-        ae('mortality-title').textContent='Cases marked Deceased';
+        ae('mortality-title').textContent='Disease distribution';
         ae('mortality-chart-wrap').classList.toggle('hidden',!total);
         ae('mortality-empty').classList.toggle('hidden',!!total);
         const colors=['#3b82f6','#8b5cf6','#14b8a6','#f59e0b','#ef4444','#64748b','#ec4899','#6366f1'];
@@ -249,8 +266,8 @@ async function fetchAnalyticsMortality(filters,id){
         if(id!==analyticsRequestId)return;
         ae('mortality-chart-wrap').classList.add('hidden');
         ae('mortality-empty').classList.add('hidden');
-        ae('mortality-title').textContent='Deceased-case data unavailable';
-        ae('mortality-table').textContent='Outcome counts unavailable. Refresh to try again.';
+        ae('mortality-title').textContent='Disease distribution unavailable';
+        ae('mortality-table').textContent='Disease counts unavailable. Refresh to try again.';
     }
 }
 async function fetchAnalyticsComparison(filters,requestId) {
@@ -268,7 +285,8 @@ async function fetchAnalyticsComparison(filters,requestId) {
     }
     ae('comparison-context').textContent='Loading selected years…';
     try {
-        const result=await analyticsJson('year-comparison',{...filters,year:'all',years:custom?years.join(','):'all',period:ae('comparison-period').value||'calendar'});
+        const comparisonMonth = ae('comparison-month').value || 'all';
+        const result=await analyticsJson('year-comparison',{barangay:filters.barangay,age:filters.age,year:'all',years:custom?years.join(','):'all',period:ae('comparison-period').value||'calendar',comparisonMonth});
         if(requestId!==analyticsRequestId || comparisonId!==comparisonRequestId)return;
         const colors=['#3b82f6','#f59e0b','#06b6d4','#14b8a6','#ec4899','#8b5cf6'];
         const same=result.period==='same';
@@ -276,9 +294,18 @@ async function fetchAnalyticsComparison(filters,requestId) {
         const yearLabel=year=>'CY '+year+(year===result.current_year?' · YTD':same?' · same dates':'');
         const counts=new Map(result.data.map(row=>[row.disease+'|'+row.year,Number(row.cases)]));
         ae('comparison-title').textContent='Recorded cases by disease · '+(custom?result.years.join(' vs '):'All years');
-        ae('comparison-chart-wrap').classList.toggle('hidden',!result.data.length);
-        ae('comparison-context').textContent=(result.data.length?'Up to four leading categories across the comparison years. ':'No matching comparison records. ')+(same?'1 Jan–'+through+' in every year. ':result.years.includes(result.current_year)?'Calendar totals: the current year is year to date (YTD); previous years cover the full calendar year. ':'Full calendar-year totals. ')+'Blank bars mean no matching records, not confirmed zero community cases. Reporting completeness can differ.';
-        ae('comparisonChart').setAttribute('aria-label','Disease counts by year. '+result.years.map(yearLabel).join(', ')+'. '+(same?'January 1 through '+through+' in each year.':'Calendar totals; the current year is partial.'));
+        if (result.month) {
+            const month = analyticsMonthFormat.format(new Date('2000-' + result.month + '-01T00:00:00Z'));
+            const unavailable = result.years.filter(year => !result.data.some(row => row.year === year));
+            ae('comparison-title').textContent = 'Recorded cases by disease · ' + month;
+            ae('comparison-chart-wrap').classList.toggle('hidden', !result.data.length);
+            ae('comparison-context').textContent = month + ' dataset totals for the selected years.' +
+                (unavailable.length ? ' No dataset coverage for ' + unavailable.join(', ') + '.' : '');
+        } else {
+            ae('comparison-chart-wrap').classList.toggle('hidden',!result.data.length);
+            ae('comparison-context').textContent=(result.data.length?'Up to four leading categories across the comparison years. ':'No matching comparison records. ')+(same?'1 Jan–'+through+' in every year. ':result.years.includes(result.current_year)?'Dataset totals; 2026 ends in September. ':'Dataset totals: 2023–2025 cover January–December; 2026 covers January–September. ')+'Years have different coverage; compare with care.';
+        }
+        ae('comparisonChart').setAttribute('aria-label','Disease counts by year. '+result.years.map(yearLabel).join(', ')+'. '+(result.month?'Same calendar month in each year.':same?'January 1 through '+through+' in each year.':'Calendar totals; the current year is partial.'));
         replaceAnalyticsChart('comparisonChartInst','comparisonChart',{
             type:'bar',
             data:{labels:result.diseases,datasets:result.years.map(year=>({
@@ -317,12 +344,15 @@ function initializeComparisonYears(years){
 }
 async function updateDynamicChart(){
     const filters=selectedAnalyticsFilters(),id=++analyticsRequestId;
+    dashboardChartMonths.forEach(chart => {
+        ae('chart-month-' + chart).value = filters.month || 'all';
+    });
     analyticsBreakdownData=null;analyticsProfileData=null;
     ae('descriptive-findings').textContent='Loading findings…';ae('breakdown-context').textContent='Loading breakdown…';ae('breakdown-chart-wrap').classList.add('hidden');
-    ae('analytics-scope').textContent=(ae('filter-year').selectedOptions?.[0]?.textContent || filters.year)+' · '+(filters.barangay==='all'?'All barangays':filters.barangay);
+    ae('analytics-scope').textContent=analyticsPeriodLabel(filters)+' · '+(filters.barangay==='all'?'All barangays':filters.barangay);
     ['stat-total','stat-active','stat-recovered','stat-risk'].forEach(target=>ae(target).textContent='…');
     ae('insight-text').textContent='Loading the selected records…';
-    ae('action-text').textContent='Awaiting records.';
+    ae('action-text').textContent='Loading the recorded-case summary…';
     ae('profile-empty').textContent='Loading…';
     if(dynamicChart){
         dynamicChart.destroy();
@@ -339,21 +369,21 @@ async function updateDynamicChart(){
     ae('yoy-context').textContent='Loading selected periods…';
     ['trend-table','mortality-table','profile-table','comparison-table'].forEach(target=>ae(target).textContent='Loading…');
     ae('comparison-context').textContent='Loading selected years…';
-    const panels=Promise.all([fetchLiveMHOStats(filters,id),fetchAnalyticsTrend(filters,id),fetchAnalyticsMortality(filters,id),fetchAnalyticsComparison(filters,id),fetchAnalyticsBreakdown(filters,id)]);
+    const panels=Promise.all([fetchLiveMHOStats(filters,id),fetchAnalyticsTrend(filters,id),fetchAnalyticsDiseaseDistribution(filters,id),fetchAnalyticsComparison(filters,id),fetchAnalyticsBreakdown(filters,id)]);
     try{
         const result=await analyticsJson('stats',filters);
         if(id!==analyticsRequestId)return;
         analyticsProfileData=result;renderDescriptiveFindings();
         const description=MHOInsights.describeProfile(result.data,filters,result.summary);
         ae('insight-text').textContent=description.text;
-        ae('action-text').textContent=description.action;
+        ae('action-text').textContent=description.text;
         ae('profile-chart-wrap').classList.toggle('hidden',!result.data.length);
         ae('profile-empty').textContent=result.data.length?'':'No matching disease cases for this selection.';
-        ae('analytics-data-context').textContent='Counts use original case dates and age at that date; follow-up visits do not add disease cases. '+(result.summary.first_recorded?`Recorded dates: ${result.summary.first_recorded} to ${result.summary.last_recorded}.`:'No matching record dates.');
+        ae('analytics-data-context').textContent='Data source: ITR-derived records combined with generated monthly counts. Ages, severity and case outcomes are unavailable. '+(result.summary.first_recorded?`Recorded dates: ${result.summary.first_recorded} to ${result.summary.last_recorded}.`:'No matching record dates.');
         dynamicChart=new Chart(ae('dynamicChart').getContext('2d'),{
             type:'bar',plugins:[analyticsCountLabels],data:{
                 labels:result.data.map(row=>row.disease),datasets:[{
-                    label:'Recorded cases',data:result.data.map(row=>Number(row.cases)),backgroundColor:filters.category==='mortality'?'#8b5cf6':'#3b82f6',borderRadius:5,maxBarThickness:32
+                    label:'Recorded cases',data:result.data.map(row=>Number(row.cases)),backgroundColor:'#3b82f6',borderRadius:5,maxBarThickness:32
                 }
                 ]
             }
@@ -395,7 +425,7 @@ async function updateDynamicChart(){
     catch{
         if(id!==analyticsRequestId)return;
         ae('insight-text').textContent='The selected records could not be loaded. Please refresh or try again.';
-        ae('action-text').textContent='Check the connection and retry.';
+        ae('action-text').textContent='The recorded-case summary is unavailable.';
         ae('profile-empty').textContent='Data unavailable; this is not a zero count.';
         ae('profile-table').textContent='Data unavailable.';
         ae('analytics-data-context').textContent='A connection error does not mean zero cases.';
@@ -415,7 +445,7 @@ async function initializeMunicipalAnalytics(){
         }
         ).format(new Date()));
         if(optionsId!==analyticsOptionsRequestId)return;
-        for(const [id,values,label] of [['filter-year',result.years,value=>value===currentYear?value+' · Year to date':'CY '+value],['filter-barangay',result.barangays,value=>value],['filter-trend-disease',result.diseases,value=>value]]){
+        for(const [id,values,label] of [['filter-year',result.years,value=>String(value)],['filter-barangay',result.barangays,value=>value],['filter-trend-disease',result.diseases,value=>value]]){
             const select=ae(id);
             while(select.options.length>1)select.remove(1);
             values.forEach(value=>select.add(new Option(label(value),value)));
@@ -428,10 +458,21 @@ async function initializeMunicipalAnalytics(){
     }
     if(optionsId===analyticsOptionsRequestId)await updateDynamicChart();
 }
-for(const dimension of ['barangay','age'])ae('breakdown-'+dimension+'-tab').addEventListener('keydown',event=>{
+for(const dimension of ['barangay'])ae('breakdown-'+dimension+'-tab').addEventListener('keydown',event=>{
     if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
-    event.preventDefault();const next=event.key==='Home'?'barangay':event.key==='End'?'age':analyticsBreakdownDimension==='age'?'barangay':'age';
+    event.preventDefault();const next='barangay';
     setAnalyticsBreakdown(next);ae('breakdown-'+next+'-tab').focus();
 });
 setAnalyticsBreakdown('barangay');
 initializeMunicipalAnalytics();
+
+function refreshMunicipalCaseCards(){
+    if(!document.hidden&&!ae('view-analytics').classList.contains('hidden')){
+        fetchLiveMHOStats(selectedAnalyticsFilters(),analyticsRequestId);
+    }
+}
+window.addEventListener('health-intel:cases-changed',refreshMunicipalCaseCards);
+document.addEventListener('visibilitychange',refreshMunicipalCaseCards);
+document.querySelector('[data-target="view-analytics"]')?.addEventListener('click',()=>requestAnimationFrame(refreshMunicipalCaseCards));
+const municipalCaseRefreshTimer=setInterval(refreshMunicipalCaseCards,30000);
+window.addEventListener('pagehide',event=>{if(!event.persisted)clearInterval(municipalCaseRefreshTimer);});

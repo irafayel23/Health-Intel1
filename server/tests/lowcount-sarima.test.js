@@ -106,7 +106,7 @@ test('all 70 real frontend selections: estimate, own score/errors, method, warni
    assert.deepEqual(a.els['forecast-recommendations'].children.map(x=>x.dataset.rule),d.recommendations.map(x=>x.id));
    const nodes=allNodes(a.els['sarima-chart']);assert.equal(nodes.filter(n=>n.attributes['data-series']==='forecast').length,1);
    assert.equal(nodes.filter(n=>n.attributes['data-forecast-interval']).length,1);assert(!a.els['sarima-chart'].textContent.includes('NaN'));
-   nodes.find(n=>n.attributes['data-month']==='2026-10').focus();assert(a.els['sarima-chart-readout'].textContent.includes(P.format(d.prediction)+' estimated cases'));
+   nodes.find(n=>n.attributes['data-month']==='2026-10').focus();assert(a.els['sarima-chart-readout'].textContent.includes(P.format(d.prediction,0)+' estimated cases'));
   }
  }
 });
@@ -123,6 +123,6 @@ test('route default uses new data and denies non-MHO access without any database
  for(const role of [null,'bhw','admin','superadmin','mho']){
   let body,status=200;const res={set(){return this;},status(x){status=x;return this;},json(x){body=x;return this;}};
   routes['/api/mho/sarima-demo/options']({user:role?{role}:null},res);
-  if(role==='mho'){assert.equal(status,200);assert.equal(body.data.context.cases,5592);}else assert.equal(status,403);
+  if(role==='mho'){assert.equal(status,200);assert.equal(body.data.context.cases,6200);}else assert.equal(status,403);
  }
 });

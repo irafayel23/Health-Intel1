@@ -1,0 +1,12 @@
+{
+  "frozen_at": "2026-11-02T17:52:43.662811+08:00",
+  "before_generation_and_scoring": true,
+  "files": {
+    "generate.py": "66a1dc07acc28fe885da9f189b6c3274f7a750f6a73a1382bd4ea96b5b0d2bcd",
+    "generation-policy.json": "0d902611757ffc7c438a72f719682a643ff19f891f1752f4bf22fba5bd324a2c",
+    "inputs/combined_monthly.csv": "a5484f93d077c2af163d823293ad0e3544522b975c2e3cdcc6ada52cd7aa7e57",
+    "inputs/itr_monthly_preserved.csv": "551791af7d7560c5b8f844918c8727b6024751141fdea8e23c1b7f88c00c44e1",
+    "inputs/synthetic_group_a.csv": "8263b8ddd819ca5d7da8a5c0282f48ef02e0426e919c3f6a1bda07758a2f3d96",
+    "inputs/synthetic_group_b.csv": "40d7b4d8bb5fdb666643e4e10e601bfd22132dc279486508d4aebadf3afa11ab"
+  }
+}

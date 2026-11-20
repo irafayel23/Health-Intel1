@@ -1,0 +1,8 @@
+{
+  "frozen_at": "2026-11-02T17:37:22.505783+08:00",
+  "before_generation_and_scoring": true,
+  "files": {
+    "generate.py": "3894f7428a34891abd7da8f20d64bf1e623fbbc6987a4add19d128d97b7c57ba",
+    "generation-policy.json": "9853c1e086b77ff930879aa6d21e009b53ec284c6f7dfe0ebc01ffad6ac3a712"
+  }
+}

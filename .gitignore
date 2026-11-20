@@ -28,3 +28,10 @@ credentials*.json
 *.dpapi
 /deploy/.private/
 /datasets/datasets/
+
+# Private operational prediction histories, diagnostics and worker journals
+/server/data/operational-predictions/
+/server/forecasting/policy-a/runtime/
+
+# Private encrypted employee ID and selfie review evidence
+/server/private/

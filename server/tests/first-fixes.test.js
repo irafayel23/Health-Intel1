@@ -121,7 +121,8 @@ test('all protected routes reject anonymous requests', async () => {
 test('login works, and expired, forged, pending, denied and suspended sessions fail', async () => {
     const loggedIn = await request('/api/login', null, { method: 'POST', body: { system_id: fixtures.mho, password: testPassword } });
     assert.equal(loggedIn.status, 200);
-    assert.equal(jwt.verify((await loggedIn.json()).token, testSecret).system_id, fixtures.mho);
+    tokens.mho=(await loggedIn.json()).token;
+    assert.equal(jwt.verify(tokens.mho, testSecret).system_id, fixtures.mho);
     for (const role of ['pending', 'denied', 'suspended']) {
         assert.equal((await request('/api/session', role)).status, 401);
         assert.equal((await request('/api/login', null, { method: 'POST', body: { system_id: fixtures[role], password: testPassword } })).status, 403);

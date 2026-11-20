@@ -12,7 +12,7 @@ function validateVisit(input, consultationDate) {
     if (!TRANSACTIONS.includes(input.transaction_mode)) throw invalid('Select the mode of transaction.');
     if (!NATURES.includes(input.nature_of_visit)) throw invalid('Select the nature of visit.');
     const consultation_time = input.consultation_time === undefined || input.consultation_time === '' ? null : input.consultation_time;
-    if (consultation_time !== null && (typeof consultation_time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(consultation_time))) throw invalid('Enter the consultation time with hour, minutes and AM/PM.');
+    if (typeof consultation_time !== 'string' || !/^([01]\d|2[0-3]):[0-5]\d$/.test(consultation_time)) throw invalid('Enter the consultation time with hour, minutes and AM/PM.');
     const referral = input.transaction_mode === 'Referral';
     const referred_by = referral ? plain(input.referred_by, 'referred by', 500, true) : '';
     const referral_reason = referral ? plain(input.referral_reason, 'reason for referral', 1000) : '';
@@ -84,10 +84,12 @@ async function saveExistingVisit(connection, patient, visit, barangayId, systemI
         DATE_FORMAT(date_recorded,'%Y-%m-%d') AS date_recorded FROM health_cases WHERE id=? AND barangay_id=? FOR UPDATE`, [visit.case_id, barangayId]);
     const existing = rows[0];
     if (!existing || existing.is_archived) throw invalid('Select an available case in the patient’s recorded barangay.', 404);
+    if (existing.status === 'Deceased') throw invalid('This historical case is available for review only.',409);
     const normalized = value => String(value || '').trim().toLocaleLowerCase('en');
     if (normalized(existing.first_name) !== normalized(patient.first_name) || normalized(existing.last_name) !== normalized(patient.last_name)
         || normalized(existing.suffix) !== normalized(patient.suffix) || !validDate(existing.birthdate) || existing.birthdate !== patient.birthdate)
         throw invalid('The selected case does not match the patient name, suffix and birthdate. Review the patient details.', 409);
+    if(patient.selected_resident_id!=null&&Number(existing.resident_id)!==Number(patient.selected_resident_id))throw invalid('The selected disease case belongs to a different resident profile. Select the original case for this patient.',409);
     if (patient.date_recorded < existing.date_recorded) throw invalid('The visit date cannot be earlier than the original case date.');
     await guardResidentVisit(connection,existing.resident_id,patient.date_recorded);
     await guardResidentIdentity(connection,patient,barangayId);

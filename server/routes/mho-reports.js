@@ -1,15 +1,11 @@
 const { createReportData } = require('../services/report-data');
 const PDFDocument = require('pdfkit');
+const { renderReportHeading } = require('../services/daily-report');
 const { monthlyPeriod, isoWeekPeriod } = require('../services/report-periods');
 const { respond } = require('../services/service-errors');
 const { createReportExport } = require('../services/report-export');
 
-function reviewNotice(doc) {
-    doc.font('Helvetica-Bold').fontSize(9).fillColor('#9a3412')
-        .text('ACADEMIC SAMPLE - NOT FOR OFFICIAL SUBMISSION', { width: 495, align: 'center' });
-}
-
-function renderMonthlyCases(doc, rows, period) {
+function renderMonthlyCases(doc, rows, heading) {
     const bottom = () => doc.page.height - doc.page.margins.bottom;
     const columns = [
         { label: 'No.', x: 60, width: 25 },
@@ -23,16 +19,13 @@ function renderMonthlyCases(doc, rows, period) {
         doc.font('Helvetica-Bold').fontSize(10);
         const height = Math.max(...columns.map(c => doc.heightOfString(c.label, { width: c.width }))) + 12;
         const y = doc.y;
-        doc.rect(50, y - 5, 495, height).fill('#f1f5f9');
+        doc.rect(50, y - 5, 495, height).fill('#e1eeec');
         for (const c of columns) doc.fillColor('#334155').text(c.label, c.x, y, { width: c.width });
         doc.y = y + height + 5;
     };
     const nextPage = () => {
         doc.addPage();
-        reviewNotice(doc);
-        doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f172a')
-            .text(`Monthly recorded-case summary - ${period.month} ${period.year} (continued)`, 50, doc.y + 10, { width: 495 });
-        doc.moveDown();
+        heading(true);
         header();
     };
     header();
@@ -51,16 +44,16 @@ function renderMonthlyCases(doc, rows, period) {
     });
     if (doc.y + 32 > bottom()) nextPage();
     const y = doc.y;
-    doc.rect(50, y, 495, 25).fill('#f1f5f9');
+    doc.rect(50, y, 495, 25).fill('#e1eeec');
     doc.font('Helvetica-Bold').fontSize(11).fillColor('#0f172a').text('TOTAL RECORDED ENTRIES', 60, y + 7, { width: 380 });
     doc.text(String(total), 465, y + 7, { width: 70 });
     doc.y = y + 35;
 }
 
-function renderMonthlyReview(doc) {
+function renderMonthlyReview(doc, heading) {
     if (doc.y + 110 > doc.page.height - doc.page.margins.bottom) {
         doc.addPage();
-        reviewNotice(doc);
+        heading(true);
     }
     doc.moveDown();
     doc.font('Helvetica-Bold').fontSize(10).fillColor('#0f172a').text('MHO REVIEW', 50, doc.y, { width: 495 });
@@ -71,28 +64,25 @@ function renderMonthlyReview(doc) {
     doc.text('Reviewed by: __________________________    Date: ______________', { width: 495 });
 }
 
-function renderWeeklyCases(doc, rows, period) {
+function renderWeeklyCases(doc, rows, heading) {
     const bottom = () => doc.page.height - doc.page.margins.bottom;
     const columns = [
         { label: 'Date Recorded', x: 60, width: 100, font: 'Helvetica', color: '#0f172a' },
-        { label: 'Recorded condition', x: 170, width: 135, font: 'Helvetica-Bold', color: '#ef4444' },
+        { label: 'Recorded condition', x: 170, width: 135, font: 'Helvetica-Bold', color: '#163546' },
         { label: 'Age group', x: 315, width: 65, font: 'Helvetica', color: '#0f172a' },
-        { label: 'Recorded Severity', x: 390, width: 80, font: 'Helvetica-Oblique', color: '#ea580c' },
-        { label: 'Status', x: 480, width: 55, font: 'Helvetica-Bold', color: '#ef4444' }
+        { label: 'Recorded Severity', x: 390, width: 80, font: 'Helvetica', color: '#425c6a' },
+        { label: 'Status', x: 480, width: 55, font: 'Helvetica-Bold', color: '#163546' }
     ];
     const header = () => {
         const y = doc.y;
-        doc.rect(50, y - 5, 495, 25).fill('#fef2f2');
-        doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11);
+        doc.rect(50, y - 5, 495, 25).fill('#e1eeec');
+        doc.font('Helvetica-Bold').fillColor('#163546').fontSize(11);
         for (const column of columns) doc.text(column.label, column.x, y, { width: column.width });
         doc.y = y + 30;
     };
     const nextPage = () => {
         doc.addPage();
-        reviewNotice(doc);
-        doc.font('Helvetica-Bold').fillColor('#0f172a').fontSize(11)
-            .text(`Weekly recorded-case summary - Week ${period.week}, ${period.year} (continued)`, 50, doc.y + 10, { width: 495 });
-        doc.moveDown();
+        heading(true);
         header();
     };
     header();
@@ -105,7 +95,7 @@ function renderWeeklyCases(doc, rows, period) {
         })) + 12;
         if (doc.y + height > bottom() - 5) nextPage();
         const y = doc.y;
-        doc.moveTo(50, y - 5).lineTo(545, y - 5).lineWidth(0.5).strokeColor('#fecaca').stroke();
+        doc.moveTo(50, y - 5).lineTo(545, y - 5).lineWidth(0.5).strokeColor('#cadbd9').stroke();
         columns.forEach((column, index) => {
             doc.font(column.font).fontSize(10)
                 .fillColor(index === 3 && severity === 'High Risk' ? '#dc2626' : column.color)
@@ -115,15 +105,15 @@ function renderWeeklyCases(doc, rows, period) {
     }
     if (doc.y + 32 > bottom()) nextPage();
     const y = doc.y;
-    doc.moveTo(50, y - 5).lineTo(545, y - 5).lineWidth(1.5).strokeColor('#ef4444').stroke();
-    doc.rect(50, y, 495, 25).fill('#fff1f2');
-    doc.font('Helvetica-Bold').fillColor('#7f1d1d').fontSize(11)
+    doc.moveTo(50, y - 5).lineTo(545, y - 5).lineWidth(1.5).strokeColor('#126259').stroke();
+    doc.rect(50, y, 495, 25).fill('#eaf4f2');
+    doc.font('Helvetica-Bold').fillColor('#163546').fontSize(11)
         .text('TOTAL RECORDED CASES', 60, y + 7, { width: 370 });
     doc.text(rows.length.toString(), 450, y + 7, { width: 85 });
     doc.y = y + 32;
 }
 
-function renderWeeklySignature(doc) {
+function renderWeeklySignature(doc, heading) {
     doc.font('Helvetica-Bold').fontSize(11);
     const caption = 'Epidemiology Surveillance Officer';
     const height = 56 + doc.heightOfString(caption, { width: 195 });
@@ -132,7 +122,7 @@ function renderWeeklySignature(doc) {
     if (doc.y + gap + height > bottom) gap = 20;
     if (doc.y + gap + height > bottom) {
         doc.addPage();
-        reviewNotice(doc);
+        heading(true);
         gap = 0;
     }
     const y = doc.y + gap;
@@ -150,20 +140,6 @@ function registerMhoReportRoutes(app, db) {
     app.get('/api/mho/reports/fhsis', async (req, res) => {
         try {
             const { month, year } = req.query;
-            const months = [
-                'January',
-                'February',
-                'March',
-                'April',
-                'May',
-                'June',
-                'July',
-                'August',
-                'September',
-                'October',
-                'November',
-                'December'
-            ];
             const period = monthlyPeriod(month, year);
 
             const rows = await reports.monthly(period);
@@ -177,31 +153,12 @@ function registerMhoReportRoutes(app, db) {
 
             doc.pipe(res);
 
-            doc.fontSize(16)
-                .font('Helvetica-Bold')
-                .fillColor('#0f172a')
-                .text('HEALTH-INTEL', { align: 'center' });
-            reviewNotice(doc);
-            doc.moveDown(0.5);
-            doc.fontSize(11)
-                .font('Helvetica')
-                .fillColor('#475569')
-                .text('Monthly recorded-case summary for MHO review', { align: 'center' });
-            doc.fontSize(10).text('Municipal Health Office - Murcia, Negros Occidental', { align: 'center' });
+            const heading = (continued=false) => renderReportHeading(doc,
+                `MHO Monthly Case Summary${continued?' (continued)':''}`,
+                `${month} ${year}  |  All barangays  |  Philippine time`);
+            heading();
+            doc.x = doc.page.margins.left;
 
-            doc.moveDown(1.5);
-            doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(1.5).strokeColor('#0284c7').stroke();
-            doc.moveDown(1);
-
-            doc.fontSize(14)
-                .font('Helvetica-Bold')
-                .fillColor('#0f172a')
-                .text('MONTHLY RECORDED-CASE SUMMARY', { align: 'center' });
-            doc.fontSize(11)
-                .font('Helvetica')
-                .fillColor('#64748b')
-                .text('Period: ' + month + ' ' + year, { align: 'center' });
-            doc.moveDown(2);
             doc.fontSize(9)
                 .font('Helvetica')
                 .fillColor('#64748b')
@@ -216,9 +173,9 @@ function registerMhoReportRoutes(app, db) {
                     .fillColor('#94a3b8')
                     .text('No health records found for ' + month + ' ' + year + '.', { align: 'center' });
             } else {
-                renderMonthlyCases(doc, rows, { month, year });
+                renderMonthlyCases(doc, rows, heading);
             }
-            renderMonthlyReview(doc);
+            renderMonthlyReview(doc, heading);
 
             doc.end();
         } catch (error) {
@@ -247,37 +204,19 @@ function registerMhoReportRoutes(app, db) {
 
             doc.pipe(res);
 
-            doc.fontSize(16)
-                .font('Helvetica-Bold')
-                .fillColor('#0f172a')
-                .text('HEALTH-INTEL', { align: 'center' });
-            reviewNotice(doc);
-            doc.moveDown(0.5);
-            doc.fontSize(11)
-                .font('Helvetica')
-                .fillColor('#475569')
-                .text('Weekly recorded-case summary for MHO review', { align: 'center' });
-            doc.fontSize(10).text('Municipal Health Office - Murcia, Negros Occidental', { align: 'center' });
+            const heading = (continued=false) => renderReportHeading(doc,
+                `MHO Weekly Case Summary${continued?' (continued)':''}`,
+                `Week ${weekNum}, ${period.year} (Monday-Sunday)  |  All barangays`);
+            heading();
+            doc.x = doc.page.margins.left;
 
-            doc.moveDown(1.5);
-            doc.moveTo(50, doc.y).lineTo(545, doc.y).lineWidth(1.5).strokeColor('#ef4444').stroke();
-            doc.moveDown(1);
-
-            doc.fontSize(14)
-                .font('Helvetica-Bold')
-                .fillColor('#0f172a')
-                .text('WEEKLY RECORDED-CASE SUMMARY', { align: 'center' });
-            doc.fontSize(11)
-                .font('Helvetica')
-                .fillColor('#64748b')
-                .text('Week ' + weekNum + ', ' + period.year + ' (Monday-Sunday)', { align: 'center' });
             const lastDay = new Date(period.end + 'T00:00:00Z');
             lastDay.setUTCDate(lastDay.getUTCDate() - 1);
             const reportDate = value => new Intl.DateTimeFormat('en-PH', {
                 timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric'
             }).format(new Date(value + 'T00:00:00Z'));
-            doc.fontSize(10).text(`Recorded dates: ${reportDate(period.start)} to ${reportDate(lastDay.toISOString().slice(0, 10))}`, { align: 'center' });
-            doc.moveDown(2);
+            doc.font('Helvetica').fontSize(10).fillColor('#425c6a').text(`Recorded dates: ${reportDate(period.start)} to ${reportDate(lastDay.toISOString().slice(0, 10))}`, { align: 'center' });
+            doc.moveDown(0.5);
             doc.fontSize(9)
                 .font('Helvetica')
                 .fillColor('#64748b')
@@ -295,10 +234,10 @@ function registerMhoReportRoutes(app, db) {
                         { align: 'center' }
                     );
             } else {
-                renderWeeklyCases(doc, rows, period);
+                renderWeeklyCases(doc, rows, heading);
             }
 
-            renderWeeklySignature(doc);
+            renderWeeklySignature(doc, heading);
 
             doc.end();
         } catch (error) {

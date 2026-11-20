@@ -22,25 +22,42 @@ function comparisonSelection(query, filters, now=new Date()) {
 
 function analyticsFilters(query) {
     const year = query.year === undefined ? 'all' : query.year;
+    const month = query.month ?? 'all';
     const age = query.age === undefined ? 'all' : query.age;
     const barangay = query.barangay === undefined ? 'all' : query.barangay;
     const category = query.category === undefined ? 'morbidity' : query.category;
     if (typeof year !== 'string' || (year !== 'all' && (!/^\d{4}$/.test(year) || Number(year) < 1900)) ||
+        typeof month !== 'string' || (month !== 'all' && !/^(0[1-9]|1[0-2])$/.test(month)) ||
         typeof age !== 'string' || (age !== 'all' && !Object.hasOwn(ageRanges, age)) ||
         typeof barangay !== 'string' || !barangay.trim() || barangay.length > 255 ||
-        !['morbidity', 'mortality'].includes(category)) {
-        const error = new Error('Select a valid year, barangay, age group and category.');
+        category !== 'morbidity') {
+        const error = new Error('Select a valid year, month, barangay, age group and category.');
         error.status = 400;
         throw error;
     }
-    return { year, age, barangay, category };
+    return { year, ...(month === 'all' ? {} : { month }), age, barangay, category };
 }
 
-function caseWhere(filters, { includeYear = true, deathsOnly = false } = {}) {
-    const clauses = ["disease NOT LIKE '%bite%'", "disease NOT LIKE '%accident%'"];
+function caseWhere(filters, { includeYear = true, allConditions = false } = {}) {
+    const clauses = allConditions ? ['1=1'] : ["disease NOT LIKE '%bite%'", "disease NOT LIKE '%accident%'"];
     const params = [];
+    if (includeYear && filters.year === 'all' && filters.month) {
+        clauses.push('MONTH(date_recorded) = ?');
+        params.push(Number(filters.month));
+    }
     if (includeYear && filters.year !== 'all') {
-        clauses.push('YEAR(date_recorded) = ?'); params.push(Number(filters.year));
+        if (filters.month) {
+            const start = filters.year + '-' + filters.month + '-01';
+            const nextMonth = Number(filters.month) + 1;
+            const end = nextMonth === 13
+                ? (Number(filters.year) + 1) + '-01-01'
+                : filters.year + '-' + String(nextMonth).padStart(2, '0') + '-01';
+            clauses.push('date_recorded >= ? AND date_recorded < ?');
+            params.push(start, end);
+        } else {
+            clauses.push('YEAR(date_recorded) = ?');
+            params.push(Number(filters.year));
+        }
     }
     if (filters.barangay !== 'all') {
         clauses.push('barangay_id = (SELECT id FROM barangays WHERE name = ? LIMIT 1)'); params.push(filters.barangay);
@@ -48,7 +65,6 @@ function caseWhere(filters, { includeYear = true, deathsOnly = false } = {}) {
     if (filters.age !== 'all') {
         clauses.push(caseAgeSql()+' BETWEEN ? AND ?'); params.push(...ageRanges[filters.age]);
     }
-    if (deathsOnly) clauses.push("status = 'Deceased'");
     return { sql: clauses.join(' AND '), params };
 }
 

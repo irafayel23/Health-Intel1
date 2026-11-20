@@ -5,7 +5,7 @@
         const response=await fetch('http://localhost:3000/api'+route,body?{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{}),result=await response.json();
         if(!response.ok||!result.success)throw Error(result.error||'Resident status could not be loaded or saved.');return result;
     }
-    async function refresh() {
+    async function refresh(fromPager=false) {
         const version=++requestVersion;field('vital-review-count').textContent='Loading resident status…';
         try {
             if(!choicesLoaded){const choices=await request('/mho/walk-in-options');if(version!==requestVersion)return;for(const item of choices.data.barangays){const option=document.createElement('option');option.value=item.id;option.textContent=item.name;field('vital-review-barangay').append(option);}choicesLoaded=true;}
@@ -15,6 +15,7 @@
             field('vital-review-count').textContent=`${result.total} ${pending?'pending reports':'confirmed residents'} in this view. Confirmed deceased residents in selected scope: ${result.confirmed_total}.`;
             field('vital-review-body').innerHTML=rows.length?rows.map(r=>`<tr><td><strong>${safe(r.patient_name||'Resident #'+r.resident_id)}</strong><br><small>Resident #${Number(r.resident_id)}</small></td><td>${safe(r.barangay_name)}</td><td>${safe(r.death_date?HealthIntelDate.formatCaseDate(r.death_date):'Unknown')}</td><td>${safe(r.source)}</td><td><button type="button" class="hi-vital-button" data-vital-review="${Number(r.id)}">${pending?'Review report':'Correct status'}</button></td></tr>`).join(''):'<tr><td colspan="5">No matching resident reports or confirmations.</td></tr>';
             field('vital-review-page').textContent=`Page ${page} of ${pages}`;field('vital-review-prev').disabled=page<=1;field('vital-review-next').disabled=page>=pages;
+            if(fromPager===true)globalThis.HealthIntelPagination?.showStart('vital-review-body');
         }catch(error){if(version!==requestVersion)return;field('vital-review-count').textContent=error.message;field('vital-review-body').innerHTML='<tr><td colspan="5">Status list unavailable. Use Refresh to try again.</td></tr>';field('vital-review-prev').disabled=true;field('vital-review-next').disabled=true;}
     }
     async function review(id) {
@@ -35,7 +36,7 @@
         window.addEventListener('health-intel:resident-review-opened',refresh);
         for(const id of ['vital-review-view','vital-review-barangay'])field(id).addEventListener('change',()=>{page=1;refresh();});
         field('vital-review-refresh').addEventListener('click',refresh);
-        field('vital-review-prev').addEventListener('click',()=>{if(page>1){page--;refresh();}});field('vital-review-next').addEventListener('click',()=>{if(page<pages){page++;refresh();}});
+        field('vital-review-prev').addEventListener('click',()=>{if(page>1){page--;refresh(true);}});field('vital-review-next').addEventListener('click',()=>{if(page<pages){page++;refresh(true);}});
         field('vital-review-body').addEventListener('click',event=>{const button=event.target.closest('[data-vital-review]');if(button)review(Number(button.dataset.vitalReview));});
         field('vital-review-export').addEventListener('click',async()=>{try{
             await HealthIntel.download('http://localhost:3000/api/mho/reports/deceased-residents?'+new URLSearchParams({barangay_id:field('vital-review-barangay').value}),{},'Confirmed_Deceased_Residents.pdf');

@@ -2,7 +2,7 @@
 // Classic script: load through bhw.html; cross-feature functions share its page scope.
       function bhwReturnVisitReason(person,record) {
           if(record.is_archived)return 'Archived case · view only.';
-          if(person.is_deceased)return 'Confirmed deceased · use the consultation form for an eligible historical visit.';
+          if(person.is_deceased || record.status === 'Deceased')return 'Historical record. Consultations are view only.';
           const same=(a,b)=>String(a||'').trim().toLocaleLowerCase('en')===String(b||'').trim().toLocaleLowerCase('en');
           if(!Number.isSafeInteger(Number(record.id))||Number(record.id)<1||!person.first_name||!person.last_name||!person.purok||!person.barangay_id||!/^\d{4}-\d{2}-\d{2}$/.test(person.birthdate||'')||
               Number(record.resident_id)!==Number(person.id)||Number(record.barangay_id)!==Number(person.barangay_id)||record.birthdate!==person.birthdate||
@@ -30,44 +30,55 @@
       // 4. DIRECTORY & PROFILES
       let residentDirectoryPage = 1;
       let residentDirectoryQuery = '';
-      let residentDirectoryVitalFilter = 'all';
-      const residentProfilesPerPage = 12;
+      const residentProfilesPerPage = window.matchMedia?.('(max-width: 600px)').matches ? 6 : 12;
+      let residentRequest=0,residentController,residentMeta={total:0,page_count:1};
+      let residentTimer;
       async function loadResidentDirectory() {
-          try {
-              const url = window.currentBrgyId ? `http://localhost:3000/api/residents?barangay_id=${window.currentBrgyId}` : "http://localhost:3000/api/residents";
-              const response = await fetch(url);
-              const result = await response.json();
-              if (result.success) {
-                  window.allResidents = result.data;
-                  filterDirectory();
-              }
-          } catch(e) {
-              console.error("Error loading directory", e);
-          }
+          residentController?.abort();residentController=new AbortController();const controller=residentController,id=++residentRequest;
+          const grid=document.getElementById('resident-grid');if(!grid)return;
+          grid.setAttribute('aria-busy','true');
+          if(!window.residentDirectoryZones){try{const response=await fetch('http://localhost:3000/api/bhw/puroks',{signal:controller.signal}),result=await response.json();if(response.ok&&result.success){window.residentDirectoryZones=result.data;refreshResidentPurokOptions();}}catch{}}
+          const params=new URLSearchParams({page:residentDirectoryPage,page_size:residentProfilesPerPage,q:document.getElementById('directory-search').value.trim(),purok:document.getElementById('resident-filter-purok').value,age_group:document.getElementById('resident-filter-age').value});
+          if(window.currentBrgyId)params.set('barangay_id',window.currentBrgyId);
+          const timer=setTimeout(()=>controller.abort(),15000);
+          try{
+              const response=await fetch('http://localhost:3000/api/residents?'+params,{signal:controller.signal}),result=await response.json();
+              if(id!==residentRequest)return;
+              if(!response.ok||!result.success||!Array.isArray(result.data))throw Error('Unavailable');
+              residentMeta=result;residentDirectoryPage=result.page;residentDirectoryQuery=JSON.stringify(['q','purok','age_group'].map(key=>params.get(key)));window.allResidents=result.data;
+              renderDirectory(result.data);
+          }catch(error){if(id!==residentRequest)return;grid.textContent='Resident profiles could not be loaded. Use Refresh residents to retry.';document.getElementById('resident-pagination')?.replaceChildren();document.getElementById('resident-page-count').textContent='Records unavailable';}
+          finally{clearTimeout(timer);if(id===residentRequest)grid.setAttribute('aria-busy','false');}
+      }
+
+      function residentAgeGroup(person) {
+          const recordedAge = window.HealthIntelDate ? HealthIntelDate.residentAge(person) : person.age;
+          const age = Number(recordedAge);
+          if (person.is_deceased || recordedAge == null || String(recordedAge).trim() === '' || !Number.isInteger(age) || age < 0 || age > 130) return 'unknown';
+          if (age < 13) return 'child';
+          if (age < 18) return 'teen';
+          return age < 60 ? 'adult' : 'senior';
+      }
+
+      function clearResidentFilters() {
+          for (const id of ['directory-search','resident-filter-purok','resident-filter-age']) document.getElementById(id).value = '';
+          filterDirectory();
       }
 
       function filterDirectory() {
-          const query = document.getElementById("directory-search").value.toLowerCase();
-          const vitalFilter=document.getElementById('directory-vital-filter')?.value || 'all';
-          if (query !== residentDirectoryQuery || vitalFilter !== residentDirectoryVitalFilter) {
-              residentDirectoryPage = 1;
-              residentDirectoryQuery = query;
-              residentDirectoryVitalFilter = vitalFilter;
-          }
-          const filtered = window.allResidents ? window.allResidents.filter(p => {
-             const name = p.patient_name || p.first_name + " " + p.last_name || "";
-             return name.toLowerCase().includes(query)&&(vitalFilter==='all'||(vitalFilter==='deceased'?Boolean(p.is_deceased):!p.is_deceased));
-          }) : [];
-          renderDirectory(filtered);
+          const filterKey=JSON.stringify(['directory-search','resident-filter-purok','resident-filter-age'].map(id=>document.getElementById(id).value));
+          if(filterKey!==residentDirectoryQuery){residentDirectoryPage=1;residentDirectoryQuery=filterKey;}
+          clearTimeout(residentTimer);residentController?.abort();residentRequest++;
+          residentTimer=setTimeout(()=>loadResidentDirectory(),200);
       }
 
       function renderDirectory(data) {
         const grid = document.getElementById("resident-grid");
         if(!grid) return;
-        const totalPages = Math.ceil(data.length / residentProfilesPerPage);
+        const totalPages = residentMeta.page_count;
         residentDirectoryPage = Math.max(1, Math.min(residentDirectoryPage, totalPages || 1));
         const first = (residentDirectoryPage - 1) * residentProfilesPerPage;
-        renderResidentPagination(data.length, first, totalPages);
+        renderResidentPagination(residentMeta.total, first, totalPages);
 
         if (data.length === 0) {
             grid.innerHTML = '<div class="col-span-full py-8 text-center text-[hsl(var(--muted-foreground))]">No residents found.</div>';
@@ -75,7 +86,7 @@
         }
 
         // Build once: appending with innerHTML reparses every preceding card.
-        grid.innerHTML = data.slice(first, first + residentProfilesPerPage).map(res => {
+        grid.innerHTML = data.map(res => {
             const patientName = res.patient_name || res.first_name + " " + res.last_name || "Unknown";
             const nameParts = patientName.split(" ");
             const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
@@ -90,9 +101,8 @@
                   ${escapeText(initials.toUpperCase())}
                 </div>
                 <h2 class="font-bold text-lg mb-1 text-[hsl(var(--foreground))]">${escapeText(patientName)}</h2>
-                ${window.HealthIntelVital?.badge(res) || ''}
                 ${isSenior ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 rounded text-xs font-bold mb-2 inline-block">Senior Citizen</span>' : ''}
-                <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${escapeText(res.purok)} | ${res.is_deceased?(residentAge==null?'Age at death unknown':escapeText(residentAge)+' yrs at death'):escapeText(residentAge ?? 'N/A')+' yrs'}</p>
+                <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${escapeText(res.purok)} | ${res.is_deceased?'Historical profile':escapeText(residentAge ?? 'N/A')+' yrs'}</p>
 
                 <button onclick="viewPatientProfile('${res.id}')" class="w-full mt-auto py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors">
                   View Medical Dossier<br>
@@ -125,7 +135,7 @@
                   if (disabled) return;
                   residentDirectoryPage = page;
                   filterDirectory();
-                  container.querySelector('[aria-current="page"]')?.focus({ preventScroll: true });
+                  globalThis.HealthIntelPagination?.showStart('resident-grid');
               };
               container.append(button);
           };
@@ -144,7 +154,7 @@
           addButton('Next', residentDirectoryPage + 1, residentDirectoryPage === totalPages);
       }
 
-      async function viewPatientProfile(residentId) {
+      async function viewPatientProfile(residentId, selectedCase = null, onClose = null, beforeOpen = null) {
           if (!Number.isSafeInteger(Number(residentId)) || Number(residentId)<=0) {
               Swal.fire('Resident link unavailable', 'This historical case has no linked resident profile. Ask the Admin to review the source record; the system will not guess the identity.', 'info');
               return;
@@ -165,8 +175,7 @@
                   document.getElementById("profile-name").innerText = patientName;
                   document.getElementById("profile-purok").innerText = data.purok || "Unknown";
                   document.getElementById("profile-age").innerText = HealthIntelDate.residentAge(data) ?? 'N/A';
-                  if(data.is_deceased)document.getElementById('profile-age').innerText=data.death_date?`${HealthIntelDate.residentAge(data) ?? 'N/A'} (at death)`:'Age at death unknown';
-                  window.HealthIntelVital?.dossier(data);
+                  if(data.is_deceased)document.getElementById('profile-age').innerText='Historical profile';
 
                                       const tbody = document.getElementById("profile-history-body");
                     tbody.innerHTML = "";
@@ -201,21 +210,39 @@
                               </td>
                               <td class="px-5 py-4 text-[hsl(var(--muted-foreground))] text-sm">${escapeText(record.remarks || "No remarks")}</td>
                               <td class="px-5 py-4 ${statusColor} font-bold text-sm">
-                                 ${escapeText(record.status)}
+                                 ${escapeText(record.status === "Deceased" ? "Historical outcome" : record.status)}
                               </td>
                               <td class="px-5 py-4"><div class="flex flex-col items-start gap-2 min-w-40">
                                 <button type="button" class="hi-vital-button" onclick="HealthIntelVisits.show(${Number(record.id)})">View visits</button>
-                                ${returnReason?`<p class="text-xs text-[hsl(var(--muted-foreground))]">${escapeText(returnReason)}</p>`:`<button type="button" class="hi-vital-button !bg-blue-600 !text-white !border-blue-600 hover:!bg-blue-700" aria-label="Record follow-up or admission for case REC-${Number(record.id)}" onclick="recordBhwReturnVisit(${Number(data.id)},${Number(record.id)})">Record follow-up / admission</button>`}
+                                ${returnReason?`<p class="text-xs text-[hsl(var(--muted-foreground))]">${escapeText(returnReason)}</p>`:`<button type="button" class="hi-vital-button !bg-blue-600 !text-white !border-blue-600 hover:!bg-blue-700" aria-label="Record follow-up visit for case REC-${Number(record.id)}" onclick="recordBhwReturnVisit(${Number(data.id)},${Number(record.id)})">Record follow-up visit</button>`}
                               </div></td>
                             </tr>
                           `;
                       });
                   }
                   if (window.HealthIntelVisits && document.getElementById('profile-visits-list')) HealthIntelVisits.renderResidentHistory(result.visits || []);
+                  HealthIntelCaseDownload.mount(document.getElementById("bhw-case-download"), history, selectedCase);
                   const modal = document.getElementById("patientProfileModal");
+                  renderBhwCaseActions(document.getElementById("bhw-selected-case-actions"), selectedCase, closeProfileModal);
+                  if (beforeOpen && !await beforeOpen()) return;
+                  modal.classList.toggle('bhw-case-profile-transition', Boolean(beforeOpen));
+                  if (onClose) {
+                    const observer = new MutationObserver(() => {
+                      if (modal.classList.contains('hidden')) {
+                        observer.disconnect();
+                        onClose();
+                      }
+                    });
+                    observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+                  }
                   HealthIntelModal.open(modal);
+              } else {
+                  throw new Error(result.error || 'Please try again later.');
               }
-          } catch(e) { console.error("Error opening dossier", e); Swal.fire('Dossier unavailable',e.message || 'Please try again later.','error'); }
+          } catch (error) {
+              if (beforeOpen) throw error;
+              Swal.fire('Dossier unavailable', error.message || 'Please try again later.', 'error');
+          }
       }
 
 

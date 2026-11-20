@@ -1,0 +1,4 @@
+const sharp=require('sharp'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');let cached;
+async function registrationPhotoFields(password){cached??=sharp({create:{width:240,height:240,channels:3,background:'#64748b'}}).png().toBuffer().then(bytes=>'data:image/png;base64,'+bytes.toString('base64'));const photo=await cached;return {confirm_password:password,review_consent:true,employee_photo:photo,selfie_photo:photo};}
+function isolateReviewStore(){const directory=fs.mkdtempSync(path.join(os.tmpdir(),'hi-review-qa-'));process.env.REGISTRATION_REVIEW_DIRECTORY=directory;require('node:test').after(()=>{if(path.dirname(directory)!==os.tmpdir())throw Error('Unsafe fixture cleanup');fs.rmSync(directory,{recursive:true,force:true});});}
+module.exports={registrationPhotoFields,isolateReviewStore};

@@ -1,0 +1,67 @@
+{
+  "version": "seasonal-revision-20261102-v1",
+  "seed": 2026110201,
+  "total_generated_cases": 5500,
+  "preserved_itr_cases": 92,
+  "combined_cases": 5592,
+  "monthly_records": 3150,
+  "months": 45,
+  "date_start": "2023-01",
+  "date_end": "2026-09",
+  "innovation_persistence": 0.55,
+  "innovation_sd": 0.12,
+  "annual_log_drift": 0.01,
+  "shock_probability": 0.015,
+  "shock_multiplier": 1.5,
+  "allocation": "Fixed original generated budget for each disease/barangay; largest fractional remainder integer allocation over45months. Lower observation noise than multinomial source, deliberately a distinct easier sensitivity scenario. No Poisson-level sampling claim.",
+  "group_split": "Two generated groups2750each; not a claim of50% verified actual records.",
+  "disease_patterns": {
+    "Cough": [
+      [
+        0.08,
+        8
+      ]
+    ],
+    "URTI": [
+      [
+        0.18,
+        8
+      ]
+    ],
+    "Infection all types": [],
+    "ARI": [
+      [
+        0.22,
+        8
+      ]
+    ],
+    "Fever unknown origin": [],
+    "Hypertension": [],
+    "Influenza": [
+      [
+        0.4,
+        8.5
+      ]
+    ],
+    "Acute Gastroenteritis": [
+      [
+        0.12,
+        5
+      ],
+      [
+        0.08,
+        9
+      ]
+    ],
+    "Vertigo": [],
+    "All types of skin disease": [
+      [
+        0.14,
+        4
+      ]
+    ]
+  },
+  "assumptions": "Peak months are declared simulation choices. Broad categories retain no imposed seasonality where unsupported; cough weak pattern is exploratory, not a documented local peak. Preserve all actual ITR allocations and70cumulative totals. No guarantee of passing seasonal evidence screen or70%/80% hit rate.",
+  "evaluation": "Existing unchanged policyA SARIMA; primary36/9 and secondary31/14 expanding one-month tests. No test-driven redraw, seed changes or tolerance changes. New scenario comparisons are sensitivity, not algorithm improvement.",
+  "activation": "Not installed: new saved results and metrics required before any application data activation."
+}

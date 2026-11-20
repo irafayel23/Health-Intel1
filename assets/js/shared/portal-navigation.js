@@ -138,4 +138,36 @@
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize);
     else initialize();
+
+    // Reflect visible loading messages on the selected sidebar item.
+    function initializeLoadingIndicators() {
+        if (typeof MutationObserver !== 'function') return;
+        const statusSelector = '[role="status"], [aria-live="polite"], [id$="-status"], [id$="-context"], #sarima-state, #overview-pending-list > p, #overview-recent-list > p';
+        const waiting = /^(?:Loading|Refreshing|Fetching)(?:\s|…|\.|$)/i;
+        let frame = 0;
+        function update() {
+            frame = 0;
+            let pageLoading = false;
+            for (const status of document.querySelectorAll(statusSelector)) {
+                const message = status.textContent.trim();
+                const loading = waiting.test(message) && !/^Loading timed out\b/i.test(message);
+                const visible = loading && status.getClientRects().length > 0;
+                status.toggleAttribute('data-portal-loading', visible && !status.querySelector('.hi-overview-spinner'));
+                pageLoading ||= visible && !status.closest('[role="dialog"]');
+            }
+            for (const item of document.querySelectorAll('.nav-item')) {
+                item.toggleAttribute('data-portal-nav-loading', pageLoading && item.classList.contains('active'));
+            }
+        }
+        const observer = new MutationObserver(() => {
+            if (!frame) frame = requestAnimationFrame(update);
+        });
+        observer.observe(document.body, {
+            subtree: true, childList: true, characterData: true, attributes: true,
+            attributeFilter: ['class', 'hidden', 'aria-busy']
+        });
+        update();
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initializeLoadingIndicators);
+    else initializeLoadingIndicators();
 })();

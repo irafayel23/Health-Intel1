@@ -1,12 +1,19 @@
 const { createAccountDirectory } = require('../services/account-directory');
 const { normalizeEmail, escapeHtml, emailConfigured, sendEmail } = require('../config/security-config');
 const { respond } = require('../services/service-errors');
+const {store}=require('../services/registration-evidence');
+const {registrationEmail}=require('../services/registration-email');
+const {registrationHistory}=require('../services/registration-history');
 const { accountStatus } = require('../services/account-status');
 const { withCaseReference } = require('../services/case-audit');
 const { auditMetadata } = require('../services/system-audit');
 
-function registerIdentityRoutes(app, db, dbConfig) {
+function registerIdentityRoutes(app, db, dbConfig, {notify=sendEmail,mailReady=emailConfigured,changeStatus=accountStatus}={}) {
     const directory = createAccountDirectory(db);
+    app.get('/api/admin/registration-evidence/:id',async(req,res)=>{
+        res.set('Cache-Control','no-store');
+        try{const [rows]=await db.execute('SELECT role,created_at FROM users WHERE system_id=?',[req.params.id]);if(!rows.length)return res.status(404).json({success:false,error:'Account not found.'});if(!['admin','superadmin'].includes(req.user.role)||(rows[0].role==='admin'&&req.user.role!=='superadmin'))return res.status(403).json({success:false,error:'Not authorized.'});const e=store.read(req.params.id);const [metadata]=await registrationHistory(db,[{system_id:req.params.id,created_at:rows[0].created_at}]);res.json({success:true,data:e?{employee_photo:e.employee_photo,selfie_photo:e.selfie_photo,submitted_at:e.submitted_at,submission:e.submission,submission_count:metadata.submission_count,last_submitted_at:metadata.last_submitted_at,previous_rejection_reason:metadata.previous_rejection_reason,registration_history:metadata.registration_history}:null});}catch{res.status(503).json({success:false,error:'Registration evidence unavailable.'});}
+    });
     // ==========================================
     // 5. IAM (IDENTITY & ACCESS MANAGEMENT)
     // ==========================================
@@ -57,19 +64,15 @@ function registerIdentityRoutes(app, db, dbConfig) {
 
         try {
             const finalId = temp_system_id;
-            const approved = await accountStatus(db, req, 'approved', 'User Approved');
+            const approved = await changeStatus(db, req, 'approved', 'User Approved');
             const userRow = [approved];
             const userEmail = userRow[0].email;
             const userName = userRow[0].first_name;
 
             let email_delivery = 'not_configured';
-            if (emailConfigured() && normalizeEmail(userEmail)) {
+            if (mailReady() && normalizeEmail(userEmail)) {
                 try {
-                    await sendEmail({
-                        to: normalizeEmail(userEmail),
-                        subject: 'LGU access approved: your official system ID',
-                        html: `<h2>Account approved</h2><p>Hello ${escapeHtml(userName || '')},</p><p>Your HEALTH-INTEL access request has been approved.</p><p>Your system ID is <strong>${escapeHtml(finalId)}</strong>. Sign in using the password you created.</p>`
-                    });
+                    await notify({to:normalizeEmail(userEmail),...registrationEmail('approved',approved)});
                     email_delivery = 'sent';
                 } catch {
                     email_delivery = 'failed';
@@ -93,8 +96,10 @@ function registerIdentityRoutes(app, db, dbConfig) {
     // Deny User
     app.post('/api/admin/deny-user', async (req, res) => {
         try {
-            await accountStatus(db, req, 'denied', 'User Request Denied');
-            res.json({ success: true, message: 'User Request Denied.' });
+            const account=await changeStatus(db, req, 'denied', 'User Request Denied');
+            let email_delivery='not_configured';
+            if(mailReady()&&normalizeEmail(account.email)){try{await notify({to:normalizeEmail(account.email),...registrationEmail('denied',account)});email_delivery='sent';}catch{email_delivery='failed';}}
+            res.json({success:true,email_delivery,message:'Registration declined.'+(email_delivery==='sent'?' Notification email sent.':' Notification email was not sent; notify the applicant securely.')});
         } catch (error) {
             respond(res, error, 'The account could not be updated.');
         }
@@ -134,8 +139,10 @@ function registerIdentityRoutes(app, db, dbConfig) {
 
     app.post('/api/superadmin/approve-admin', async (req, res) => {
         try {
-            await accountStatus(db, req, 'approved', 'Admin Approved');
-            res.json({ success: true, message: 'Admin Approved.' });
+            const approved=await changeStatus(db, req, 'approved', 'Admin Approved');
+            let email_delivery='not_configured';
+            if(mailReady()&&normalizeEmail(approved.email)){try{await notify({to:normalizeEmail(approved.email),...registrationEmail('approved',approved)});email_delivery='sent';}catch{email_delivery='failed';}}
+            res.json({success:true,email_delivery,message:'Admin approved.'+(email_delivery==='sent'?' Approval email sent.':' Approval email was not sent; notify the applicant securely.')});
         } catch (error) {
             respond(res, error, 'The account could not be updated.');
         }

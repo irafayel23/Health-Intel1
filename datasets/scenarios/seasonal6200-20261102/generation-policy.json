@@ -1,0 +1,18 @@
+{
+  "version": "seasonal6200-budget-v1",
+  "combined_cases": 6200,
+  "generated_cases": 6108,
+  "itr_cases_preserved": 92,
+  "added_generated_cases": 608,
+  "records": 3150,
+  "histories": 70,
+  "months": 45,
+  "dates": [
+    "2023-01",
+    "2026-09"
+  ],
+  "allocation": "No new random draw. Allocate608additional generated cases among70histories proportional to their previous generated totals using largest remainder. Within each history allocate its increment proportional to the prior seasonal scenario counts, with chronological tie break. Existing monthly counts never reduced; ITR cell counts unchanged. Divide6108generated into3054/3054 with deterministic hashed odd-cell assignment.",
+  "scope": "Budget sensitivity of the already created lower-noise seasonal scenario; not independent data or algorithm improvement. Broad no-seasonality assumptions unchanged; no removal of observed source zeros.",
+  "evaluation": "No score-dependent allocation or loops; future unchanged-policy SARIMA primary36/9 and secondary31/14. MAE/RMSE/positive-onlyMAPE, hit rate and availability remain distinct. No accuracy promise.",
+  "activation": "Candidate only, not connected to website until own model results/metrics exist."
+}

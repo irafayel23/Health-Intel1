@@ -1,0 +1,19 @@
+{
+  "seed": 2026110201,
+  "rows": 3150,
+  "months": 45,
+  "histories": 70,
+  "combined_cases": 5592,
+  "generated_cases": 5500,
+  "unchanged_itr_cases": 92,
+  "generated_group_a": 2750,
+  "generated_group_b": 2750,
+  "old_zero_cells": 646,
+  "new_zero_cells": 0,
+  "max_monthly_cell": 7,
+  "random_shock_events": 58,
+  "all_70_cumulative_totals_preserved": true,
+  "model_evaluations_run": 0,
+  "performance_claim": null,
+  "scenario": "New lower-noise seasonal sensitivity scenario; generated patterns are assumptions, not measured Murcia seasonality"
+}

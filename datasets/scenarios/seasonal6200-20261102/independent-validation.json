@@ -1,0 +1,11 @@
+{
+  "independent_csv_checks_passed": true,
+  "records_per_csv": 3150,
+  "combined_cases": 6200,
+  "generated_cases": 6108,
+  "itr_preserved_cell_for_cell": 92,
+  "scope_histories": 70,
+  "protected_files_unchanged": 26,
+  "frozen_rules_unchanged": true,
+  "new_predicted_values_or_scores": false
+}

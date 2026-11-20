@@ -6,16 +6,18 @@ const {guardResidentVisit}=require('./resident-vital');
 const fields = "id,barangay_id,resident_id,first_name,last_name,suffix,DATE_FORMAT(birthdate,'%Y-%m-%d') AS birthdate,DATE_FORMAT(date_recorded,'%Y-%m-%d') AS date_recorded,disease,disease_review_status,disease_reported,condition_source,disease_id,severity,age,status,remarks,is_archived,updated_at";
 const version = row => crypto.createHash('sha256').update(JSON.stringify(row)).digest('hex');
 async function diseases(db, current) {
-    const [registry] = await db.query('SELECT name,status,is_archived FROM disease_registry');
-    const [history] = await db.query("SELECT DISTINCT disease AS name FROM health_cases WHERE disease IS NOT NULL AND disease<>'' AND disease_review_status NOT IN ('Pending','Clarification')");
-    const normalized = name => name.trim().toLowerCase();
-    const archived = new Set(registry.filter(r => r.status === 'Archived' || r.is_archived).map(r => normalized(r.name)));
-    const names = new Set([...registry.filter(r => r.status === 'Active' && !r.is_archived).map(r => r.name), ...history.filter(r => !archived.has(normalized(r.name))).map(r => r.name)]);
+    const [registry] = await db.query("SELECT name FROM disease_registry WHERE status='Active' AND is_archived=0");
+    const names = new Set(registry.map(row => row.name));
+    // Preserve the original historical category without offering it for another case.
     if (current) names.add(current);
     return [...names].sort();
 }
 function handlers(db) {
-    function scope(req) { return req.user.role === 'bhw' ? { sql: ' AND barangay_id=?', params: [req.user.barangay_id] } : { sql: '', params: [] }; }
+    function scope(req) {
+        if (req.user.role === 'bhw') return { sql: ' AND barangay_id=?', params: [req.user.barangay_id] };
+        if (req.user.role === 'mho') return { sql: ' AND encoded_by=?', params: [req.user.system_id] };
+        return { sql: '', params: [] };
+    }
     return {
         async get(req, res) {
             try {
@@ -24,6 +26,7 @@ function handlers(db) {
                 const row = rows[0];
                 if (!row) throw invalid('Case not found.', 404);
                 if (row.is_archived) throw invalid('Restore this archived record before correcting it.', 409);
+                if (req.user.role === 'mho' && row.status === 'Deceased') throw invalid('This historical case is available for review only.', 409);
                 res.json({ success: true, data: { id: row.id, date_recorded: row.date_recorded, disease: row.disease, disease_review_status:row.disease_review_status, disease_reported:row.disease_reported, severity: row.severity, age: row.age, has_birthdate: Boolean(row.birthdate), identity_ready: Boolean(row.resident_id || (row.first_name && row.last_name && row.birthdate)), version: version(row), diseases: await diseases(db, row.disease) } });
             } catch (error) { respond(res, error, 'The correction form could not be loaded.'); }
         },
@@ -47,9 +50,10 @@ function handlers(db) {
                     const row = rows[0];
                     if (!row || row.barangay_id !== initial[0].barangay_id) throw invalid('The record changed. Reopen the correction form.', 409);
                     if (row.is_archived) throw invalid('Restore this archived record before correcting it.', 409);
+                    if (req.user.role === 'mho' && row.status === 'Deceased') throw invalid('This historical case is available for review only.', 409);
                     if (version(row) !== input.version) throw invalid('Someone updated this record. Close and reopen the form before saving your correction.', 409);
                     if (input.date_recorded === null && row.date_recorded !== null) throw invalid('An existing case date cannot be cleared.');
-                    if(input.date_recorded!==null)await guardResidentVisit(connection,row.resident_id,input.date_recorded);
+                    if(input.date_recorded!==null)await guardResidentVisit(connection,row.resident_id,input.date_recorded,{historicalCorrection:true});
                     if (['Pending','Clarification'].includes(row.disease_review_status) && disease !== row.disease) throw invalid('MHO must review this condition before its disease category can be changed.');
                     if (disease !== row.disease && !(await diseases(connection)).includes(disease)) throw invalid('Select an existing, non-archived disease category.');
                     let age = row.age;
@@ -72,7 +76,7 @@ function handlers(db) {
                     await connection.execute('UPDATE health_cases SET disease_id=?,disease_review_status=?,date_recorded=?,disease=?,severity=?,age=? WHERE id=?', [diseaseId,reviewStatus,input.date_recorded,disease,input.severity,age,row.id]);
                     const before = { date_recorded: row.date_recorded, disease: row.disease, severity: row.severity, age: row.age };
                     const after = { date_recorded: input.date_recorded, disease, severity: input.severity, age };
-                    await connection.execute('INSERT INTO system_audit_logs(user_id,role,action,details) VALUES(?,?,?,?)', [req.user.system_id, req.user.role === 'bhw' ? 'BHW' : 'Admin', 'Case Corrected', JSON.stringify({ case_id: row.id, target_type:'Case',target_id:`REC-${row.id}`,outcome:'Succeeded', reason, before, after })]);
+                    await connection.execute('INSERT INTO system_audit_logs(user_id,role,action,details) VALUES(?,?,?,?)', [req.user.system_id, req.user.role === 'mho' ? 'MHO' : req.user.role === 'bhw' ? 'BHW' : 'Admin', 'Case Corrected', JSON.stringify({ case_id: row.id, target_type:'Case',target_id:`REC-${row.id}`,outcome:'Succeeded', reason, before, after })]);
                     return { age, age_preserved: !row.birthdate };
                 });
                 res.json({ success: true, ...result, message: 'Correction saved with its reason and previous values in the audit trail.' });

@@ -36,13 +36,15 @@ async function vitalRow(connection,id) {
     await connection.execute('INSERT IGNORE INTO resident_vital_status(resident_id) VALUES(?)',[id]);
     return (await connection.execute(`SELECT *,DATE_FORMAT(death_date,'%Y-%m-%d') AS death_date FROM resident_vital_status WHERE resident_id=? FOR UPDATE`,[id]))[0][0];
 }
-async function guardResidentVisit(connection,residentId,date) {
+async function guardResidentVisit(connection,residentId,date,{historicalCorrection=false}={}) {
     if(!residentId)return;
     // Every death confirmation/correction and visit save locks the resident first.
     await connection.execute('SELECT id FROM residents WHERE id=? FOR UPDATE',[residentId]);
     const [rows]=await connection.execute(`SELECT is_deceased,DATE_FORMAT(death_date,'%Y-%m-%d') AS death_date FROM resident_vital_status WHERE resident_id=? FOR UPDATE`,[residentId]);
     const status=rows[0];
-    if(status?.is_deceased&&(!status.death_date||date>status.death_date))throw invalid(status.death_date?`This resident is confirmed deceased. Only historical records dated on or before ${status.death_date} can be added.`:'This resident is confirmed deceased with an unknown death date. MHO must record the date before another historical consultation can be added.',409);
+    if (status?.is_deceased && (!historicalCorrection || !status.death_date || date > status.death_date)) {
+        throw invalid('This historical profile is available for review only.',409);
+    }
 }
 const vitalSelect=`COALESCE(v.is_deceased,0) AS is_deceased,DATE_FORMAT(v.death_date,'%Y-%m-%d') AS death_date,
     COALESCE(v.version,0) AS vital_version,v.confirmed_by,DATE_FORMAT(v.confirmed_at,'%Y-%m-%d') AS death_confirmed_date,

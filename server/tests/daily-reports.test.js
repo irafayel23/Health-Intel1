@@ -49,7 +49,12 @@ test('daily PDFs paginate both sections, retain every row and label zero activit
             const visits=Array.from({length:count},(_,i)=>({barangay:'Synthetic Barangay',condition_label:`Visit fixture ${i+1}`,nature_of_visit:'Follow-up visit',transaction_mode:'Referral',count:2}));
             const pdf=await dailyReportPdf({cases,visits,scopeLabel:'All barangays',caseCount:count,visitCount:count*2},todayPeriod(new Date('2026-10-13T00:00:00Z')),'mho');
             assert.equal(pdf.subarray(0,5).toString(),'%PDF-');
-            assert.ok(events.some(e=>e.text.includes(`Recorded disease cases: ${count}    |    Consultations: ${count*2}`)));
+            for(const [label,total] of [['Recorded disease cases',count],['Consultations',count*2]]){
+                const index=events.findIndex(event=>event.text===label);
+                assert.ok(index>=0);
+                assert.equal(events[index+1].text,String(total));
+            }
+            assert.match(pdf.toString('latin1'),/\/Subtype \/Image/);
             assert.equal(events.filter(e=>e.text.startsWith('Case fixture ')).length,count);
             assert.equal(events.filter(e=>e.text.startsWith('Visit fixture ')).length,count);
             for(const e of events.filter(e=>/^(Case|Visit) fixture /.test(e.text))){
