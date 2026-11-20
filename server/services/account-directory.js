@@ -25,11 +25,7 @@ function createAccountDirectory(db) {
         async deniedUsers() {
             const query = `SELECT u.system_id, u.first_name, u.last_name, u.employee_id, u.status,
                 CASE WHEN u.status = 'suspended' THEN (
-<<<<<<< HEAD
                     SELECT CASE WHEN a.action = 'User Suspended' THEN UNIX_TIMESTAMP(a.timestamp) END
-=======
-                    SELECT CASE WHEN a.action = 'User Suspended' THEN a.timestamp END
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
                     FROM system_audit_logs a
                     WHERE a.action IN ('User Suspended', 'Access Restored')
                         AND ((JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(a.details), a.details, '{}'), '$.target_type')) = 'Account'
@@ -37,11 +33,7 @@ function createAccountDirectory(db) {
                             AND JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(a.details), a.details, '{}'), '$.outcome')) = 'Succeeded')
                         OR a.details = CONCAT(a.action, ': ', u.system_id, '.'))
                     ORDER BY a.timestamp DESC, a.id DESC LIMIT 1
-<<<<<<< HEAD
                 ) END AS suspended_epoch
-=======
-                ) END AS suspended_at
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
                 FROM users u WHERE u.status IN ('denied', 'suspended') AND u.role IN ('bhw', 'mho')
                 ORDER BY u.created_at DESC`;
             const [rows] = await db.execute(query);

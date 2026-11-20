@@ -98,11 +98,7 @@ function renderAdmins(page = 1) {
         const row = ` tabindex="0" aria-label="Open account ${escapeText(user.system_id)} details" onclick="openAdminRow(event, ${id})" onkeydown="openAdminRow(event, ${id})" class="hi-admin-access-row"`;
         const assignment = user.role==='bhw' ? user.assigned_barangay || 'Not assigned' : 'Municipality';
         return `<tr${row}>
-<<<<<<< HEAD
             <td class="p-4"><p class="font-semibold text-slate-900 dark:text-white">${escapeText(adminName(user))}</p><p class="mt-1 text-xs text-slate-600 dark:text-neutral-400">${escapeText(user.system_id)}</p>${user.status==='pending'?registrationSubmissionBadge(user):''}</td>
-=======
-            <td class="p-4"><p class="font-semibold text-slate-900 dark:text-white">${escapeText(adminName(user))}</p><p class="mt-1 text-xs text-slate-600 dark:text-neutral-400">${escapeText(user.system_id)}</p></td>
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             <td class="p-4 text-slate-700 dark:text-neutral-300">${escapeText(directory ? (user.role==='admin' ? 'Admin' : user.role.toUpperCase()) : user.email || 'Email not recorded')}</td>
             <td class="p-4"><span class="hi-admin-access-status" data-status="${escapeText(user.status)}">${state.label}</span></td>
             <td class="p-4 text-xs text-slate-600 dark:text-neutral-400">${escapeText(directory ? assignment : adminTime(user.created_at))}<span class="hi-admin-access-hint" aria-hidden="true">Open account details</span></td>
@@ -116,42 +112,28 @@ function pageAdminAccounts(event) {
     const page = Number(button.dataset.historyPage);
     if (!Number.isInteger(page) || page < 1) return;
     renderAdmins(page);
-<<<<<<< HEAD
     globalThis.HealthIntelPagination?.showStart('user-table-body');
-=======
-    event.currentTarget.querySelector('[aria-current="page"]')?.focus();
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
 }
 
 async function toggleAdminStatus(id, newStatus, user = systemAccounts.find(account=>account.role==='admin' && account.system_id===id)) {
     const state = user && adminState(user.status);
     const decline = user?.role==='admin' && user.status==='pending' && newStatus==='denied';
     if (!decline && (!state?.action || state.next!==newStatus)) return;
-<<<<<<< HEAD
     if(decline){const decision=await registrationDenial(id,user.review_submission);if(decision.isConfirmed){await Promise.all([loadAdmins(),loadAuditLogs()]);registrationDecisionNotice(decision.value);}return;}
     const action = state.action;
-=======
-    const action = decline ? 'Decline' : state.action;
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
     const suspension = newStatus==='suspended';
     const result = await Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog",
         titleText: `${action} ${id}?`,
         text: suspension ? 'This Admin will lose access until restored. Enter the reason for the saved account history.'
-<<<<<<< HEAD
             : user.status==='pending' ? 'Approve this Admin account for access to Health-Intel?' : 'Restore access for this suspended Admin account?',
         icon:'question',showCancelButton:true,confirmButtonText:action,cancelButtonText:'Cancel',
-=======
-            : decline ? 'Decline this administrator registration?' : user.status==='pending' ? 'Approve this Admin account for access to Health-Intel?' : 'Restore access for this suspended Admin account?',
-        icon:'question',showCancelButton:true,confirmButtonText:action,cancelButtonText:'Cancel',
-        ...(decline ? {focusCancel:true,customClass:{confirmButton:'hi-admin-access-action-approved'}} : {}),
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
         ...(suspension ? {input:'textarea',inputLabel:'Suspension reason',inputPlaceholder:'Explain why access is being suspended',inputAttributes:{maxlength:'500'},
             inputValidator:value=>!validAdminReason(value)?'Enter a reason (1–500 characters, plain text).':undefined} : {})
     });
     if (!result.isConfirmed) return;
     if (suspension && !validAdminReason(result.value)) return;
     try {
-        const endpoint = suspension ? 'admin/suspend-user' : decline ? 'admin/deny-user' : user.status==='pending' ? 'superadmin/approve-admin' : 'admin/restore-suspended';
+        const endpoint = suspension ? 'admin/suspend-user' : user.status==='pending' ? 'superadmin/approve-admin' : 'admin/restore-suspended';
         const res = await fetch('http://localhost:3000/api/'+endpoint,{
             method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({system_id:id,...(user?.review_confirmed===true?{review_confirmed:true,review_submission:user.review_submission}:{}),...(suspension?{reason:result.value.trim()}:{})})
@@ -216,10 +198,7 @@ async function viewAdminAccount(id) {
         const state = adminState(account.status);
         const canManage = Boolean(state.action);
         const pending = account.status==='pending';
-<<<<<<< HEAD
         const review=pending?await registrationReview(id):{html:'',required:false};
-=======
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
         const renderPage = page => {
             const totalPages = Math.max(1, Math.ceil(events.length / 5));
             const history = events.slice((page-1)*5, page*5).map(event=>{
@@ -231,11 +210,7 @@ async function viewAdminAccount(id) {
             return `${history || '<p>No linked access events have been recorded.</p>'}`
                 + renderHistoryPagination(page, totalPages, `${events.length} recorded events`, 'Account access history pages');
         };
-<<<<<<< HEAD
         const decision = await Swal.fire({preConfirm:()=>confirmRegistrationReview(review),showCloseButton:true, closeButtonAriaLabel:"Close dialog",titleText:`Admin account ${account.system_id}`,width:760,confirmButtonText:state.detailsAction || state.action || 'Close',
-=======
-        const decision = await Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog",titleText:`Admin account ${account.system_id}`,width:760,confirmButtonText:state.detailsAction || state.action || 'Close',
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             showCancelButton:canManage,cancelButtonText:'Close',focusCancel:canManage,
             ...(pending ? {showDenyButton:true,denyButtonText:'Decline',denyButtonColor:'#b91c1c'} : {}),
             ...(canManage ? {customClass:{confirmButton:'hi-admin-access-action-'+account.status}} : {}),
@@ -247,22 +222,12 @@ async function viewAdminAccount(id) {
                     const page = Number(button.dataset.historyPage);
                     if (!Number.isInteger(page) || page < 1 || page > Math.ceil(events.length / 5)) return;
                     container.innerHTML = renderPage(page);
-<<<<<<< HEAD
                     globalThis.HealthIntelPagination?.showStart(container, container.parentElement);
                 });
             },
             html:`<div class="text-left text-sm max-h-[65vh] overflow-y-auto pr-2 text-inherit"><dl class="hi-admin-account-facts grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">${accessField('Name',adminName(account))}${accessField('Email',account.email)}${accessField('Account ID',account.system_id)}${accessField('Employee ID',account.employee_id)}${accessField('Current status',adminState(account.status).label)}${accessField('Registered',adminTime(account.created_at))}</dl>${review.html}<h3 class="font-semibold text-lg mb-2">Account access history</h3><p class="text-neutral-600 dark:text-neutral-400 mb-4">Saved access changes and authentication events explicitly linked to this account. Older activity may not have an account reference.${has_more?' Showing the latest 100 events; older saved events remain in Master Ledger.':''}</p><div data-history-content>${renderPage(1)}</div></div>`});
         if (pending && decision?.isDenied) await toggleAdminStatus(account.system_id, 'denied', {...account, role:'admin',review_submission:review.submission});
         if (canManage && decision?.isConfirmed) await toggleAdminStatus(account.system_id, state.next, {...account,review_confirmed:review.required,review_submission:review.submission});
-=======
-                    container.querySelector('[aria-current="page"]')?.focus();
-                    container.scrollIntoView({block:'nearest'});
-                });
-            },
-            html:`<div class="text-left text-sm max-h-[65vh] overflow-y-auto pr-2 text-inherit"><dl class="hi-admin-account-facts grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">${accessField('Name',adminName(account))}${accessField('Email',account.email)}${accessField('Account ID',account.system_id)}${accessField('Employee ID',account.employee_id)}${accessField('Current status',adminState(account.status).label)}${accessField('Registered',adminTime(account.created_at))}</dl><h3 class="font-semibold text-lg mb-2">Account access history</h3><p class="text-neutral-600 dark:text-neutral-400 mb-4">Saved access changes and authentication events explicitly linked to this account. Older activity may not have an account reference.${has_more?' Showing the latest 100 events; older saved events remain in Master Ledger.':''}</p><div data-history-content>${renderPage(1)}</div></div>`});
-        if (pending && decision?.isDenied) await toggleAdminStatus(account.system_id, 'denied', {...account, role:'admin'});
-        if (canManage && decision?.isConfirmed) await toggleAdminStatus(account.system_id, state.next, account);
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
     } catch (error) {
         await Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog",title:'Account history unavailable',text:error.message || 'Please try again.',icon:'error'});
     }

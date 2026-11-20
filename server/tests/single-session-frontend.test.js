@@ -5,16 +5,10 @@ function loginPage(results,answers=[]){
  const events={},calls=[],dialogs=[],storage=new Map(),fields={login_id:{value:'session-bhw'},login_password:{value:'Disposable-only-password'},remember_me:{checked:false}},submit={disabled:false};
  const form={addEventListener:(type,fn)=>events[type]=fn,querySelector:()=>submit};
  fields['login-form']=form;
-<<<<<<< HEAD
  const sandbox={document:{getElementById:id=>fields[id]},sessionStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
   window:{location:{href:'index.html',replace(value){this.href=value;}}},fetch:async(url,options)=>{calls.push({url,options,body:JSON.parse(options.body)});const value=results.shift();if(value instanceof Error)throw value;return {json:async()=>value};},
   Swal:{fire:async options=>{dialogs.push(options);const answer=answers.shift();return typeof answer==='function'?answer():answer||{};}}};
  sandbox.localStorage={getItem:()=>null,removeItem(){},setItem(){}};
-=======
- const sandbox={document:{getElementById:id=>fields[id]},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
-  window:{location:{href:'index.html'}},fetch:async(url,options)=>{calls.push({url,options,body:JSON.parse(options.body)});const value=results.shift();if(value instanceof Error)throw value;return {json:async()=>value};},
-  Swal:{fire:async options=>{dialogs.push(options);const answer=answers.shift();return typeof answer==='function'?answer():answer||{};}}};
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
  vm.runInNewContext(fs.readFileSync(path.join(root,'assets/js/index/index-login.js'),'utf8'),sandbox);
  return {events,calls,dialogs,storage,fields,submit,sandbox,submitForm:()=>events.submit({preventDefault(){}})};
 }
@@ -41,11 +35,7 @@ test('duplicate submissions while a warning is open do not issue a second reques
 test('a newer login in another tab is never overwritten by a delayed login response',async()=>{
  const p=loginPage([{code:'SESSION_CONFLICT',takeover_token:'fixture'},{success:true,token:'late-fixture',system_id:'SESSION-BHW',redirect:'/bhw.html'}],
  [()=>{p.storage.set('health_intel_token','newer-fixture');return {isConfirmed:true};},{}]);
-<<<<<<< HEAD
  await p.submitForm();assert.equal(p.storage.get('health_intel_token'),'newer-fixture');assert.equal(p.sandbox.window.location.href,'index.html');assert.match(p.dialogs.at(-1).title,/this tab/);
-=======
- await p.submitForm();assert.equal(p.storage.get('health_intel_token'),'newer-fixture');assert.equal(p.sandbox.window.location.href,'index.html');assert.match(p.dialogs.at(-1).title,/another tab/);
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
 });
 
 function portal(role='bhw'){
@@ -55,27 +45,16 @@ function portal(role='bhw'){
  let responder=async()=>new Response(JSON.stringify({user:{system_id:'SESSION-'+role.toUpperCase(),role}}),{status:200});
  const document={body,hidden:false,createElement:node,querySelectorAll:()=>[],addEventListener:(type,fn)=>{(docEvents[type]||=[]).push(fn);}};
  const sandbox={URL,Headers,Request,Error,AbortController,setTimeout,clearTimeout,console:{error(){}},document,
-<<<<<<< HEAD
  sessionStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
  window:{location:{href:'http://localhost:3000/'+role+'.html',pathname:'/'+role+'.html',replace:()=>{}},
  fetch:async(input,options)=>{calls.push({input,options});return responder(input,options);},addEventListener:(type,fn)=>events[type]=fn,
  setInterval:(fn,ms)=>{timers.push({fn,ms});return 1;},clearInterval(){}}};
  sandbox.localStorage={getItem:()=>null,removeItem(){},setItem(){}};
-=======
- localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
- window:{location:{href:'http://localhost:3000/'+role+'.html',pathname:'/'+role+'.html',replace:()=>{}},
- fetch:async(input,options)=>{calls.push({input,options});return responder(input,options);},addEventListener:(type,fn)=>events[type]=fn,
- setInterval:(fn,ms)=>{timers.push({fn,ms});return 1;},clearInterval(){}}};
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
  vm.runInNewContext(fs.readFileSync(path.join(root,'assets/js/shared/api-session.js'),'utf8'),sandbox);
  return {storage,events,docEvents,calls,timers,body,sandbox,setResponse:fn=>responder=fn,locked:()=>JSON.stringify(body).includes('ACCOUNT SECURITY')};
 }
 for(const role of ['bhw','mho','admin','superadmin'])test(role+': another-tab sign-in hides the form, preserves newer credentials and blocks POST',async()=>{
-<<<<<<< HEAD
  const p=portal(role);await settle();p.storage.set('health_intel_token','newer-fixture');p.events.storage({storageArea:p.sandbox.sessionStorage,key:'health_intel_token',newValue:'newer-fixture'});
-=======
- const p=portal(role);await settle();p.storage.set('health_intel_token','newer-fixture');p.events.storage({key:'health_intel_token',newValue:'newer-fixture'});
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
  assert.equal(p.locked(),true);assert.equal(p.storage.get('health_intel_token'),'newer-fixture');const before=p.calls.length;
  await assert.rejects(p.sandbox.window.fetch('http://localhost:3000/api/patients',{method:'POST',body:'{}'}),/ended/);assert.equal(p.calls.length,before);
 });
@@ -84,11 +63,7 @@ test('remote revocation check clears only this session and removes the unfinishe
  await p.sandbox.window.HealthIntel.checkSession();assert.equal(p.locked(),true);assert.equal(p.storage.has('health_intel_token'),false);assert.equal(p.timers[0].ms,30000);
 });
 test('same-token tabs and network/database errors do not falsely end the session',async()=>{
-<<<<<<< HEAD
  const p=portal();await settle();p.events.storage({storageArea:p.sandbox.sessionStorage,key:'health_intel_token',newValue:'original-fixture'});assert.equal(p.locked(),false);
-=======
- const p=portal();await settle();p.events.storage({key:'health_intel_token',newValue:'original-fixture'});assert.equal(p.locked(),false);
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
  p.setResponse(async()=>{throw Error('Network offline');});await p.sandbox.window.HealthIntel.checkSession();assert.equal(p.locked(),false);
  p.setResponse(async()=>new Response(JSON.stringify({code:'ACCESS_UNAVAILABLE',error:'Unavailable'}),{status:503}));await p.sandbox.window.HealthIntel.checkSession();assert.equal(p.locked(),false);assert.equal(p.storage.get('health_intel_token'),'original-fixture');
 });
@@ -109,17 +84,10 @@ test('old tab sign-out cannot revoke the newer tab session',async()=>{
 
 test('Guided session screen explains recovery, focuses sign-in and removes patient DOM for every role',async()=>{
  for(const role of ['bhw','mho','admin','superadmin']){
-<<<<<<< HEAD
   const p=portal(role);await settle();p.storage.set('health_intel_token','newer-fixture');p.events.storage({storageArea:p.sandbox.sessionStorage,key:'health_intel_token'});
   const nodes=[];const visit=n=>{nodes.push(n);(n.children||[]).forEach(visit);};visit(p.body);
   const text=nodes.map(n=>n.textContent).join(' ');
   assert.match(text,/Sign-in changed in this tab/);assert.match(text,/Unsaved entries are not stored/);
-=======
-  const p=portal(role);await settle();p.storage.set('health_intel_token','newer-fixture');p.events.storage({key:'health_intel_token'});
-  const nodes=[];const visit=n=>{nodes.push(n);(n.children||[]).forEach(visit);};visit(p.body);
-  const text=nodes.map(n=>n.textContent).join(' ');
-  assert.match(text,/Sign-in changed in this browser/);assert.match(text,/Unsaved entries are not stored/);
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
   assert.match(text,/submission already sent may have completed/);assert.match(text,/Check recent records first/);
   assert.ok(!text.includes('Private synthetic fixture form'));
   const buttons=nodes.filter(n=>n.tag==='button');assert.equal(buttons.length,1);assert.equal(buttons[0].focused,true);
@@ -151,15 +119,9 @@ test('different browser accounts keep independent session checks',async()=>{
 test('a different account in a shared tab has accurate messaging and preserves the newer login',async()=>{
  const p=portal('bhw');await settle();
  p.storage.set('active_user_id','SESSION-ADMIN');p.storage.set('health_intel_token','admin-fixture');
-<<<<<<< HEAD
  p.events.storage({storageArea:p.sandbox.sessionStorage,key:'health_intel_token'});
  const text=JSON.stringify(p.body);
  assert.match(text,/Sign-in changed in this tab/);assert.match(text,/The account signed in to this tab changed/);
-=======
- p.events.storage({key:'health_intel_token'});
- const text=JSON.stringify(p.body);
- assert.match(text,/Sign-in changed in this browser/);assert.match(text,/Another tab changed the account/);
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
  assert.ok(!text.includes('this account was signed in from another'));
  assert.equal(p.storage.get('active_user_id'),'SESSION-ADMIN');
  await assert.rejects(p.sandbox.window.fetch('http://localhost:3000/api/patients',{method:'POST'}),/ended/);
@@ -195,11 +157,7 @@ test('all roles share blue logout with red hover and keyboard focus',()=>{
  for(const role of ['bhw','mho','admin','superadmin']){
   const html=fs.readFileSync(path.join(root,role+'.html'),'utf8');
   assert.ok(html.includes('nav-item sign-out'));
-<<<<<<< HEAD
   assert.match(html,/portal-responsive\.css\?v=/);
-=======
-  assert.ok(html.includes('portal-responsive.css?v=20261107-logout-hover'));
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
  }
  const css=fs.readFileSync(path.join(root,'assets/css/shared/portal-responsive.css'),'utf8');
  assert.ok(css.includes('background-color: rgb(239 68 68 / 10%);'));
@@ -224,7 +182,6 @@ test('password renewal cannot overwrite a newer sign-in while reading its respon
  await assert.rejects(p.sandbox.window.fetch('http://localhost:3000/api/change-password',{method:'POST'}),/Sign-in changed/);
  assert.equal(p.storage.get('health_intel_token'),'newer-tab-fixture');assert.equal(p.locked(),true);
 });
-<<<<<<< HEAD
 
 test('restored browser-cache pages recheck valid sessions without signing out', async () => {
  const p=portal();await settle();const before=p.calls.length;p.events.pagehide();p.events.pageshow({persisted:true});await settle();
@@ -274,5 +231,3 @@ test('other tabs local-storage events do not end this tab session',async()=>{
  await p.sandbox.window.HealthIntel.checkSession();
  assert.equal(p.locked(),false);
 });
-=======
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426

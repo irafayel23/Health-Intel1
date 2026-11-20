@@ -34,11 +34,6 @@
 
 
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
 document.addEventListener('DOMContentLoaded', () => {
     const tooltip = document.getElementById('bhw-cursor-tooltip');
     if (!tooltip) return;

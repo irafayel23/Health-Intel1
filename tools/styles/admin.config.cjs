@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 module.exports = {
   content: ['../../admin.html', '../../assets/js/shared/**/*.js', '../../assets/js/admin/**/*.js'],
   plugins: [require('./select-chevron.cjs'), require('./role-readability.cjs')],
@@ -12,18 +11,3 @@ module.exports = {
     }
   }
 };
-=======
-module.exports = {
-  content: ['../../admin.html', '../../assets/js/shared/**/*.js', '../../assets/js/admin/**/*.js'],
-  plugins: [require('./select-chevron.cjs'), require('./role-readability.cjs')],
-  darkMode: 'class',
-  theme: {
-    extend: {
-      colors: {
-        sidebar: '#212631', contentBg: '#f3f4f7', brandBlue: '#3399ff',
-        brandPurple: '#6f42c1', brandYellow: '#f9b115', brandRed: '#e55353'
-      }
-    }
-  }
-};
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426

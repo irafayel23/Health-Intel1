@@ -44,11 +44,7 @@ function createSessionSecurity(db) {
             return Number(rows[0]?.epoch || 0);
         },
         async active(connection, systemId) {
-<<<<<<< HEAD
             const [rows] = await connection.execute('SELECT token_hash,session_epoch,password_version,expires_at FROM account_active_sessions AS active WHERE active.system_id=? AND active.expires_at>UNIX_TIMESTAMP() AND NOT EXISTS (SELECT 1 FROM revoked_api_sessions AS revoked WHERE revoked.token_hash=active.token_hash AND revoked.expires_at>UNIX_TIMESTAMP())', [systemId]);
-=======
-            const [rows] = await connection.execute('SELECT token_hash,session_epoch,password_version,expires_at FROM account_active_sessions WHERE system_id=? AND expires_at>UNIX_TIMESTAMP()', [systemId]);
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             return rows[0] || null;
         },
         async setActive(connection, systemId, token, epoch, version, expiry) {

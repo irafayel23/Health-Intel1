@@ -35,7 +35,6 @@
       async function loadPurokChoices() {
         const filter=document.getElementById('bhw-purok-filter');
         if(!filter)return;
-<<<<<<< HEAD
         const request=++purokChoicesRequest;
         const selected=filter.value || 'All Puroks';
         const choices=new Map(HealthIntelEncoding.purokOptions(window.currentBrgyName)
@@ -63,11 +62,6 @@
           render();
         }catch(error){if(request===purokChoicesRequest)console.error('Could not refresh report puroks',error);}
         finally{if(request===purokChoicesRequest)filter.disabled=false;}
-=======
-        const all=document.createElement('option');
-        all.value='All Puroks';all.textContent='All puroks in your barangay';
-        filter.replaceChildren(all);filter.value='All Puroks';
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
       }
 
       function refreshBHWSupportingViews() {

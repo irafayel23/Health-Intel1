@@ -6,11 +6,7 @@
       if (portalPath !== location.pathname) location.replace(portalPath + location.search + location.hash);
     </script>
     <script src="assets/js/shared/theme.js"></script>
-<<<<<<< HEAD
     <script src="assets/js/shared/api-session.js?v=20261117-tab-accounts"></script>
-=======
-    <script src="assets/js/shared/api-session.js?v=20261107-password-renewal"></script>
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
     <script src="assets/js/shared/safe-text.js"></script>
     <script src="assets/js/shared/pagination.js?v=20261111-page-start"></script>
     <meta charset="UTF-8" />
@@ -26,16 +22,10 @@
           HealthIntelTheme.toggle();
       }
     </script>
-<<<<<<< HEAD
     <link rel="stylesheet" href="assets/css/superadmin/superadmin-page.css?v=20261120-backup-eyes" />
     <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261120-loading">
   <link rel="stylesheet" href="assets/css/shared/account-settings.css?v=20261107-password-renewal">
     <link rel="stylesheet" href="assets/css/shared/mobile-portal-layout.css?v=20261119-scroll">
-=======
-    <link rel="stylesheet" href="assets/css/superadmin/superadmin-page.css?v=20261108-account-paging" />
-    <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261107-logout-hover">
-  <link rel="stylesheet" href="assets/css/shared/account-settings.css?v=20261107-password-renewal">
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
   </head>
   <body class="[&_.swal2-popup]:!rounded-2xl [&_.swal2-confirm]:!rounded-lg [&_.swal2-cancel]:!rounded-lg [&_.swal2-input::placeholder]:!text-slate-600 dark:[&_.swal2-input::placeholder]:!text-neutral-300 [&_.swal2-popup]:!bg-white [&_.swal2-popup]:!text-slate-900 dark:[&_.swal2-popup]:!bg-neutral-900 dark:[&_.swal2-popup]:!text-neutral-100 [&_.swal2-title]:!text-slate-900 dark:[&_.swal2-title]:!text-white [&_.swal2-html-container]:!text-slate-600 dark:[&_.swal2-html-container]:!text-neutral-300 [&_.swal2-confirm]:!bg-slate-900 [&_.swal2-confirm]:!text-white dark:[&_.swal2-confirm]:!bg-white dark:[&_.swal2-confirm]:!text-neutral-950 [&_.swal2-cancel]:!bg-slate-100 [&_.swal2-cancel]:!text-slate-700 dark:[&_.swal2-cancel]:!bg-neutral-800 dark:[&_.swal2-cancel]:!text-neutral-100 [&_.swal2-input]:!text-slate-900 dark:[&_.swal2-input]:!text-neutral-100 [&_.swal2-input]:!border-slate-400 dark:[&_.swal2-input]:!border-neutral-500 hi-superadmin-dialogs hi-portal hi-role-readable flex h-screen w-full bg-slate-100 dark:bg-neutral-950 text-slate-900 dark:text-neutral-100">
     <a class="hi-skip-link" href="#portal-main">Skip to main content</a>
@@ -148,10 +138,7 @@
                             <option value="">All statuses</option><option value="approved">Active</option><option id="admin-pending-option" value="pending" hidden>Pending</option><option value="suspended">Suspended</option><option value="denied">Denied</option>
                         </select>
                     </div>
-<<<<<<< HEAD
                     <button type="button" onclick="inviteAdmin()" class="sm:self-end rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 dark:border-neutral-700 dark:bg-neutral-800 dark:text-slate-100">Invite Admin</button>
-=======
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
                     <button type="button" onclick="loadAdmins()" aria-label="Refresh accounts" title="Refresh accounts" class="sm:self-end flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-slate-300 dark:border-neutral-700 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600"><i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i></button>
                 </div>
                 <p id="admin-list-status" role="status" class="text-sm text-slate-600 dark:text-neutral-400 mb-4">Loading Admin accounts…</p>
@@ -193,11 +180,7 @@
                     <label class="text-xs text-slate-600 dark:text-neutral-400">Through (Philippine date)<input id="ledger-to" type="date" onchange="filterLedger()" class="mt-1 w-full rounded-xl border border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 px-3 py-2 text-sm text-slate-900 dark:text-white"></label>
                     <button onclick="clearLedgerFilters()" class="self-end rounded-xl border border-slate-300 dark:border-neutral-700 px-3 py-2 text-sm text-slate-700 dark:text-neutral-200 hover:bg-slate-100 dark:hover:bg-neutral-800">Clear filters</button>
                 </div>
-<<<<<<< HEAD
                 <p id="ledger-status" role="status" class="mb-4 text-sm text-slate-500 dark:text-neutral-400">Loading saved events…</p>
-=======
-                <p id="ledger-status" role="status" class="mb-4 text-sm text-slate-500 dark:text-neutral-400">Read-only history. Activities appear when the server records them.</p>
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
                 <div class="hi-ledger-region w-full overflow-x-auto rounded-2xl border border-slate-300 dark:border-neutral-800" role="region" aria-label="Master Ledger entries" tabindex="0">
                     <table class="hi-ledger-table w-full min-w-[900px] table-fixed text-left text-sm">
                         <thead class="bg-slate-100 dark:bg-neutral-950 border-b border-slate-300 dark:border-neutral-800 text-slate-600 dark:text-neutral-400 font-medium">
@@ -225,13 +208,8 @@
         <!-- DB BACKUP VIEW -->
         <div id="view-db" class="view-section space-y-6">
             <div class="bg-white dark:bg-neutral-900 rounded-3xl p-8 w-full">
-<<<<<<< HEAD
                 <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Database Backup</h2>
                 <p class="text-slate-600 dark:text-neutral-400 text-sm mb-8">Download an encrypted backup containing the database tables and records. Keep a verified copy outside the server so it is available during an outage.</p>
-=======
-                <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Database Extraction</h2>
-                <p class="text-slate-600 dark:text-neutral-400 text-sm mb-8">Download an encrypted backup containing the database tables and records.</p>
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
                 
                 <div class="bg-slate-100 dark:bg-neutral-950 rounded-2xl border border-slate-300 dark:border-neutral-800 p-6 hi-stack-small flex items-center justify-between mb-6">
                     <div class="flex items-center gap-4">
@@ -286,7 +264,6 @@
 
     <div id="superadmin-row-tooltip" aria-hidden="true"></div>
     <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
-<<<<<<< HEAD
     <script src="assets/js/shared/role-overview.js?v=20261120-restored-overview"></script>
     <script src="assets/js/superadmin/superadmin-shell.js?v=20261108-cursor-hints"></script>
     <script src="assets/js/superadmin/superadmin-health.js?v=20261108-access-choices"></script>
@@ -297,15 +274,5 @@
     <script src="assets/js/superadmin/superadmin-startup.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261120-loading"></script>
     <script src="assets/js/shared/portal-history.js?v=20261108-history"></script>
-=======
-    <script src="assets/js/shared/role-overview.js?v=20261108-access-choices"></script>
-    <script src="assets/js/superadmin/superadmin-shell.js?v=20261108-cursor-hints"></script>
-    <script src="assets/js/superadmin/superadmin-health.js?v=20261108-access-choices"></script>
-    <script src="assets/js/superadmin/superadmin-users.js?v=20261108-account-paging"></script>
-    <script src="assets/js/superadmin/superadmin-ledger.js?v=20261108-history-pagination"></script>
-    <script src="assets/js/superadmin/superadmin-backup.js?v=20261107-password-renewal"></script>
-    <script src="assets/js/superadmin/superadmin-startup.js?v=20261107-password-renewal"></script>
-    <script src="assets/js/shared/portal-navigation.js?v=20261031-visible4"></script>
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
   </body>
 </html>

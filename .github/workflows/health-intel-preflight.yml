@@ -1,0 +1,31 @@
+name: Health-Intel pre-deployment checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for committed merge markers
+        run: |
+          set +e
+          git grep -nE '^(<<<<<<< |>>>>>>> )' -- '*.js' '*.json' '*.html' '*.css' '*.py' '*.yml' '*.yaml'
+          result=$?
+          set -e
+          if [ "$result" -ne 1 ]; then
+            echo "Merge marker check failed."
+            exit 1
+          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate server entry point
+        run: node --check server/server.js

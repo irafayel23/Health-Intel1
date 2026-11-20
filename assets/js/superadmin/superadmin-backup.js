@@ -20,7 +20,6 @@
         if (button.disabled) return;
         button.disabled = true;
         try {
-<<<<<<< HEAD
           const result = await Swal.fire({
             titleText: 'Database Backup',
             customClass: { container: 'hi-account-container', popup: 'hi-account-dialog hi-backup-dialog', confirmButton: 'hi-backup-create', cancelButton: 'hi-account-cancel' },
@@ -49,14 +48,6 @@
               window.lucide?.createIcons();
               document.getElementById('backup-password').focus();
             },
-=======
-          const result = await Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog",
-            title: 'Database Backup',
-            html: '<p>Choose a password of 12-128 characters. Keep it to open the encrypted ZIP.</p>' +
-              '<label for="backup-password" class="swal2-input-label">Backup password</label><input id="backup-password" type="password" class="swal2-input" placeholder="Backup password" autocomplete="new-password">' +
-              '<label for="backup-password-confirm" class="swal2-input-label">Confirm backup password</label><input id="backup-password-confirm" type="password" class="swal2-input" placeholder="Confirm password" autocomplete="new-password">',
-            showCancelButton: true, confirmButtonText: 'Create backup',
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             preConfirm: () => {
               const password = document.getElementById('backup-password').value;
               const confirmation = document.getElementById('backup-password-confirm').value;
@@ -70,11 +61,7 @@
           await HealthIntel.download('http://localhost:3000/api/superadmin/backup', {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: result.value })
           }, 'health_intel_backup.zip');
-<<<<<<< HEAD
           Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog", title: 'Download started', text: 'Open your browser’s Downloads list and look for health_intel_backup_*.zip. Save a copy in approved storage outside the server and keep its password separately.', icon: 'success' });
-=======
-          Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog", title: 'Download started', text: 'Keep your backup password to open the encrypted ZIP.', icon: 'success' });
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
         } catch (error) {
           Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog", title: 'Backup failed', text: error.message, icon: 'error' });
         } finally {

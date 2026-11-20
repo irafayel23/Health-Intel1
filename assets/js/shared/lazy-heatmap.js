@@ -21,17 +21,10 @@
         pending = (async () => {
             if (!window.L) await script('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
             if (!window.HealthIntelMapFullscreen) await script('assets/js/shared/map-fullscreen.js?v=20261108-bhw-icons');
-<<<<<<< HEAD
             if (!window.HealthIntelMapDetails) await script('assets/js/shared/map-details.js?v=20261118-overall-case-volume');
             if (!summaryOnly && !window.HealthIntelMapBreakdown) await script('assets/js/shared/map-case-breakdown.js?v=20261115-map-summary');
             if (!summaryOnly && !window.HealthIntelHeatView) await script('assets/js/shared/map-heat-view.js?v=20261116-fixed-heat');
             await script('assets/js/shared/health-map.js?v=20261116-fixed-heat');
-=======
-            if (!window.HealthIntelMapDetails) await script('assets/js/shared/map-details.js');
-            if (!window.HealthIntelMapBreakdown) await script('assets/js/shared/map-case-breakdown.js?v=20261108-bhw-icons');
-            if (!window.HealthIntelHeatView) await script('assets/js/shared/map-heat-view.js');
-            await script('assets/js/shared/health-map.js?v=20261108-bhw-icons');
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             ready = true;
         })().catch(() => {
             if (status) status.textContent = 'Map could not load. Open another tab, then return to retry.';

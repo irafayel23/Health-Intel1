@@ -39,11 +39,7 @@ function createCaseRecords(db) {
 
         async recentWalkIns(systemId, archived = false) {
             const [rows] = await db.execute(
-<<<<<<< HEAD
                 `SELECT h.id,h.resident_id,h.patient_name,h.purok,h.disease,h.disease_review_status,h.disease_reported,h.severity,h.status,h.is_archived,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,b.name AS barangay_name,
-=======
-                `SELECT h.id,h.resident_id,h.patient_name,h.purok,h.disease,h.disease_review_status,h.disease_reported,h.severity,h.status,DATE_FORMAT(h.date_recorded,'%Y-%m-%d') AS date_recorded,b.name AS barangay_name,
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
                         EXISTS(SELECT 1 FROM case_visits v WHERE v.case_id=h.id) AS has_visits
                         FROM health_cases h JOIN barangays b ON b.id=h.barangay_id
                         WHERE h.encoded_by=? AND h.is_archived=? ORDER BY h.created_at DESC,h.id DESC ${archived ? "" : "LIMIT 25"}`,

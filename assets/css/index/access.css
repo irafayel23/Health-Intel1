@@ -177,7 +177,6 @@ body { display:block; overflow-x:clip; min-height:100svh; }
 
 /* Copyright beneath the access card; normal flow preserves small-screen wrapping. */
 .access-copyright { margin:8px 0 0; padding:0 8px; color:#475569; text-align:center; font-size:11px; line-height:1.5; }
-<<<<<<< HEAD
 
 /* Registration identity review: one page scroll, with the login layout unchanged. */
 .split-layout.profile-layout { width:min(860px,100%); grid-template-columns:minmax(0,1fr); gap:0; padding:24px; align-items:start; }
@@ -228,5 +227,3 @@ body { display:block; overflow-x:clip; min-height:100svh; }
   .registration-photos,.registration-passwords { grid-template-columns:minmax(0,1fr); gap:14px; }
   #profile-screen .input-wrapper input,#profile-screen .input-wrapper select { font-size:16px; }
 }
-=======
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426

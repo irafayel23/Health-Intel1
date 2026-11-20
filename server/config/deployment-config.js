@@ -69,7 +69,7 @@ function configureDeployment(app, config, projectRoot = path.join(__dirname, '..
     });
     app.get('/', (_req, res) => {
         res.set('Cache-Control', 'no-store');
-        res.sendFile(path.join(projectRoot, 'index.html'), { dotfiles: 'deny' });
+        res.sendFile('index.html', { root: projectRoot, dotfiles: 'deny' });
     });
     app.get('/index.html', (req, res) => {
         res.set('Cache-Control', 'no-store');
@@ -78,7 +78,7 @@ function configureDeployment(app, config, projectRoot = path.join(__dirname, '..
     for (const page of ['bhw.html', 'mho.html', 'admin.html', 'superadmin.html']) {
         app.get('/' + page, (_req, res) => {
             res.set('Cache-Control', 'no-store');
-            res.sendFile(path.join(projectRoot, page), { dotfiles: 'deny' });
+            res.sendFile(page, { root: projectRoot, dotfiles: 'deny' });
         });
     }
     // Never expose the repository root, backend, documents, exports or backups.

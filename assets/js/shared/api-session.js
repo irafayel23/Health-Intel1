@@ -9,28 +9,16 @@
         '/api/forgot-password', '/api/reset-password']);
     let leaving = false;
     const pageRole = /\/(bhw|mho|admin|superadmin)\.html$/.exec(window.location.pathname)?.[1];
-<<<<<<< HEAD
     let pageToken = pageRole ? sessionStorage.getItem(tokenKey) : null;
-=======
-    let pageToken = pageRole ? localStorage.getItem(tokenKey) : null;
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
     let sessionEnded = false;
     const lockPortal = (reason) => {
         if (sessionEnded) return;
         const signedInElsewhere = reason === 'OTHER_SIGN_IN';
-<<<<<<< HEAD
         const browserSignInChanged = !signedInElsewhere && !!sessionStorage.getItem(tokenKey) &&
             sessionStorage.getItem(tokenKey) !== pageToken;
         sessionEnded = true;
         // Never erase a newer sign-in made in another tab.
         if (sessionStorage.getItem(tokenKey) === pageToken) clearSession();
-=======
-        const browserSignInChanged = !signedInElsewhere && !!localStorage.getItem(tokenKey) &&
-            localStorage.getItem(tokenKey) !== pageToken;
-        sessionEnded = true;
-        // Never erase a newer sign-in made in another tab.
-        if (localStorage.getItem(tokenKey) === pageToken) clearSession();
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
         const render = () => {
             if (!document.body || !document.createElement) {
                 window.location.replace('index.html');
@@ -66,19 +54,11 @@
             lock.append(icon('lock-keyhole'));
             const headingText = element('div', 'min-w-0');
             const eyebrow = element('p', 'text-xs font-semibold tracking-widest text-emerald-800 dark:text-emerald-300', 'ACCOUNT SECURITY');
-<<<<<<< HEAD
             const title = element('h1', 'mt-1 text-2xl font-bold leading-tight', signedInElsewhere ? 'Signed in elsewhere' : browserSignInChanged ? 'Sign-in changed in this tab' : 'Please sign in again');
             title.id = 'session-ended-title';
             headingText.append(eyebrow, title);
             heading.append(lock, headingText);
             const description = element('p', 'text-sm leading-relaxed text-slate-700 dark:text-slate-200', signedInElsewhere ? 'This browser session has ended because this account was signed in from another tab, browser or device.' : browserSignInChanged ? 'The account signed in to this tab changed. Sign in again to use this page.' : 'This browser session has ended. Patient information is hidden and further saves are blocked.');
-=======
-            const title = element('h1', 'mt-1 text-2xl font-bold leading-tight', signedInElsewhere ? 'Signed in elsewhere' : browserSignInChanged ? 'Sign-in changed in this browser' : 'Please sign in again');
-            title.id = 'session-ended-title';
-            headingText.append(eyebrow, title);
-            heading.append(lock, headingText);
-            const description = element('p', 'text-sm leading-relaxed text-slate-700 dark:text-slate-200', signedInElsewhere ? 'This browser session has ended because this account was signed in from another browser or device.' : browserSignInChanged ? 'Another tab changed the account signed in to this browser. Sign in again to use this page.' : 'This browser session has ended. Patient information is hidden and further saves are blocked.');
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             const steps = element('div', 'my-3');
             for (const [name, label, text] of [
                 ['log-in', 'Return to your account', 'Sign in to continue. Unsaved entries are not stored.'],
@@ -128,11 +108,7 @@
             target = input instanceof Request ? new Request(url.href, input) : url.href;
         }
         if (!isApiUrl(url) || publicPaths.has(url.pathname)) return originalFetch(target, options);
-<<<<<<< HEAD
         const token = sessionStorage.getItem(tokenKey);
-=======
-        const token = localStorage.getItem(tokenKey);
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
         if (pageRole && (sessionEnded || token !== pageToken)) { lockPortal(); throw new Error('This browser session has ended.'); }
         if (!token) { signInAgain(); throw new Error('Please sign in to continue.'); }
         const headers = new Headers(input instanceof Request ? input.headers : undefined);
@@ -141,7 +117,6 @@
         const response = await originalFetch(target, { ...options, headers });
         // An older in-flight request must not end a newly renewed password session.
         if (pageRole && token !== pageToken) throw new Error('An older session response was discarded.');
-<<<<<<< HEAD
         if (pageRole && url.pathname === '/api/change-password' && response.ok && !sessionEnded && sessionStorage.getItem(tokenKey) === pageToken) {
             const updated = await response.clone().json();
             if (sessionEnded || pageToken !== token || sessionStorage.getItem(tokenKey) !== token) { lockPortal(); throw new Error('Sign-in changed during password update.'); }
@@ -151,27 +126,12 @@
             } else throw new Error('Session renewal failed. Please sign in again.');
         }
         if (pageRole && (sessionEnded || sessionStorage.getItem(tokenKey) !== pageToken)) { lockPortal(); throw new Error('This browser session has ended.'); }
-=======
-        if (pageRole && url.pathname === '/api/change-password' && response.ok && !sessionEnded && localStorage.getItem(tokenKey) === pageToken) {
-            const updated = await response.clone().json();
-            if (sessionEnded || pageToken !== token || localStorage.getItem(tokenKey) !== token) { lockPortal(); throw new Error('Sign-in changed during password update.'); }
-            if (updated.success && typeof updated.token === 'string' && updated.token) {
-                pageToken = updated.token;
-                localStorage.setItem(tokenKey, pageToken);
-            } else throw new Error('Session renewal failed. Please sign in again.');
-        }
-        if (pageRole && (sessionEnded || localStorage.getItem(tokenKey) !== pageToken)) { lockPortal(); throw new Error('This browser session has ended.'); }
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
         if (!response.ok) {
             let detail = {};
             try { detail = await response.clone().json(); } catch { /* A non-JSON failure still needs a useful message. */ }
             if (['AUTH_REQUIRED', 'SESSION_INVALID', 'SESSION_REPLACED', 'ACCOUNT_INACTIVE'].includes(detail.code)) {
                 if (pageRole) lockPortal(detail.reason);
-<<<<<<< HEAD
                 else if (sessionStorage.getItem(tokenKey) === token) signInAgain();
-=======
-                else if (localStorage.getItem(tokenKey) === token) signInAgain();
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             }
             throw new Error(detail.error || `Request failed (${response.status}). Please try again.`);
         }
@@ -194,11 +154,7 @@
     let logoutRequest;
     function logout() {
         if(logoutRequest)return logoutRequest;
-<<<<<<< HEAD
         const token=sessionStorage.getItem(tokenKey);
-=======
-        const token=localStorage.getItem(tokenKey);
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
         if(pageRole && (sessionEnded || token !== pageToken)){lockPortal();return Promise.reject(new Error('This browser session has ended.'));}
         if(!token){clearSession();return Promise.resolve();}
         logoutRequest=(async()=>{
@@ -225,23 +181,14 @@
     });
     if (pageRole) {
         window.addEventListener?.('storage',event=>{
-<<<<<<< HEAD
             if (event.storageArea === sessionStorage && (event.key === null || event.key === tokenKey)) {
                 if (sessionStorage.getItem(tokenKey) !== pageToken) lockPortal();
-=======
-            if (event.key === null || event.key === tokenKey) {
-                if (localStorage.getItem(tokenKey) !== pageToken) lockPortal();
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             }
         });
         let checking = false;
         const checkSession = async () => {
             if (checking || sessionEnded) return;
-<<<<<<< HEAD
             if (sessionStorage.getItem(tokenKey) !== pageToken) { lockPortal(); return; }
-=======
-            if (localStorage.getItem(tokenKey) !== pageToken) { lockPortal(); return; }
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             checking = true;
             try { await window.fetch(apiOrigin+'/api/session'); }
             catch { /* Network/database outages do not prove session revocation. */ }
@@ -251,7 +198,6 @@
         document.addEventListener('visibilitychange',()=>{ if (!document.hidden) checkSession(); });
         // Server checks every request immediately. This poll clears an idle
         // visible page too; background browser timers can be delayed.
-<<<<<<< HEAD
         let timer = window.setInterval?.(checkSession,30000);
         window.addEventListener?.('pagehide',()=>window.clearInterval?.(timer));
         window.addEventListener?.('pageshow', event => {
@@ -264,14 +210,6 @@
         window.fetch(`${apiOrigin}/api/session`).then(response => response.json()).then(result => {
             if(sessionEnded || sessionStorage.getItem(tokenKey)!==pageToken){lockPortal();return;}
             sessionStorage.setItem('active_user_id', result.user.system_id);
-=======
-        const timer = window.setInterval?.(checkSession,30000);
-        window.addEventListener?.('pagehide',()=>window.clearInterval?.(timer));
-        window.HealthIntel.checkSession = checkSession;
-        window.fetch(`${apiOrigin}/api/session`).then(response => response.json()).then(result => {
-            if(sessionEnded || localStorage.getItem(tokenKey)!==pageToken){lockPortal();return;}
-            localStorage.setItem('active_user_id', result.user.system_id);
->>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             if (result.user.role !== pageRole) window.location.replace(`${result.user.role}.html`);
         }).catch(error => console.error(error.message));
     }
