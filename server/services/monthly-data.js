@@ -1,7 +1,10 @@
 'use strict';
 const crypto=require('node:crypto');
+<<<<<<< HEAD
 const {FIRST_LIVE_CASE_DATE,SOURCE_HASH}=require('./dataset-analytics');
 const DATASET_START='2023-01',FIRST_REPORT_MONTH=FIRST_LIVE_CASE_DATE.slice(0,7),MIXED='dataset_plus_reports';
+=======
+>>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
 const {DISEASES,BARANGAYS,metrics,resolveSavedForecast}=require('./seasonal6200-sarima-demo');
 const hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const fail=(message,status=400)=>Object.assign(Error(message),{status,code:'MONTHLY_PREDICTION_CHECK'});
@@ -12,9 +15,16 @@ function closed(value,now){month(value);if(value>=currentMonth(now))throw fail('
 function months(start,end){month(start);month(end);if(start>end)throw fail('The first month must not follow the last month.');const result=[];for(let value=start;value<=end;value=next(value)){result.push(value);if(result.length>120)throw fail('Choose no more than 120 consecutive monthly reports.');}return result;}
 function summarize(rows,barangay){
  if(!BARANGAYS.includes(barangay))throw fail('Choose one of the seven pilot barangays.');
+<<<<<<< HEAD
  const records=rows.filter(r=>r.barangay===barangay&&!r.reporting_excluded).map(r=>[Number(r.id),r.date_recorded,r.disease??null,r.disease_review_status??null,false,null]).sort((a,b)=>a[0]-b[0]);
  const counts=Object.fromEntries(DISEASES.map(d=>[d,0]));let pending=0,other=0;
  for(const [,,disease,review] of records){
+=======
+ const records=rows.filter(r=>r.barangay===barangay).map(r=>[Number(r.id),r.date_recorded,r.disease??null,r.disease_review_status??null,!!r.is_archived,r.deleted_at??null]).sort((a,b)=>a[0]-b[0]);
+ const counts=Object.fromEntries(DISEASES.map(d=>[d,0]));let pending=0,other=0;
+ for(const [,date,disease,review,archived,deleted] of records){
+  if(archived||deleted)continue;
+>>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
   if(['Pending','Clarification'].includes(review)){pending++;continue;}
   if(Object.hasOwn(counts,disease))counts[disease]++;else other++;
  }
@@ -22,8 +32,12 @@ function summarize(rows,barangay){
 }
 function validateInput(input){
  const dates=months(input.start,input.cutoff);if(dates.length<45)throw fail('At least 45 consecutive, confirmed operational months are required for the primary and secondary historical evaluations.');
+<<<<<<< HEAD
  if(!['operational',MIXED].includes(input.mode)||input.target!==next(input.cutoff)||input.scopes.length!==70)throw fail('Invalid prediction input.');
  if(input.mode===MIXED&&(input.start!==DATASET_START||input.cutoff<FIRST_REPORT_MONTH||input.historical_dataset_sha256!==SOURCE_HASH))throw fail('Invalid dataset-backed prediction input.');
+=======
+ if(input.mode!=='operational'||input.target!==next(input.cutoff)||input.scopes.length!==70)throw fail('Invalid operational input.');
+>>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
  const keys=new Set();for(const s of input.scopes){const key=s.disease+'\0'+s.barangay;if(!DISEASES.includes(s.disease)||!BARANGAYS.includes(s.barangay)||keys.has(key)||s.history.length!==dates.length||s.history.some(v=>!Number.isSafeInteger(v)||v<0))throw fail('Operational histories must contain all 70 unique selections and confirmed monthly integer counts.');keys.add(key);}
  return dates;
 }
@@ -40,4 +54,8 @@ function validateOutput(input,output){
  }
  return {views,overall:Object.fromEntries(Object.entries(pooled).map(([p,r])=>[p,{'1':metrics(r)}])),context:{cutoff:input.cutoff,main_target:input.target,records:N*70,cases:input.scopes.reduce((a,s)=>a+s.history.reduce((b,v)=>b+v,0),0)},available:Object.values(views).filter(v=>v.production['1'].prediction!==null).length};
 }
+<<<<<<< HEAD
 module.exports={DISEASES,BARANGAYS,DATASET_START,FIRST_REPORT_MONTH,MIXED,hash,fail,month,next,currentMonth,closed,months,summarize,validateInput,validateOutput};
+=======
+module.exports={DISEASES,BARANGAYS,hash,fail,month,next,currentMonth,closed,months,summarize,validateInput,validateOutput};
+>>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426

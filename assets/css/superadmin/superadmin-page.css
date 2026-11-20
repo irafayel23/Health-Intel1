@@ -165,6 +165,7 @@ body:not(:has(#superadmin-row-tooltip.is-visible)) .hi-admin-access-row:focus-vi
 }
 #superadmin-row-tooltip.is-visible { visibility: visible; }
 .dark #superadmin-row-tooltip { background: #e2e8f0; color: #0f2743; }
+<<<<<<< HEAD
 
 /* Backup dialog shares the compact portal form layout. */
 .hi-backup-dialog .hi-backup-fields { grid-template-columns: minmax(0, 1fr); }
@@ -211,3 +212,5 @@ body:not(:has(#superadmin-row-tooltip.is-visible)) .hi-admin-access-row:focus-vi
 }
 .hi-backup-password-toggle:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
 .hi-backup-password-toggle svg { width: 18px; height: 18px; }
+=======
+>>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426

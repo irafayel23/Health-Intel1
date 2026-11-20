@@ -121,7 +121,11 @@ function renderAuditTable() {
         return `<tr ${validId?`tabindex="0" aria-label="Open ledger event ${id} details" onclick="openLedgerRow(event, ${id})" onkeydown="openLedgerRow(event, ${id})" class="cursor-pointer border-b border-slate-200 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:border-neutral-800 dark:hover:bg-neutral-800"`:'class="border-b border-slate-200 dark:border-neutral-800"'}>
             <td class="p-3 text-xs break-words"><div class="hi-ledger-cell">${escapeText(ledgerTime(log.created_at))}</div></td>
             <td class="p-3 break-words"><div class="hi-ledger-cell">${escapeText(log.user_id)}</div></td>
+<<<<<<< HEAD
             <td class="p-3 break-words"><div class="hi-ledger-cell">${escapeText(ledgerRole(log.role))}</div></td>
+=======
+            <td class="p-3 break-words"><div class="hi-ledger-cell">${escapeText(log.role)}</div></td>
+>>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
             <td class="p-3 [overflow-wrap:anywhere]"><p class="hi-ledger-action font-medium">${escapeText(log.action)}</p><p class="hi-ledger-summary text-xs text-slate-600 dark:text-neutral-400">${escapeText(HealthIntelText.auditDetails(log))}</p>${validId?'<span class="hi-ledger-hint" aria-hidden="true">Open event details</span>':''}</td>
             <td class="p-3 text-xs [overflow-wrap:anywhere]"><div class="hi-ledger-cell">${escapeText(log.target_type?`${log.target_type}: ${log.target_id || 'Not recorded'}`:'Not recorded')}</div></td>
             <td class="p-3 text-xs break-words ${color}"><div class="hi-ledger-cell">${escapeText(outcome)}</div></td>
@@ -137,11 +141,15 @@ function renderAuditTable() {
     buttons+=button(currentAuditPage+1,'Next',false,currentAuditPage===totalPages);
     document.getElementById('audit-page-buttons').innerHTML=buttons;
 }
+<<<<<<< HEAD
 function goToAuditPage(page) {
     currentAuditPage=page;
     renderAuditTable();
     globalThis.HealthIntelPagination?.showStart('audit-table-body');
 }
+=======
+function goToAuditPage(page) { currentAuditPage=page; renderAuditTable(); }
+>>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
 function openLedgerRow(event, id) {
     if (event.target.closest('button, a, input, select, textarea')) return;
     if (event.type === 'keydown') {
@@ -158,7 +166,11 @@ function viewLedgerEvent(id) {
     if(!log) return;
     const data=ledgerPayload(log);
     const field=(label,value)=>`<dl class="hi-ledger-detail-row"><dt>${escapeText(label)}</dt><dd>${escapeText(typeof value==='object'?JSON.stringify(value,null,2):value ?? 'Not recorded')}</dd></dl>`;
+<<<<<<< HEAD
     let html=field('Actor',`${log.user_id} (${ledgerRole(log.role)})`)+field('Time',ledgerTime(log.created_at))+field('Action',log.action)
+=======
+    let html=field('Actor',`${log.user_id} (${log.role})`)+field('Time',ledgerTime(log.created_at))+field('Action',log.action)
+>>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
         +field('Outcome',log.outcome || 'Not recorded')+field('Affected record',log.target_type?`${log.target_type}: ${log.target_id || 'Not recorded'}`:'Not recorded')
         +field('Recorded details',HealthIntelText.auditDetails(log));
     for(const [key,label] of Object.entries({reason:'Reason',attribution:'Attribution',before:'Previous values',after:'New values',period:'Report period',barangay_id:'Barangay ID',purok:'Purok / zone',record_count:'Recorded case count',delivery:'Export confirmation'})) {
@@ -182,10 +194,19 @@ function viewLedgerEvent(id) {
             if(!button || !container.contains(button) || button.disabled)return;
             const page=Number(button.dataset.historyPage);
             if(!Number.isInteger(page) || page<1 || page>Math.ceil(related.length/5))return;
+<<<<<<< HEAD
             const height=container.offsetHeight;
             if(height) container.style.minHeight=Math.max(height,parseFloat(container.style.minHeight)||0)+'px';
             container.innerHTML=renderRelated(page);
             globalThis.HealthIntelPagination?.showStart(container, scrollBody);
+=======
+            const body=Swal.getHtmlContainer(), top=body.scrollTop;
+            const height=container.offsetHeight;
+            if(height) container.style.minHeight=Math.max(height,parseFloat(container.style.minHeight)||0)+'px';
+            container.innerHTML=renderRelated(page);
+            container.querySelector('[aria-current="page"]')?.focus({preventScroll:true});
+            body.scrollTop=top;
+>>>>>>> 77e33a469de54a41ddaeb994c2f5451c516ee426
         });
     }});
 }
