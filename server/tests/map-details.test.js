@@ -59,16 +59,26 @@ test('even many High Risk patients cannot become a barangay High Risk assessment
     }
 });
 
-test('both portal legends and marker labels separate barangay assessment from patient severity',()=>{
-    for(const page of ['bhw.html','mho.html']) {
-        const html=fs.readFileSync(path.join(__dirname,'../../',page),'utf8');
-        const legend=html.match(/<div class="heatmap-legend"[^>]*>([\s\S]*?)<\/div>/)[1];
-        assert.match(legend,/1-10 cases/);assert.match(legend,/21\+ cases/);
-        assert.match(legend,/assessment unavailable/);assert.doesNotMatch(legend,/No active cases|Severity incomplete/);
-    }
-    const map=fs.readFileSync(path.join(__dirname,'../../assets/js/shared/health-map.js'),'utf8');
-    assert.doesNotMatch(map,/counts\.high_risk\?`/);
-    assert.match(map,/HealthIntelMapDetails\.classification\(brgy\)/);
+test('MHO map shows historical filters and omits draft volume bands while BHW keeps its own legend',()=>{
+ const mho = fs.readFileSync(path.join(__dirname,'../../mho.html'),'utf8').split('id="view-heatmap"')[1].split('id="view-predictive"')[0];
+ assert.match(mho,/mho-map-source/);
+ assert.match(mho,/mho-map-year/);
+ assert.match(mho,/mho-map-month/);
+ assert.doesNotMatch(mho,/heatmap-legend|indicative pilot barangay|1-10 cases/);
+ const bhw = fs.readFileSync(path.join(__dirname,'../../bhw.html'),'utf8');
+ assert.match(bhw,/<div class="heatmap-legend"[^>]*>[\s\S]*?1-10 cases/);
+ const api=context.window.HealthIntelMapDetails;
+ const live={name:'Sample',cases:1,severity_counts:{high_risk:1},activity:{observed_cases:25,status:'assessed',provisional:true,tone:'high_risk'}};
+ const markup=api.render(live,'','details',false);
+ assert.match(markup,/Individual patient severity/);
+ assert.match(markup,/25 new recorded cases/);
+ assert.doesNotMatch(markup,/configured case-volume bands|21 or more cases/);
+ assert.match(api.marker(live,false),/heatmap-ring-none/);
+ const historical={name:'Salvacion',cases:18,historical:{period:'April 2024',diseases:[{disease:'Cough',cases:8}]}};
+ const historic=api.render(historical,'','details',false);
+ assert.match(historic,/April 2024/);assert.match(historic,/Cough/);assert.match(historic,/unavailable in the historical dataset/);
+ assert.doesNotMatch(historic,/Currently active|1-10 cases/);
+ assert.match(api.marker(historical,false),/>18<\/text>/);
 });
 
 test('live activity colors all three bands and explains source counts separately from active patient severity',()=>{

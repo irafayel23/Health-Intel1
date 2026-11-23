@@ -22,14 +22,14 @@
     <meta name="description" content="Health-Intel Epidemiological Profiling System" />
     <title>Portal | HEALTH-INTEL</title>
     <link rel="stylesheet" href="assets/css/shared/mho.css?v=20261123-barangay-report" />
-    <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat" />
+    <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261123-map-periods" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/shared/chart-theme.js?v=20261101-summary-cards"></script>
-    <link rel="stylesheet" href="assets/css/mho/mho-page.css?v=20261115-report-first" />
+    <link rel="stylesheet" href="assets/css/mho/mho-page.css?v=20261123-map-periods" />
   
     <!-- Built with npm --prefix tools/styles run build:mho. -->
     <link rel="stylesheet" href="assets/css/mho/mho-utilities.css?v=20261113-dataset" />
@@ -284,24 +284,29 @@
                 <option value="12">December</option></select></label><div id="mortality-chart-wrap" class="relative h-64 mt-4"><canvas id="mortalityChart" role="img" aria-label="Disease distribution donut chart"></canvas></div><div id="mortality-empty" class="hidden rounded-xl border border-dashed border-[hsl(var(--border))] p-6 my-5 text-center" role="status"><i data-lucide="pie-chart" class="w-9 h-9 mx-auto mb-3 text-[hsl(var(--muted-foreground))]"></i><p class="font-semibold">No matching dataset cases</p><p class="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-2">The donut appears when this selection contains records. No slices are added for zero cases.</p></div><div id="mortality-table" class="sr-only" role="region" aria-label="Disease distribution data"></div><p class="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed mt-4">Shares describe dataset case counts, not population disease rates.</p></section></div>
 <p id="analytics-data-context" class="text-xs text-[hsl(var(--muted-foreground))] leading-relaxed" aria-live="polite">Loading record coverage…</p></div></div>
 
-        <div id="view-heatmap" class="view-section hidden white-panel">
-          <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Municipality Map — Case Activity</h1>
-          <p class="text-[hsl(var(--muted-foreground))] mt-1">
-            Circle colors show locally configured case volume over the current calendar month through today; centers show new recorded cases.
-            Hover or tap for the ranges, source counts and separate active-patient severity. These are analytical signals, not official outbreak-risk ratings.
-          </p>
-          <div class="heatmap-legend" aria-label="Barangay surveillance classification legend">
-            <span><i class="heatmap-severity-mild"></i>Mild — 1-10 cases</span>
-            <span><i class="heatmap-severity-monitored"></i>Monitored — 11-20 cases</span>
-            <span><i class="heatmap-severity-high"></i>High Risk — 21+ cases</span>
-            <span><i class="heatmap-severity-none"></i>0 cases / assessment unavailable</span>
-          </div>
-          <p id="heatmap-boundary-status" class="text-sm text-[hsl(var(--muted-foreground))] mt-2">Loading pilot barangay boundaries...</p>
-          <p id="heatmap-status" class="heatmap-status" role="status">Loading active case totals…</p>
-          <div
-            id="murciaMap"
-            class="mho-municipal-map"></div>
-        </div>
+        <section id="view-heatmap" class="view-section hidden white-panel mho-map-panel" aria-labelledby="mho-map-title">
+          <header class="mho-map-toolbar">
+            <div>
+              <h1 id="mho-map-title">Municipality Map</h1>
+              <p id="heatmap-status" role="status">Loading map…</p>
+            </div>
+            <div id="mho-map-filters" class="mho-map-filters" role="group" aria-label="Map data and period">
+              <label for="mho-map-source">Data source
+                <select id="mho-map-source">
+                  <option value="live">Live cases</option>
+                  <option value="historical">Historical cases</option>
+                </select>
+              </label>
+              <label for="mho-map-year">Year
+                <select id="mho-map-year" disabled><option value="">Current year</option></select>
+              </label>
+              <label for="mho-map-month">Month
+                <select id="mho-map-month" disabled><option value="">Current month</option></select>
+              </label>
+            </div>
+          </header>
+          <div id="murciaMap" class="mho-municipal-map" role="region" aria-label="Barangay case map"></div>
+        </section>
 
         <div id="view-predictive" class="view-section hidden mx-auto w-full max-w-[1440px] min-w-0 [&_[hidden]]:!hidden">
           <header class="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -622,7 +627,7 @@
 
 
     <script src="assets/js/shared/app.js"></script>
-    <script src="assets/js/shared/lazy-heatmap.js?v=20261118-overall-case-volume"></script>
+    <script src="assets/js/shared/lazy-heatmap.js?v=20261123-map-periods"></script>
     <script src="assets/js/mho/mho-action-guidance.js?v=20261111-who"></script>
     <script src="assets/js/mho/mho-insights.js?v=20261118-month-any-year"></script>
     <script src="assets/js/mho/mho-walkins.js?v=20261117-archive-icon"></script>

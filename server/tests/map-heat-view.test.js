@@ -7,30 +7,79 @@ function setup(){
  const ctx={window:{L},L,document:{createElement:node}};vm.runInNewContext(code,ctx);return {api:ctx.window.HealthIntelHeatView,node,map,layers};
 }
 function row(cases,extra={}){return {lat:10,lng:123,cases:999,activity:{status:'assessed',method:'fixed-case-volume',observed_cases:cases,tone:cases===0?'none':cases<=10?'mild':cases<=20?'monitored':'high_risk'},...extra};}
-test('monthly heat colors match exact boundaries and ignore active-case count or relative maximum',()=>{
- const {api}=setup();const r=api.prepare([1,10,11,20,21,1000].map(n=>row(n)));
- assert.equal(r.points.map(p=>p.color).join(','),'#16a34a,#16a34a,#d97706,#d97706,#dc2626,#dc2626');
- assert.equal(r.total,1063);assert.equal(r.omitted,0);assert.equal(api.prepare([row(1)]).points[0].color,'#16a34a');
+test('halo sizes follow monthly counts with one color and ignore recorded severity', () => {
+ const {api}=setup();
+ const points=api.prepare([row(1),row(10),row(21),row(0),row(1000,{lat:null}),row(3,{activity:null}),
+  row(999,{activity:null,cases:18,historical:{period:'April 2024'}})]);
+ assert.deepEqual(Array.from(points,p=>p.cases),[1,10,21,18]);
+ assert.ok(points[0].radius<points[1].radius && points[1].radius<points[3].radius && points[3].radius<points[2].radius);
 });
-test('zero and unavailable monthly assessments draw no positive halo; invalid coordinates are omitted',()=>{
- const {api}=setup();assert.equal(api.prepare([row(0)]).points.length,0);
- const bad=api.prepare([row(1,{activity:null}),row(1,{lat:null}),row(1,{lat:91}),row(1,{activity:{status:'unavailable'}}),row(1,{activity:{status:'assessed',method:'fixed-case-volume',observed_cases:-1}})]);
- assert.equal(bad.omitted,5);assert.equal(bad.points.length,0);
+test('heat halos remain separate, update on refresh and use a count-only legend', () => {
+ const f=setup(),container=f.node();container.parentElement={querySelector:()=>null};
+ const view=f.api.bind(f.map,container);
+ const [controls,legend]=container.children,[summary,heat]=controls.children;
+ assert.equal(summary.attrs['aria-pressed'],'true');
+ assert.equal(heat.disabled,true);
+ view.update([row(10),row(10,{lng:123.001})]);
+ heat.events.click();
+ const group=[...f.layers][0];
+ assert.equal(group.points.length,2);
+ for(const marker of group.points){
+  assert.equal(marker.options.fillColor,'#2dd4bf');
+  assert.equal(marker.options.interactive,false);
+  assert.ok(!('weight' in marker.options));
+ }
+ const text=JSON.stringify(legend);
+ assert.match(text,/Cases this month/);
+ assert.doesNotMatch(text,/Mild|Monitored|High Risk/);
+ view.update([row(21)]);
+ assert.equal(f.layers.size,1);
+ assert.ok([...f.layers][0].points[0].options.radius>group.points[0].options.radius);
+ view.resize();
+ assert.equal(f.layers.size,1);
+ summary.events.click();
+ assert.equal(f.layers.size,0);
+ assert.equal(legend.hidden,true);
 });
-test('neighboring Mild barangays remain independent green halos with no additive weights',()=>{
- const f=setup(),container=f.node();container.parentElement={querySelector:()=>null};const view=f.api.bind(f.map,container);
- view.update([row(10),row(10,{lng:123.001})]);container.children[0].children[1].events.click();
- const group=[...f.layers][0];assert.equal(group.points.length,2);
- for(const marker of group.points){assert.equal(marker.options.fillColor,'#16a34a');assert.equal(marker.options.interactive,false);assert.ok(!('weight' in marker.options));}
- const text=JSON.stringify(container.children[1]);assert.match(text,/Monthly case-volume bands/);assert.match(text,/11–20/);assert.doesNotMatch(text,/Fewer|highest barangay|active cases/);
-});
-test('summary is default, refresh replaces halos, resize retains one layer and summary removes it',()=>{
- const f=setup(),container=f.node();const pageLegend={hidden:false};container.parentElement={querySelector:()=>pageLegend};
- const changes=[],view=f.api.bind(f.map,container,{onChange:mode=>changes.push(mode)});const [controls,legend]=container.children,[summary,heat]=controls.children;
- assert.equal(summary.attrs['aria-pressed'],'true');assert.equal(heat.disabled,true);assert.equal(legend.hidden,true);
- view.update([row(1)]);heat.events.click();assert.equal(f.layers.size,1);assert.equal(pageLegend.hidden,true);
- view.update([row(21)]);assert.equal(f.layers.size,1);assert.equal([...f.layers][0].points[0].options.fillColor,'#dc2626');
- view.resize();assert.equal(f.layers.size,1);summary.events.click();assert.equal(f.layers.size,0);assert.equal(pageLegend.hidden,false);assert.deepEqual(changes,['heat','summary']);
+
+test('historical map filters by CSV coverage and reconciles every barangay with the monthly report',async()=>{
+ const {reportData}=require('../services/historical-reports');
+ const bytes=fs.readFileSync(path.join(__dirname,'../../datasets/combined_historical_cases.csv'));
+ const elements=Object.fromEntries(['source','year','month'].map(name=>[name,{
+  value:name==='source'?'live':'',disabled:false,options:[],events:{},
+  replaceChildren(...options){this.options=options;},
+  addEventListener(event,handler){this.events[event]=handler;}
+ }]));
+ const requests=[];
+ const ctx={window:{},Intl,AbortSignal,URLSearchParams,Option:function(label,value){this.label=label;this.value=value;},
+  HealthIntel:{apiOrigin:'http://localhost:3000'},
+  document:{getElementById:id=>elements[id.replace('mho-map-','')]},
+  fetch:async url=>{
+   requests.push(url);
+   const query=Object.fromEntries(new URL(url).searchParams);
+   return {ok:true,json:async()=>({success:true,...reportData(bytes,query)})};
+  }};
+ vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/mho/mho-map-history.js'),'utf8'),ctx);
+ const changes=[];
+ const history=ctx.window.HealthIntelMapHistory.bind(()=>changes.push(history.selection()));
+ assert.equal(history.selection(),'live');
+ elements.source.value='historical';elements.source.events.change();
+ assert.equal(history.selection(),'historical');
+ const latest=await history.read(history.selection());
+ assert.equal(latest.period,'2026-09');assert.equal(latest.total,149);
+ assert.deepEqual(Array.from(elements.month.options,o=>o.value),['01','02','03','04','05','06','07','08','09']);
+ elements.year.value='2024';elements.year.events.change();
+ elements.month.value='04';elements.month.events.change();
+ const april=await history.read(history.selection());
+ assert.equal(april.total,139);assert.equal(april.rows.length,7);
+ assert.equal(april.rows.find(r=>r.name==='Salvacion').cases,18);
+ assert.ok(april.rows.every(r=>r.historical.diseases.length===10 && r.severity_counts===undefined));
+ assert.match(requests.at(-1),/year=2024&month=04$/);
+ elements.source.value='live';elements.source.events.change();
+ assert.equal(elements.month.disabled,true);
+ elements.source.value='historical';elements.source.events.change();
+ assert.equal(history.selection(),'2024-04');
+ assert.deepEqual(changes,['historical','2024-09','2024-04','live','2024-04']);
 });
 
 test('BHW Map view lazily loads summary dependencies without a heat option',async()=>{

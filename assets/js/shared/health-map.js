@@ -39,6 +39,8 @@ if (mapContainer) {
     const mapLabels = [];
     const status = document.getElementById('heatmap-status');
     const summaryOnly = mapContainer.dataset.mapMode === 'summary';
+    const history = window.HealthIntelMapHistory?.bind(changePeriod);
+    const selectedPeriod = () => history?.selection() ?? 'live';
     const heatView = summaryOnly ? null : window.HealthIntelHeatView?.bind(map,mapContainer,{onChange:()=>{hideDetails();layoutLabels();}});
     const caseBreakdown = summaryOnly ? null : window.HealthIntelMapBreakdown?.bind(mapContainer,{onOpen:()=>hideDetails()});
     let initialViewSet = false;
@@ -62,11 +64,9 @@ if (mapContainer) {
             });
             if (!layer.getBounds().isValid()) throw new Error('Barangay boundaries unavailable.');
             boundaries = layer.addTo(map);
-            boundaryStatus.textContent = summaryOnly
-                ? 'Dashed outline shows the indicative barangay boundary.'
-                : 'Dashed outlines show indicative pilot barangay boundaries.';
+            if (boundaryStatus) boundaryStatus.textContent = 'Dashed outline shows the indicative barangay boundary.';
         } catch {
-            boundaryStatus.textContent = 'Barangay boundaries are unavailable. Case totals can still be viewed.';
+            if (boundaryStatus) boundaryStatus.textContent = 'Barangay boundaries are unavailable. Case totals can still be viewed.';
         }
     }
     fetch('assets/img/maps/murcia-pilot-barangays.geojson', { signal: AbortSignal.timeout(4000) })
@@ -75,7 +75,7 @@ if (mapContainer) {
             return response.json();
         })
         .then(data => { boundaryData = data; drawBoundaries(); })
-        .catch(() => { boundaryStatus.textContent = 'Barangay boundaries are unavailable. Case totals can still be viewed.'; })
+        .catch(() => { if (boundaryStatus) boundaryStatus.textContent = 'Barangay boundaries are unavailable. Case totals can still be viewed.'; })
         .finally(() => {
             boundariesReady = true;
             fitBarangays();
@@ -237,11 +237,11 @@ if (mapContainer) {
     map.on('zoomend moveend resize', layoutLabels);
 
     function fitBarangays() {
-        if (initialViewSet || !boundariesReady || !mapContainer.offsetHeight) return;
-        const bounds = boundaries?.getBounds() ?? L.latLngBounds([]);
+        if (initialViewSet || !boundariesReady || !mapContainer.offsetHeight || (!summaryOnly && !mapCircles.length)) return;
+        const bounds = summaryOnly && boundaries ? boundaries.getBounds() : L.latLngBounds([]);
         if (mapCircles.length) bounds.extend(L.featureGroup(mapCircles).getBounds());
         if (!bounds.isValid()) return;
-        map.fitBounds(bounds, { padding: [45, 45], maxZoom: summaryOnly ? 14 : 12, animate: false });
+        map.fitBounds(bounds, { padding: [45, 45], maxZoom: summaryOnly ? 14 : 13, animate: false });
         initialViewSet = true;
     }
 
@@ -251,7 +251,7 @@ if (mapContainer) {
         return element.innerHTML;
     }
 
-    const detailsFor = (barangay, refreshedAt) => HealthIntelMapDetails.render(barangay, refreshedAt, mapContainer.id + '-details-title');
+    const detailsFor = (barangay, refreshedAt) => HealthIntelMapDetails.render(barangay, refreshedAt, mapContainer.id + '-details-title', summaryOnly);
 
     const refreshButton=document.createElement('button');
     refreshButton.type='button';
@@ -264,25 +264,56 @@ if (mapContainer) {
     let loading=false;
     let pendingRefresh=false;
     let loaded=false;
+    let periodRevision = 0;
     const visible=()=>!document.hidden && !mapContainer.closest('.view-section')?.classList.contains('hidden');
+    function changePeriod() {
+      periodRevision++;
+      hideDetails();
+      mapCircles.splice(0).forEach(circle => circle.remove());
+      mapLabels.splice(0).forEach(label => label.remove());
+      heatView?.update([]);
+      if (caseBreakdown) caseBreakdown.button.hidden = true;
+      loaded = false;
+      if (status) status.textContent = 'Loading case counts…';
+      refreshMap();
+    }
+
+    async function readMap(period) {
+      if (period !== 'live') {
+        const result = await history.read(period);
+        const data = result.rows.map(row => {
+          // Minoyan's marker uses the center of its existing boundary extent.
+          const point = barangayMapAnchors.get(row.name) ?? (row.name === 'Minoyan' ? [10.518066485, 123.128403418] : null);
+          if (!point) throw new Error('Historical barangay coordinates are unavailable.');
+          return { ...row, lat: point[0], lng: point[1] };
+        });
+        return { data, period: result.period, label: result.label, total: result.total };
+      }
+      const response = await fetch('http://localhost:3000/api/heatmap-data', { signal: AbortSignal.timeout(12000) });
+      if (!response.ok) throw new Error('Unable to load active case totals.');
+      const result = await response.json();
+      if (!result.success) throw new Error('Unable to load active case totals.');
+      return { ...result, period, data: result.data.map(useBarangayMapAnchor) };
+    }
+
     function refreshMap() {
       if(loading){pendingRefresh=true;return;}
+      const period = selectedPeriod();
+      const revision = periodRevision;
       loading=true;refreshButton.disabled=true;
       if(!iconOnly)refreshButton.textContent='Refreshing…';
-      return fetch('http://localhost:3000/api/heatmap-data')
-      .then(response => {
-          if (!response.ok) throw new Error('Unable to load active case totals.');
-          return response.json();
-      })
+      return readMap(period)
       .then(result => {
-          if (!result.success) throw new Error('Unable to load active case totals.');
-
-          const barangays = result.data.map(useBarangayMapAnchor);
+          if (revision !== periodRevision || selectedPeriod() !== result.period) return;
+          const barangays = result.data;
           assignedNames = new Set(barangays.map(row => row.name));
           drawBoundaries();
           heatView?.update(barangays);
-          const refreshedAt = new Date(result.fetched_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
-          caseBreakdown?.update(barangays,refreshedAt);
+          const refreshedAt = result.fetched_at ? new Date(result.fetched_at).toLocaleString('en-PH', { timeZone: 'Asia/Manila' }) : '';
+          if (caseBreakdown) {
+            caseBreakdown.button.hidden = result.period !== 'live';
+            if (result.period === 'live') caseBreakdown.update(barangays, refreshedAt);
+          }
           const pinnedLocation=pinnedDetails && detailsCircle?detailsCircle.getLatLng():null;
           const oldScroll=detailsPanel.querySelector('.heatmap-info-body')?.scrollTop || 0;
           const hadDetailsFocus=detailsPanel.contains(document.activeElement);
@@ -292,14 +323,14 @@ if (mapContainer) {
           mapCircles.length=0;mapLabels.length=0;
 
           barangays.forEach((brgy) => {
-              // Equal-sized circles classify recent recorded case activity independently of patient severity.
+              // Show the period count at the barangay marker.
               const circle = L.marker([brgy.lat, brgy.lng], {
-                icon: L.divIcon({className:'heatmap-summary-marker',html:HealthIntelMapDetails.marker(brgy),iconSize:[88,88],iconAnchor:[44,44]}),
+                icon: L.divIcon({className:'heatmap-summary-marker',html:HealthIntelMapDetails.marker(brgy, summaryOnly),iconSize:[88,88],iconAnchor:[44,44]}),
                 keyboard:false,
                 bubblingMouseEvents: false,
               }).addTo(map);
 
-              const attention=[HealthIntelMapDetails.classification(brgy).label + ' · case volume'];
+              const attention = summaryOnly ? [HealthIntelMapDetails.classification(brgy).label + ' · case volume'] : [];
 
               const label = L.marker([brgy.lat, brgy.lng], {
                   interactive: false,
@@ -320,7 +351,7 @@ if (mapContainer) {
               const circleElement = circle.getElement();
               circleElement.setAttribute('tabindex', '0');
               circleElement.setAttribute('role', 'button');
-              circleElement.setAttribute('aria-label', HealthIntelMapDetails.summary(brgy)+' Open barangay assessment and patient severity details.');
+              circleElement.setAttribute('aria-label', HealthIntelMapDetails.summary(brgy, summaryOnly) + ' Open barangay details.');
               circleElement.addEventListener('focus', () => {if (!restoringMarkerFocus) showDetails(circle, details);});
               circleElement.addEventListener('blur', scheduleHideDetails);
               circleElement.addEventListener('keydown', event => {
@@ -337,22 +368,24 @@ if (mapContainer) {
           });
           if (status) status.textContent = summaryOnly
               ? 'Locally configured case-volume bands over the current calendar month through today; open a marker for the calculation and separate active totals. Updated: ' + refreshedAt + ' (Philippine time).'
-              : `Barangay Summary shows month-to-date case volume. Heat View uses the same monthly bands: green 1-10, orange 11-20, red 21+. Updated: ${refreshedAt} (Philippine time). Neither view is an outbreak-risk rating.`;
+              : result.label ? `Historical cases · ${result.label} · ${result.total.toLocaleString('en-PH')} cases` : 'Live cases · Month to date';
           fitBarangays();
           layoutLabels();
           loaded=true;
       })
       .catch(error => {
+          if (revision !== periodRevision) return;
           caseBreakdown?.markStale();
           if (status) status.textContent = loaded?'Refresh failed. Showing the last loaded totals. Try Refresh map again.':'Map data could not be loaded. Check the connection and use Refresh map.';
           console.error('Error loading heatmap data:', error);
       }).finally(()=>{loading=false;refreshButton.disabled=false;if(!iconOnly)refreshButton.textContent='Refresh map';if(pendingRefresh){pendingRefresh=false;refreshMap();}});
     }
     refreshButton.addEventListener('click',refreshMap);
-    window.addEventListener('health-intel:cases-changed',refreshMap);
+    const refreshLiveMap = () => { if (selectedPeriod() === 'live') refreshMap(); };
+    window.addEventListener('health-intel:cases-changed',refreshLiveMap);
     document.querySelectorAll('[data-target="view-heatmap"]').forEach(button=>button.addEventListener('click',()=>requestAnimationFrame(refreshMap)));
     document.addEventListener('visibilitychange',()=>{if(visible())refreshMap();});
-    const refreshTimer=setInterval(()=>{if(visible())refreshMap();},30000);
+    const refreshTimer=setInterval(()=>{if(visible())refreshLiveMap();},30000);
     window.addEventListener('pagehide',()=>clearInterval(refreshTimer),{once:true});
     const fullscreen=HealthIntelMapFullscreen.bind(mapContainer,()=>{
         map.invalidateSize({animate:false});heatView?.resize();positionDetails();layoutLabels();

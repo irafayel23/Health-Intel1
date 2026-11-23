@@ -44,19 +44,39 @@
         </section>`;
     }
 
-    function marker(barangay) {
-        const state=classification(barangay);
-        const total=Number.isSafeInteger(barangay.activity?.observed_cases)?count(barangay.activity.observed_cases):count(barangay.cases);
-        const caption=barangay.activity?.period?'this month':'active';
+    function historicalDetails(barangay, titleId) {
+        const { period, diseases } = barangay.historical;
+        const sorted = [...diseases].sort((left, right) => right.cases - left.cases || left.disease.localeCompare(right.disease));
+        return `<header class="heatmap-info-header"><div><p class="heatmap-details-eyebrow">Historical cases · ${escape(period)}</p><h3 id="${escape(titleId)}">${escape(barangay.name)}</h3></div><button type="button" class="heatmap-info-close" aria-label="Close barangay details">&times;</button></header>
+            <div class="heatmap-info-body" role="region" tabindex="0" aria-label="Historical case counts">
+                <div class="heatmap-details-total"><strong>${count(barangay.cases)}</strong><span>Cases this month</span></div>
+                <div class="heatmap-table-scroll" role="region" tabindex="0" aria-label="Historical disease counts">
+                    <table class="heatmap-disease-table"><caption>Cases by disease</caption><thead><tr><th scope="col">Disease</th><th scope="col">Cases</th></tr></thead>
+                    <tbody>${sorted.map(row => `<tr><th scope="row">${escape(row.disease)}</th><td>${count(row.cases)}</td></tr>`).join('')}</tbody></table>
+                </div>
+                <p class="heatmap-details-note">Patient severity is unavailable in the historical dataset.</p>
+            </div>`;
+    }
+
+    function marker(barangay, showActivityBands = true) {
+        const state = showActivityBands ? classification(barangay) : { tone: 'none' };
+        const total = Number.isSafeInteger(barangay.activity?.observed_cases) ? count(barangay.activity.observed_cases)
+            : barangay.historical || showActivityBands ? count(barangay.cases) : '–';
+        const caption = barangay.historical || barangay.activity?.period || !showActivityBands ? 'this month' : 'active';
         return `<svg class="heatmap-donut" viewBox="0 0 88 88" aria-hidden="true"><circle class="heatmap-donut-surface" cx="44" cy="44" r="41"></circle><g class="heatmap-donut-rings"><circle class="heatmap-ring-${state.tone}" cx="44" cy="44" r="35"></circle></g><text class="heatmap-donut-total" x="44" y="44">${total}</text><text class="heatmap-donut-caption" x="44" y="59">${caption}</text></svg>`;
     }
 
-    function summary(barangay) {
+    function summary(barangay, showActivityBands = true) {
+        if (barangay.historical) return `${barangay.name}: ${barangay.cases} historical cases in ${barangay.historical.period}.`;
         const {total,counts}=composition(barangay);
-        return `${barangay.name}: locally configured barangay case volume ${classification(barangay).label}. ${count(barangay.activity?.observed_cases)} new recorded cases this month. ${total} active ${total===1?'case':'cases'}. ${counts.mild} Mild, ${counts.monitored} Monitored, ${counts.high_risk} High Risk${counts.unknown?`, ${counts.unknown} unknown severity`:''}.`;
+        const classificationLabel = showActivityBands ? `locally configured barangay case volume ${classification(barangay).label}. ` : '';
+        const monthCount = barangay.activity?.observed_cases;
+        const activityLabel = Number.isSafeInteger(monthCount) ? `${monthCount} new recorded cases this month.` : 'Current month count unavailable.';
+        return `${barangay.name}: ${classificationLabel}${activityLabel} ${total} active ${total===1?'case':'cases'}. ${counts.mild} Mild, ${counts.monitored} Monitored, ${counts.high_risk} High Risk${counts.unknown?`, ${counts.unknown} unknown severity`:''}.`;
     }
 
-    function render(barangay, refreshedAt, titleId) {
+    function render(barangay, refreshedAt, titleId, showActivityBands = true) {
+        if (barangay.historical) return historicalDetails(barangay, titleId);
         const {counts} = composition(barangay);
         const total = count(barangay.cases), groups = barangay.diseases_by_severity || {high_risk:barangay.high_risk_diseases || []};
         const columns = counts.unknown ? [...severities,['unknown','Unknown']] : severities;
@@ -84,8 +104,8 @@
                 ${x?`<svg class="heatmap-composition" viewBox="0 0 ${x} 8" preserveAspectRatio="none" aria-hidden="true">${segments}</svg>`:''}
                 <section class="heatmap-breakdown"><h4>Disease breakdown</h4>${breakdown}${missing.total?`<p class="heatmap-details-note">Disease details are unavailable for ${missing.total} ${missing.total===1?'case':'cases'} in this map summary. Counts remain included above.</p>`:''}</section>
                 ${count(barangay.pending_classification)?`<p class="heatmap-details-notice">${count(barangay.pending_classification)} active ${count(barangay.pending_classification)===1?'case needs':'cases need'} disease classification review. Included in the totals above.</p>`:''}
-                ${activityMarkup(barangay)}
-                <p class="heatmap-details-note">Circle color shows locally configured case volume; its center counts new recorded cases in the current calendar month through today. Individual patient severity and current active totals are separate. This does not confirm an outbreak.</p>
+                ${showActivityBands ? activityMarkup(barangay) + '<p class="heatmap-details-note">Circle color shows locally configured case volume; its center counts new recorded cases in the current calendar month through today. Individual patient severity and current active totals are separate. This does not confirm an outbreak.</p>' :
+                    `<section class="heatmap-surveillance"><h4>Cases this month</h4><p>${escape(barangay.activity?.observed_cases ?? 'Unavailable')} new recorded cases</p></section>`}
                 <footer class="heatmap-details-footer"><p>Updated ${escape(refreshedAt)} <span>(Philippine time)</span></p><p>Barangay totals only · Circles are not outbreak boundaries.</p></footer>
             </div>`;
     }

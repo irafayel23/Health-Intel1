@@ -53,7 +53,51 @@
 .mho-chart-icon-small { width: 18px; margin-right: 8px }
 .mho-chart-caption { font-size: 0.8rem; margin-bottom: 15px }
 .mho-chart-standard { position: relative; height: 300px; width: 100% }
-.mho-municipal-map { height: 450px; width: 100%; border-radius: 8px; z-index: 1; }
+.mho-map-panel:not(.hidden) {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 100%;
+  margin: 0;
+  padding: clamp(.75rem, 1.6vw, 1.5rem);
+}
+.mho-map-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: .75rem 1.25rem;
+}
+.mho-map-toolbar h1 { margin: 0; font-size: clamp(1.4rem, 2.3vw, 1.9rem); font-weight: 750; line-height: 1.15; }
+.mho-map-toolbar p { min-height: 1.2em; margin: .35rem 0 0; color: hsl(var(--muted-foreground)); font-size: .875rem; }
+.mho-map-filters { display: grid; grid-template-columns: minmax(9.5rem, 1.4fr) minmax(5.5rem, .75fr) minmax(8.5rem, 1fr); gap: .55rem; }
+.mho-map-filters label { display: grid; gap: .3rem; min-width: 0; font-size: .8rem; font-weight: 650; }
+.mho-map-filters select {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.6rem;
+  padding: .4rem .65rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: .65rem;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: .875rem;
+}
+.mho-map-filters select:focus-visible { outline: 2px solid #0f766e; outline-offset: 2px; }
+.mho-map-filters select:disabled { opacity: .65; }
+.dark .mho-map-filters select { color-scheme: dark; }
+.mho-municipal-map {
+  flex: 1 0 auto;
+  height: max(24rem, calc(100dvh - 14rem));
+  width: 100%;
+  border-radius: .85rem;
+  z-index: 1;
+}
+@media (max-width: 600px) {
+  .mho-map-filters { width: 100%; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .mho-map-filters label:first-child { grid-column: 1 / -1; }
+  .mho-municipal-map { height: max(23rem, calc(100dvh - 18rem)); }
+}
 .mho-report-controls { display: flex; gap: 10px; margin-bottom: 20px; }
 .mho-report-select { background: hsl(var(--card)); color: hsl(var(--foreground)); }
 .mho-download-icon { width: 18px; }

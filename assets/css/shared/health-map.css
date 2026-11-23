@@ -8,10 +8,8 @@
 .heatmap-view-switch button:focus-visible {outline:3px solid #2563eb;outline-offset:2px;}
 .heatmap-intensity-legend {position:absolute;bottom:28px;left:12px;z-index:610;width:min(310px,calc(100% - 24px));padding:14px 16px;border:1px solid #dbe3ed;border-radius:12px;background:#fffffff5;box-shadow:0 4px 20px #0f172a1a;color:#0f172a;font:12px/1.5 system-ui,sans-serif;pointer-events:auto;}
 .heatmap-intensity-legend strong {font-size:13px;}
-.heatmap-intensity-ramp {height:9px;margin:9px 0 5px;border-radius:5px;background:linear-gradient(90deg,#16a34a 0 33.333%,#d97706 33.333% 66.666%,#dc2626 66.666% 100%);}
-.heatmap-intensity-scale {display:flex;justify-content:space-between;gap:12px;color:#475569;font-size:11px;}
 .heatmap-intensity-legend p {margin:7px 0 0;color:#475569;}
-.heatmap-heat-view .heatmap-donut {width:44px;height:44px;margin:22px;filter:drop-shadow(0 2px 5px #0f172a40);}
+.heatmap-heat-view .heatmap-donut {width:100%;height:100%;filter:drop-shadow(0 2px 5px #0f172a40);}
 .heatmap-heat-view .heatmap-donut-rings,.heatmap-heat-view .heatmap-donut-caption {display:none;}
 .heatmap-heat-view .heatmap-donut-surface {fill:#fff;stroke:#64748b;stroke-width:2;}
 .heatmap-heat-view .heatmap-donut-total {fill:#0f172a;}
@@ -21,17 +19,17 @@
 /* Only recolor the basemap tiles. Heat colors retain their original scale. */
 .heatmap-heat-view {background:#15191f;}
 .heatmap-heat-view .leaflet-tile-pane {filter:grayscale(1) invert(1) brightness(.75) contrast(.9);}
-.heatmap-heat-view .heatmap-summary-marker,.heatmap-heat-view .heatmap-info-panel {display:none!important;}
+#murciaMap .heatmap-expand-controls button[hidden] { display: none; }
 .heatmap-heat-view .heatmap-marker-attention {display:block;}
 .heatmap-heat-view .heatmap-label-content {background:#111827;border-color:#475569;color:#f1f5f9;box-shadow:0 1px 5px #0005;}
 .heatmap-heat-view .heatmap-view-switch,.heatmap-heat-view .heatmap-intensity-legend {background:#111827f2;border-color:#374151;color:#f1f5f9;box-shadow:0 4px 18px #0004;}
-.heatmap-heat-view .heatmap-view-switch button,.heatmap-heat-view .heatmap-intensity-legend p,.heatmap-heat-view .heatmap-intensity-scale {color:#cbd5e1;}
+.heatmap-heat-view .heatmap-view-switch button,.heatmap-heat-view .heatmap-intensity-legend p {color:#cbd5e1;}
 .heatmap-heat-view .heatmap-view-switch button[aria-pressed=true] {background:#0f766e;color:#fff;}
 .heatmap-heat-view .leaflet-control-zoom a,.heatmap-heat-view .heatmap-expand-button,.heatmap-heat-view .heatmap-expand-controls span {background:#111827f2;border-color:#374151;color:#f1f5f9;}
 .heatmap-heat-view .leaflet-control-attribution {background:#111827e8;color:#cbd5e1;}
 .heatmap-heat-view .leaflet-control-attribution a {color:#7dd3fc;}
 .dark .heatmap-view-switch,.dark .heatmap-intensity-legend {background:#0f172af5;border-color:#334155;color:#f1f5f9;}
-.dark .heatmap-view-switch button,.dark .heatmap-intensity-legend p,.dark .heatmap-intensity-scale {color:#cbd5e1;}
+.dark .heatmap-view-switch button,.dark .heatmap-intensity-legend p {color:#cbd5e1;}
 .dark .heatmap-view-switch button[aria-pressed=true] {color:#fff;}
 @media(max-width:600px){.heatmap-view-switch{top:64px;left:12px;right:12px;justify-content:center}.heatmap-view-switch button{flex:1;padding:9px 8px;font-size:12px}.heatmap-intensity-legend{bottom:25px;padding:10px 12px;font-size:11px}}
 .heatmap-legend i { display:inline-block; width:11px; height:11px; border-radius:50%; }
@@ -48,6 +46,7 @@
 .heatmap-label-content strong { font-size:13px; font-weight:750; }
 .heatmap-label-name-only .heatmap-marker-attention { display:none; }
 .heatmap-compact-markers .heatmap-summary-marker { width:64px!important; height:64px!important; margin:-32px 0 0 -32px!important; }
+.heatmap-heat-view .heatmap-summary-marker {width:44px!important;height:44px!important;margin:-22px 0 0 -22px!important;}
 .heatmap-summary-marker {background:transparent;border:0;border-radius:50%;cursor:pointer;}
 .heatmap-summary-marker:focus-visible {outline:3px solid #2563eb;outline-offset:3px;}
 .heatmap-summary-own {outline:3px solid #0f172a;outline-offset:1px;}
