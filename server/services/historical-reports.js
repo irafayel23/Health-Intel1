@@ -84,7 +84,8 @@ function renderHistoricalPdf(res, data) {
         doc.moveDown();
     }
 
-    res.attachment('Historical_Case_Counts_' + data.year + '_' + data.month + '.pdf');
+    const filenameMonth = data.month === 'all' ? 'Annual' : months[Number(data.month) - 1];
+    res.attachment('FHSIS_Report_' + filenameMonth + '_' + data.year + '.pdf');
     doc.pipe(res);
     renderReportHeading(doc, 'Historical Case Counts', label + ' | ' + data.scope);
     doc.font('Helvetica').fontSize(9).fillColor('#536973').text('Source: Historical demonstration CSV', left, doc.y, { width });
