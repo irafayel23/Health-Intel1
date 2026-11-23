@@ -45,14 +45,16 @@ test('heat halos remain separate, update on refresh and use a count-only legend'
 test('historical map filters by CSV coverage and reconciles every barangay with the monthly report',async()=>{
  const {reportData}=require('../services/historical-reports');
  const bytes=fs.readFileSync(path.join(__dirname,'../../datasets/combined_historical_cases.csv'));
- const elements=Object.fromEntries(['source','year','month'].map(name=>[name,{
-  value:name==='source'?'live':'',disabled:false,options:[],events:{},
+ const elements=Object.fromEntries(['year','month','period-status'].map(name=>[name,{
+  value:'',disabled:false,options:[],events:{},
   replaceChildren(...options){this.options=options;},
   addEventListener(event,handler){this.events[event]=handler;}
  }]));
  const requests=[];
+ let today='2026-11-23';
  const ctx={window:{},Intl,AbortSignal,URLSearchParams,Option:function(label,value){this.label=label;this.value=value;},
   HealthIntel:{apiOrigin:'http://localhost:3000'},
+  HealthIntelDate:{todayInManila:()=>today},
   document:{getElementById:id=>elements[id.replace('mho-map-','')]},
   fetch:async url=>{
    requests.push(url);
@@ -63,11 +65,13 @@ test('historical map filters by CSV coverage and reconciles every barangay with 
  const changes=[];
  const history=ctx.window.HealthIntelMapHistory.bind(()=>changes.push(history.selection()));
  assert.equal(history.selection(),'live');
- elements.source.value='historical';elements.source.events.change();
- assert.equal(history.selection(),'historical');
- const latest=await history.read(history.selection());
- assert.equal(latest.period,'2026-09');assert.equal(latest.total,149);
- assert.deepEqual(Array.from(elements.month.options,o=>o.value),['01','02','03','04','05','06','07','08','09']);
+ assert.equal(elements.year.value,'2026');
+ assert.equal(elements.month.value,'11');
+ await history.loadPeriods();
+ assert.deepEqual(Array.from(elements.year.options,o=>o.value),['2026','2025','2024','2023']);
+ assert.deepEqual(Array.from(elements.month.options,o=>o.value),['11','09','08','07','06','05','04','03','02','01']);
+ assert.equal(elements.month.options[0].label,'November (live)');
+ assert.match(elements['period-status'].textContent,/January 2023 to September 2026/);
  elements.year.value='2024';elements.year.events.change();
  elements.month.value='04';elements.month.events.change();
  const april=await history.read(history.selection());
@@ -75,11 +79,15 @@ test('historical map filters by CSV coverage and reconciles every barangay with 
  assert.equal(april.rows.find(r=>r.name==='Salvacion').cases,18);
  assert.ok(april.rows.every(r=>r.historical.diseases.length===10 && r.severity_counts===undefined));
  assert.match(requests.at(-1),/year=2024&month=04$/);
- elements.source.value='live';elements.source.events.change();
- assert.equal(elements.month.disabled,true);
- elements.source.value='historical';elements.source.events.change();
- assert.equal(history.selection(),'2024-04');
- assert.deepEqual(changes,['historical','2024-09','2024-04','live','2024-04']);
+ elements.year.value='2026';elements.year.events.change();
+ assert.equal(history.selection(),'2026-04');
+ elements.month.value='11';elements.month.events.change();
+ assert.equal(history.selection(),'live');
+ today='2026-12-01';
+ history.syncLivePeriod();
+ assert.equal(history.selection(),'live');
+ assert.equal(elements.month.value,'12');
+ assert.deepEqual(changes,['2024-11','2024-04','2026-04','live']);
 });
 
 test('BHW Map view lazily loads summary dependencies without a heat option',async()=>{

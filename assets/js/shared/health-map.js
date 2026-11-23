@@ -297,6 +297,8 @@ if (mapContainer) {
     }
 
     function refreshMap() {
+      history?.syncLivePeriod();
+      history?.loadPeriods();
       if(loading){pendingRefresh=true;return;}
       const period = selectedPeriod();
       const revision = periodRevision;
@@ -368,7 +370,7 @@ if (mapContainer) {
           });
           if (status) status.textContent = summaryOnly
               ? 'Locally configured case-volume bands over the current calendar month through today; open a marker for the calculation and separate active totals. Updated: ' + refreshedAt + ' (Philippine time).'
-              : result.label ? `Historical cases · ${result.label} · ${result.total.toLocaleString('en-PH')} cases` : 'Live cases · Month to date';
+              : result.label ? `${result.label} · ${result.total.toLocaleString('en-PH')} cases · Dataset` : 'Live cases · Month to date';
           fitBarangays();
           layoutLabels();
           loaded=true;
@@ -381,7 +383,10 @@ if (mapContainer) {
       }).finally(()=>{loading=false;refreshButton.disabled=false;if(!iconOnly)refreshButton.textContent='Refresh map';if(pendingRefresh){pendingRefresh=false;refreshMap();}});
     }
     refreshButton.addEventListener('click',refreshMap);
-    const refreshLiveMap = () => { if (selectedPeriod() === 'live') refreshMap(); };
+    const refreshLiveMap = () => {
+      history?.syncLivePeriod();
+      if (selectedPeriod() === 'live') refreshMap();
+    };
     window.addEventListener('health-intel:cases-changed',refreshLiveMap);
     document.querySelectorAll('[data-target="view-heatmap"]').forEach(button=>button.addEventListener('click',()=>requestAnimationFrame(refreshMap)));
     document.addEventListener('visibilitychange',()=>{if(visible())refreshMap();});

@@ -24,8 +24,8 @@
             if (!window.HealthIntelMapDetails) await script('assets/js/shared/map-details.js?v=20261123-map-periods');
             if (!summaryOnly && !window.HealthIntelMapBreakdown) await script('assets/js/shared/map-case-breakdown.js?v=20261115-map-summary');
             if (!summaryOnly && !window.HealthIntelHeatView) await script('assets/js/shared/map-heat-view.js?v=20261123-map-periods');
-            if (!summaryOnly && !window.HealthIntelMapHistory) await script('assets/js/mho/mho-map-history.js?v=20261123-map-periods');
-            await script('assets/js/shared/health-map.js?v=20261123-map-periods');
+            if (!summaryOnly && !window.HealthIntelMapHistory) await script('assets/js/mho/mho-map-history.js?v=20261123-map-filters');
+            await script('assets/js/shared/health-map.js?v=20261123-map-filters');
             ready = true;
         })().catch(() => {
             if (status) status.textContent = 'Map could not load. Open another tab, then return to retry.';

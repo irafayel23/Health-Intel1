@@ -61,7 +61,7 @@ test('even many High Risk patients cannot become a barangay High Risk assessment
 
 test('MHO map shows historical filters and omits draft volume bands while BHW keeps its own legend',()=>{
  const mho = fs.readFileSync(path.join(__dirname,'../../mho.html'),'utf8').split('id="view-heatmap"')[1].split('id="view-predictive"')[0];
- assert.match(mho,/mho-map-source/);
+ assert.doesNotMatch(mho,/mho-map-source|Data source/);
  assert.match(mho,/mho-map-year/);
  assert.match(mho,/mho-map-month/);
  assert.doesNotMatch(mho,/heatmap-legend|indicative pilot barangay|1-10 cases/);

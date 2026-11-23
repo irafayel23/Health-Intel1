@@ -29,7 +29,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/shared/chart-theme.js?v=20261101-summary-cards"></script>
-    <link rel="stylesheet" href="assets/css/mho/mho-page.css?v=20261123-map-periods" />
+    <link rel="stylesheet" href="assets/css/mho/mho-page.css?v=20261123-map-filters" />
   
     <!-- Built with npm --prefix tools/styles run build:mho. -->
     <link rel="stylesheet" href="assets/css/mho/mho-utilities.css?v=20261113-dataset" />
@@ -290,19 +290,14 @@
               <h1 id="mho-map-title">Municipality Map</h1>
               <p id="heatmap-status" role="status">Loading map…</p>
             </div>
-            <div id="mho-map-filters" class="mho-map-filters" role="group" aria-label="Map data and period">
-              <label for="mho-map-source">Data source
-                <select id="mho-map-source">
-                  <option value="live">Live cases</option>
-                  <option value="historical">Historical cases</option>
-                </select>
-              </label>
+            <div id="mho-map-filters" class="mho-map-filters" role="group" aria-label="Map period">
               <label for="mho-map-year">Year
-                <select id="mho-map-year" disabled><option value="">Current year</option></select>
+                <select id="mho-map-year" aria-describedby="mho-map-period-status" disabled></select>
               </label>
               <label for="mho-map-month">Month
-                <select id="mho-map-month" disabled><option value="">Current month</option></select>
+                <select id="mho-map-month" aria-describedby="mho-map-period-status" disabled></select>
               </label>
+              <p id="mho-map-period-status" role="status" hidden></p>
             </div>
           </header>
           <div id="murciaMap" class="mho-municipal-map" role="region" aria-label="Barangay case map"></div>
@@ -627,7 +622,7 @@
 
 
     <script src="assets/js/shared/app.js"></script>
-    <script src="assets/js/shared/lazy-heatmap.js?v=20261123-map-periods"></script>
+    <script src="assets/js/shared/lazy-heatmap.js?v=20261123-map-filters"></script>
     <script src="assets/js/mho/mho-action-guidance.js?v=20261111-who"></script>
     <script src="assets/js/mho/mho-insights.js?v=20261118-month-any-year"></script>
     <script src="assets/js/mho/mho-walkins.js?v=20261117-archive-icon"></script>

@@ -18,69 +18,85 @@
     }
 
     function bind(onChange) {
-        const source = document.getElementById('mho-map-source');
         const year = document.getElementById('mho-map-year');
         const month = document.getElementById('mho-map-month');
+        const status = document.getElementById('mho-map-period-status');
         const endpoint = HealthIntel.apiOrigin + '/api/mho/reports/historical-counts';
+        let livePeriod = HealthIntelDate.todayInManila().slice(0, 7);
         let periods = [];
-        let chosenYear = '';
-        let chosenMonth = '';
-        const selection = () => source.value === 'live' ? 'live' : year.value && month.value ? year.value + '-' + month.value : 'historical';
+        let loaded = false;
+        let pending;
+        const displayedPeriod = () => year.value + '-' + month.value;
+        const selection = () => displayedPeriod() === livePeriod ? 'live' : displayedPeriod();
 
-        function setOptions(select, options, selected, placeholder) {
-            select.replaceChildren(...(options.length ? options.map(([value, label]) => new Option(label, value)) : [new Option(placeholder, '')]));
-            select.value = options.some(([value]) => value === selected) ? selected : options[0]?.[0] ?? '';
-            select.disabled = !options.length;
+        function setOptions(select, values, selected, label) {
+            select.replaceChildren(...values.map(value => new Option(label(value), value)));
+            select.value = values.includes(selected) ? selected : values[0];
+            select.disabled = values.length < 2;
         }
 
-        function showMonths() {
-            const options = periods.filter(period => period.startsWith(year.value + '-'))
-                .map(period => period.slice(5)).reverse().map(value => [value, monthName(value)]);
-            setOptions(month, options, chosenMonth || periods[0]?.slice(5), 'Select month');
+        function showMonths(keepMonth) {
+            const months = [...new Set([...periods, livePeriod].filter(period => period.startsWith(year.value + '-'))
+                .map(period => period.slice(5)))].sort().reverse();
+            setOptions(month, months, keepMonth, value =>
+                monthName(value) + (year.value + '-' + value === livePeriod ? ' (live)' : ''));
         }
 
-        function showFilters() {
-            if (source.value === 'live') {
-                setOptions(year, [], '', 'Current year');
-                setOptions(month, [], '', 'Current month');
-                return;
-            }
-            const years = [...new Set(periods.map(period => period.slice(0, 4)))];
-            setOptions(year, years.map(value => [value, value]), chosenYear, 'Select year');
-            showMonths();
+        function showPeriods(preferredPeriod) {
+            const [preferredYear, preferredMonth] = preferredPeriod.split('-');
+            const years = [...new Set([...periods, livePeriod].map(period => period.slice(0, 4)))].sort().reverse();
+            setOptions(year, years, preferredYear, value => value);
+            showMonths(preferredMonth);
         }
 
-        async function read(requestedPeriod) {
-            const [yearValue, monthValue] = requestedPeriod.split('-');
-            const query = requestedPeriod === 'historical' ? '' : '?' + new URLSearchParams({ year: yearValue, month: monthValue });
+        function syncLivePeriod() {
+            const current = HealthIntelDate.todayInManila().slice(0, 7);
+            if (current === livePeriod) return;
+            const previous = displayedPeriod();
+            const followLive = previous === livePeriod;
+            livePeriod = current;
+            showPeriods(followLive ? current : previous);
+        }
+
+        async function fetchCounts(query = '') {
             const response = await fetch(endpoint + query, { signal: AbortSignal.timeout(12000) });
             const result = await response.json();
             if (!response.ok || !result.success || !Array.isArray(result.periods) || !Array.isArray(result.breakdown)) {
                 throw new Error('Historical cases are unavailable.');
             }
-            periods = [...result.periods].sort().reverse();
-            const period = result.year + '-' + result.month;
-            if (requestedPeriod !== 'historical' && period !== requestedPeriod) throw new Error('Unexpected historical reporting period.');
-            const label = monthName(result.month) + ' ' + result.year;
-            const rows = mapCounts(result, label);
-            if (requestedPeriod === 'historical' && selection() === 'historical') {
-                chosenYear = result.year;
-                chosenMonth = result.month;
-                showFilters();
-            }
-            return { rows, label, period, total: result.total };
+            return result;
         }
 
-        source.addEventListener('change', () => { showFilters(); onChange(); });
-        year.addEventListener('change', () => {
-            chosenYear = year.value;
-            showMonths();
-            chosenMonth = month.value;
-            onChange();
-        });
-        month.addEventListener('change', () => { chosenMonth = month.value; onChange(); });
-        return { selection, read };
+        function loadPeriods() {
+            if (loaded || pending) return pending;
+            pending = fetchCounts().then(result => {
+                periods = [...result.periods].sort();
+                showPeriods(displayedPeriod());
+                const periodLabel = period => monthName(period.slice(5)) + ' ' + period.slice(0, 4);
+                status.textContent = 'Dataset months: ' + periodLabel(periods[0]) + ' to ' + periodLabel(periods.at(-1));
+                status.hidden = false;
+                loaded = true;
+            }).catch(() => {
+                status.textContent = 'Past months could not load. Use Refresh map to retry.';
+                status.hidden = false;
+            }).finally(() => { pending = null; });
+            return pending;
+        }
+
+        async function read(requestedPeriod) {
+            const [year, month] = requestedPeriod.split('-');
+            const result = await fetchCounts('?' + new URLSearchParams({ year, month }));
+            const period = result.year + '-' + result.month;
+            if (period !== requestedPeriod) throw new Error('Unexpected reporting period.');
+            const label = monthName(month) + ' ' + year;
+            return { rows: mapCounts(result, label), label, period, total: result.total };
+        }
+
+        showPeriods(livePeriod);
+        year.addEventListener('change', () => { showMonths(month.value); onChange(); });
+        month.addEventListener('change', onChange);
+        return { selection, read, loadPeriods, syncLivePeriod };
     }
 
-    window.HealthIntelMapHistory = { bind, mapCounts };
+    window.HealthIntelMapHistory = { bind };
 })();
