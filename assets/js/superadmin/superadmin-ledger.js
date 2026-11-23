@@ -47,15 +47,15 @@ async function loadAuditLogs() {
     try {
         const response=await fetch(HealthIntel.apiOrigin + '/api/superadmin/audit-logs', { signal: controller.signal });
         const result=await response.json();
-        if(!response.ok || !result.success || !Array.isArray(result.data)) throw Error('Ledger unavailable');
+        if(!response.ok || !result.success || !Array.isArray(result.data)) throw Error('Activity log unavailable');
         allAuditLogs=result.data;
         document.getElementById('stat-total-logs').innerText=allAuditLogs.length;
         ledgerOptions('ledger-role','role','All roles');
         ledgerOptions('ledger-action','action','All actions');
         filterLedger();
     } catch(error) {
-        if(status) status.textContent='Could not refresh the ledger. Previously loaded entries may be out of date; try Sync again.';
-        console.error('Ledger refresh failed.');
+        if(status) status.textContent='Could not refresh the activity log. Previously loaded entries may be out of date; try Sync again.';
+        console.error('Activity log refresh failed.');
     } finally {
         clearTimeout(timeout);
     }
@@ -118,7 +118,7 @@ function renderAuditTable() {
         const id=Number(log.id), validId=Number.isSafeInteger(id)&&id>0;
         const outcome=log.outcome || 'Not recorded';
         const color=outcome==='Failed'?'text-red-600 dark:text-red-400':outcome==='Succeeded'?'text-emerald-700 dark:text-emerald-400':'text-slate-600 dark:text-neutral-400';
-        return `<tr ${validId?`tabindex="0" aria-label="Open ledger event ${id} details" onclick="openLedgerRow(event, ${id})" onkeydown="openLedgerRow(event, ${id})" class="cursor-pointer border-b border-slate-200 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:border-neutral-800 dark:hover:bg-neutral-800"`:'class="border-b border-slate-200 dark:border-neutral-800"'}>
+        return `<tr ${validId?`tabindex="0" aria-label="Open activity log entry ${id} details" onclick="openLedgerRow(event, ${id})" onkeydown="openLedgerRow(event, ${id})" class="cursor-pointer border-b border-slate-200 hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-600 dark:border-neutral-800 dark:hover:bg-neutral-800"`:'class="border-b border-slate-200 dark:border-neutral-800"'}>
             <td class="p-3 text-xs break-words"><div class="hi-ledger-cell">${escapeText(ledgerTime(log.created_at))}</div></td>
             <td class="p-3 break-words"><div class="hi-ledger-cell">${escapeText(log.user_id)}</div></td>
             <td class="p-3 break-words"><div class="hi-ledger-cell">${escapeText(ledgerRole(log.role))}</div></td>
@@ -169,10 +169,10 @@ function viewLedgerEvent(id) {
     const renderRelated = page => {
         const total=Math.max(1,Math.ceil(related.length/5));
         return '<div class="hi-related-event-list" role="region" aria-label="Related event cards">'+related.slice((page-1)*5,page*5).map(row=>`<article class="hi-related-event"><p class="hi-related-event-title">${escapeText(row.action)} · ${escapeText(row.outcome || 'Not recorded')}</p><p class="hi-related-event-time">${escapeText(ledgerTime(row.created_at))} · ${escapeText(row.user_id)}</p><p class="hi-related-event-details">${escapeText(HealthIntelText.auditDetails(row))}</p></article>`).join('')+'</div>'
-            + renderHistoryPagination(page, total, `${related.length} loaded events`, 'Related ledger event pages');
+            + renderHistoryPagination(page, total, `${related.length} loaded events`, 'Related activity log pages');
     };
     if(related.length) html+='<h3 class="font-bold mt-5 mb-3">Recent events for this reference</h3><div data-ledger-history>'+renderRelated(1)+'</div>';
-    return Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog",title:`Ledger event #${id}`,customClass:{container:'hi-ledger-modal-host',popup:'hi-ledger-modal'},html:`<div class="text-left text-sm text-inherit">${html}</div>`,width:760,confirmButtonText:'Close',didOpen:()=>{
+    return Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog",title:`Activity log entry #${id}`,customClass:{container:'hi-ledger-modal-host',popup:'hi-ledger-modal'},html:`<div class="text-left text-sm text-inherit">${html}</div>`,width:760,confirmButtonText:'Close',didOpen:()=>{
         const scrollBody=Swal.getHtmlContainer();
         scrollBody.tabIndex=0;
         const container=scrollBody.querySelector('[data-ledger-history]');
