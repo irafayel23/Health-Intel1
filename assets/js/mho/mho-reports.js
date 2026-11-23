@@ -87,12 +87,12 @@
           if (download.disabled || !place.value || !month.value || !year.value) return;
           const query = new URLSearchParams({ barangay: place.value, month: month.value, year: year.value, format: 'pdf' });
           place.disabled = year.disabled = month.disabled = download.disabled = true;
-          status.textContent = 'Preparing PDF…';
+          Swal.fire({ title: 'Generating report...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
           try {
             await HealthIntel.download(endpoint + '?' + query, {}, 'Barangay_Case_Report.pdf');
-            status.textContent = 'Download started.';
+            Swal.fire({ icon: 'success', title: 'Download started', text: 'Your barangay PDF is ready.' });
           } catch (error) {
-            status.textContent = error.message || 'The PDF could not be downloaded.';
+            Swal.fire({ icon: 'error', title: 'Report unavailable', text: error.message || 'The PDF could not be downloaded.' });
           } finally {
             place.disabled = year.disabled = month.disabled = download.disabled = false;
           }

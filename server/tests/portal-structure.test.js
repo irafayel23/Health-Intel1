@@ -275,9 +275,23 @@ test('MHO barangay report offers only covered periods and downloads the selected
     await place.emit('change');
     assert.equal(year.value, '2024');
     assert.deepEqual(month.options.map(option => option.textContent), ['April', 'March']);
-    await p.elements['barangay-report-form'].emit('submit');
+    const alerts = [];
+    let loading = 0;
+    p.s.Swal.fire = options => { alerts.push(options); options.didOpen?.(); };
+    p.s.Swal.showLoading = () => { loading++; };
+    const form = p.elements['barangay-report-form'];
+    await form.emit('submit');
     assert.match(p.downloads[0][0], /barangay=Salvacion&month=04&year=2024&format=pdf$/);
-    assert.equal(p.elements['barangay-report-status'].textContent, 'Download started.');
+    assert.equal(loading, 1);
+    assert.equal(alerts[0].title, 'Generating report...');
+    assert.equal(alerts[1].icon, 'success');
+    assert.equal(p.elements['barangay-report-status'].textContent, '');
+    p.s.HealthIntel.download = async () => { throw new Error('Download failed'); };
+    await form.emit('submit');
+    assert.equal(alerts.at(-1).icon, 'error');
+    assert.equal(alerts.at(-1).text, 'Download failed');
+    assert.equal(p.elements['barangay-report-download'].disabled, false);
+    assert.equal(p.elements['barangay-report-status'].textContent, '');
 });
 
 test('Superadmin logout clears the session immediately without confirmation',async()=>{
