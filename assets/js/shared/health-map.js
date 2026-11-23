@@ -370,7 +370,7 @@ if (mapContainer) {
           });
           if (status) status.textContent = summaryOnly
               ? 'Locally configured case-volume bands over the current calendar month through today; open a marker for the calculation and separate active totals. Updated: ' + refreshedAt + ' (Philippine time).'
-              : result.label ? `${result.label} · ${result.total.toLocaleString('en-PH')} cases · Dataset` : 'Live cases · Month to date';
+              : result.label ? `${result.label} · ${result.total.toLocaleString('en-PH')} cases` : 'Live cases · Month to date';
           fitBarangays();
           layoutLabels();
           loaded=true;

@@ -63,6 +63,7 @@ test('MHO map shows historical filters and omits draft volume bands while BHW ke
  const mho = fs.readFileSync(path.join(__dirname,'../../mho.html'),'utf8').split('id="view-heatmap"')[1].split('id="view-predictive"')[0];
  assert.doesNotMatch(mho,/mho-map-source|Data source/);
  assert.match(mho,/mho-map-year/);
+ assert.match(mho,/walkin-eyebrow">Heatmap Cases<\/span>\s*<h1 id="mho-map-title">Municipality Map/);
  assert.match(mho,/mho-map-month/);
  assert.doesNotMatch(mho,/heatmap-legend|indicative pilot barangay|1-10 cases/);
  const bhw = fs.readFileSync(path.join(__dirname,'../../bhw.html'),'utf8');

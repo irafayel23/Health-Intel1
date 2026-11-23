@@ -71,7 +71,8 @@ test('historical map filters by CSV coverage and reconciles every barangay with 
  assert.deepEqual(Array.from(elements.year.options,o=>o.value),['2026','2025','2024','2023']);
  assert.deepEqual(Array.from(elements.month.options,o=>o.value),['11','09','08','07','06','05','04','03','02','01']);
  assert.equal(elements.month.options[0].label,'November (live)');
- assert.match(elements['period-status'].textContent,/January 2023 to September 2026/);
+ assert.equal(elements['period-status'].hidden,true);
+ assert.equal(elements['period-status'].textContent,'');
  elements.year.value='2024';elements.year.events.change();
  elements.month.value='04';elements.month.events.change();
  const april=await history.read(history.selection());

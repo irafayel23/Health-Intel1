@@ -72,9 +72,8 @@
             pending = fetchCounts().then(result => {
                 periods = [...result.periods].sort();
                 showPeriods(displayedPeriod());
-                const periodLabel = period => monthName(period.slice(5)) + ' ' + period.slice(0, 4);
-                status.textContent = 'Dataset months: ' + periodLabel(periods[0]) + ' to ' + periodLabel(periods.at(-1));
-                status.hidden = false;
+                status.textContent = '';
+                status.hidden = true;
                 loaded = true;
             }).catch(() => {
                 status.textContent = 'Past months could not load. Use Refresh map to retry.';

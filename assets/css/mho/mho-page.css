@@ -64,10 +64,11 @@
 .mho-map-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: end;
+  align-items: start;
   justify-content: space-between;
   gap: .75rem 1.25rem;
 }
+.mho-map-toolbar .walkin-eyebrow { display: block; margin-bottom: .3rem; }
 .mho-map-toolbar h1 { margin: 0; font-size: clamp(1.4rem, 2.3vw, 1.9rem); font-weight: 750; line-height: 1.15; }
 .mho-map-toolbar p { min-height: 1.2em; margin: .35rem 0 0; color: hsl(var(--muted-foreground)); font-size: .875rem; }
 .mho-map-filters { display: grid; grid-template-columns: minmax(6.5rem, .75fr) minmax(10rem, 1.25fr); gap: .65rem; }
@@ -93,6 +94,12 @@
   width: 100%;
   border-radius: .85rem;
   z-index: 1;
+}
+#murciaMap .leaflet-control-attribution {
+  padding: 2px 5px;
+  font-size: 10px;
+  line-height: 1.35;
+  white-space: normal;
 }
 @media (max-width: 600px) {
   .mho-map-filters { width: 100%; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
