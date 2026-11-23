@@ -29,7 +29,50 @@
         document.getElementById('pidsr-week').value = String(week);
         selectYear('pidsr-year', isoYear);
       }
-      document.addEventListener('DOMContentLoaded', () => initializeMhoReportPeriods());
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeMhoReportPeriods();
+        const trigger = document.getElementById('pidsr-preview');
+        if (!trigger) return;
+        const week = document.getElementById('pidsr-week');
+        const year = document.getElementById('pidsr-year');
+        const status = document.getElementById('pidsr-preview-status');
+        const counts = document.getElementById('pidsr-preview-counts');
+        const date = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeZone: 'UTC' });
+        function updateWeeks() {
+          const dec28 = new Date(Date.UTC(Number(year.value), 11, 28));
+          dec28.setUTCDate(dec28.getUTCDate() + 3 - ((dec28.getUTCDay() + 6) % 7));
+          const lastWeek = Math.ceil(((dec28 - Date.UTC(Number(year.value), 0, 1)) / 86400000 + 1) / 7);
+          week.options[52].disabled = lastWeek !== 53;
+          if (Number(week.value) > lastWeek) week.value = String(lastWeek);
+          status.textContent = '';
+          counts.replaceChildren();
+        }
+        year.addEventListener('change', updateWeeks);
+        week.addEventListener('change', updateWeeks);
+        updateWeeks();
+        trigger.addEventListener('click', async () => {
+          trigger.disabled = week.disabled = year.disabled = true;
+          counts.replaceChildren();
+          status.textContent = 'Loading weekly counts…';
+          try {
+            const query = new URLSearchParams({ week: week.value, year: year.value, format: 'summary' });
+            const response = await fetch(HealthIntel.apiOrigin + '/api/mho/reports/pidsr?' + query);
+            const data = await response.json();
+            const start = date.format(new Date(data.start + 'T00:00:00Z'));
+            const end = date.format(new Date(data.end + 'T00:00:00Z'));
+            status.textContent = start + ' – ' + end + ' · ' + data.total + ' recorded cases';
+            for (const row of data.counts) {
+              const item = document.createElement('li');
+              item.textContent = row.disease + ': ' + row.cases;
+              counts.append(item);
+            }
+          } catch (error) {
+            status.textContent = error.message || 'Weekly counts could not be loaded.';
+          } finally {
+            trigger.disabled = week.disabled = year.disabled = false;
+          }
+        });
+      });
 
       async function generateOfficialPDF(reportType) {
         let url;

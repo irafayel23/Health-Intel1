@@ -194,6 +194,17 @@ function registerMhoReportRoutes(app, db) {
             const weekNum = period.week;
 
             const rows = await reports.weekly(period);
+            if (req.query.format === 'summary') {
+                const counts = new Map();
+                for (const row of rows) counts.set(row.disease, (counts.get(row.disease) ?? 0) + 1);
+                const sunday = new Date(period.end + 'T00:00:00Z');
+                sunday.setUTCDate(sunday.getUTCDate() - 1);
+                res.set('Cache-Control', 'no-store');
+                return res.json({
+                    success: true, start: period.start, end: sunday.toISOString().slice(0, 10),
+                    total: rows.length, counts: Array.from(counts, ([disease, cases]) => ({ disease, cases }))
+                });
+            }
             await exports.prepared(req.user,'PIDSR',period,rows.length);
             const doc = new PDFDocument({ margin: 50, size: 'A4' });
             res.setHeader(

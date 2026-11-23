@@ -488,6 +488,28 @@
               <button onclick="generateOfficialPDF('FHSIS')" class="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
                 <i data-lucide="download" class="mho-download-icon"></i> Download PDF
               </button>
+              <details data-historical-report="mho" class="mt-4 text-sm">
+                <summary class="cursor-pointer font-semibold">Historical monthly and annual counts</summary>
+                <p class="mt-2">Demonstration dataset · Synthetic monthly counts</p>
+                <form class="mt-3 flex flex-wrap gap-3">
+                  <label>Historical year <select name="year" class="rounded-lg border p-2" disabled></select></label>
+                  <label>Historical month <select name="month" class="rounded-lg border p-2" disabled></select></label>
+                  <button type="submit" class="rounded-lg border p-2">Load counts</button>
+                </form>
+                <p class="mt-3" role="status"></p>
+                <div data-summary hidden>
+                  <table data-monthly class="mt-3 w-full text-left">
+                    <thead><tr><th scope="col">Covered month</th><th scope="col">Cases</th></tr></thead><tbody></tbody>
+                  </table>
+                  <details class="mt-3">
+                    <summary class="cursor-pointer font-semibold">Cases by barangay and disease</summary>
+                    <table data-breakdown class="mt-2 w-full text-left">
+                      <thead><tr><th scope="col">Barangay</th><th scope="col">Disease</th><th scope="col">Cases</th></tr></thead><tbody></tbody>
+                    </table>
+                  </details>
+                </div>
+                <button type="button" data-download class="mt-3 rounded-lg border p-2" disabled>Download Historical Counts PDF</button>
+              </details>
             </div>
 
             <!-- PIDSR Report Card -->
@@ -556,6 +578,10 @@
 </select>
 <select id="pidsr-year" aria-label="Surveillance report year" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3"><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option></select>
               </div>
+              <p class="mb-3 text-sm">Weekly counts use dated records. The historical CSV contains monthly totals.</p>
+              <button type="button" id="pidsr-preview" class="mb-3 rounded-lg border p-2 text-sm">View weekly counts</button>
+              <p id="pidsr-preview-status" class="mb-2 text-sm" role="status"></p>
+              <ul id="pidsr-preview-counts" class="mb-3 text-sm"></ul>
               <button onclick="generateOfficialPDF('PIDSR')" class="w-full py-3 bg-sky-700 hover:bg-sky-800 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-sky-500/30 flex justify-center items-center gap-2">
                 <i data-lucide="download" class="mho-download-icon"></i> Download PDF
               </button>
@@ -684,7 +710,8 @@
     <script src="assets/js/mho/municipal-dataset.js?v=20261118-chart-month"></script>
     <script src="assets/js/mho/mho-analytics.js?v=20261118-month-any-year"></script>
     <script src="assets/js/mho/mho-daily-bhw.js?v=20261120-activity-summary"></script>
-    <script src="assets/js/mho/mho-reports.js"></script>
+    <script src="assets/js/mho/mho-reports.js?v=20261123"></script>
+    <script src="assets/js/shared/historical-reports.js?v=20261123"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
   <script src="assets/js/mho/mho-account.js?v=20261117-tab-accounts"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261120-loading"></script>

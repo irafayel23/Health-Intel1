@@ -11,8 +11,8 @@ const publicEndpoints = new Set([
 ]);
 const rules = [
     ['GET', /^\/admin\/registration-evidence\/[^/]+$/, ['admin','superadmin']],
-    ['GET', /^\/bhw\/dataset-analytics$/, ['bhw']],
-    ['GET', /^\/mho\/dataset-analytics$/, ['mho']],
+    ['GET', /^\/bhw\/(dataset-analytics|reports\/historical-counts)$/, ['bhw']],
+    ['GET', /^\/mho\/(dataset-analytics|reports\/historical-counts)$/, ['mho']],
     ['GET', /^\/bhw\/operational-predictions\/(status|options|prediction)$/, ['bhw']],
     ['GET', /^\/mho\/operational-predictions\/(status|publication|reports|options|prediction|runs\/[a-f0-9-]{36}|outcomes\/[a-f0-9-]{36})$/, ['mho']],
     ['POST', /^\/mho\/operational-predictions\/(reports|runs|runs\/[a-f0-9-]{36}\/probability|publish)$/, ['mho']],

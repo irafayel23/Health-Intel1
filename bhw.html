@@ -423,6 +423,28 @@
               <button onclick="generateBHWReport('MONTHLY')" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-blue-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
                 <i data-lucide="download" class="w-5 h-5"></i> Download Monthly Case PDF
               </button>
+              <details data-historical-report="bhw" class="mt-4 text-sm">
+                <summary class="cursor-pointer font-semibold">Historical monthly and annual counts</summary>
+                <p class="mt-2">Demonstration dataset · Synthetic monthly counts</p>
+                <form class="mt-3 flex flex-wrap gap-3">
+                  <label>Historical year <select name="year" class="rounded-lg border p-2" disabled></select></label>
+                  <label>Historical month <select name="month" class="rounded-lg border p-2" disabled></select></label>
+                  <button type="submit" class="rounded-lg border p-2">Load counts</button>
+                </form>
+                <p class="mt-3" role="status"></p>
+                <div data-summary hidden>
+                  <table data-monthly class="mt-3 w-full text-left">
+                    <thead><tr><th scope="col">Covered month</th><th scope="col">Cases</th></tr></thead><tbody></tbody>
+                  </table>
+                  <details class="mt-3">
+                    <summary class="cursor-pointer font-semibold">Cases by barangay and disease</summary>
+                    <table data-breakdown class="mt-2 w-full text-left">
+                      <thead><tr><th scope="col">Barangay</th><th scope="col">Disease</th><th scope="col">Cases</th></tr></thead><tbody></tbody>
+                    </table>
+                  </details>
+                </div>
+                <button type="button" data-download class="mt-3 rounded-lg border p-2" disabled>Download Historical Counts PDF</button>
+              </details>
             </div>
             
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-8 shadow-sm border-t-4 border-t-orange-500 hover:shadow-xl hover:-translate-y-1 transition-all group">
@@ -536,6 +558,7 @@
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
   <script src="assets/js/bhw/bhw-dialogs.js?v=20261113-resident-review"></script>
+    <script src="assets/js/shared/historical-reports.js?v=20261123"></script>
   <script src="assets/js/shared/followup-tracking.js?v=20261119-mobile-paging"></script>
     <script src="assets/js/mho/mho-action-guidance.js?v=20261111-who"></script>
     <script src="assets/js/mho/sarima-presentation.js?v=20261120-seasonal-formula"></script>

@@ -2,6 +2,7 @@ const { createDashboardData } = require('../services/dashboard-data');
 const { createDiseaseRegistryHandlers, createDiseaseRegistryData } = require('../services/disease-registry');
 const { analyticsFilters, caseWhere, comparisonSelection, sendAnalyticsError } = require('../services/mho-analytics');
 const {registerDatasetAnalytics,FIRST_LIVE_CASE_DATE}=require('../services/dataset-analytics');
+const { registerHistoricalReports } = require('../services/historical-reports');
 
 const { dailyBhwEntries } = require('../services/daily-bhw-entries');
 
@@ -10,6 +11,7 @@ function registerAnalyticsRoutes(app, db) {
     const registry = createDiseaseRegistryHandlers(db);
     const catalog = createDiseaseRegistryData(db);
     registerDatasetAnalytics(app, db);
+    registerHistoricalReports(app, db);
     app.get('/api/mho/daily-bhw-entries', async (req, res) => {
         res.set('Cache-Control', 'no-store');
         try {
