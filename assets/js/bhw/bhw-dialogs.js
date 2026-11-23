@@ -160,6 +160,14 @@
         try {
           const month=document.getElementById('bhw-report-month').value;
           const year=document.getElementById('bhw-report-year').value;
+          if (type === 'MONTHLY' && typeof HistoricalReports !== 'undefined') {
+            const historicalPdf = await HistoricalReports.pdfUrl('bhw', year, month);
+            if (historicalPdf) {
+              await HealthIntel.download(historicalPdf, {}, 'Historical_Case_Counts.pdf');
+              Swal.fire({ icon: 'success', title: 'Download started' });
+              return;
+            }
+          }
           const brgy_id = window.currentBrgyId;
           if(!brgy_id)throw new Error('Your assigned barangay is still loading. Please try again.');
           const chosenPurok=document.getElementById('bhw-purok-filter').value;

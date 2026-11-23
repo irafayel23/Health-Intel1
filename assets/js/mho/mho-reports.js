@@ -75,9 +75,11 @@
       });
 
       async function generateOfficialPDF(reportType) {
+        let historicalPeriod;
         let url;
         if (reportType === 'FHSIS') {
           const params = new URLSearchParams({ month: document.getElementById('fhsis-month').value, year: document.getElementById('fhsis-year').value });
+          historicalPeriod = params;
           url = 'http://localhost:3000/api/mho/reports/fhsis?' + params;
         } else if (reportType === 'PIDSR') {
           url = 'http://localhost:3000/api/mho/reports/pidsr?' + new URLSearchParams({week:document.getElementById('pidsr-week').value,year:document.getElementById('pidsr-year').value});
@@ -86,6 +88,9 @@
         } else return;
         Swal.fire({ title: 'Generating report...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         try {
+          if (historicalPeriod && typeof HistoricalReports !== 'undefined') {
+            url = await HistoricalReports.pdfUrl('mho', historicalPeriod.get('year'), historicalPeriod.get('month')) || url;
+          }
           await HealthIntel.download(url, {}, reportType + '_Report.pdf');
           Swal.fire({ icon: 'success', title: 'Download started', text: 'Your ' + reportType + ' PDF is ready.' });
         } catch (error) {

@@ -461,7 +461,7 @@
                 <i data-lucide="file-check-2"></i> Monthly Case Summary
               </h2>
               <p class="text-sm text-[hsl(var(--muted-foreground))] mb-6 leading-relaxed">
-                Recorded entries grouped by condition, registry category and case status. For MHO review; this is not an approved FHSIS submission form.
+                Months covered by the demonstration dataset download historical counts. Other months download recorded cases for MHO review.
               </p>
               <div class="mho-report-controls">
                 <select id="fhsis-month" aria-label="Monthly summary month" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-emerald-500/50 hover:border-emerald-500/50 transition-colors mho-report-select">
@@ -488,28 +488,6 @@
               <button onclick="generateOfficialPDF('FHSIS')" class="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
                 <i data-lucide="download" class="mho-download-icon"></i> Download PDF
               </button>
-              <details data-historical-report="mho" class="mt-4 text-sm">
-                <summary class="cursor-pointer font-semibold">Historical monthly and annual counts</summary>
-                <p class="mt-2">Demonstration dataset · Synthetic monthly counts</p>
-                <form class="mt-3 flex flex-wrap gap-3">
-                  <label>Historical year <select name="year" class="rounded-lg border p-2" disabled></select></label>
-                  <label>Historical month <select name="month" class="rounded-lg border p-2" disabled></select></label>
-                  <button type="submit" class="rounded-lg border p-2">Load counts</button>
-                </form>
-                <p class="mt-3" role="status"></p>
-                <div data-summary hidden>
-                  <table data-monthly class="mt-3 w-full text-left">
-                    <thead><tr><th scope="col">Covered month</th><th scope="col">Cases</th></tr></thead><tbody></tbody>
-                  </table>
-                  <details class="mt-3">
-                    <summary class="cursor-pointer font-semibold">Cases by barangay and disease</summary>
-                    <table data-breakdown class="mt-2 w-full text-left">
-                      <thead><tr><th scope="col">Barangay</th><th scope="col">Disease</th><th scope="col">Cases</th></tr></thead><tbody></tbody>
-                    </table>
-                  </details>
-                </div>
-                <button type="button" data-download class="mt-3 rounded-lg border p-2" disabled>Download Historical Counts PDF</button>
-              </details>
             </div>
 
             <!-- PIDSR Report Card -->
@@ -710,8 +688,8 @@
     <script src="assets/js/mho/municipal-dataset.js?v=20261118-chart-month"></script>
     <script src="assets/js/mho/mho-analytics.js?v=20261118-month-any-year"></script>
     <script src="assets/js/mho/mho-daily-bhw.js?v=20261120-activity-summary"></script>
-    <script src="assets/js/mho/mho-reports.js?v=20261123"></script>
-    <script src="assets/js/shared/historical-reports.js?v=20261123"></script>
+    <script src="assets/js/mho/mho-reports.js?v=20261123-month"></script>
+    <script src="assets/js/shared/historical-reports.js?v=20261123-month"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
   <script src="assets/js/mho/mho-account.js?v=20261117-tab-accounts"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261120-loading"></script>
