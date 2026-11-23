@@ -58,18 +58,64 @@ function renderHistoricalPdf(res, data) {
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
     const label = data.month === 'all' ? data.year + ' annual totals' : months[Number(data.month) - 1] + ' ' + data.year;
     const dateLabel = period => months[Number(period.slice(5)) - 1] + ' ' + period.slice(0, 4);
-    const text = (value, bold = false) => doc.font(bold ? 'Helvetica-Bold' : 'Helvetica')
-        .fontSize(10).fillColor('#163546').text(value, doc.page.margins.left);
+    const left = doc.page.margins.left;
+    const width = doc.page.width - 2 * left;
+    const count = value => value.toLocaleString('en-PH');
+    const heading = title => doc.font('Helvetica-Bold').fontSize(11).fillColor('#163546')
+        .text(title, left, doc.y, { width });
+    function table(headers, rows, widths, hasTotal = false) {
+        const rowHeight = 22;
+        let index = 0;
+        for (const cells of [headers, ...rows]) {
+            const y = doc.y;
+            const emphasized = index === 0 || (hasTotal && index === rows.length);
+            const fill = index === 0 ? '#126259' : emphasized ? '#d9efeb' : index % 2 ? '#f1f6f7' : '#ffffff';
+            doc.rect(left, y, width, rowHeight).fill(fill);
+            let x = left;
+            cells.forEach((cell, column) => {
+                doc.font(emphasized ? 'Helvetica-Bold' : 'Helvetica').fontSize(index === 0 && widths[column] < 60 ? 7 : 9)
+                    .fillColor(index === 0 ? '#ffffff' : '#163546')
+                    .text(cell, x + 5, y + 6, { width: widths[column] - 7, align: column ? 'right' : 'left', lineBreak: false });
+                x += widths[column];
+            });
+            doc.y = y + rowHeight;
+            index++;
+        }
+        doc.moveDown();
+    }
+
     res.attachment('Historical_Case_Counts_' + data.year + '_' + data.month + '.pdf');
     doc.pipe(res);
     renderReportHeading(doc, 'Historical Case Counts', label + ' | ' + data.scope);
-    text(data.source);
-    text('Monthly counts only. Patient records and case statuses are unavailable.');
-    doc.moveDown();
-    text('Total for months covered: ' + data.total, true);
-    for (const row of data.monthly) text(dateLabel(row.period) + ': ' + row.cases);
-    doc.moveDown();
-    for (const row of data.breakdown) text(row.barangay + ' | ' + row.disease + ': ' + row.cases);
+    doc.font('Helvetica').fontSize(9).fillColor('#536973').text('Source: Historical demonstration CSV', left, doc.y, { width });
+    doc.moveDown(0.6);
+    heading(count(data.total) + ' total cases');
+    doc.moveDown(0.5);
+
+    const barangays = [...new Set(data.breakdown.map(row => row.barangay))];
+    const diseases = [...new Set(data.breakdown.map(row => row.disease))];
+    const byPlace = new Map(data.breakdown.map(row => [row.barangay + '|' + row.disease, row.cases]));
+    const municipal = barangays.length > 1;
+    const value = (place, disease) => byPlace.get(place + '|' + disease);
+    const total = values => count(values.reduce((sum, item) => sum + (item ?? 0), 0));
+    const headers = municipal ? ['Disease', ...barangays, 'Total'] : ['Disease', 'Cases'];
+    const rows = diseases.map(disease => {
+        const values = barangays.map(place => value(place, disease));
+        return [disease, ...values.map(item => item === undefined ? '-' : count(item)), ...(municipal ? [total(values)] : [])];
+    });
+    rows.push(['Total', ...barangays.map(place => total(diseases.map(disease => value(place, disease)))), ...(municipal ? [count(data.total)] : [])]);
+    heading('Cases by disease');
+    doc.moveDown(0.4);
+    const diseaseWidth = municipal ? 108 : 345;
+    table(headers, rows, [diseaseWidth, ...Array(headers.length - 1).fill((width - diseaseWidth) / (headers.length - 1))], true);
+
+    if (data.month === 'all') {
+        doc.addPage();
+        renderReportHeading(doc, 'Historical Case Counts', label + ' | ' + data.scope);
+        heading('Cases by month');
+        doc.moveDown(0.4);
+        table(['Month', 'Cases'], data.monthly.map(row => [dateLabel(row.period), count(row.cases)]), [345, width - 345]);
+    }
     doc.end();
 }
 
