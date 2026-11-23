@@ -230,12 +230,15 @@ test('MHO and BHW report dropdowns download covered CSV months and annual counts
         const p = page(role + '.html');
         p.load();
         assert.equal(p.elements[monthId].options.length, 13);
-        assert.equal(p.elements['pidsr-week'], undefined);
+        assert.equal(Boolean(p.elements['pidsr-week']), role === 'mho');
+        assert.equal(p.elements['pidsr-preview'], undefined);
         if (role === 'mho') {
             assert.deepEqual(p.navigation.map(node => node.getAttribute('data-target')), ['view-analytics','view-history','view-patient-directory','view-predictive','view-review-center','view-heatmap','view-reports']);
             p.s.initializeMhoReportPeriods('2027-01-01');
             assert.equal(p.elements[monthId].value, 'January');
             assert.equal(p.elements[yearId].value, '2027');
+            assert.equal(p.elements['pidsr-week'].value, '53');
+            assert.equal(p.elements['pidsr-year'].value, '2026');
         }
         const base = p.s.response;
         p.s.response = url => url.includes('/reports/historical-counts')
@@ -253,6 +256,12 @@ test('MHO and BHW report dropdowns download covered CSV months and annual counts
         p.elements[yearId].value = '2027';
         await download();
         assert.equal(p.downloads.length, 2);
+        if (role === 'mho') {
+            p.elements['pidsr-year'].value = '2025';
+            p.elements['pidsr-week'].value = '47';
+            await p.s.generateOfficialPDF('PIDSR');
+            assert.match(p.downloads.at(-1)[0], /\/api\/mho\/reports\/pidsr\?week=47&year=2025$/);
+        }
     }
 });
 
