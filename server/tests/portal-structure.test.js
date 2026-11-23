@@ -223,23 +223,37 @@ test('MHO split scripts retain API charts, filter refresh and report downloads',
     assert.equal(p.downloads.length,1);assert.match(p.downloads[0][0],/\/api\/mho\/reports\/fhsis\?/);
 });
 
-test('MHO navigation keeps the requested workflow order and defaults to Philippine month and ISO week',async()=>{
-    const p=page('mho.html');p.load();
-    assert.deepEqual(p.navigation.map(node=>node.getAttribute('data-target')),['view-analytics','view-history','view-patient-directory','view-predictive','view-review-center','view-heatmap','view-reports']);
-    for(const [day,month,year,week,isoYear] of [
-        ['2026-10-02','October','2026','40','2026'],
-        ['2025-12-29','December','2025','1','2026'],
-        ['2027-01-01','January','2027','53','2026'],
-        ['2027-01-04','January','2027','1','2027']
-    ]){
-        p.s.initializeMhoReportPeriods(day);
-        assert.equal(p.elements['fhsis-month'].value,month);assert.equal(p.elements['fhsis-year'].value,year);
-        assert.equal(p.elements['pidsr-week'].value,week);assert.equal(p.elements['pidsr-year'].value,isoYear);
+test('MHO and BHW report dropdowns download covered CSV months and annual counts', async () => {
+    for (const [role, monthId, yearId] of [
+        ['mho', 'fhsis-month', 'fhsis-year'], ['bhw', 'bhw-report-month', 'bhw-report-year']
+    ]) {
+        const p = page(role + '.html');
+        p.load();
+        assert.equal(p.elements[monthId].options.length, 13);
+        assert.equal(p.elements['pidsr-week'], undefined);
+        if (role === 'mho') {
+            assert.deepEqual(p.navigation.map(node => node.getAttribute('data-target')), ['view-analytics','view-history','view-patient-directory','view-predictive','view-review-center','view-heatmap','view-reports']);
+            p.s.initializeMhoReportPeriods('2027-01-01');
+            assert.equal(p.elements[monthId].value, 'January');
+            assert.equal(p.elements[yearId].value, '2027');
+        }
+        const base = p.s.response;
+        p.s.response = url => url.includes('/reports/historical-counts')
+            ? { success: true, periods: ['2025-11'] }
+            : base(url);
+        p.s.HealthIntel.apiOrigin = 'http://localhost:3000';
+        vm.runInNewContext(fs.readFileSync(scriptPath('historical-reports.js'), 'utf8'), p.s);
+        const download = () => role === 'mho' ? p.s.generateOfficialPDF('FHSIS') : p.s.generateBHWReport('MONTHLY');
+        p.elements[yearId].value = '2025';
+        for (const [selection, month] of [['November', '11'], ['all', 'all']]) {
+            p.elements[monthId].value = selection;
+            await download();
+            assert.ok(p.downloads.at(-1)[0].endsWith('/api/' + role + '/reports/historical-counts?month=' + month + '&year=2025&format=pdf'));
+        }
+        p.elements[yearId].value = '2027';
+        await download();
+        assert.equal(p.downloads.length, 2);
     }
-    p.s.HealthIntelDate.todayInManila=()=> '2026-10-02';await p.start();
-    assert.equal(p.elements['fhsis-month'].value,'October');assert.equal(p.elements['pidsr-week'].value,'40');
-    p.elements['pidsr-week'].value='1';p.elements['pidsr-year'].value='2026';await p.s.generateOfficialPDF('PIDSR');
-    assert.match(p.downloads.at(-1)[0],/week=1&year=2026/,'Explicit older period choices must remain usable');
 });
 
 test('Superadmin logout clears the session immediately without confirmation',async()=>{

@@ -163,10 +163,13 @@
           if (type === 'MONTHLY' && typeof HistoricalReports !== 'undefined') {
             const historicalPdf = await HistoricalReports.pdfUrl('bhw', year, month);
             if (historicalPdf) {
-              await HealthIntel.download(historicalPdf, {}, 'Historical_Case_Counts.pdf');
+              await HealthIntel.download(historicalPdf, {}, 'FHSIS_Report_' + (month === 'all' ? 'Annual' : month) + '_' + year + '.pdf');
               Swal.fire({ icon: 'success', title: 'Download started' });
               return;
             }
+          }
+          if (month === 'all') {
+            throw new Error(type === 'MONTHLY' ? 'The historical dataset has no months for this year.' : 'Choose a single month for the surveillance log.');
           }
           const brgy_id = window.currentBrgyId;
           if(!brgy_id)throw new Error('Your assigned barangay is still loading. Please try again.');
@@ -220,7 +223,13 @@
           const today = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Manila', month: 'long', year: 'numeric' }).formatToParts(new Date());
           const month = document.getElementById('bhw-report-month');
           const year = document.getElementById('bhw-report-year');
-          if (month) month.value = today.find(part => part.type === 'month').value;
+          if (month) {
+              month.value = today.find(part => part.type === 'month').value;
+              const surveillanceDownload = document.getElementById('bhw-surveillance-download');
+              const syncSurveillance = () => { surveillanceDownload.disabled = month.value === 'all'; };
+              month.addEventListener('change', syncSurveillance);
+              syncSurveillance();
+          }
           if (year) {
               const currentYear = today.find(part => part.type === 'year').value;
               if (![...year.options].some(option => option.value === currentYear)) {

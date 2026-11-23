@@ -443,7 +443,7 @@
         <div id="view-reports" class="view-section hidden">
           <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Health Report Exports</h1>
           <p class="text-[hsl(var(--muted-foreground))] mt-1">
-            Download daily, monthly and weekly summaries for Municipal Health Office review.
+            Download daily, monthly and annual summaries for Municipal Health Office review.
           </p>
           <section class="hi-today-report" aria-labelledby="mho-today-title">
             <div><span class="hi-today-report-badge">Daily report · Philippines date</span><h2 id="mho-today-title">Daily municipal report</h2>
@@ -461,10 +461,11 @@
                 <i data-lucide="file-check-2"></i> Monthly Case Summary
               </h2>
               <p class="text-sm text-[hsl(var(--muted-foreground))] mb-6 leading-relaxed">
-                Months covered by the demonstration dataset download historical counts. Other months download recorded cases for MHO review.
+                Choose a month for its case summary or All months for the selected year’s historical dataset totals.
               </p>
               <div class="mho-report-controls">
                 <select id="fhsis-month" aria-label="Monthly summary month" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-emerald-500/50 hover:border-emerald-500/50 transition-colors mho-report-select">
+<option value="all">All months (historical)</option>
                   <option value="January">January</option>
                   <option value="February">February</option>
                   <option value="March">March</option>
@@ -486,81 +487,6 @@
                 </select>
               </div>
               <button onclick="generateOfficialPDF('FHSIS')" class="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-emerald-500/30 flex justify-center items-center gap-2 group-hover:scale-[1.02]">
-                <i data-lucide="download" class="mho-download-icon"></i> Download PDF
-              </button>
-            </div>
-
-            <!-- PIDSR Report Card -->
-            <div class="report-card report-card--weekly rounded-2xl p-6 shadow-sm">
-              <h2 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
-                <i data-lucide="activity"></i> Weekly Case Summary
-              </h2>
-              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-6 leading-relaxed">
-                Recorded entries for the selected ISO Monday–Sunday week. For MHO review; this is not an approved PIDSR submission form or immediate notification channel.
-              </p>
-              <div class="mho-report-controls">
-                <select id="pidsr-week" aria-label="Surveillance report week" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-emerald-500/50 hover:border-emerald-500/50 transition-colors mho-report-select">
-<option value="1">Week 1</option>
-<option value="2">Week 2</option>
-<option value="3">Week 3</option>
-<option value="4">Week 4</option>
-<option value="5">Week 5</option>
-<option value="6">Week 6</option>
-<option value="7">Week 7</option>
-<option value="8">Week 8</option>
-<option value="9">Week 9</option>
-<option value="10">Week 10</option>
-<option value="11">Week 11</option>
-<option value="12">Week 12</option>
-<option value="13">Week 13</option>
-<option value="14">Week 14</option>
-<option value="15">Week 15</option>
-<option value="16">Week 16</option>
-<option value="17">Week 17</option>
-<option value="18">Week 18</option>
-<option value="19">Week 19</option>
-<option value="20">Week 20</option>
-<option value="21">Week 21</option>
-<option value="22">Week 22</option>
-<option value="23">Week 23</option>
-<option value="24">Week 24</option>
-<option value="25">Week 25</option>
-<option value="26">Week 26</option>
-<option value="27">Week 27</option>
-<option value="28">Week 28</option>
-<option value="29">Week 29</option>
-<option value="30">Week 30</option>
-<option value="31">Week 31</option>
-<option value="32">Week 32</option>
-<option value="33">Week 33</option>
-<option value="34">Week 34</option>
-<option value="35">Week 35</option>
-<option value="36">Week 36</option>
-<option value="37">Week 37</option>
-<option value="38">Week 38</option>
-<option value="39">Week 39</option>
-<option value="40">Week 40</option>
-<option value="41">Week 41</option>
-<option value="42">Week 42</option>
-<option value="43">Week 43</option>
-<option value="44">Week 44</option>
-<option value="45">Week 45</option>
-<option value="46">Week 46</option>
-<option value="47">Week 47</option>
-<option value="48">Week 48</option>
-<option value="49">Week 49</option>
-<option value="50">Week 50</option>
-<option value="51">Week 51</option>
-<option value="52">Week 52</option>
-<option value="53">Week 53</option>
-</select>
-<select id="pidsr-year" aria-label="Surveillance report year" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3"><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option></select>
-              </div>
-              <p class="mb-3 text-sm">Weekly counts use dated records. The historical CSV contains monthly totals.</p>
-              <button type="button" id="pidsr-preview" class="mb-3 rounded-lg border p-2 text-sm">View weekly counts</button>
-              <p id="pidsr-preview-status" class="mb-2 text-sm" role="status"></p>
-              <ul id="pidsr-preview-counts" class="mb-3 text-sm"></ul>
-              <button onclick="generateOfficialPDF('PIDSR')" class="w-full py-3 bg-sky-700 hover:bg-sky-800 text-white font-semibold rounded-lg transition-all hover:shadow-lg hover:shadow-sky-500/30 flex justify-center items-center gap-2">
                 <i data-lucide="download" class="mho-download-icon"></i> Download PDF
               </button>
             </div>
@@ -688,8 +614,8 @@
     <script src="assets/js/mho/municipal-dataset.js?v=20261118-chart-month"></script>
     <script src="assets/js/mho/mho-analytics.js?v=20261118-month-any-year"></script>
     <script src="assets/js/mho/mho-daily-bhw.js?v=20261120-activity-summary"></script>
-    <script src="assets/js/mho/mho-reports.js?v=20261123-month"></script>
-    <script src="assets/js/shared/historical-reports.js?v=20261123-month"></script>
+    <script src="assets/js/mho/mho-reports.js?v=20261123-report-periods"></script>
+    <script src="assets/js/shared/historical-reports.js?v=20261123-report-periods"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
   <script src="assets/js/mho/mho-account.js?v=20261117-tab-accounts"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261120-loading"></script>
