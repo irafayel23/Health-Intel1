@@ -33,11 +33,30 @@
         initializeMhoReportPeriods();
         const week = document.getElementById('pidsr-week');
         const year = document.getElementById('pidsr-year');
+        const dateLabel = new Intl.DateTimeFormat('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+        });
+
         function updateWeeks() {
-          const dec28 = new Date(Date.UTC(Number(year.value), 11, 28));
-          dec28.setUTCDate(dec28.getUTCDate() + 3 - ((dec28.getUTCDay() + 6) % 7));
-          const lastWeek = Math.ceil(((dec28 - Date.UTC(Number(year.value), 0, 1)) / 86400000 + 1) / 7);
-          week.options[52].disabled = lastWeek !== 53;
+          const selectedYear = Number(year.value);
+          const firstMonday = new Date(Date.UTC(selectedYear, 0, 4));
+          firstMonday.setUTCDate(firstMonday.getUTCDate() - ((firstMonday.getUTCDay() + 6) % 7));
+          let lastWeek = 52;
+          for (const option of week.options) {
+            const weekNumber = Number(option.value);
+            const monday = new Date(firstMonday);
+            monday.setUTCDate(monday.getUTCDate() + (weekNumber - 1) * 7);
+            const thursday = new Date(monday);
+            thursday.setUTCDate(thursday.getUTCDate() + 3);
+            option.disabled = thursday.getUTCFullYear() !== selectedYear;
+            const sunday = new Date(monday);
+            sunday.setUTCDate(sunday.getUTCDate() + 6);
+            option.textContent = 'Week ' + weekNumber;
+            if (!option.disabled) {
+              option.textContent += ' · ' + dateLabel.formatRange(monday, sunday);
+              lastWeek = weekNumber;
+            }
+          }
           if (Number(week.value) > lastWeek) week.value = String(lastWeek);
         }
         year.addEventListener('change', updateWeeks);

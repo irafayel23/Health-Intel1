@@ -239,6 +239,27 @@ test('MHO and BHW report dropdowns download covered CSV months and annual counts
             assert.equal(p.elements[yearId].value, '2027');
             assert.equal(p.elements['pidsr-week'].value, '53');
             assert.equal(p.elements['pidsr-year'].value, '2026');
+            p.s.HealthIntelDate.todayInManila = () => '2027-01-01';
+            await p.start();
+            const weekly = p.elements['pidsr-week'];
+            const reportYear = p.elements['pidsr-year'];
+            const { isoWeekPeriod } = require('../services/report-periods');
+            const format = new Intl.DateTimeFormat('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+            });
+            for (const [year, lastWeek] of [[2026, 53], [2025, 52]]) {
+                reportYear.value = String(year);
+                await reportYear.emit('change');
+                for (const option of weekly.options.slice(0, lastWeek)) {
+                    const { start, end } = isoWeekPeriod(option.value, String(year));
+                    const monday = new Date(start);
+                    const sunday = new Date(end);
+                    sunday.setUTCDate(sunday.getUTCDate() - 1);
+                    assert.equal(option.textContent, 'Week ' + option.value + ' · ' + format.formatRange(monday, sunday));
+                }
+                assert.equal(weekly.options[52].disabled, lastWeek !== 53);
+                assert.equal(weekly.value, String(lastWeek));
+            }
         }
         const base = p.s.response;
         p.s.response = url => url.includes('/reports/historical-counts')
