@@ -98,7 +98,7 @@ function renderHistoricalPdf(res, data, barangayReport = false) {
     res.attachment(filename);
     doc.pipe(res);
     renderReportHeading(doc, barangayReport ? 'Barangay Case Report' : 'Historical Case Counts', label + ' | ' + data.scope);
-    doc.font('Helvetica').fontSize(9).fillColor('#536973').text('Source: Historical demonstration CSV', left, doc.y, { width });
+    doc.font('Helvetica').fontSize(9).fillColor('#536973').text('Historical cases', left, doc.y, { width });
     doc.moveDown(0.6);
     heading(count(data.total) + ' total cases');
     doc.moveDown(0.5);
