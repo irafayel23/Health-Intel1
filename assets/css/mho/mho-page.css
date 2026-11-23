@@ -53,6 +53,9 @@
 .mho-chart-icon-small { width: 18px; margin-right: 8px }
 .mho-chart-caption { font-size: 0.8rem; margin-bottom: 15px }
 .mho-chart-standard { position: relative; height: 300px; width: 100% }
+.mho-page-scroll:has(> .mho-map-panel:not(.hidden)) {
+  padding-block-start: .375rem;
+}
 .mho-map-panel:not(.hidden) {
   display: flex;
   flex-direction: column;
@@ -60,6 +63,7 @@
   min-height: 100%;
   margin: 0;
   padding: clamp(.75rem, 1.6vw, 1.5rem);
+  padding-block-start: .5rem;
 }
 .mho-map-toolbar {
   display: flex;
