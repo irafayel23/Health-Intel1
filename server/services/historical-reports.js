@@ -25,7 +25,14 @@ function reportData(bytes, query, barangay) {
         row.Cases = Number(row.Cases);
     }
     const scoped = barangay ? rows.filter(row => row.Barangay === barangay) : rows;
-    const periods = [...new Set(scoped.map(row => row.Date))].sort().reverse();
+    const datesByPlace = new Map();
+    for (const row of scoped) {
+        if (!datesByPlace.has(row.Barangay)) datesByPlace.set(row.Barangay, new Set());
+        datesByPlace.get(row.Barangay).add(row.Date);
+    }
+    const barangayPeriods = Object.fromEntries([...datesByPlace].sort(([left], [right]) => left.localeCompare(right))
+        .map(([place, dates]) => [place, [...dates].sort().reverse()]));
+    const periods = [...new Set(Object.values(barangayPeriods).flat())].sort().reverse();
     if (!periods.length) throw new Error('No historical reporting periods.');
     const year = query.year ?? periods[0].slice(0, 4);
     const month = query.month ?? periods.find(period => period.startsWith(year))?.slice(5);
@@ -45,7 +52,7 @@ function reportData(bytes, query, barangay) {
     }
     if (!Number.isSafeInteger(total)) throw new Error('Invalid historical case total.');
     return {
-        source, year, month, periods, scope: barangay ?? 'All seven barangays', total,
+        source, year, month, periods, barangayPeriods, scope: barangay ?? 'All seven barangays', total,
         monthly: [...monthly].sort().map(([period, cases]) => ({ period, cases })),
         breakdown: [...breakdown].sort().map(([key, cases]) => {
             const [barangay, disease] = key.split('|');
@@ -54,7 +61,7 @@ function reportData(bytes, query, barangay) {
     };
 }
 
-function renderHistoricalPdf(res, data) {
+function renderHistoricalPdf(res, data, barangayReport = false) {
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
     const label = data.month === 'all' ? data.year + ' annual totals' : months[Number(data.month) - 1] + ' ' + data.year;
     const dateLabel = period => months[Number(period.slice(5)) - 1] + ' ' + period.slice(0, 4);
@@ -85,9 +92,12 @@ function renderHistoricalPdf(res, data) {
     }
 
     const filenameMonth = data.month === 'all' ? 'Annual' : months[Number(data.month) - 1];
-    res.attachment('FHSIS_Report_' + filenameMonth + '_' + data.year + '.pdf');
+    const filename = barangayReport
+        ? 'Barangay_Case_Report_' + data.scope.replace(/[^a-z0-9]+/gi, '_') + '_' + filenameMonth + '_' + data.year + '.pdf'
+        : 'FHSIS_Report_' + filenameMonth + '_' + data.year + '.pdf';
+    res.attachment(filename);
     doc.pipe(res);
-    renderReportHeading(doc, 'Historical Case Counts', label + ' | ' + data.scope);
+    renderReportHeading(doc, barangayReport ? 'Barangay Case Report' : 'Historical Case Counts', label + ' | ' + data.scope);
     doc.font('Helvetica').fontSize(9).fillColor('#536973').text('Source: Historical demonstration CSV', left, doc.y, { width });
     doc.moveDown(0.6);
     heading(count(data.total) + ' total cases');
@@ -132,7 +142,13 @@ function registerHistoricalReports(app, db) {
                     barangay = places[0]?.name;
                     if (!BARANGAYS.includes(barangay)) return res.status(403).json({ success: false, error: 'Assigned study barangay required.' });
                 }
-                const { year, month, format } = req.query;
+                const { year, month, format, barangay: requestedBarangay } = req.query;
+                if (requestedBarangay !== undefined) {
+                    if (role !== 'mho' || !BARANGAYS.includes(requestedBarangay) || !year || !month || month === 'all') {
+                        return res.status(400).json({ success: false, error: 'Choose a study barangay and a single covered month.' });
+                    }
+                    barangay = requestedBarangay;
+                }
                 if ((year !== undefined && (typeof year !== 'string' || !/^[1-9]\d{3}$/.test(year))) ||
                     (month !== undefined && (typeof month !== 'string' || !/^(all|0[1-9]|1[0-2])$/.test(month))) ||
                     (format !== undefined && format !== 'pdf')) {
@@ -140,7 +156,7 @@ function registerHistoricalReports(app, db) {
                 }
                 const data = reportData(await readFile(datasetPath), { year, month }, barangay);
                 res.set('Cache-Control', 'no-store');
-                if (format === 'pdf') return renderHistoricalPdf(res, data);
+                if (format === 'pdf') return renderHistoricalPdf(res, data, requestedBarangay !== undefined);
                 res.json({ success: true, ...data });
             } catch (error) {
                 if (!error.status) console.error('Historical report unavailable:', error.code || error.name);

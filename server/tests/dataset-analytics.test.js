@@ -53,6 +53,42 @@ test('HTTP dataset endpoints enforce own BHW scope and exact roles, keeping oper
         assert.equal((await get('/api/mho/dataset-analytics', 'mho')).data.total, 6200);
     } finally { await new Promise(resolve => server.close(resolve)); }
 });
+test('MHO barangay report matches the CSV and downloads a scoped PDF', async () => {
+    const { registerHistoricalReports } = require('../services/historical-reports');
+    const app = express();
+    app.use((req, _res, next) => { req.user = { role: req.get('fixture-role'), barangay_id: 1 }; next(); });
+    registerHistoricalReports(app, { execute: async () => [[{ name: 'Salvacion' }]] });
+    const server = app.listen(0, '127.0.0.1');
+    await new Promise(resolve => server.once('listening', resolve));
+    const get = (query = '', role = 'mho', portal = 'mho') =>
+        fetch('http://127.0.0.1:' + server.address().port + '/api/' + portal + '/reports/historical-counts' + query,
+            { headers: { 'fixture-role': role } });
+    try {
+        const options = await (await get()).json();
+        assert.deepEqual(Object.keys(options.barangayPeriods).sort(), [...BARANGAYS].sort());
+        for (const barangay of BARANGAYS) {
+            const response = await get('?' + new URLSearchParams({ barangay, month: '04', year: '2024' }));
+            assert.equal(response.status, 200);
+            const data = await response.json();
+            const expected = raw.filter(row => row.month === '2024-04' && row.barangay === barangay);
+            assert.equal(data.scope, barangay);
+            assert.equal(data.total, expected.reduce((total, row) => total + row.count, 0));
+            assert.deepEqual(data.breakdown.map(row => [row.barangay, row.disease, row.cases]).sort(),
+                expected.map(row => [row.barangay, row.disease, row.count]).sort());
+        }
+        const selection = '?barangay=Salvacion&month=04&year=2024';
+        const pdf = await get(selection + '&format=pdf');
+        assert.equal(pdf.status, 200);
+        assert.match(pdf.headers.get('content-disposition'), /Barangay_Case_Report_Salvacion_April_2024\.pdf/);
+        assert.equal(Buffer.from(await pdf.arrayBuffer()).subarray(0, 5).toString(), '%PDF-');
+        assert.equal((await get(selection, 'bhw')).status, 403);
+        assert.equal((await get(selection, 'bhw', 'bhw')).status, 400);
+        assert.equal((await get('?barangay=Unknown&month=04&year=2024')).status, 400);
+        assert.equal((await get('?barangay=Salvacion&month=12&year=2026')).status, 400);
+    } finally {
+        await new Promise(resolve => server.close(resolve));
+    }
+});
 test('both dashboards retain their layouts without the standalone dataset selector', () => {
     for (const role of ['mho', 'bhw']) {
         const html = fs.readFileSync(path.join(__dirname, '../../' + role + '.html'), 'utf8');

@@ -230,36 +230,12 @@ test('MHO and BHW report dropdowns download covered CSV months and annual counts
         const p = page(role + '.html');
         p.load();
         assert.equal(p.elements[monthId].options.length, 13);
-        assert.equal(Boolean(p.elements['pidsr-week']), role === 'mho');
-        assert.equal(p.elements['pidsr-preview'], undefined);
+        assert.equal(p.elements['pidsr-week'], undefined);
         if (role === 'mho') {
             assert.deepEqual(p.navigation.map(node => node.getAttribute('data-target')), ['view-analytics','view-history','view-patient-directory','view-predictive','view-review-center','view-heatmap','view-reports']);
             p.s.initializeMhoReportPeriods('2027-01-01');
             assert.equal(p.elements[monthId].value, 'January');
             assert.equal(p.elements[yearId].value, '2027');
-            assert.equal(p.elements['pidsr-week'].value, '53');
-            assert.equal(p.elements['pidsr-year'].value, '2026');
-            p.s.HealthIntelDate.todayInManila = () => '2027-01-01';
-            await p.start();
-            const weekly = p.elements['pidsr-week'];
-            const reportYear = p.elements['pidsr-year'];
-            const { isoWeekPeriod } = require('../services/report-periods');
-            const format = new Intl.DateTimeFormat('en-US', {
-                month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
-            });
-            for (const [year, lastWeek] of [[2026, 53], [2025, 52]]) {
-                reportYear.value = String(year);
-                await reportYear.emit('change');
-                for (const option of weekly.options.slice(0, lastWeek)) {
-                    const { start, end } = isoWeekPeriod(option.value, String(year));
-                    const monday = new Date(start);
-                    const sunday = new Date(end);
-                    sunday.setUTCDate(sunday.getUTCDate() - 1);
-                    assert.equal(option.textContent, 'Week ' + option.value + ' · ' + format.formatRange(monday, sunday));
-                }
-                assert.equal(weekly.options[52].disabled, lastWeek !== 53);
-                assert.equal(weekly.value, String(lastWeek));
-            }
         }
         const base = p.s.response;
         p.s.response = url => url.includes('/reports/historical-counts')
@@ -277,13 +253,31 @@ test('MHO and BHW report dropdowns download covered CSV months and annual counts
         p.elements[yearId].value = '2027';
         await download();
         assert.equal(p.downloads.length, 2);
-        if (role === 'mho') {
-            p.elements['pidsr-year'].value = '2025';
-            p.elements['pidsr-week'].value = '47';
-            await p.s.generateOfficialPDF('PIDSR');
-            assert.match(p.downloads.at(-1)[0], /\/api\/mho\/reports\/pidsr\?week=47&year=2025$/);
-        }
     }
+});
+
+test('MHO barangay report offers only covered periods and downloads the selected scope', async () => {
+    const p = page('mho.html');
+    p.s.HealthIntel.apiOrigin = 'http://localhost:3000';
+    p.s.response = () => ({
+        success: true,
+        barangayPeriods: { Alegria: ['2026-09', '2024-04'], Salvacion: ['2024-04', '2024-03'] }
+    });
+    p.load();
+    await p.s.initializeBarangayReport();
+    const place = p.elements['barangay-report-place'];
+    const year = p.elements['barangay-report-year'];
+    const month = p.elements['barangay-report-month'];
+    assert.equal(place.value, 'Alegria');
+    assert.equal(year.value, '2026');
+    assert.equal(month.options[0].textContent, 'September');
+    place.value = 'Salvacion';
+    await place.emit('change');
+    assert.equal(year.value, '2024');
+    assert.deepEqual(month.options.map(option => option.textContent), ['April', 'March']);
+    await p.elements['barangay-report-form'].emit('submit');
+    assert.match(p.downloads[0][0], /barangay=Salvacion&month=04&year=2024&format=pdf$/);
+    assert.equal(p.elements['barangay-report-status'].textContent, 'Download started.');
 });
 
 test('Superadmin logout clears the session immediately without confirmation',async()=>{

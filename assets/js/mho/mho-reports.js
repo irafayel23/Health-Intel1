@@ -22,46 +22,83 @@
         };
         document.getElementById('fhsis-month').value = months[date.getUTCMonth()];
         selectYear('fhsis-year', date.getUTCFullYear());
-        const thursday = new Date(date);
-        thursday.setUTCDate(thursday.getUTCDate() + 3 - ((thursday.getUTCDay() + 6) % 7));
-        const isoYear = thursday.getUTCFullYear();
-        const week = Math.ceil(((thursday - Date.UTC(isoYear, 0, 1)) / 86400000 + 1) / 7);
-        document.getElementById('pidsr-week').value = String(week);
-        selectYear('pidsr-year', isoYear);
       }
+
       document.addEventListener('DOMContentLoaded', () => {
         initializeMhoReportPeriods();
-        const week = document.getElementById('pidsr-week');
-        const year = document.getElementById('pidsr-year');
-        const dateLabel = new Intl.DateTimeFormat('en-US', {
-          month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
-        });
-
-        function updateWeeks() {
-          const selectedYear = Number(year.value);
-          const firstMonday = new Date(Date.UTC(selectedYear, 0, 4));
-          firstMonday.setUTCDate(firstMonday.getUTCDate() - ((firstMonday.getUTCDay() + 6) % 7));
-          let lastWeek = 52;
-          for (const option of week.options) {
-            const weekNumber = Number(option.value);
-            const monday = new Date(firstMonday);
-            monday.setUTCDate(monday.getUTCDate() + (weekNumber - 1) * 7);
-            const thursday = new Date(monday);
-            thursday.setUTCDate(thursday.getUTCDate() + 3);
-            option.disabled = thursday.getUTCFullYear() !== selectedYear;
-            const sunday = new Date(monday);
-            sunday.setUTCDate(sunday.getUTCDate() + 6);
-            option.textContent = 'Week ' + weekNumber;
-            if (!option.disabled) {
-              option.textContent += ' · ' + dateLabel.formatRange(monday, sunday);
-              lastWeek = weekNumber;
-            }
-          }
-          if (Number(week.value) > lastWeek) week.value = String(lastWeek);
-        }
-        year.addEventListener('change', updateWeeks);
-        updateWeeks();
+        return initializeBarangayReport();
       });
+
+      function initializeBarangayReport() {
+        const form = document.getElementById('barangay-report-form');
+        const place = document.getElementById('barangay-report-place');
+        const year = document.getElementById('barangay-report-year');
+        const month = document.getElementById('barangay-report-month');
+        const download = document.getElementById('barangay-report-download');
+        const status = document.getElementById('barangay-report-status');
+        const retry = document.getElementById('barangay-report-retry');
+        const endpoint = HealthIntel.apiOrigin + '/api/mho/reports/historical-counts';
+        const formatter = new Intl.DateTimeFormat('en-US', { month: 'long', timeZone: 'UTC' });
+        let periodsByPlace;
+
+        function setOptions(select, values, label = value => value) {
+          const previous = select.value;
+          select.replaceChildren(...values.map(value => new Option(label(value), value)));
+          select.value = values.includes(previous) ? previous : (values[0] ?? '');
+          select.disabled = values.length === 0;
+        }
+
+        function updateMonths() {
+          const months = periodsByPlace[place.value]
+            .filter(period => period.startsWith(year.value + '-'))
+            .map(period => period.slice(5));
+          setOptions(month, months, number => formatter.format(new Date(Date.UTC(2020, Number(number) - 1, 1))));
+          download.disabled = months.length === 0;
+          status.textContent = '';
+        }
+
+        function updateYears() {
+          setOptions(year, [...new Set(periodsByPlace[place.value].map(period => period.slice(0, 4)))]);
+          updateMonths();
+        }
+
+        async function loadPeriods() {
+          retry.hidden = true;
+          status.textContent = 'Loading report periods…';
+          try {
+            const response = await fetch(endpoint);
+            const data = await response.json();
+            const places = Object.keys(data.barangayPeriods ?? {});
+            if (!response.ok || !data.success || !places.length) throw new Error();
+            periodsByPlace = data.barangayPeriods;
+            setOptions(place, places);
+            updateYears();
+          } catch {
+            status.textContent = 'Report periods could not be loaded.';
+            retry.hidden = false;
+          }
+        }
+
+        place.addEventListener('change', updateYears);
+        year.addEventListener('change', updateMonths);
+        retry.addEventListener('click', loadPeriods);
+        form.addEventListener('submit', async event => {
+          event.preventDefault();
+          if (download.disabled || !place.value || !month.value || !year.value) return;
+          const query = new URLSearchParams({ barangay: place.value, month: month.value, year: year.value, format: 'pdf' });
+          place.disabled = year.disabled = month.disabled = download.disabled = true;
+          status.textContent = 'Preparing PDF…';
+          try {
+            await HealthIntel.download(endpoint + '?' + query, {}, 'Barangay_Case_Report.pdf');
+            status.textContent = 'Download started.';
+          } catch (error) {
+            status.textContent = error.message || 'The PDF could not be downloaded.';
+          } finally {
+            place.disabled = year.disabled = month.disabled = download.disabled = false;
+          }
+        });
+        return loadPeriods();
+      }
 
       async function generateOfficialPDF(reportType) {
         let historicalPeriod;
@@ -70,8 +107,6 @@
           const params = new URLSearchParams({ month: document.getElementById('fhsis-month').value, year: document.getElementById('fhsis-year').value });
           historicalPeriod = params;
           url = 'http://localhost:3000/api/mho/reports/fhsis?' + params;
-        } else if (reportType === 'PIDSR') {
-          url = 'http://localhost:3000/api/mho/reports/pidsr?' + new URLSearchParams({week:document.getElementById('pidsr-week').value,year:document.getElementById('pidsr-year').value});
         } else if (reportType === 'TODAY') {
           return HealthIntelDailyReports.download('mho');
         } else return;
