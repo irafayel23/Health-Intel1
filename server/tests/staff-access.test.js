@@ -52,8 +52,9 @@ test('HRIS issues staff accounts, restricts the first Admin exception and revoke
         const worker = {...first, employee_id:'EMP-03', first_name:'Health', role:'bhw', barangay_id:1};
         const email = 'staff-fixture@example.invalid';
         const password = 'Synthetic-staff-only-2026';
-        const activate = (issued, operation = staff.activate) => invoke(operation,null,{
-            system_id:issued.system_id, code:issued.code, password, confirm_password:password
+        const replacement = 'Synthetic-staff-replacement-2026';
+        const activate = (issued, operation = staff.activate, chosenPassword = password) => invoke(operation,null,{
+            system_id:issued.system_id, code:issued.code, password:chosenPassword, confirm_password:chosenPassword
         });
         const expectStatus = (response, status) => assert.equal(response.status, status, response.payload?.error);
         const issue = (employee, fields) => invoke(staff.issue, superadmin, {...employee, ...fields});
@@ -101,11 +102,15 @@ test('HRIS issues staff accounts, restricts the first Admin exception and revoke
         expectStatus(await activate(firstReset.payload.data,access.redeemReset),403);
         const secondReset = await reset();
         expectStatus(secondReset,200);
-        expectStatus(await activate(secondReset.payload.data,access.redeemReset),200);
-        expectStatus(await activate(secondReset.payload.data,access.redeemReset),403);
+        const reused = await activate(secondReset.payload.data,access.redeemReset);
+        expectStatus(reused,400);
+        assert.match(reused.payload.error,/different from your previous password/);
+        expectStatus(await activate(secondReset.payload.data,access.redeemReset,replacement),200);
+        expectStatus(await activate(secondReset.payload.data,access.redeemReset,replacement),403);
         const [[updated]] = await db.execute('SELECT barangay_id,password_hash FROM users WHERE system_id=?',[workerId]);
         assert.equal(updated.barangay_id,2);
-        assert.equal(await bcrypt.compare(password,updated.password_hash),true);
+        assert.equal(await bcrypt.compare(password,updated.password_hash),false);
+        assert.equal(await bcrypt.compare(replacement,updated.password_hash),true);
         const [[session]] = await db.execute('SELECT epoch FROM account_session_epochs WHERE system_id=?',[workerId]);
         assert.equal(Number(session.epoch),4);
         const [entries] = await db.query('SELECT action,details FROM system_audit_logs');

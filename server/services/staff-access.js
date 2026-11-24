@@ -8,6 +8,9 @@ const { invalid, plain, respond } = require('./service-errors');
 
 const roles = new Set(['bhw', 'mho', 'admin']);
 const resetMinutes = 30;
+// Replace bcrypt's leading $ while resetting. Sign-in rejects this format,
+// and the reset can still compare against the previous password.
+const passwordLockMarker = '!';
 const hashCode = code => createHash('sha256').update(code).digest('hex');
 const employeeKey = value => plain(value, 'employee ID', 50).toUpperCase();
 const staffId = value => plain(value, 'System ID', 50).toUpperCase();
@@ -186,13 +189,16 @@ function createStaffAccess(db) {
         const id = readId(req);
         return transaction(db, async connection => {
             await checkActor(connection, req.user, ['superadmin']);
-            const [[staff]] = await connection.execute('SELECT role,status FROM users WHERE system_id=? FOR UPDATE', [id]);
+            const [[staff]] = await connection.execute('SELECT role,status,password_hash FROM users WHERE system_id=? FOR UPDATE', [id]);
             if (!roles.has(staff?.role) || staff.status !== 'approved') throw invalid('Select an active staff account.');
             const code = randomBytes(16).toString('hex').toUpperCase();
             const expires = Math.floor(Date.now() / 1000) + resetMinutes * 60;
 
-            await connection.execute('UPDATE users SET password_hash=? WHERE system_id=?',
-                [await bcrypt.hash(randomBytes(32).toString('hex'),10),id]);
+            const priorHash = staff.password_hash || '';
+            if (!priorHash.startsWith(passwordLockMarker)) {
+                await connection.execute('UPDATE users SET password_hash=? WHERE system_id=?',
+                    [passwordLockMarker + priorHash.slice(1),id]);
+            }
             await revokeAccountSessions(connection,id);
             const [[{epoch}]] = await connection.execute('SELECT epoch FROM account_session_epochs WHERE system_id=?', [id]);
             await connection.execute(`INSERT INTO staff_access_resets(system_id,code_hash,expires_at,session_epoch) VALUES(?,?,?,?)
@@ -210,12 +216,16 @@ function createStaffAccess(db) {
         if (!/^[A-F0-9]{32}$/.test(code)) throw invalid('The System ID or reset code is invalid or expired.', 403);
         if (!validPassword(password) || password !== confirm_password) throw invalid('Enter matching passwords with at least 8 characters and at most 72 UTF-8 bytes.');
         return transaction(db, async connection => {
-            const [[staff]] = await connection.execute('SELECT system_id,role,status FROM users WHERE system_id=? FOR UPDATE',[id]);
+            const [[staff]] = await connection.execute('SELECT system_id,role,status,password_hash FROM users WHERE system_id=? FOR UPDATE',[id]);
             const [[saved]] = await connection.execute(
                 `SELECT system_id FROM staff_access_resets WHERE system_id=? AND code_hash=? AND expires_at>UNIX_TIMESTAMP()
                  AND session_epoch=(SELECT epoch FROM account_session_epochs WHERE system_id=?) FOR UPDATE`,
                 [id, hashCode(code), id]);
             if (!saved || !roles.has(staff?.role) || staff.status !== 'approved') throw invalid('The System ID or reset code is invalid or expired.',403);
+            if (staff.password_hash?.startsWith(passwordLockMarker) &&
+                await bcrypt.compare(password, '$' + staff.password_hash.slice(1))) {
+                throw invalid('Choose a password different from your previous password.');
+            }
             await connection.execute('UPDATE users SET password_hash=? WHERE system_id=?',[await bcrypt.hash(password,10),id]);
             await connection.execute('DELETE FROM staff_access_resets WHERE system_id=?',[id]);
             await revokeAccountSessions(connection,id);

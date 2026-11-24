@@ -10,7 +10,7 @@ async function activateStaffAccount(reset = false) {
         title: reset ? 'Reset staff password' : 'Activate staff account',
         width: '36rem', heightAuto: false,
         customClass: { popup: 'staff-activation-popup' },
-        html: `<p class="staff-activation-intro">${reset ? "For active staff accounts. Use your System ID and the reset code from HRIS." : "Use your System ID and the activation code from HRIS."}</p>
+        html: `<p class="staff-activation-intro">${reset ? "Enter your System ID and HRIS reset code, then choose a different password." : "Use your System ID and the activation code from HRIS."}</p>
             <div class="staff-activation-fields">
               <label class="staff-activation-id">System ID<input name="system_id" autocomplete="off" spellcheck="false" maxlength="50" required></label>
               <div class="staff-activation-token">
