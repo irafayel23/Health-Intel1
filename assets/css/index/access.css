@@ -234,7 +234,7 @@ body { display:block; overflow-x:clip; min-height:100svh; }
 .staff-activation-popup .swal2-actions { margin:16px auto 0; gap:8px; }
 .staff-activation-popup .swal2-styled { margin:0; min-height:42px; padding:8px 14px; font-size:.875rem; }
 .staff-activation-intro { margin:0; font-size:.875rem; line-height:1.45; }
-.staff-activation-fields { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin-top:14px; text-align:left; }
+.staff-activation-fields { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); align-items:start; gap:12px; margin-top:14px; text-align:left; }
 .staff-activation-id { grid-column:span 2; }
 .staff-activation-token { grid-column:span 4; }
 .staff-activation-secret { grid-column:span 3; }

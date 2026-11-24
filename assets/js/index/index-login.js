@@ -10,7 +10,7 @@ async function activateStaffAccount(reset = false) {
         title: reset ? 'Reset staff password' : 'Activate staff account',
         width: '36rem', heightAuto: false,
         customClass: { popup: 'staff-activation-popup' },
-        html: `<p class="staff-activation-intro">Use the System ID and one-time code from HRIS.</p>
+        html: `<p class="staff-activation-intro">${reset ? "For active staff accounts. Use your System ID and the reset code from HRIS." : "Use your System ID and the activation code from HRIS."}</p>
             <div class="staff-activation-fields">
               <label class="staff-activation-id">System ID<input name="system_id" autocomplete="username" maxlength="50" required></label>
               <div class="staff-activation-token">
@@ -50,7 +50,7 @@ async function activateStaffAccount(reset = false) {
             });
             popup.querySelector('[data-paste-activation]').addEventListener('click', async () => {
                 try {
-                    if (!fillActivation(await navigator.clipboard.readText())) status.textContent = 'Copy the one-time code and try again.';
+                    if (!fillActivation(await navigator.clipboard.readText())) status.textContent = reset ? 'Copy your HRIS reset code and try again.' : 'Copy your activation details or code and try again.';
                 } catch {
                     status.textContent = 'Use your keyboard or context menu to paste.';
                 }
