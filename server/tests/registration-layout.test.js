@@ -4,19 +4,11 @@ const fs=require('node:fs');
 const path=require('node:path');
 const vm=require('node:vm');
 const root=path.join(__dirname,'../..');
-test('registration keeps requested field order, unique hooks and photo guidance',()=>{
+test('sign-in links to staff activation and HRIS reset without public registration',()=> {
   const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-  let previous=-1;
-  for(const id of ['reg_emp_id','reg_employee_photo','reg_selfie_photo','reg_password','reg_confirm_password']){
-    const token='id="'+id+'"',position=html.indexOf(token);
-    assert(position>previous,id+' order');
-    assert.equal(html.split(token).length-1,1,id+' unique');previous=position;
-    assert(html.includes('for="'+id+'"'),id+' visible label');
-  }
-  for(const id of ['reg_password','reg_confirm_password']){
-    assert(new RegExp('data-registration-password="'+id+'"[^>]*><svg').test(html));
-    assert(html.includes('aria-controls="'+id+'"'));
-  }
+  assert.match(html,/Activate staff account/);
+  assert.match(html,/Use HRIS reset code/);
+  assert.doesNotMatch(html,/gateway-screen|profile-screen|index-registration\.js/);
 });
 test('each eye independently toggles password visibility and accessible state without removing SVG',()=>{
   const source=fs.readFileSync(path.join(root,'assets/js/index/index-registration.js'),'utf8');

@@ -10,8 +10,7 @@ const {
     sendEmail
 } = require('../config/security-config');
 const { createPasswordRecovery } = require('../services/password-recovery');
-const { createRegistrationHandlers } = require('../services/registration');
-const { createAdminInvitations, createAdminInvitationHandler } = require('../services/admin-invitations');
+const { createStaffAccess } = require('../services/staff-access');
 const { createSystemAudit } = require('../services/system-audit');
 const { createLoginThrottle } = require('../services/login-throttle');
 const { singleSessionLogin } = require('../services/single-session-login');
@@ -25,8 +24,6 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions, publicO
         summary:reason, outcome:'Failed', target_type:'Account', target_id:attemptedId(req),
         attribution:user?'Credentials verified; access refused':'Unverified account identifier; not proof the account owner made this attempt'
     });
-    const invitations = createAdminInvitations(JWT_SECRET);
-    const registration = createRegistrationHandlers(db, { invitations });
     const loginThrottle = createLoginThrottle(db, loginThrottleOptions);
     const sessions = createSessionSecurity(db);
     app.post('/api/logout', async (req,res) => {
@@ -50,7 +47,7 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions, publicO
     });
 
     // ==========================================
-    // 2. SYSTEM ID GENERATOR
+    // Staff onboarding and recovery
     // ==========================================
     const registrationLimiter = rateLimit({
         windowMs: 15 * 60 * 1000,
@@ -59,10 +56,16 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions, publicO
         legacyHeaders: false,
         message: { success: false, error: 'Too many onboarding requests. Please try again later.' }
     });
-    app.post('/api/get-next-id', registrationLimiter, registration.previewId);
-    app.post('/api/check-email', registrationLimiter, registration.checkEmail);
-    app.post('/api/register', registrationLimiter, registration.register);
-    const staff = createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured });
+    const staffAccess = createStaffAccess(db);
+    const staff = createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured, staffAccess });
+    app.get('/api/superadmin/staff-roster', staffAccess.rosterList);
+    app.post('/api/superadmin/staff-roster', staffAccess.rosterAdd);
+    app.get('/api/staff-admin-reviews', staffAccess.listReviews);
+    app.post('/api/superadmin/staff-admin-reviews', staffAccess.requestReview);
+    app.post('/api/staff-admin-reviews', staffAccess.review);
+    app.post('/api/superadmin/staff-reset', staffAccess.issueReset);
+    app.post('/api/redeem-staff-reset', registrationLimiter, staffAccess.redeemReset);
+    app.post('/api/superadmin/staff-transfer', staffAccess.transfer);
     app.post('/api/activate-staff', registrationLimiter, staff.activate);
     app.post('/api/superadmin/staff-accounts', staff.issue);
     app.post('/api/superadmin/staff-accounts/cancel', staff.cancel);
@@ -74,28 +77,6 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions, publicO
             res.status(503).json({ success: false, error: 'Barangays could not be loaded.' });
         }
     });
-    const invitationSenderLimit = rateLimit({
-        windowMs: 60 * 60 * 1000,
-        max: 10,
-        standardHeaders: true,
-        legacyHeaders: false,
-        keyGenerator: req => req.user.system_id,
-        message: { success: false, error: 'Too many Admin invitation attempts. Try again in an hour.' }
-    });
-    const invitationRecipientLimit = rateLimit({
-        windowMs: 15 * 60 * 1000,
-        max: 1,
-        standardHeaders: true,
-        legacyHeaders: false,
-        skip: req => !normalizeEmail(req.body?.email),
-        skipFailedRequests: true,
-        requestWasSuccessful: (req, res) => res.locals.adminInviteAccepted === true,
-        keyGenerator: req => normalizeEmail(req.body?.email),
-        message: { success: false, error: 'An invitation was recently sent to this address. Wait 15 minutes before resending.' }
-    });
-    app.post('/api/superadmin/admin-invitations', invitationSenderLimit, invitationRecipientLimit, createAdminInvitationHandler(db, invitations, { publicOrigin, sendEmail, emailConfigured }));
-
-    // ==========================================
     // CHANGE PASSWORD
     // ==========================================
     app.post('/api/change-password', async (req, res) => {

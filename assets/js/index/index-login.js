@@ -1,4 +1,4 @@
-async function activateStaffAccount() {
+async function activateStaffAccount(reset = false) {
     const passwordField = (name, label) => `<div>
         <label for="staff-${name}">${label}</label>
         <div class="staff-activation-password">
@@ -7,12 +7,12 @@ async function activateStaffAccount() {
         </div>
     </div>`;
     const result = await Swal.fire({
-        title: 'Activate staff account',
-        html: `<p>Enter the System ID and one-time code from HRIS, then create your password.</p>
+        title: reset ? 'Reset staff password' : 'Activate staff account',
+        html: `<p>Enter the System ID and one-time code from HRIS, then ${reset ? 'choose a new password' : 'create your password'}.</p>
             <div class="staff-activation-fields">
               <label class="input-group">System ID<input name="system_id" autocomplete="username" maxlength="50" required></label>
               <div>
-                <label for="staff-code">Activation code</label>
+                <label for="staff-code">${reset ? 'Reset code' : 'Activation code'}</label>
                 <div class="staff-activation-code">
                     <input id="staff-code" name="code" autocomplete="one-time-code" spellcheck="false" maxlength="40" required>
                     <button type="button" data-paste-activation>Paste</button>
@@ -22,7 +22,7 @@ async function activateStaffAccount() {
               ${passwordField('password', 'New password')}
               ${passwordField('confirm_password', 'Confirm password')}
             </div>`,
-        showCancelButton: true, confirmButtonText: 'Activate account',
+        showCancelButton: true, confirmButtonText: reset ? 'Save new password' : 'Activate account',
         confirmButtonColor: '#007d82', showLoaderOnConfirm: true,
         allowOutsideClick: () => !Swal.isLoading(),
         didOpen: popup => {
@@ -66,12 +66,12 @@ async function activateStaffAccount() {
             if (!fields.every(field => field.reportValidity())) return false;
             const data = Object.fromEntries(fields.map(field => [field.name, field.value]));
             try {
-                const response = await fetch('http://localhost:3000/api/activate-staff', {
+                const response = await fetch('http://localhost:3000/api/' + (reset ? 'redeem-staff-reset' : 'activate-staff'), {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
                 });
                 const result = await response.json();
-                if (!response.ok || !result.success) throw Error(result.error || 'Activation could not be completed.');
-                return result;
+                if (!response.ok || !result.success) throw Error(result.error || 'The code could not be accepted.');
+                return reset ? result.data : result;
             } catch (error) {
                 Swal.showValidationMessage(error.message);
                 return false;
@@ -81,7 +81,7 @@ async function activateStaffAccount() {
     if (result.isConfirmed) {
         const id = document.getElementById('login_id');
         id.value = result.value.system_id;
-        await Swal.fire({ icon: 'success', title: 'Account activated', text: 'You can now sign in with your new password.', confirmButtonColor: '#007d82' });
+        await Swal.fire({ icon: 'success', title: reset ? 'Password updated' : 'Account activated', text: 'You can now sign in with your new password.', confirmButtonColor: '#007d82' });
         document.getElementById('login_password').focus();
     }
 }

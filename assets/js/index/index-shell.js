@@ -27,20 +27,11 @@
       });
 
       function toggleForms(target) {
-        document.querySelector('.split-layout').classList.toggle('profile-layout', target === 'profile');
         document.getElementById("login-form").classList.add("hidden");
-        document.getElementById("gateway-screen").classList.add("hidden");
-        document.getElementById("profile-screen").classList.add("hidden");
         if(document.getElementById("reset-screen")) document.getElementById("reset-screen").classList.add("hidden");
         const subtitle = document.getElementById("form-subtitle");
 
-        if (target === "gateway") {
-          document.getElementById("gateway-screen").classList.remove("hidden");
-          subtitle.innerText = "Step 1: Verification";
-        } else if (target === "profile") {
-          document.getElementById("profile-screen").classList.remove("hidden");
-          subtitle.innerText = "Step 2: Profile";
-        } else if (target === "reset") {
+        if (target === "reset") {
           if(document.getElementById("reset-screen")) document.getElementById("reset-screen").classList.remove("hidden");
           subtitle.innerText = "Secure Password Reset";
         } else {

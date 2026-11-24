@@ -2,7 +2,7 @@ const crypto = require('node:crypto');
 const bcrypt = require('bcrypt');
 const { normalizeEmail, validPassword } = require('../config/security-config');
 const { createSystemAudit } = require('./system-audit');
-const genericMessage = 'If this email belongs to an approved account, check its inbox for a reset code. If no code arrives, contact the administrator.';
+const genericMessage = 'If this email belongs to an approved account, check its inbox for a reset code. For staff accounts, contact HRIS for a reset code.';
 
 function codeHash(email, code, secret) {
     return crypto.createHmac('sha256', secret).update(email + '\0' + code).digest('hex');
@@ -17,7 +17,7 @@ function createPasswordRecovery(db, secret, sendEmail, emailConfigured) {
             try {
                 connection = await db.getConnection();
                 await connection.beginTransaction();
-                const [users] = await connection.execute('SELECT system_id,status FROM users WHERE LOWER(email)=? FOR UPDATE', [email]);
+                const [users] = await connection.execute("SELECT system_id,status FROM users WHERE LOWER(email)=? AND role='superadmin' FOR UPDATE", [email]);
                 if (users.length !== 1 || users[0].status !== 'approved') {
                     await connection.rollback();
                     return res.json({ success:true, message:genericMessage });
@@ -54,7 +54,7 @@ function createPasswordRecovery(db, secret, sendEmail, emailConfigured) {
             try {
                 connection = await db.getConnection();
                 await connection.beginTransaction();
-                const [users] = await connection.execute('SELECT system_id,status,role FROM users WHERE LOWER(email)=? FOR UPDATE', [email]);
+                const [users] = await connection.execute("SELECT system_id,status,role FROM users WHERE LOWER(email)=? AND role='superadmin' FOR UPDATE", [email]);
                 const [records] = await connection.execute('SELECT id,token,(expires_at>NOW()) as valid FROM password_resets WHERE LOWER(email)=? ORDER BY id DESC LIMIT 1 FOR UPDATE', [email]);
                 const record = records[0];
                 const stored = record && /^v1:([a-f0-9]{64}):([0-5])$/.exec(record.token);

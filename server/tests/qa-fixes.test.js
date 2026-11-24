@@ -1,4 +1,4 @@
-const {registrationPhotoFields,isolateReviewStore}=require('./registration-photo-fixture');isolateReviewStore();
+const {isolateReviewStore}=require('./registration-photo-fixture');isolateReviewStore();
 // Regression checks use a disposable copy; email is mocked and source rows are fingerprinted.
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
@@ -8,18 +8,15 @@ const {createDatabaseDump}=require('../services/database-backup');
 const {applyConstraints}=require('../scripts/apply-qa-constraints');
 const {sessionVersion}=require('../config/security-config');
 const {monthlyPeriod,isoWeekPeriod}=require('../services/report-periods');
-const firebaseFixture=require('./firebase-fixture');
-const restoreFetch=firebaseFixture.install();
-after(()=>restoreFetch());
 const source={host:process.env.DB_HOST||'127.0.0.1',port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER||'root',password:process.env.DB_PASSWORD||'',database:process.env.DB_NAME||'health_intel'};
 const name='health_intel_qa_fixes_verify_'+process.pid,secret=crypto.randomBytes(32).toString('hex');
-let root,db,server,appDb,dump,created=false,beforeHash,base,barangay,barangayName,caseId;const tokens={};
+let root,db,server,appDb,dump,created=false,beforeHash,base,barangay,caseId;const tokens={};
 async function fingerprint(){const [tables]=await root.query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=? ORDER BY TABLE_NAME',[source.database]);const all=[];for(const t of tables){const [rows]=await root.query('SELECT * FROM `'+source.database+'`.`'+t.TABLE_NAME+'`');all.push([t.TABLE_NAME,rows.map(r=>JSON.stringify(r)).sort()]);}return crypto.createHash('sha256').update(JSON.stringify(all)).digest('hex');}
 before(async()=>{
     root=await mysql.createConnection({...source,multipleStatements:true});beforeHash=await fingerprint();dump=await createDatabaseDump(source);
     await root.query('CREATE DATABASE `'+name+'` CHARACTER SET utf8mb4');created=true;await root.query('USE `'+name+'`');await root.query(fs.readFileSync(dump.filename,'utf8'));await dump.cleanup();dump=null;
     db=mysql.createPool({...source,database:name});await require('../services/disease-review').migrateDiseaseReview(db);await applyConstraints(db);await applyConstraints(db);
-    const [[b]]=await db.query('SELECT id,name FROM barangays ORDER BY id LIMIT 1');barangay=b.id;barangayName=b.name;
+    const [[b]]=await db.query('SELECT id FROM barangays ORDER BY id LIMIT 1');barangay=b.id;
     const hash=await bcrypt.hash('Regression-only-2026',10);
     for(const role of ['bhw','mho','admin','superadmin']){const id='QA-'+role.toUpperCase();await db.execute("INSERT INTO users(system_id,first_name,last_name,role,barangay_id,password_hash,status) VALUES(?,'QA','Fixture',?,?,?,'approved')",[id,role,role==='bhw'?barangay:null,hash]);tokens[role]=jwt.sign({system_id:id,password_version:sessionVersion(hash,secret)},secret,{expiresIn:'1h'});}
     // High numeric IDs expose the former string-sorting bug without modifying real accounts.
@@ -29,8 +26,7 @@ before(async()=>{
     const app=require('../server');appDb=app.db;server=app.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
 });
 after(async()=>{if(server)await new Promise(r=>server.close(r));if(appDb)await appDb.end();if(db)await db.end();if(dump)await dump.cleanup();if(root){try{if(created){assert.match(name,/^health_intel_qa_fixes_verify_\d+$/);assert.notEqual(name,source.database);await root.query('DROP DATABASE `'+name+'`');}assert.equal(await fingerprint(),beforeHash,'Original database records must remain unchanged');}finally{await root.end();}}});
-async function request(route,role,body,method){if(route==='/api/register'&&body)body={...body,...await registrationPhotoFields(body.password)};if(body&&['/api/register','/api/check-email'].includes(route))body={...body,firebase_id_token:firebaseFixture.token(body.email)};return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
-const registration={role:'bhw',first_name:'QA',last_name:'Registration',assigned_barangay:null,password:'Regression-only-2026',employee_id:'QA-EMP'};
+async function request(route,role,body,method){return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
 
 test('Master Ledger records access outcomes without credentials or false attribution; Admin retains operational scope',async()=>{
     assert.equal((await request('/api/login',null,{system_id:'QA-BHW',password:'wrong-private-fixture'})).status,401);
@@ -76,22 +72,22 @@ test('password changes commit with redacted audit; missing audit storage rolls b
 });
 
 test('password reset and single-use code commit only with a credential-free audit entry',async()=>{
-    const [[original]]=await db.query("SELECT password_hash,email FROM users WHERE system_id='QA-BHW'");
+    const [[original]]=await db.query("SELECT password_hash,email FROM users WHERE system_id='QA-SUPERADMIN'");
     const email='qa-ledger-reset@example.invalid',code='812345';
-    await db.execute("UPDATE users SET email=? WHERE system_id='QA-BHW'",[email]);
+    await db.execute("UPDATE users SET email=? WHERE system_id='QA-SUPERADMIN'",[email]);
     await db.execute("INSERT INTO password_resets(email,token,expires_at) VALUES(?,?,DATE_ADD(NOW(),INTERVAL 15 MINUTE))",[email,`v1:${require('../services/password-recovery').codeHash(email,code,secret)}:0`]);
     try {
         await db.query('RENAME TABLE system_audit_logs TO qa_reset_audit_hold');
         try {
             assert.equal((await request('/api/reset-password',null,{email,token:code,new_password:'Reset-fixture-2026'})).status,503);
-            const [[row]]=await db.query("SELECT password_hash FROM users WHERE system_id='QA-BHW'");assert.equal(row.password_hash,original.password_hash);
+            const [[row]]=await db.query("SELECT password_hash FROM users WHERE system_id='QA-SUPERADMIN'");assert.equal(row.password_hash,original.password_hash);
             const [codes]=await db.execute('SELECT id FROM password_resets WHERE email=?',[email]);assert.equal(codes.length,1);
         } finally {await db.query('RENAME TABLE qa_reset_audit_hold TO system_audit_logs');}
         assert.equal((await request('/api/reset-password',null,{email,token:code,new_password:'Reset-fixture-2026'})).status,200);
-        const [[log]]=await db.query("SELECT details FROM system_audit_logs WHERE action='Password Reset' AND user_id='QA-BHW' ORDER BY id DESC LIMIT 1");
-        assert.equal(JSON.parse(log.details).target_id,'QA-BHW');for(const sensitive of [email,code,'Reset-fixture-2026',original.password_hash])assert.ok(!log.details.includes(sensitive));
+        const [[log]]=await db.query("SELECT details FROM system_audit_logs WHERE action='Password Reset' AND user_id='QA-SUPERADMIN' ORDER BY id DESC LIMIT 1");
+        assert.equal(JSON.parse(log.details).target_id,'QA-SUPERADMIN');for(const sensitive of [email,code,'Reset-fixture-2026',original.password_hash])assert.ok(!log.details.includes(sensitive));
         assert.equal((await request('/api/reset-password',null,{email,token:code,new_password:'Reset-fixture-2026'})).status,400);
-    } finally {await db.execute("UPDATE users SET password_hash=?,email=? WHERE system_id='QA-BHW'",[original.password_hash,original.email]);}
+    } finally {await db.execute("UPDATE users SET password_hash=?,email=? WHERE system_id='QA-SUPERADMIN'",[original.password_hash,original.email]);}
 });
 
 test('report exports are server-attributed, scoped and honest about browser delivery',async()=>{
@@ -109,15 +105,14 @@ test('report exports are server-attributed, scoped and honest about browser deli
     assert.ok(master.data.some(row=>row.action==='Report Export Failed'&&row.outcome==='Failed'));
     const admin=await (await request('/api/admin/audit-logs','admin')).json();assert.ok(!admin.data.some(row=>row.action.startsWith('Report Export')||row.action==='Report Data Exported'));
 });
-test('registration rejects markup and allocates numeric IDs atomically despite stale previews',async()=>{
-    const data={...registration,assigned_barangay:barangayName,email:'qa-invalid@example.invalid',employee_id:'<b>unsafe</b>'};assert.equal((await request('/api/register',null,data)).status,400);
-    const preview=await request('/api/get-next-id',null,{role:'bhw'});assert.equal((await preview.json()).next_id,'BHW-100000000');
-    const outcomes=await Promise.all([request('/api/register',null,{...data,employee_id:'QA',email:'qa-one@example.invalid',system_id:'BHW-001'}),request('/api/register',null,{...data,employee_id:'QA',email:'qa-two@example.invalid',system_id:'BHW-001'})]);assert.deepEqual(outcomes.map(r=>r.status),[200,200]);const ids=await Promise.all(outcomes.map(async r=>(await r.json()).system_id));assert.deepEqual(ids.sort(),['BHW-100000000','BHW-100000001']);
-});
-test('simultaneous normalized duplicate emails have one winner and database uniqueness also applies',async()=>{
-    const data={...registration,assigned_barangay:barangayName,email:'QA-DUPLICATE@Example.invalid'};const results=await Promise.all([request('/api/register',null,data),request('/api/register',null,{...data,email:' qa-duplicate@example.invalid '})]);assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);
-    await assert.rejects(db.query("UPDATE users SET email=' QA-DUPLICATE@EXAMPLE.INVALID ' WHERE system_id='QA-MHO'"),e=>e.code==='ER_DUP_ENTRY');
-    const lookup=await request('/api/check-email',null,{email:'qa-duplicate@example.invalid'});assert.deepEqual(await lookup.json(),{exists:true});
+test('duplicate account email constraints remain in force',async()=>{
+    const email='qa-duplicate@example.invalid';
+    try {
+        await db.execute("UPDATE users SET email=? WHERE system_id='QA-BHW'",[email]);
+        await assert.rejects(db.query("UPDATE users SET email=' QA-DUPLICATE@EXAMPLE.INVALID ' WHERE system_id='QA-MHO'"),e=>e.code==='ER_DUP_ENTRY');
+    } finally {
+        await db.query("UPDATE users SET email=NULL WHERE system_id='QA-BHW'");
+    }
 });
 test('registry rejects markup, concurrent duplicate names and duplicate archived categories',async()=>{
     const data={name:'QA Registry Disease',classification:'Communicable',category:'morbidity'};assert.equal((await request('/api/diseases','admin',{...data,name:'<b>QA</b>'})).status,400);
@@ -194,8 +189,8 @@ test('Superadmin Admin access enforces current states, saves reasons atomically 
     for(const reason of [undefined,'   ',{},'x'.repeat(501),'<b>markup</b>'])assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-ACCESS-A',reason})).status,400);
     assert.deepEqual(await baseline(),old,'Invalid reasons must not change status or create events');
     assert.equal((await request('/api/admin/suspend-user','admin',{system_id:'QA-ACCESS-A',reason:'Denied role'})).status,403);
-    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-A'})).status,409);
-    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-D'})).status,409);
+    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-A'})).status,403);
+    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-D'})).status,403);
     assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-ACCESS-P',reason:'Wrong state'})).status,409);
     await db.query('RENAME TABLE system_audit_logs TO qa_access_audit_hold');
     try{assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-ACCESS-A',reason:'Must roll back'})).status,503);const [[row]]=await db.query("SELECT status FROM users WHERE system_id='QA-ACCESS-A'");assert.equal(row.status,'approved');}finally{await db.query('RENAME TABLE qa_access_audit_hold TO system_audit_logs');}
@@ -203,9 +198,9 @@ test('Superadmin Admin access enforces current states, saves reasons atomically 
     assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:'QA-ACCESS-A',reason:'Repeated request'})).status,409);
     let history=(await (await request(route,'superadmin')).json()).data;
     const suspension=history.events[0],metadata=JSON.parse(suspension.details);assert.equal(suspension.user_id,'QA-SUPERADMIN');assert.equal(metadata.reason,'Access review\nWaiting for confirmation');assert.deepEqual(metadata.before,{status:'approved'});assert.deepEqual(metadata.after,{status:'suspended'});
-    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-A'})).status,409,'Restore must use the restoration action');
+    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-A'})).status,403,'The old approval route is retired');
     assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:'QA-ACCESS-A'})).status,200);
-    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-P'})).status,200);
+    assert.equal((await request('/api/superadmin/approve-admin','superadmin',{system_id:'QA-ACCESS-P'})).status,403);
     for(const [action,details] of [['User Suspended','User Suspended: QA-ACCESS-A.'],['User Suspended','User Suspended: QA-ACCESS-A-extra.'],['Case Corrected','Patient QA-ACCESS-A'],['User Suspended','{bad JSON}']])await db.execute("INSERT INTO system_audit_logs(user_id,role,action,details) VALUES('QA-ACCESS-A','Admin',?,?)",[action,details]);
     history=(await (await request(route,'superadmin')).json()).data;assert.equal(history.account.status,'approved');assert.equal(history.events.length,3);assert.ok(history.events.every(row=>row.target_type==='Account'&&row.target_id==='QA-ACCESS-A'));assert.ok(history.events.some(row=>row.action==='Access Restored'));assert.equal(history.has_more,false);
     const records=Array.from({length:101},()=>['QA-ACCESS-A','Admin','Login Succeeded',JSON.stringify({summary:'Synthetic login',target_type:'Account',target_id:'QA-ACCESS-A',outcome:'Succeeded'})]);await db.query('INSERT INTO system_audit_logs(user_id,role,action,details) VALUES ?',[records]);

@@ -347,8 +347,7 @@ test('Superadmin distinguishes account states and never treats a denied account 
     assert.match(p.elements['user-table-body'].innerHTML,/QA-pending/);
     p.s.Swal.fire=async()=>({isConfirmed:true});
     await p.s.toggleAdminStatus('QA-pending','approved');
-    const update=p.requests.find(r=>r.url.endsWith('/approve-admin'));
-    assert.equal(JSON.parse(update.options.body).system_id,'QA-pending');
+    assert.ok(!p.requests.some(r=>r.url.endsWith('/approve-admin')));
     let errorDialog;p.s.Swal.fire=async options=>{errorDialog=options;return {isConfirmed:true};};
     p.s.response=()=>({success:false,error:'Account update refused'});
     await p.s.toggleAdminStatus('QA-suspended','approved');
@@ -433,7 +432,7 @@ test('Staff directory paginates filters and retains review of pending Admins', a
     const dialogs=[];
     p.s.Swal.fire=async options=>{dialogs.push(options);return dialogs.length===1?{isDenied:true}:{isConfirmed:dialogs.length===2};};
     await p.s.openAdminRow({type:'click',target:{closest:()=>null}},'QA-P0');
-    assert.equal(dialogs[0].confirmButtonText,'Approve');
+    assert.equal(dialogs[0].confirmButtonText,'Close');
     assert.equal(dialogs[0].denyButtonText,'Decline');
     assert.equal(dialogs[1].confirmButtonText,'Decline and notify');
 });
@@ -484,27 +483,13 @@ test('Master Ledger filters combine actor, role, action and Philippine dates; de
     p.s.fetch=async()=>{throw Error('Offline');};await p.s.loadAuditLogs();assert.match(p.elements['ledger-status'].textContent,/Previously loaded/);
 });
 
-test('Access-page scripts retain Google verification, registration and login handoffs',async()=>{
+test('Access-page retains sign-in and offers staff activation and reset',async()=>{
     const p=page('index.html');
-    p.s.response=url=>url.endsWith('/check-email')?{exists:false}:
-        url.endsWith('/register')?{success:true,system_id:'FIXTURE-BHW'}:{success:true,token:'fixture-session',system_id:'FIXTURE-BHW',redirect:'bhw.html'};
+    p.s.response=()=>({success:true,token:'fixture-session',system_id:'FIXTURE-BHW',redirect:'bhw.html'});
     p.load();await p.start();p.hooks();
-    assert.equal(p.elements.login_id.value,'FIXTURE-BHW');
-    p.elements['privacy-checkbox'].checked=true;await p.elements['privacy-checkbox'].emit('change');
-    await p.elements['btn-google-login'].emit('click');await settle();await settle();
-    assert.equal(p.elements['verified-email-text'].innerText,'fixture@example.invalid');
-    p.elements.reg_role.value='bhw';await p.elements.reg_role.emit('change');
-    assert.match(p.html, /id="reg_system_id" value="Shown after submission" readonly/);
-    assert.ok(!p.requests.some(request=>request.url.endsWith('/get-next-id')));
-    let confirmation;
-    p.s.Swal.fire=async options=>{confirmation=options;return {};};
-    p.elements.reg_confirm_password.value=p.elements.reg_password.value;p.elements.reg_review_consent.checked=true;p.s.registrationPhotoData=async()=> 'data:image/jpeg;base64,fixture';
-    await p.elements['profile-screen'].emit('submit');await settle();
-    const registration=p.requests.find(r=>r.url.endsWith('/register'));assert.ok(registration);
-    const payload=JSON.parse(registration.options.body);
-    assert.equal(payload.firebase_id_token,'fixture-google-token');
-    assert.ok(!Object.hasOwn(payload,'system_id'));
-    assert.match(confirmation.text,/official ID is FIXTURE-BHW/);
+    assert.match(p.html,/activateStaffAccount\(\)/);
+    assert.match(p.html,/activateStaffAccount\(true\)/);
+    assert.doesNotMatch(p.html,/index-registration\.js|btn-google-login/);
     p.elements.login_id.value='fixture-bhw';await p.elements['login-form'].emit('submit');await settle();
     assert.equal(p.storage.get('health_intel_token'),'fixture-session');assert.equal(p.s.location.href,'bhw.html');
     assert.deepEqual(p.errors,[]);

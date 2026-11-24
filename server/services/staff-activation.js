@@ -13,7 +13,7 @@ const codeHash = code => createHash('sha256').update(code).digest('hex');
 const hours = 24;
 const staffIdPattern = /^(BHW|MHO|ADM)-(?:[0-9]{3,9}|S[A-F0-9]{12})$/;
 
-function createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured } = {}) {
+function createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured, staffAccess } = {}) {
     let logoPromise;
     function emailLogo() {
         return logoPromise ||= sharp(path.join(__dirname, '../../assets/img/login-logo.webp'))
@@ -110,10 +110,14 @@ function createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured } 
             const barangay = role === 'bhw' ? Number(barangay_id) : null;
             if (role === 'bhw' && (!Number.isSafeInteger(barangay) || barangay < 1)) throw invalid('Select the assigned barangay.');
             await initialize();
+            await staffAccess?.initialize();
             const { email, ...result } = await transaction(db, async connection => {
-                const [[existing]] = await connection.execute(
-                    "SELECT system_id FROM users WHERE UPPER(TRIM(employee_id))=UPPER(?) LIMIT 1", [employee]);
-                if (existing) throw invalid('This employee ID already has a system account or registration.', 409);
+                const [existing] = await connection.execute(
+                    "SELECT system_id, role, status FROM users WHERE UPPER(TRIM(employee_id))=UPPER(?) LIMIT 2 FOR UPDATE", [employee]);
+                const legacyAdmin = staffAccess && role === 'admin' && existing.length === 1 &&
+                    existing[0].role === 'admin' && ['pending','denied'].includes(existing[0].status) &&
+                    staffIdPattern.test(existing[0].system_id) ? existing[0] : null;
+                if (existing.length && !legacyAdmin) throw invalid('This employee ID already has a system account or registration.', 409);
                 if (barangay) {
                     const [[assignment]] = await connection.execute('SELECT id FROM barangays WHERE id=?', [barangay]);
                     if (!assignment) throw invalid('Select a valid barangay.');
@@ -127,7 +131,8 @@ function createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured } 
                     pending.role !== role || pending.barangay_id !== barangay)) {
                     throw invalid('This employee ID has a pending issuance with different details. Review the account directory.', 409);
                 }
-                const systemId = pending?.system_id || await nextId(connection, role);
+                const systemId = pending?.system_id || legacyAdmin?.system_id || await nextId(connection, role);
+                if (legacyAdmin && legacyAdmin.system_id !== systemId) throw invalid('An existing application uses a different System ID. Contact HRIS.', 409);
                 const [[saved]] = await connection.execute(
                     'SELECT email FROM staff_activation_emails WHERE system_id=? FOR UPDATE', [systemId]);
                 if (method === 'email' && saved && requestedEmail && saved.email !== requestedEmail) {
@@ -135,6 +140,7 @@ function createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured } 
                 }
                 const email = method === 'email' ? saved?.email || requestedEmail : null;
                 if (method === 'email' && !email) throw invalid('Enter the employee’s confirmed email address.');
+                await staffAccess?.requireIssuance(connection, req.user, { employee, first, last, role, barangay, systemId }, method, email);
                 if (email) {
                     const [[existingUser]] = await connection.execute(
                         'SELECT system_id FROM users WHERE LOWER(TRIM(email))=? LIMIT 1', [email]);
@@ -188,10 +194,12 @@ function createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured } 
             const systemId = req.body?.system_id;
             if (typeof systemId !== 'string' || !staffIdPattern.test(systemId)) throw invalid('Provide a valid staff System ID.');
             await initialize();
+            await staffAccess?.initialize();
             await transaction(db, async connection => {
                 const [[pending]] = await connection.execute(
                     'SELECT system_id FROM staff_activations WHERE system_id=? FOR UPDATE', [systemId]);
                 if (!pending) throw invalid('This account is no longer awaiting activation. Refresh Staff Accounts.', 409);
+                if (staffAccess) await connection.execute('UPDATE staff_admin_reviews SET system_id=NULL WHERE system_id=?', [systemId]);
                 await connection.execute('DELETE FROM staff_activation_emails WHERE system_id=?', [systemId]);
                 await connection.execute('DELETE FROM staff_activations WHERE system_id=?', [systemId]);
                 await createSystemAudit(connection).record(req.user, 'Staff Account Canceled', {
@@ -219,14 +227,22 @@ function createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured } 
                     'SELECT * FROM staff_activations WHERE system_id=? AND activation_hash=? AND expires_at>UNIX_TIMESTAMP() FOR UPDATE',
                     [id, codeHash(code)]);
                 if (!staff) throw rejectCode();
-                const [[existing]] = await connection.execute(
-                    'SELECT system_id FROM users WHERE UPPER(TRIM(employee_id))=UPPER(?) LIMIT 1', [staff.employee_id]);
-                if (existing) throw invalid('This employee ID already has a registration. Contact HRIS.', 409);
+                if (staffAccess && staff.role === 'admin') await staffAccess.requireActivation(connection, staff);
+                const [existing] = await connection.execute(
+                    'SELECT system_id,role,status FROM users WHERE UPPER(TRIM(employee_id))=UPPER(?) LIMIT 2 FOR UPDATE', [staff.employee_id]);
+                const legacyAdmin = staffAccess && staff.role === 'admin' && existing.length === 1 &&
+                    existing[0].system_id === id && existing[0].role === 'admin' && ['pending','denied'].includes(existing[0].status);
+                if (existing.length && !legacyAdmin) throw invalid('This employee ID already has a registration. Contact HRIS.', 409);
                 const hash = await bcrypt.hash(password, 10);
-                await connection.execute(`INSERT INTO users
-                    (system_id,first_name,last_name,employee_id,role,barangay_id,password_hash,status,email)
-                    VALUES (?,?,?,?,?,?,?,'approved',NULL)`,
-                    [id, staff.first_name, staff.last_name, staff.employee_id, staff.role, staff.barangay_id, hash]);
+                if (legacyAdmin) {
+                    await connection.execute(`UPDATE users SET first_name=?, last_name=?, barangay_id=NULL, password_hash=?,
+                        status='approved' WHERE system_id=?`, [staff.first_name, staff.last_name, hash, id]);
+                } else {
+                    await connection.execute(`INSERT INTO users
+                        (system_id,first_name,last_name,employee_id,role,barangay_id,password_hash,status,email)
+                        VALUES (?,?,?,?,?,?,?,'approved',NULL)`,
+                        [id, staff.first_name, staff.last_name, staff.employee_id, staff.role, staff.barangay_id, hash]);
+                }
                 await connection.execute('DELETE FROM staff_activations WHERE system_id=?', [id]);
                 await createSystemAudit(connection).record({ system_id: id, role: staff.role }, 'Staff Account Activated', {
                     summary: 'Staff account activated and password set.', target_type: 'Account', target_id: id, outcome: 'Succeeded'

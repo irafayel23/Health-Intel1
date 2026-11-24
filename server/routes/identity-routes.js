@@ -137,17 +137,6 @@ function registerIdentityRoutes(app, db, dbConfig, {notify=sendEmail,mailReady=e
         }
     });
 
-    app.post('/api/superadmin/approve-admin', async (req, res) => {
-        try {
-            const approved=await changeStatus(db, req, 'approved', 'Admin Approved');
-            let email_delivery='not_configured';
-            if(mailReady()&&normalizeEmail(approved.email)){try{await notify({to:normalizeEmail(approved.email),...registrationEmail('approved',approved)});email_delivery='sent';}catch{email_delivery='failed';}}
-            res.json({success:true,email_delivery,message:'Admin approved.'+(email_delivery==='sent'?' Approval email sent.':' Approval email was not sent; notify the applicant securely.')});
-        } catch (error) {
-            respond(res, error, 'The account could not be updated.');
-        }
-    });
-
     app.get('/api/superadmin/health', async (req, res) => {
         try {
             const { dbSize, userCount, patientCount, auditCount } = await directory.healthCounts(

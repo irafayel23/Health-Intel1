@@ -1,5 +1,6 @@
 const mysql = require('../server/node_modules/mysql2/promise');
 const { loadEnvironment } = require('../server/config/security-config');
+const { createStaffAccess } = require('../server/services/staff-access');
 const { createStaffActivation } = require('../server/services/staff-activation');
 
 async function main() {
@@ -13,7 +14,8 @@ async function main() {
     });
     try {
         await createStaffActivation(db).initialize();
-        console.log('Staff activation and email-delivery tables are ready.');
+        await createStaffAccess(db).initialize();
+        console.log('Staff activation and access tables are ready.');
     } finally {
         await db.end();
     }

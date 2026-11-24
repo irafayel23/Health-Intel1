@@ -5,7 +5,7 @@
     const tokenKey = 'health_intel_token';
     localStorage.removeItem(tokenKey);
     localStorage.removeItem('active_user_id');
-    const publicPaths = new Set(['/api/login', '/api/activate-staff', '/api/register', '/api/get-next-id', '/api/check-email',
+    const publicPaths = new Set(['/api/login', '/api/activate-staff', '/api/redeem-staff-reset',
         '/api/forgot-password', '/api/reset-password']);
     let leaving = false;
     const pageRole = /\/(bhw|mho|admin|superadmin)\.html$/.exec(window.location.pathname)?.[1];

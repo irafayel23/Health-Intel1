@@ -13,7 +13,7 @@ const source={host:process.env.DB_HOST||'127.0.0.1',port:Number(process.env.DB_P
 const name='health_intel_phase2_verify_'+process.pid;
 const secret=crypto.randomBytes(32).toString('hex');
 const email='phase2-fixture@example.invalid';
-let db,root,server,appDb,base,token,barangay,hashBefore,created=false,original;
+let db,root,server,appDb,base,token,recoveryToken,barangay,hashBefore,created=false,original;
 let sent=[],failMail=false;
 async function fingerprint(){ const [tables]=await root.query('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=? ORDER BY TABLE_NAME',[source.database]); const all=[]; for(const t of tables){const [rows]=await root.query('SELECT * FROM `'+source.database+'`.`'+t.TABLE_NAME+'`');all.push([t.TABLE_NAME,rows.map(r=>JSON.stringify(r)).sort()]);}return crypto.createHash('sha256').update(JSON.stringify(all)).digest('hex'); }
 before(async()=>{
@@ -23,12 +23,15 @@ before(async()=>{
     await root.query('USE `'+name+'`');await root.query(fs.readFileSync(original.filename,'utf8'));await original.cleanup();original=null;
     db=mysql.createPool({...source,database:name});await require('../services/disease-review').migrateDiseaseReview(db);
     const [[b]]=await db.query('SELECT id FROM barangays ORDER BY id LIMIT 1');barangay=b.id;
-    await db.execute("INSERT INTO users(system_id,first_name,last_name,role,barangay_id,password_hash,status,email) VALUES('PHASE2-BHW','Fixture','Only','bhw',?,?,'approved',?)",[barangay,await bcrypt.hash('Original-fixture-2026',10),email]);
+    await db.execute("INSERT INTO users(system_id,first_name,last_name,role,barangay_id,password_hash,status,email) VALUES('PHASE2-BHW','Fixture','Only','bhw',?,?,'approved',?)",[barangay,await bcrypt.hash('Original-fixture-2026',10),null]);
+    await db.execute("INSERT INTO users(system_id,first_name,last_name,role,password_hash,status,email) VALUES('PHASE2-SUPER','Fixture','Recovery','superadmin',?,'approved',?)",[await bcrypt.hash('Original-fixture-2026',10),email]);
     await db.execute("INSERT INTO disease_registry(name,classification,status) VALUES('Phase2 Test Disease','morbidity','Active')");
     process.env.DB_NAME=name;process.env.JWT_SECRET=secret;process.env.SMTP_SERVICE='gmail';process.env.SMTP_USER='fixture@example.invalid';process.env.SMTP_PASSWORD='not-a-real-password';
     require('nodemailer').createTransport=()=>({sendMail:async message=>{sent.push(message);if(failMail)throw new Error('mock delivery failure');return {};}});
     const app=require('../server');appDb=app.db;server=app.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
     const response=await fetch(base+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system_id:'PHASE2-BHW',password:'Original-fixture-2026'})});assert.equal(response.status,200);token=(await response.json()).token;
+    const signed=await request('/api/login',{system_id:'PHASE2-SUPER',password:'Original-fixture-2026'},false);
+    assert.equal(signed.status,200);recoveryToken=(await signed.json()).token;
 });
 after(async()=>{if(server)await new Promise(r=>server.close(r));if(appDb)await appDb.end();if(db)await db.end();if(original)await original.cleanup();if(root){try{if(created){assert.match(name,/^health_intel_phase2_verify_\d+$/);assert.notEqual(name,source.database);await root.query('DROP DATABASE `'+name+'`');}assert.equal(await fingerprint(),hashBefore,'Production records must remain unchanged');}finally{await root.end();}}});
 async function request(route,body,auth=true){return fetch(base+route,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(auth?{Authorization:'Bearer '+token}:{})},...(body?{body:JSON.stringify(body)}:{})});}
@@ -65,8 +68,9 @@ test('expired and superseded codes fail; weak passwords fail; concurrent correct
     const replacement=await issue();assert.notEqual(replacement.length,0);
     assert.equal((await invoke(recovery().reset,{email,token:replacement,new_password:'short'})).status,400);
     const outcomes=await Promise.all([invoke(recovery().reset,{email,token:replacement,new_password:'New-fixture-pass-2026'}),invoke(recovery().reset,{email,token:replacement,new_password:'New-fixture-pass-2026'})]);assert.deepEqual(outcomes.map(r=>r.status).sort(),[200,400]);
+    token=recoveryToken;
     assert.equal((await request('/api/session')).status,401,'Old login must be revoked');
-    const fresh=await request('/api/login',{system_id:'PHASE2-BHW',password:'New-fixture-pass-2026'},false);assert.equal(fresh.status,200);token=(await fresh.json()).token;assert.equal((await request('/api/session')).status,200);
+    const fresh=await request('/api/login',{system_id:'PHASE2-SUPER',password:'New-fixture-pass-2026'},false);assert.equal(fresh.status,200);token=(await fresh.json()).token;assert.equal((await request('/api/session')).status,200);
 });
 test('public recovery routes use mock mail, single-use codes and per-address request limits',async()=>{
     sent=[];const forgot=await request('/api/forgot-password',{email},false);assert.equal(forgot.status,200);const code=/code is (\d{6})/.exec(sent.at(-1).text)[1];

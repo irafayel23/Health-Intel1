@@ -1,4 +1,4 @@
-const {registrationPhotoFields,isolateReviewStore}=require('./registration-photo-fixture');isolateReviewStore();
+const {isolateReviewStore}=require('./registration-photo-fixture');isolateReviewStore();
 const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),vm=require('node:vm');
@@ -21,7 +21,7 @@ before(async()=>{
     restoreFetch=fixture.install();require('nodemailer').createTransport=()=>({sendMail:async()=>({})});process.env.DB_NAME=name;process.env.DB_HOST=source.host;process.env.JWT_SECRET=secret;const app=require('../server');appDb=app.db;server=app.app.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));base='http://127.0.0.1:'+server.address().port;
 });
 after(async()=>{if(server)await new Promise(r=>server.close(r));if(appDb)await appDb.end();if(db)await db.end();if(dump)await dump.cleanup();if(root){try{if(created){assert.match(name,/^health_intel_workflow_verify_\d+$/);assert.notEqual(name,source.database);await root.query('DROP DATABASE `'+name+'`');}assert.equal(await fingerprint(),baseline,'Source data must remain unchanged');}finally{await root.end();}}restoreFetch?.();});
-async function request(route,role,body,method){if(route==='/api/register'&&body)body={...body,...await registrationPhotoFields(body.password)};return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
+async function request(route,role,body,method){return fetch(base+route,{method:method||(body?'POST':'GET'),headers:{...(role?{Authorization:'Bearer '+tokens[role]}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}
 async function form(role='bhw',id=caseId){const response=await request('/api/patients/'+id+'/correction',role);assert.equal(response.status,200);return (await response.json()).data;}
 const payload=data=>({date_recorded:data.date_recorded,disease:data.disease,severity:data.severity,version:data.version,reason:'Confirmed against the original source record'});
 test('Google proof checks signatures, project, dates, provider, email verification and exact email ownership',async()=>{
@@ -39,11 +39,12 @@ test('certificate cache expires, rotates keys and fails closed when Google is un
     clock+=6000;keys={'rotated-key':fixture.publicKey};await verify(fixture.token(email,{}, {keyid:'rotated-key'}),email);assert.equal(calls,2);
     clock+=11000;fail=true;await assert.rejects(verify(fixture.token(email,{}, {keyid:'rotated-key'}),email),e=>e.status===503);assert.equal(calls,3);await assert.rejects(verify(fixture.token(email,{}, {keyid:'rotated-key'}),email),e=>e.status===503);assert.equal(calls,3);
 });
-test('registration and email checking refuse missing or mismatched Google proof; valid registration remains pending',async()=>{
-    const data={role:'mho',first_name:'Google',last_name:'Fixture',employee_id:'QA',password:'Workflow-fixture-2026',email:'new-google-fixture@example.invalid'};
-    for(const firebase_id_token of [undefined,'bad-token',fixture.token('wrong-email@example.invalid'),fixture.token(data.email,{email_verified:false})]){assert.equal((await request('/api/register',null,{...data,firebase_id_token})).status,401);assert.equal((await request('/api/check-email',null,{email:data.email,firebase_id_token})).status,401);}
-    const response=await request('/api/register',null,{...data,firebase_id_token:fixture.token(data.email)});assert.equal(response.status,200);const registered=await response.json();const [[row]]=await db.query('SELECT status,email FROM users WHERE system_id=?',[registered.system_id]);assert.equal(row.status,'pending');assert.equal(row.email,data.email);
-    const lookup=await request('/api/check-email',null,{email:data.email,firebase_id_token:fixture.token(data.email)});assert.deepEqual(await lookup.json(),{exists:true});
+test('public registration, ID previews and email lookup are retired',async()=>{
+    for(const endpoint of ['/api/register','/api/get-next-id','/api/check-email']){
+        assert.equal((await request(endpoint,null,{})).status,401);
+        assert.equal((await request(endpoint,'superadmin',{})).status,403);
+    }
+    assert.equal((await request('/api/superadmin/admin-invitations','superadmin',{})).status,403);
 });
 test('BHW corrections are barangay-limited, while MHO and Superadmin cannot edit clinical records',async()=>{
     const [row]=await db.execute("INSERT INTO health_cases(patient_name,barangay_id,disease,date_recorded,severity) VALUES('Other Disposable',?,'Workflow Disease A','2025-06-14','Mild')",[other.id]);for(const method of ['GET','PUT']){assert.equal((await request('/api/patients/'+row.insertId+'/correction','bhw',method==='PUT'?{}:undefined,method)).status,404);for(const role of ['mho','superadmin'])assert.equal((await request('/api/patients/'+caseId+'/correction',role,method==='PUT'?{}:undefined,method)).status,403);}

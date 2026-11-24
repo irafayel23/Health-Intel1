@@ -112,9 +112,17 @@
                         <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Staff directory</h2>
                         <p class="text-slate-600 dark:text-neutral-400 text-sm mt-1" id="admin-access-description">Create accounts and manage access for BHW, MHO, and Admin staff.</p>
                     </div>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
                     <button type="button" onclick="createStaffAccount()" class="hi-staff-create">
                         <i data-lucide="user-plus" class="h-5 w-5" aria-hidden="true"></i>Create staff account
                     </button>
+                    <button type="button" onclick="HealthIntelStaffAccess.addRosterEntry()" class="hi-staff-create">
+                        <i data-lucide="clipboard-list" class="h-5 w-5" aria-hidden="true"></i>Add roster entry
+                    </button>
+                    <button type="button" onclick="HealthIntelStaffAccess.reviewAdminAccess(true)" class="hi-staff-create">
+                        <i data-lucide="shield-check" class="h-5 w-5" aria-hidden="true"></i>Admin access reviews
+                    </button>
+                    </div>
                 </div>
 
 
@@ -264,7 +272,8 @@
     <script src="assets/js/superadmin/superadmin-shell.js?v=20261124-fast-staff"></script>
     <script src="assets/js/superadmin/superadmin-health.js?v=20261124-fast-staff"></script>
     <script src="assets/js/shared/registration-review.js?v=20261115-centered-result"></script>
-    <script src="assets/js/superadmin/superadmin-users.js?v=20261124-fast-staff"></script>
+    <script src="assets/js/shared/staff-access.js?v=1"></script>
+    <script src="assets/js/superadmin/superadmin-users.js?v=20261124-roster"></script>
     <script src="assets/js/superadmin/superadmin-ledger.js?v=20261123-activity-log"></script>
     <script src="assets/js/superadmin/superadmin-backup.js?v=20261120-password-eyes"></script>
     <script src="assets/js/superadmin/superadmin-startup.js?v=20261124-fast-staff"></script>

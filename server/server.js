@@ -20,7 +20,6 @@ const JWT_SECRET = loadJwtSecret();
 const app = express();
 const deployment = readDeploymentConfig();
 configureDeployment(app, deployment);
-app.use('/api/register', express.json({limit:'9mb'}));
 app.use(express.json());
 
 // ==========================================

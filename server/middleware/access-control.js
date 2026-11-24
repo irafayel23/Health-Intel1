@@ -6,7 +6,7 @@ const { sessionVersion } = require('../config/security-config');
 const { createSessionSecurity, tokenHash } = require('../services/session-security');
 
 const publicEndpoints = new Set([
-    'POST /login', 'POST /register', 'POST /get-next-id', 'POST /check-email',
+    'POST /login', 'POST /redeem-staff-reset',
     'POST /activate-staff', 'POST /forgot-password', 'POST /reset-password'
 ]);
 const rules = [
@@ -28,9 +28,11 @@ const rules = [
     ['GET', /^\/admin\/(pending-users|active-users|denied-users|audit-logs)$/, ['admin', 'superadmin']],
     ['GET', /^\/admin\/cases\/\d+$/, ['admin']],
     ['POST', /^\/admin\/(approve-user|deny-user|undo-deny|suspend-user|restore-suspended)$/, ['admin', 'superadmin']],
-    ['GET', /^\/superadmin\/(pending-admins|health|users|audit-logs|staff-barangays)$/, ['superadmin']],
+    ['GET', /^\/superadmin\/(pending-admins|health|users|audit-logs|staff-barangays|staff-roster)$/, ['superadmin']],
     ['GET', /^\/superadmin\/admins\/[^/]+\/history$/, ['superadmin']],
-    ['POST', /^\/superadmin\/(approve-admin|backup|admin-invitations|staff-accounts(?:\/cancel)?)$/, ['superadmin']],
+    ['GET', /^\/staff-admin-reviews$/, ['admin','superadmin']],
+    ['POST', /^\/staff-admin-reviews$/, ['admin','superadmin']],
+    ['POST', /^\/superadmin\/(backup|staff-roster|staff-admin-reviews|staff-reset|staff-transfer|staff-accounts(?:\/cancel)?)$/, ['superadmin']],
     ['GET', /^\/bhw\/context$/, ['bhw']],
     ['GET', /^\/bhw\/(encoding-options|puroks)$/, ['bhw']],
     ['GET', /^\/bhw\/report-data$/, ['bhw']],
@@ -133,13 +135,12 @@ function createAccessControl(db, secret) {
             if (req.path === '/change-password' && req.body.system_id && req.body.system_id !== user.system_id) {
                 return deny(res, 403, 'You can only change your own password.', 'ACCESS_DENIED');
             }
-            if (req.method === 'POST' && (/^\/admin\//.test(req.path) || req.path === '/superadmin/approve-admin')) {
+            if (req.method === 'POST' && /^\/admin\//.test(req.path)) {
                 const targetId = req.body.temp_system_id || req.body.system_id;
                 if (!targetId) return deny(res, 400, 'A target account is required.', 'INVALID_INPUT');
                 const [targets] = await db.execute('SELECT role FROM users WHERE system_id = ?', [targetId]);
                 if (!targets.length) return deny(res, 404, 'Account not found.', 'NOT_FOUND');
-                const allowedTargets = req.path === '/superadmin/approve-admin' ? ['admin'] :
-                    user.role === 'superadmin' ? ['bhw', 'mho', 'admin'] : ['bhw', 'mho'];
+                const allowedTargets = user.role === 'superadmin' ? ['bhw', 'mho', 'admin'] : ['bhw', 'mho'];
                 if (!allowedTargets.includes(targets[0].role)) {
                     return deny(res, 403, 'You cannot manage this account role.', 'ACCESS_DENIED');
                 }

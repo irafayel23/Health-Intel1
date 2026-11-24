@@ -142,7 +142,7 @@ test('role separation protects administrative actions, backup and MHO analytics'
         ['/api/patients','mho','GET'], ['/api/patients','admin','POST'],
         ['/api/diseases','mho','POST']
     ]) assert.equal((await request(route, role, { method, ...(method === 'GET' ? {} : { body: {} }) })).status, 403, `${role}: ${route}`);
-    assert.equal((await request('/api/register', null, { method: 'POST', body: { role: 'superadmin' } })).status, 400);
+    assert.equal((await request('/api/register', null, { method: 'POST', body: { role: 'superadmin' } })).status, 401);
     assert.equal((await request('/api/admin/suspend-user', 'admin', { method: 'POST', body: { system_id: fixtures.superadmin } })).status, 403);
     assert.equal((await request('/api/admin/approve-user', 'admin', { method: 'POST', body: { temp_system_id: fixtures.admin } })).status, 403);
     for (const [route,role] of [['/api/admin/pending-users','admin'], ['/api/superadmin/users','superadmin'], ['/api/mho/kpi','mho'], ['/api/diseases','bhw']]) {

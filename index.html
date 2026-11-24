@@ -1,15 +1,13 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <script defer src="assets/js/shared/api-session.js?v=20261123-staff"></script>
+    <script defer src="assets/js/shared/api-session.js?v=20261124-staff-access"></script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="assets/img/Health-Intel-Symbol.png?v=20261003" />
     <title>HEALTH-INTEL | Secure Access</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Firebase & SweetAlert -->
-    <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <!-- Icons & Fonts -->
@@ -113,7 +111,7 @@
 
             <div class="options-row access-options-spaced">
               <label><input type="checkbox" id="remember_me" checked /> Remember me</label>
-              <a href="#" id="forgot-pass-btn" class="access-forgot-link">Forgot password?</a>
+              <a href="#" id="forgot-pass-btn" class="access-forgot-link">Superadmin email reset</a>
             </div>
 
             <button type="submit" class="btn-primary">
@@ -121,132 +119,7 @@
               <i data-lucide="arrow-right" class="access-icon-16"></i>
             </button>
 
-            <p class="access-registration-line"><button type="button" class="access-register-link" onclick="activateStaffAccount()">Activate staff account</button></p>
-          </form>
-
-          <!-- ============================================== -->
-          <!-- SCREEN 2: GOOGLE GATEWAY -->
-          <!-- ============================================== -->
-          <div id="gateway-screen" class="hidden">
-            <p class="access-gateway-note">
-              Before creating an account, review how this academic prototype uses health information.
-            </p>
-            <label class="access-privacy-consent">
-              <input type="checkbox" id="privacy-checkbox" class="access-privacy-checkbox" />
-              <span>I have read the <a href="#" onclick="showTerms(event)" class="access-terms-link">prototype terms and privacy information</a> and will use the system only as authorized.</span>
-            </label>
-
-            <button id="btn-google-login" class="btn-primary access-google-gate" disabled>
-              <svg width="20" height="20" viewBox="0 0 48 48" class="access-google-icon">
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-              </svg>
-              <span>Sign in with Google</span>
-            </button>
-
-            <button type="button" onclick="toggleForms('login')" class="access-cancel-gateway">Cancel and return to Login</button>
-          </div>
-
-          <!-- ============================================== -->
-          <!-- SCREEN 3: REGISTRATION PROFILE -->
-          <!-- ============================================== -->
-          <form id="profile-screen" class="hidden">
-            <div class="access-verified-banner">
-              Google Verified: <strong id="verified-email-text" class="access-dark-text">Waiting...</strong>
-            </div>
-
-            <div class="form-row">
-              <div class="input-group access-flex-field">
-                <label for="reg_first">First name</label>
-                <div class="input-wrapper"><input type="text" id="reg_first" placeholder="First Name" maxlength="100" aria-label="First name" required /></div>
-              </div>
-              <div class="input-group access-flex-field">
-                <label for="reg_last">Last name</label>
-                <div class="input-wrapper"><input type="text" id="reg_last" placeholder="Last Name" maxlength="100" aria-label="Last name" required /></div>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="input-group access-flex-field">
-                <label for="reg_role">Role</label>
-                <div class="input-wrapper">
-                  <select id="reg_role" required class="access-inset-control">
-                    <option value="" disabled selected>Select Role...</option>
-                    <option value="bhw">BHW</option>
-                    <option value="mho">MHO</option>
-                  </select>
-                </div>
-              </div>
-              <div class="input-group access-flex-field">
-                <label for="reg_system_id">System ID</label>
-                <div class="input-wrapper">
-                  <input type="text" id="reg_system_id" value="Shown after submission" readonly class="access-system-id" />
-                </div>
-              </div>
-            </div>
-
-            <div class="input-group access-barangay-group" id="barangay-group">
-              <label for="reg_barangay">Assigned barangay</label>
-                <div class="input-wrapper">
-                <select id="reg_barangay" class="access-inset-control">
-                  <option value="" disabled selected>Assign Barangay...</option>
-                  <option value="Blumentritt">Brgy. Blumentritt</option>
-                  <option value="Salvacion">Brgy. Salvacion</option>
-                  <option value="Minoyan">Brgy. Minoyan</option>
-                  <option value="Caliban">Brgy. Caliban</option>
-                  <option value="Cansilayan">Brgy. Cansilayan</option>
-                  <option value="Alegria">Brgy. Alegria</option>
-                  <option value="Sta. Rosa">Brgy. Sta. Rosa</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="input-group registration-employee-id">
-              <label for="reg_emp_id">HR Employee ID</label>
-              <div class="input-wrapper"><input type="text" id="reg_emp_id" maxlength="50" placeholder="e.g. EMP-2026" required class="access-inset-control" /></div>
-            </div>
-
-            <div class="registration-photos">
-              <section class="registration-photo">
-                <div class="registration-photo-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M5 16c0-3 6-3 6 0m3-7h4m-4 4h4"/></svg><label for="reg_employee_photo">Employee ID photo</label></div>
-                <p id="registration-employee-help">Upload a clear, readable photo of your ID.<br>JPG or PNG · Up to 3 MB</p>
-                <input id="reg_employee_photo" type="file" accept="image/jpeg,image/png" aria-describedby="registration-employee-help" required />
-                <button type="button" data-registration-camera="employee"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 1-2h6l1 2h4v15H4V5Z"/><circle cx="12" cy="12" r="4"/></svg>Take photo</button>
-                <img id="reg_employee_preview" alt="Selected employee ID preview" hidden />
-              </section>
-              <section class="registration-photo">
-                <div class="registration-photo-heading"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg><label for="reg_selfie_photo">Selfie for manual review</label></div>
-                <p id="registration-selfie-help">Face the camera in good lighting.<br>JPG or PNG · Up to 3 MB</p>
-                <input id="reg_selfie_photo" type="file" accept="image/jpeg,image/png" aria-describedby="registration-selfie-help" required />
-                <button type="button" data-registration-camera="selfie"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 1-2h6l1 2h4v15H4V5Z"/><circle cx="12" cy="12" r="4"/></svg>Take selfie</button>
-                <img id="reg_selfie_preview" alt="Selected selfie preview" hidden />
-              </section>
-            </div>
-            <p class="registration-review-note">An authorized reviewer compares your ID and selfie. No automated face recognition.</p>
-
-            <div class="registration-passwords">
-              <div class="input-group">
-                <label for="reg_password">Create password</label>
-                <div class="input-wrapper">
-                  <input type="password" id="reg_password" placeholder="Create password" autocomplete="new-password" minlength="8" maxlength="72" aria-describedby="registration-password-help" required />
-                  <button type="button" class="access-password-button" data-registration-password="reg_password" aria-controls="reg_password" aria-label="Show create password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="registration-eye-slash" d="m3 3 18 18"/></svg></button>
-                </div>
-              </div>
-              <div class="input-group">
-                <label for="reg_confirm_password">Confirm password</label>
-                <div class="input-wrapper">
-                  <input type="password" id="reg_confirm_password" placeholder="Confirm password" autocomplete="new-password" minlength="8" maxlength="72" aria-describedby="registration-password-help" required />
-                  <button type="button" class="access-password-button" data-registration-password="reg_confirm_password" aria-controls="reg_confirm_password" aria-label="Show confirm password" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="registration-eye-slash" d="m3 3 18 18"/></svg></button>
-                </div>
-              </div>
-            </div>
-            <p class="registration-help" id="registration-password-help">Use at least 8 characters (maximum 72 UTF-8 bytes).</p>
-            <label class="registration-consent"><input type="checkbox" id="reg_review_consent" required />I agree to private review of my employee ID and selfie by the authorized account reviewer.</label>
-
-            <button type="submit" class="btn-primary access-submit">Submit Request</button>
-            <button type="button" onclick="toggleForms('login')" class="access-cancel-profile access-cancel-gateway">Cancel and return to Login</button>
+            <p class="access-registration-line"><button type="button" class="access-register-link" onclick="activateStaffAccount()">Activate staff account</button> · <button type="button" class="access-register-link" onclick="activateStaffAccount(true)">Use HRIS reset code</button></p>
           </form>
 
           <!-- ============================================== -->
@@ -297,10 +170,8 @@
     <!-- ============================================== -->
     <!-- JAVASCRIPT LOGIC (100% INTACT) -->
     <!-- ============================================== -->
-    <script defer src="assets/js/index/index-firebase.js"></script>
-    <script defer src="assets/js/index/index-shell.js"></script>
+    <script defer src="assets/js/index/index-shell.js?v=20261124-staff-access"></script>
     <script defer src="assets/js/index/index-recovery.js"></script>
-    <script defer src="assets/js/index/index-registration.js?v=20261120-invite-session"></script>
-    <script defer src="assets/js/index/index-login.js?v=20261123-staff-controls"></script>
+    <script defer src="assets/js/index/index-login.js?v=20261124-staff-access"></script>
   </body>
 </html>
