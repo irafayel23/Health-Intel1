@@ -12,7 +12,22 @@ const prefixes={bhw:'BHW',mho:'MHO',admin:'ADM'};
 async function nextId(connection,role){
     if(!Object.hasOwn(prefixes,role))throw invalid('Select a valid registration role.');
     const prefix=prefixes[role];
-    const [[row]]=await connection.execute("SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(system_id,'-',-1) AS UNSIGNED)),0) AS last_number FROM users WHERE system_id REGEXP ?",['^'+prefix+'-[0-9]+$']);
+    const pattern = '^' + prefix + '-[0-9]+$';
+    const maxNumber = "SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(system_id,'-',-1) AS UNSIGNED)),0) AS last_number";
+    let row;
+    try {
+        [[row]] = await connection.execute(`SELECT GREATEST(
+            (${maxNumber} FROM users WHERE system_id REGEXP ?),
+            (${maxNumber} FROM staff_activations WHERE system_id REGEXP ?),
+            (${maxNumber} FROM (
+                SELECT JSON_UNQUOTE(JSON_EXTRACT(IF(JSON_VALID(details),details,'{}'),'$.target_id')) AS system_id
+                FROM system_audit_logs WHERE action IN ('Staff Account Canceled','Staff Account Removed')
+            ) AS canceled WHERE system_id REGEXP ?)
+        ) AS last_number`, [pattern, pattern, pattern]);
+    } catch (error) {
+        if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
+        [[row]] = await connection.execute(`${maxNumber} FROM users WHERE system_id REGEXP ?`, [pattern]);
+    }
     const number=Number(row.last_number)+1;if(number>999999999)throw invalid('No further IDs are available for this role.',409);
     return prefix+'-'+String(number).padStart(3,'0');
 }
@@ -40,6 +55,13 @@ function createRegistrationHandlers(db, {verify=verifyGoogle,evidence=store,invi
         const hash=await bcrypt.hash(body.password,10);
         const id=await transaction(db,async connection=>{
             if (invite) await ensureInviteCanBeRedeemed(connection, invitations.read(body.admin_invitation, email));
+            try {
+                const [[staffEmail]] = await connection.execute(
+                    'SELECT system_id AS reserved_staff_id FROM staff_activation_emails WHERE email=?', [email]);
+                if (staffEmail?.reserved_staff_id) throw invalid('This email already belongs to a staff account. Contact HRIS.', 409);
+            } catch (error) {
+                if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
+            }
             const [existing]=await connection.execute('SELECT system_id,status,role FROM users WHERE LOWER(TRIM(email))=? OR system_id=? FOR UPDATE',[email,evidence.owner(proof.uid)||'']);if(existing.length>1||existing.some(r=>!['pending','denied'].includes(r.status)))throw invalid('An account or pending request already exists. Sign in or contact the administrator.',409);
             const previous=existing[0];if(previous&&(previous.role!==role||evidence.read(previous.system_id)?.uid&&evidence.read(previous.system_id).uid!==proof.uid))throw invalid('Contact the administrator to review your previous application.',409);
             let barangay=null;if(role==='bhw'){const name=plain(body.assigned_barangay,'assigned barangay',100).replace(/^Brgy\.\s*/i,'');const [rows]=await connection.execute('SELECT id FROM barangays WHERE name=?',[name]);if(!rows.length)throw invalid('Select a valid assigned barangay.');barangay=rows[0].id;}

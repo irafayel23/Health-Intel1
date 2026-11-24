@@ -1,5 +1,6 @@
 const { createAccountCredentials } = require('../services/account-credentials');
 const rateLimit = require('express-rate-limit');
+const { createStaffActivation } = require('../services/staff-activation');
 const bcrypt = require('bcrypt');
 const {
     normalizeEmail,
@@ -61,6 +62,18 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions, publicO
     app.post('/api/get-next-id', registrationLimiter, registration.previewId);
     app.post('/api/check-email', registrationLimiter, registration.checkEmail);
     app.post('/api/register', registrationLimiter, registration.register);
+    const staff = createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured });
+    app.post('/api/activate-staff', registrationLimiter, staff.activate);
+    app.post('/api/superadmin/staff-accounts', staff.issue);
+    app.post('/api/superadmin/staff-accounts/cancel', staff.cancel);
+    app.get('/api/superadmin/staff-barangays', async (_req, res) => {
+        try {
+            const [data] = await db.execute('SELECT id,name FROM barangays ORDER BY name');
+            res.json({ success: true, data });
+        } catch {
+            res.status(503).json({ success: false, error: 'Barangays could not be loaded.' });
+        }
+    });
     const invitationSenderLimit = rateLimit({
         windowMs: 60 * 60 * 1000,
         max: 10,

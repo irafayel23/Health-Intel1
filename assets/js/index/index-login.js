@@ -1,3 +1,91 @@
+async function activateStaffAccount() {
+    const passwordField = (name, label) => `<div>
+        <label for="staff-${name}">${label}</label>
+        <div class="staff-activation-password">
+            <input id="staff-${name}" name="${name}" type="password" autocomplete="new-password" minlength="8" required>
+            <button type="button" data-password-label="${label.toLowerCase()}" aria-controls="staff-${name}" aria-label="Show ${label.toLowerCase()}"><i data-lucide="eye" aria-hidden="true"></i></button>
+        </div>
+    </div>`;
+    const result = await Swal.fire({
+        title: 'Activate staff account',
+        html: `<p>Enter the System ID and one-time code from HRIS, then create your password.</p>
+            <div class="staff-activation-fields">
+              <label class="input-group">System ID<input name="system_id" autocomplete="username" maxlength="50" required></label>
+              <div>
+                <label for="staff-code">Activation code</label>
+                <div class="staff-activation-code">
+                    <input id="staff-code" name="code" autocomplete="one-time-code" spellcheck="false" maxlength="40" required>
+                    <button type="button" data-paste-activation>Paste</button>
+                </div>
+                <p data-paste-status role="status"></p>
+              </div>
+              ${passwordField('password', 'New password')}
+              ${passwordField('confirm_password', 'Confirm password')}
+            </div>`,
+        showCancelButton: true, confirmButtonText: 'Activate account',
+        confirmButtonColor: '#007d82', showLoaderOnConfirm: true,
+        allowOutsideClick: () => !Swal.isLoading(),
+        didOpen: popup => {
+            const id = popup.querySelector('[name="system_id"]');
+            const code = popup.querySelector('[name="code"]');
+            const status = popup.querySelector('[data-paste-status]');
+            function fillActivation(text) {
+                const copiedCode = text.match(/\b[A-F0-9]{32}\b|\b[A-F0-9]{8}(?:[-\s]+[A-F0-9]{8}){3}\b/gi);
+                if (copiedCode?.length !== 1) return false;
+                code.value = copiedCode[0].replace(/[\s-]/g, '').toUpperCase();
+                const copiedId = text.match(/\b(?:BHW|MHO|ADM)-(?:\d{3,9}|S[A-F0-9]{12})\b/i);
+                if (copiedId) id.value = copiedId[0].toUpperCase();
+                status.textContent = '';
+                return true;
+            }
+            code.addEventListener('paste', event => {
+                if (fillActivation(event.clipboardData?.getData('text/plain') || '')) event.preventDefault();
+            });
+            popup.querySelector('[data-paste-activation]').addEventListener('click', async () => {
+                try {
+                    if (!fillActivation(await navigator.clipboard.readText())) status.textContent = 'Copy the activation code and try again.';
+                } catch {
+                    status.textContent = 'Use your keyboard or context menu to paste.';
+                }
+                code.focus();
+            });
+            for (const button of popup.querySelectorAll('[data-password-label]')) {
+                const input = popup.querySelector('#' + button.getAttribute('aria-controls'));
+                button.addEventListener('click', () => {
+                    const showing = input.type === 'password';
+                    input.type = showing ? 'text' : 'password';
+                    button.setAttribute('aria-label', (showing ? 'Hide ' : 'Show ') + button.dataset.passwordLabel);
+                    button.innerHTML = showing ? '<i data-lucide="eye-off" aria-hidden="true"></i>' : '<i data-lucide="eye" aria-hidden="true"></i>';
+                    window.lucide?.createIcons();
+                });
+            }
+            window.lucide?.createIcons();
+        },
+        preConfirm: async () => {
+            const fields = [...Swal.getHtmlContainer().querySelectorAll('input[name]')];
+            if (!fields.every(field => field.reportValidity())) return false;
+            const data = Object.fromEntries(fields.map(field => [field.name, field.value]));
+            try {
+                const response = await fetch('http://localhost:3000/api/activate-staff', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw Error(result.error || 'Activation could not be completed.');
+                return result;
+            } catch (error) {
+                Swal.showValidationMessage(error.message);
+                return false;
+            }
+        }
+    });
+    if (result.isConfirmed) {
+        const id = document.getElementById('login_id');
+        id.value = result.value.system_id;
+        await Swal.fire({ icon: 'success', title: 'Account activated', text: 'You can now sign in with your new password.', confirmButtonColor: '#007d82' });
+        document.getElementById('login_password').focus();
+    }
+}
+
 // Passwords and takeover challenges stay in this submit handler's memory only.
 (() => {
     function showCooldown(seconds, code) {

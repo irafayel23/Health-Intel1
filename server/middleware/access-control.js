@@ -7,7 +7,7 @@ const { createSessionSecurity, tokenHash } = require('../services/session-securi
 
 const publicEndpoints = new Set([
     'POST /login', 'POST /register', 'POST /get-next-id', 'POST /check-email',
-    'POST /forgot-password', 'POST /reset-password'
+    'POST /activate-staff', 'POST /forgot-password', 'POST /reset-password'
 ]);
 const rules = [
     ['GET', /^\/admin\/registration-evidence\/[^/]+$/, ['admin','superadmin']],
@@ -28,9 +28,9 @@ const rules = [
     ['GET', /^\/admin\/(pending-users|active-users|denied-users|audit-logs)$/, ['admin', 'superadmin']],
     ['GET', /^\/admin\/cases\/\d+$/, ['admin']],
     ['POST', /^\/admin\/(approve-user|deny-user|undo-deny|suspend-user|restore-suspended)$/, ['admin', 'superadmin']],
-    ['GET', /^\/superadmin\/(pending-admins|health|users|audit-logs)$/, ['superadmin']],
+    ['GET', /^\/superadmin\/(pending-admins|health|users|audit-logs|staff-barangays)$/, ['superadmin']],
     ['GET', /^\/superadmin\/admins\/[^/]+\/history$/, ['superadmin']],
-    ['POST', /^\/superadmin\/(approve-admin|backup|admin-invitations)$/, ['superadmin']],
+    ['POST', /^\/superadmin\/(approve-admin|backup|admin-invitations|staff-accounts(?:\/cancel)?)$/, ['superadmin']],
     ['GET', /^\/bhw\/context$/, ['bhw']],
     ['GET', /^\/bhw\/(encoding-options|puroks)$/, ['bhw']],
     ['GET', /^\/bhw\/report-data$/, ['bhw']],

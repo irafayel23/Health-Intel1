@@ -338,13 +338,12 @@ test('Superadmin distinguishes account states and never treats a denied account 
     p.s.response=()=>({success:true,data:['approved','pending','suspended','denied','unexpected'].map(status=>({system_id:'QA-'+status,role:'admin',status,created_at:'2026-10-02'}))});
     await p.s.loadAdmins();
     const rows=p.elements['user-table-body'].innerHTML.match(/<tr\b[\s\S]*?<\/tr>/g);
-    for(const [index,label] of [[0,'Active'],[1,'Suspended'],[2,'Denied'],[3,'Unknown']]){
+    for(const [index,label] of [[0,'Active'],[1,'Pending'],[2,'Suspended'],[3,'Denied'],[4,'Unknown']]){
         assert.match(rows[index],new RegExp('>'+label+'<'));
         assert.doesNotMatch(rows[index],/toggleAdminStatus|In account details|title="Open account details"/);
         assert.match(rows[index],/class="hi-admin-access-hint"/);
     }
-    assert.equal(p.elements['admin-pending-count'].textContent,1);
-    assert.doesNotMatch(p.elements['user-table-body'].innerHTML,/QA-pending/);
+    assert.match(p.elements['user-table-body'].innerHTML,/QA-pending/);
     p.s.Swal.fire=async()=>({isConfirmed:true});
     await p.s.toggleAdminStatus('QA-pending','approved');
     const update=p.requests.find(r=>r.url.endsWith('/approve-admin'));
@@ -364,8 +363,9 @@ test('Admin Access searches identity fields, filters status and requires a confi
     for(const search of ['ada tester','ADA@EXAMPLE','EMP-42','qa-a']){
         p.elements['admin-search'].value=search;p.s.renderAdmins();assert.match(p.elements['user-table-body'].innerHTML,/QA-A/);assert.doesNotMatch(p.elements['user-table-body'].innerHTML,/QA-P/);
     }
-    p.s.selectAdminAccess('pending');assert.match(p.elements['user-table-body'].innerHTML,/QA-P/);assert.doesNotMatch(p.elements['user-table-body'].innerHTML,/QA-A/);
-    p.elements['admin-search'].value='not found';p.s.renderAdmins();assert.match(p.elements['user-table-body'].innerHTML,/No matching pending requests/);
+    p.elements['admin-search'].value='';
+    p.elements['admin-status-filter'].value='pending';p.s.renderAdmins();assert.match(p.elements['user-table-body'].innerHTML,/QA-P/);assert.doesNotMatch(p.elements['user-table-body'].innerHTML,/QA-A/);
+    p.elements['admin-search'].value='not found';p.s.renderAdmins();assert.match(p.elements['user-table-body'].innerHTML,/No matching staff accounts/);
     const before=p.requests.length;
     p.s.Swal.fire=async()=>({isConfirmed:false});await p.s.toggleAdminStatus('QA-A','suspended');assert.equal(p.requests.length,before);
     let prompt;p.s.Swal.fire=async options=>{prompt=options;return {isConfirmed:true,value:'   '};};await p.s.toggleAdminStatus('QA-A','suspended');assert.equal(p.requests.length,before);
@@ -377,7 +377,7 @@ test('Admin Access searches identity fields, filters status and requires a confi
     accounts[0].status='suspended';await p.s.loadAdmins();await p.s.toggleAdminStatus('QA-A','approved');assert.ok(p.requests.some(row=>row.url.endsWith('/restore-suspended')));
 });
 
-test('System Accounts filters roles without offering account actions',async()=>{
+test('Staff Accounts filters roles and keeps BHW details read-only',async()=>{
     const p=page('superadmin.html');p.load();
     p.s.response=()=>({success:true,data:[
         {system_id:'QA-BHW',role:'bhw',status:'approved',assigned_barangay:'Salvacion'},
@@ -386,8 +386,10 @@ test('System Accounts filters roles without offering account actions',async()=>{
     ]});
     await p.s.loadAdmins();p.s.selectAdminAccess('directory');
     const rows=p.elements['user-table-body'];
-    assert.equal(p.elements['admin-view-directory'].getAttribute('aria-pressed'),'true');
-    assert.match(p.elements['admin-list-status'].textContent,/3 of 3 system accounts/);
+    assert.ok(p.elements['nav-users']);
+    assert.equal(p.elements['nav-staff'], undefined);
+    assert.equal(p.elements['admin-view-pending'], undefined);
+    assert.match(p.elements['admin-list-status'].textContent,/3 of 3 staff accounts/);
     assert.match(rows.innerHTML,/QA-BHW[\s\S]*Salvacion[\s\S]*QA-MHO[\s\S]*QA-ADMIN/);
     assert.match(rows.innerHTML,/openAdminRow[\s\S]*Open account details/);
     let details;
@@ -398,15 +400,15 @@ test('System Accounts filters roles without offering account actions',async()=>{
     assert.equal(details.confirmButtonText,'Close');assert.equal(p.requests.length,before);
     p.elements['admin-role-filter'].value='mho';p.s.renderAdmins();
     assert.match(rows.innerHTML,/QA-MHO/);assert.doesNotMatch(rows.innerHTML,/QA-BHW|QA-ADMIN/);
-    p.s.selectAdminAccess('pending');
-    assert.equal(p.elements['admin-status-field'].hidden,true);
-    assert.match(rows.innerHTML,/No administrator requests awaiting approval/);
+    p.s.selectAdminAccess('activation');
+    assert.equal(p.elements['admin-status-filter'].value,'awaiting_activation');
+    assert.match(rows.innerHTML,/No matching staff accounts/);
     p.s.response=()=>({success:false});await p.s.loadAdmins();
     assert.match(rows.innerHTML,/Accounts could not be loaded/);
 });
 
 
-test('Access Control paginates every view and confirms a pending Admin decline', async()=>{
+test('Staff directory paginates filters and retains review of pending Admins', async()=>{
     const p=page('superadmin.html');p.load();
     const accounts=Array.from({length:10},(_,i)=>[
         {system_id:'QA-A'+i,role:'admin',status:'approved'},
@@ -417,23 +419,22 @@ test('Access Control paginates every view and confirms a pending Admin decline',
         url.endsWith('/history')?{success:true,data:{account:accounts[1],events:[]}}:{success:true,data:[]};
     await p.s.loadAdmins();
     const rows=p.elements['user-table-body'], pager=p.elements['admin-account-pager'];
-    for(const [view,total] of [['directory',21],['accounts',10],['pending',10]]){
+    for(const [view,status,total] of [['directory','',21],['accounts','approved',10],['accounts','pending',10]]){
         p.s.selectAdminAccess(view);
+        p.elements['admin-status-filter'].value=status;
+        p.s.renderAdmins();
         assert.equal((rows.innerHTML.match(/<tr /g)||[]).length,8);
         assert(pager.innerHTML.includes('Showing 1–8 of '+total));
         p.s.pageAdminAccounts({target:{closest:()=>({dataset:{historyPage:'2'}})},currentTarget:pager});
         assert(pager.innerHTML.includes('Showing 9–'+Math.min(total,16)+' of '+total));
     }
-    p.s.selectAdminAccess('pending');
     assert.doesNotMatch(rows.innerHTML,/QA-MHO-P/);
     const dialogs=[];
     p.s.Swal.fire=async options=>{dialogs.push(options);return dialogs.length===1?{isDenied:true}:{isConfirmed:dialogs.length===2};};
-    await p.s.viewAdminAccount('QA-P0');
+    await p.s.openAdminRow({type:'click',target:{closest:()=>null}},'QA-P0');
     assert.equal(dialogs[0].confirmButtonText,'Approve');
     assert.equal(dialogs[0].denyButtonText,'Decline');
-    assert.equal(dialogs[1].confirmButtonText,'Decline');
-    const decline=p.requests.find(request=>request.url.endsWith('/deny-user'));
-    assert.deepEqual(JSON.parse(decline.options.body),{system_id:'QA-P0'});
+    assert.equal(dialogs[1].confirmButtonText,'Decline and notify');
 });
 
 test('Admin account details escape saved identity/reasons and report missing history without inventing it',async()=>{

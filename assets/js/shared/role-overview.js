@@ -31,28 +31,28 @@
             if(rows===null||!rows.length){
                 const state=doc.createElement('div');state.className='m-5 flex min-h-56 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-8 text-center dark:border-neutral-600 dark:bg-neutral-800';
                 const mark=doc.createElement('span');mark.className='mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200';
-                const icon=doc.createElement('i');icon.setAttribute('data-lucide',rows===null?'circle-alert':kind==='accounts'?'clipboard-check':'history');icon.setAttribute('aria-hidden','true');icon.className='h-7 w-7';mark.append(icon);
-                const title=doc.createElement('p');title.className='text-base font-bold text-slate-900 dark:text-white';title.textContent=rows===null?'Unable to load this panel':kind==='accounts'?'No requests waiting':'No activity yet';
+                const icon=doc.createElement('i');icon.setAttribute('data-lucide',rows===null?'circle-alert':kind==='activity'?'history':'clipboard-check');icon.setAttribute('aria-hidden','true');icon.className='h-7 w-7';mark.append(icon);
+                const title=doc.createElement('p');title.className='text-base font-bold text-slate-900 dark:text-white';title.textContent=rows===null?'Unable to load this panel':kind==='activation'?'No staff awaiting activation':kind==='accounts'?'No requests waiting':'No activity yet';
                 const detail=doc.createElement('p');detail.className='mt-2 max-w-xs text-sm font-medium leading-6 text-slate-700 dark:text-slate-200';detail.textContent=rows===null?'Select Refresh overview to try again.':empty;
                 state.append(mark,title,detail);box.append(state);win.lucide?.createIcons();return;
             }
             rows.forEach(row=>{
                 const wrap=doc.createElement('div');wrap.className='flex items-start gap-4 border-b border-slate-200 px-5 py-5 last:border-0 dark:border-neutral-700';
                 const mark=doc.createElement('span');mark.className='flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-slate-200';
-                const icon=doc.createElement('i');icon.setAttribute('data-lucide',kind==='accounts'?'user-round':/login/i.test(row.action||'')?'log-in':/backup/i.test(row.action||'')?'hard-drive-download':'clipboard-list');icon.setAttribute('aria-hidden','true');icon.className='h-5 w-5';mark.append(icon);wrap.append(mark);
+                const icon=doc.createElement('i');icon.setAttribute('data-lucide',kind!=='activity'?'user-round':/login/i.test(row.action||'')?'log-in':/backup/i.test(row.action||'')?'hard-drive-download':'clipboard-list');icon.setAttribute('aria-hidden','true');icon.className='h-5 w-5';mark.append(icon);wrap.append(mark);
                 const text=doc.createElement('div');text.className='min-w-0';
                 const title=doc.createElement('p');title.className='break-words text-base font-semibold leading-6 text-slate-950 dark:text-white';
-                title.textContent=kind==='accounts'?String(row.system_id||'Account'):String(row.action||'Recorded action');
+                title.textContent=kind!=='activity'?String(row.system_id||'Account'):String(row.action||'Recorded action');
                 const detail=doc.createElement('p');detail.className='mt-1.5 break-words text-sm font-medium leading-6 text-slate-700 dark:text-slate-200';
-                detail.textContent=kind==='accounts'?`${String(row.role||'admin').toUpperCase()} · ${time(row.created_at)}`:`${row.user_id||'System'} · ${time(row.created_at)}`;
+                detail.textContent=kind!=='activity'?`${String(row.role||'admin').toUpperCase()} · ${time(row.created_at)}`:`${row.user_id||'System'} · ${time(row.created_at)}`;
                 text.append(title,detail);wrap.append(text);
-                if(kind==='accounts'){const badge=doc.createElement('span');badge.className='shrink-0 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-200';badge.textContent='Pending';wrap.append(badge);}
+                if(kind!=='activity'){const badge=doc.createElement('span');badge.className='shrink-0 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-200';badge.textContent=kind==='activation'?'Awaiting activation':'Pending';wrap.append(badge);}
                 box.append(wrap);
             });
             win.lucide?.createIcons();
         }
         function open(destination) {
-            const map=role==='admin'?{accounts:['view-iam','nav-iam'],pending:['view-iam','nav-iam'],records:['view-data','nav-data'],catalog:['view-diseases','nav-diseases'],audit:['view-audit','nav-audit']}:{directory:['view-users','nav-users'],accounts:['view-users','nav-users'],pending:['view-users','nav-users'],audit:['view-audit','nav-audit'],backup:['view-db','nav-db']};
+            const map=role==='admin'?{accounts:['view-iam','nav-iam'],pending:['view-iam','nav-iam'],records:['view-data','nav-data'],catalog:['view-diseases','nav-diseases'],audit:['view-audit','nav-audit']}:{directory:['view-users','nav-users'],accounts:['view-users','nav-users'],activation:['view-users','nav-users'],audit:['view-audit','nav-audit'],backup:['view-db','nav-db']};
             const target=map[destination];if(!target)return;
             win.switchMainView(...target);
             if(role==='admin'&&['accounts','pending'].includes(destination))win.switchSubView('iam',destination==='pending'?'pending':'active');
@@ -83,13 +83,14 @@
                 list('overview-recent-list',recent(data(6)),'No operational activity has been recorded.','activity');
             }else{
                 const users=data(1),health=data(2),admins=Array.isArray(users)?users.filter(u=>String(u.role).toLowerCase()==='admin'):null;
-                put('overview-accounts',admins?number(admins.filter(u=>u.status!=='pending').length):'—');
-                put('overview-pending',admins?number(admins.filter(u=>u.status==='pending').length):'—');
+                put('overview-accounts',admins?number(admins.length):'—');
+                const awaiting = Array.isArray(users) ? users.filter(user => user.status === 'awaiting_activation') : null;
+                put('overview-pending',awaiting ? number(awaiting.length) : '—');
                 put('overview-records',health?number(health.total_records):'—');
                 put('overview-system-accounts',Array.isArray(users)?number(users.length):'—');
                 put('stat-total-logs',health?number(health.total_logs):'—');
-                put('overview-hero-title',admins?admins.some(u=>u.status==='pending')?'Administrator access needs review':'Your system, organized and within reach':'Your system overview');
-                list('overview-pending-list',admins?admins.filter(u=>u.status==='pending').slice(0,3):null,'No administrator requests are awaiting approval.','accounts');
+                put('overview-hero-title',users?'Your system, organized and within reach':'Your system overview');
+                list('overview-pending-list',awaiting?.slice(0,3) ?? null,'Staff appear here after their accounts are issued.','activation');
                 list('overview-recent-list',recent(data(3)),'No system activity has been recorded.','activity');
             }
             const failed=results.filter(r=>r.status==='rejected').length;

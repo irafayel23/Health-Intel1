@@ -15,7 +15,7 @@ function fixture(role,{fail=[],session='ADMIN-007',empty=false}={}){
  '/api/patients':{data:[{status:'Active',is_archived:0},{status:'Recovered',is_archived:0},{status:'Active',is_archived:1},{status:'Active',is_archived:0}]},
  '/api/diseases':{data:[{name:'Cough'},{name:'URTI'}]},
  '/api/admin/audit-logs':{data:[{id:1,user_id:'ADMIN-007',action:'Catalog Updated',created_at:'2026-10-30T10:00:00Z'}]},
- '/api/superadmin/users':{data:[{system_id:'ADMIN-A',role:'admin',status:'approved'},{system_id:'ADMIN-P',role:'admin',status:'pending'},{system_id:'BHW-A',role:'bhw',status:'approved'}]},
+ '/api/superadmin/users':{data:[{system_id:'ADMIN-A',role:'admin',status:'approved'},{system_id:'ADMIN-P',role:'admin',status:'pending'},{system_id:'BHW-A',role:'bhw',status:'awaiting_activation'}]},
  '/api/superadmin/health':{data:{total_users:12,total_records:31,total_logs:45}},
  '/api/superadmin/audit-logs':{data:[{id:1,user_id:'SUPER-001',action:'Backup Generated',created_at:'2026-10-30T10:00:00Z'}]}
  };
@@ -38,10 +38,10 @@ test('Admin greeting, counts and queue reflect actual authorized responses',asyn
  assert.equal(f.els['role-overview'].attributes['aria-busy'],'false');assert.equal(f.els['overview-refresh'].disabled,false);
  assert(!f.calls.some(p=>p.includes('predict')));
 });
-test('Superadmin matches directory totals and opens the selected Access Control view',async()=>{
+test('Superadmin matches directory totals and opens the Staff Accounts directory with matching filters',async()=>{
  const f=fixture('superadmin',{session:'SUPERADMIN-009'});await f.flush();
- assert.equal(f.els['overview-welcome'].textContent,'Welcome back, SUPERADMIN-***');assert.equal(f.els['overview-account-id'].textContent,'SUPERADMIN-***');assert.equal(f.els['overview-system-accounts'].textContent,'3');assert.equal(f.els['overview-accounts'].textContent,'1');assert.equal(f.els['overview-pending'].textContent,'1');assert.equal(f.els['overview-records'].textContent,'31');assert.equal(f.els['stat-total-logs'].textContent,'45');
- f.win.HealthIntelOverview.open('pending');assert.deepEqual(f.navigation[0],['view-users','nav-users']);f.win.HealthIntelOverview.open('directory');f.win.HealthIntelOverview.open('accounts');assert.deepEqual(f.accessViews,['pending','directory','accounts']);
+ assert.equal(f.els['overview-welcome'].textContent,'Welcome back, SUPERADMIN-***');assert.equal(f.els['overview-account-id'].textContent,'SUPERADMIN-***');assert.equal(f.els['overview-system-accounts'].textContent,'3');assert.equal(f.els['overview-accounts'].textContent,'2');assert.equal(f.els['overview-pending'].textContent,'1');assert.equal(f.els['overview-records'].textContent,'31');assert.equal(f.els['stat-total-logs'].textContent,'45');
+ f.win.HealthIntelOverview.open('activation');assert.deepEqual(f.navigation[0],['view-users','nav-users']);f.win.HealthIntelOverview.open('directory');f.win.HealthIntelOverview.open('accounts');assert.deepEqual(f.accessViews,['activation','directory','accounts']);
  f.win.HealthIntelOverview.open('backup');assert.deepEqual(f.navigation[3],['view-db','nav-db']);
  f.win.HealthIntelOverview.open('records');f.win.HealthIntelOverview.open('audit');assert.deepEqual(f.navigation.slice(4),[['view-audit','nav-audit']]);
 });
@@ -57,7 +57,7 @@ test('both real pages retain role hooks, have unique overview IDs and responsive
  for(const role of ['admin','superadmin']){
   const h=fs.readFileSync(path.join(__dirname,'../../'+role+'.html'),'utf8');
   for(const id of ['role-overview','overview-welcome','overview-refresh','overview-account-id','overview-pending-list','overview-recent-list'])assert.equal([...h.matchAll(new RegExp('id="'+id+'"','g'))].length,1,id);
-  assert(h.includes('sm:grid-cols-2 xl:grid-cols-4'));assert(h.includes('dark:bg-neutral-900'));assert(h.includes('data-overview-open="pending"'));assert(h.indexOf('shared/role-overview.js')<h.indexOf(role+'/'+role+'-shell.js'));
+  assert(h.includes('sm:grid-cols-2 xl:grid-cols-4'));assert(h.includes('dark:bg-neutral-900'));assert(h.includes(role==='admin'?'data-overview-open="pending"':'data-overview-open="activation"'));assert(h.indexOf('shared/role-overview.js')<h.indexOf(role+'/'+role+'-shell.js'));
  }
 });
 
@@ -66,7 +66,7 @@ test('empty queues provide a readable explanation without inventing requests',as
  for(const role of ['admin','superadmin']){
   const f=fixture(role,{empty:true});await f.flush();
   const box=f.els['overview-pending-list'];
-  assert.match(allText(box),/No requests waiting/);
+  assert.match(allText(box),role==='admin'?/No requests waiting/:/No staff awaiting activation/);
   assert.match(box.children[0].className,/border-dashed/);
   assert.match(allText(f.els['overview-recent-list']),/No activity yet/);
   assert.equal(f.els['overview-pending'].textContent,'0');

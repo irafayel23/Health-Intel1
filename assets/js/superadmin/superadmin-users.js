@@ -1,7 +1,190 @@
+const staffDeliveryStatus = {
+    sent: 'The mail provider accepted the message. Check the employee’s inbox or spam folder.',
+    failed: 'The email could not be sent. The activation details can still be copied.',
+    auth_failed: 'Gmail rejected the sender login. The activation details can still be copied.',
+    not_configured: 'Email delivery is unavailable. The activation details can still be copied.',
+    sending: 'Delivery status has not been confirmed.',
+    recipient_rejected: 'The mail service rejected the recipient. Confirm the address or hand over the details in person.',
+    smtp_unavailable: 'The mail server did not respond. The activation details can still be copied.',
+    unconfirmed: 'The server did not confirm that an email was sent. You can copy the code or request a new one.'
+};
+
+async function cancelStaffAccount(staff) {
+    const result = await Swal.fire({
+        icon: 'warning',
+        title: 'Cancel staff account?',
+        text: `Cancel ${staff.system_id} for ${adminName(staff)}? Its activation code will stop working and its saved email can be used again.`,
+        showCancelButton: true, cancelButtonText: 'Keep account', focusCancel: true,
+        confirmButtonText: 'Cancel staff account', confirmButtonColor: '#b91c1c',
+        showLoaderOnConfirm: true, allowOutsideClick: () => !Swal.isLoading(),
+        preConfirm: async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/superadmin/staff-accounts/cancel', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ system_id: staff.system_id })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw Error(result.error || 'Could not cancel the staff account.');
+                return true;
+            } catch (error) {
+                Swal.showValidationMessage(error.message);
+                return false;
+            }
+        }
+    });
+    if (!result.isConfirmed) return;
+    void loadAdmins();
+    await Swal.fire({
+        icon: 'success', title: 'Staff account canceled',
+        text: 'The activation code was invalidated and the cancellation was recorded in the Activity Log.'
+    });
+}
+
+async function createStaffAccount(staff) {
+    const inputStyle = 'mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-slate-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white';
+    let barangays = [];
+    try {
+        if (!staff || staff.role === 'bhw') {
+            const response = await fetch('http://localhost:3000/api/superadmin/staff-barangays');
+            const result = await response.json();
+            if (!response.ok || !result.success || !Array.isArray(result.data)) throw Error();
+            barangays = result.data;
+        }
+    } catch {
+        return Swal.fire({ icon: 'error', title: 'Could not load barangays', text: 'Try opening staff account creation again.' });
+    }
+    const result = await Swal.fire({
+        title: staff ? 'New activation code' : 'Create staff account',
+        ...(staff ? {width: 520, customClass: {popup: 'hi-staff-code-dialog'}} : {}),
+        html: `<form class="grid gap-3 text-left text-sm">
+            ${staff ? `<div class="hi-staff-code-summary">
+                <strong>${escapeText(adminName(staff))}</strong>
+                <span>${escapeText([staff.system_id, staff.role === 'admin' ? 'Admin' : staff.role.toUpperCase(), staff.assigned_barangay].filter(Boolean).join(' · '))}</span>
+            </div><p>A new code replaces the previous one.</p>` : `
+            <p class="rounded-xl bg-emerald-50 p-4 text-emerald-950 dark:bg-emerald-950 dark:text-emerald-100">Verify the employee’s ID and assignment in person before issuing a code.</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <label class="font-semibold">First name<input class="${inputStyle}" name="first_name" maxlength="100" required></label>
+              <label class="font-semibold">Last name<input class="${inputStyle}" name="last_name" maxlength="100" required></label>
+              <label class="font-semibold">Employee ID<input class="${inputStyle}" name="employee_id" maxlength="50" required></label>
+              <label class="font-semibold">Role<select class="${inputStyle}" name="role" required><option value="" disabled selected>Choose role</option><option value="bhw">BHW</option><option value="mho">MHO</option><option value="admin">Admin</option></select></label>
+            </div>
+            <label class="font-semibold" data-assignment hidden>Assigned barangay<select class="${inputStyle}" name="barangay_id"><option value="">Choose barangay</option></select></label>`}
+            <label class="font-semibold">How should the employee receive the code?
+              <select class="${inputStyle}" name="delivery_method">
+                <option value="manual">In person</option>
+                <option value="email">Send to the employee’s Gmail</option>
+              </select>
+            </label>
+            <div data-delivery-email hidden>
+              <label class="font-semibold">${staff?.delivery_email ? 'Saved Gmail' : 'Employee’s Gmail'}<input class="${inputStyle}" type="email" name="delivery_email" autocomplete="off" maxlength="255" placeholder="name@gmail.com" disabled></label>
+              <p class="mt-1 text-sm">${staff?.delivery_email
+                ? escapeText(staffDeliveryStatus[staff.last_email_delivery] || 'The saved address will be reused.')
+                : 'Confirm the address with the employee before sending.'}</p>
+            </div>
+            <label class="flex items-start gap-2 font-medium"><input type="checkbox" name="identity_checked" required> I checked the employee’s ID and assignment in person.</label>
+        </form>`,
+        confirmButtonText: staff ? 'Get new code' : 'Create account', showCancelButton: true, cancelButtonText: 'Close',
+        showDenyButton: Boolean(staff), denyButtonText: 'Cancel staff account', denyButtonColor: '#b91c1c',
+        confirmButtonColor: '#047857', showLoaderOnConfirm: true, allowOutsideClick: () => !Swal.isLoading(),
+        didOpen: popup => {
+            const form = popup.querySelector('form');
+            form.addEventListener('submit', event => { event.preventDefault(); Swal.clickConfirm(); });
+            const { role, barangay_id, delivery_method, delivery_email } = form.elements;
+            const updateDelivery = () => {
+                const byEmail = delivery_method.value === 'email';
+                form.querySelector('[data-delivery-email]').hidden = !byEmail;
+                delivery_email.disabled = !byEmail;
+                delivery_email.required = byEmail;
+            };
+            delivery_method.addEventListener('change', updateDelivery);
+            if (!staff) {
+                barangays.forEach(barangay => barangay_id.add(new Option(barangay.name, barangay.id)));
+                const updateAssignment = () => {
+                    form.querySelector('[data-assignment]').hidden = role.value !== 'bhw';
+                    barangay_id.required = role.value === 'bhw';
+                };
+                role.addEventListener('change', updateAssignment);
+                updateAssignment();
+            }
+            if (staff?.delivery_email) {
+                delivery_email.value = staff.delivery_email;
+                delivery_email.readOnly = true;
+                delivery_method.value = 'email';
+            }
+            updateDelivery();
+        },
+        preConfirm: async () => {
+            const form = Swal.getHtmlContainer().querySelector('form');
+            if (!form.reportValidity()) return false;
+            const fields = ['first_name', 'last_name', 'employee_id', 'role', 'barangay_id'];
+            const data = Object.fromEntries(fields.map(name => [name, staff?.[name] ?? form.elements[name]?.value]));
+            if (staff?.role === 'bhw') data.barangay_id = barangays.find(barangay => barangay.name === staff.assigned_barangay)?.id;
+            data.delivery_method = form.elements.delivery_method.value;
+            if (data.delivery_method === 'email') data.delivery_email = form.elements.delivery_email.value;
+            data.identity_checked = form.elements.identity_checked.checked;
+            if (staff) data.reissue_system_id = staff.system_id;
+            try {
+                const response = await fetch('http://localhost:3000/api/superadmin/staff-accounts', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw Error(result.error || 'Account could not be issued.');
+                return {...result, delivery_method: data.delivery_method, requested_recipient: data.delivery_email};
+            } catch (error) {
+                Swal.showValidationMessage(error.message);
+                return false;
+            }
+        }
+    });
+    if (result.isDenied && staff) return cancelStaffAccount(staff);
+    if (!result.isConfirmed) return;
+    const { system_id, code, expires_at, email_delivery, delivery_recipient, delivery_method, requested_recipient } = result.value;
+    const manual = delivery_method === 'manual';
+    const sent = delivery_method === 'email' && email_delivery === 'sent';
+    const recipient = delivery_recipient || requested_recipient;
+    const deliveryNote = manual
+        ? 'Give the System ID and code to the employee in person.'
+        : staffDeliveryStatus[email_delivery] || staffDeliveryStatus.unconfirmed;
+    const title = sent ? 'Activation email sent' : manual ? 'Ready for in-person handoff'
+        : email_delivery && email_delivery !== 'manual' ? 'Activation email not sent' : 'Email delivery unconfirmed';
+    selectAdminAccess('directory');
+    void loadAdmins();
+    await Swal.fire({
+        title,
+        width: 510,
+        customClass: { popup: 'hi-staff-code-dialog hi-staff-code-result' },
+        icon: sent || manual ? 'success' : 'warning',
+        html: `<div class="hi-staff-result-content">
+            ${!manual && recipient ? `<p><strong>Recipient</strong> ${escapeText(recipient)}</p>` : ''}
+            <p>${escapeText(deliveryNote)}</p>
+            <dl class="hi-staff-result-details">
+              <div><dt>System ID</dt><dd>${escapeText(system_id)}</dd></div>
+              <div><dt>Expires</dt><dd>${escapeText(adminTime(expires_at))}</dd></div>
+              <div class="hi-staff-result-code"><dt>One-time activation code</dt><dd>${escapeText(code)}</dd></div>
+            </dl>
+            <div class="hi-staff-result-copy">
+              <button type="button" data-copy-activation>Copy activation details</button>
+              <p role="status" data-copy-status></p>
+            </div>
+        </div>`,
+        didOpen: popup => {
+            const status = popup.querySelector('[data-copy-status]');
+            popup.querySelector('[data-copy-activation]').addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(`System ID: ${system_id}\nActivation code: ${code}`);
+                    status.textContent = 'Activation details copied.';
+                } catch {
+                    status.textContent = 'Select and copy the System ID and code above.';
+                }
+            });
+        },
+        confirmButtonText: 'Done', confirmButtonColor: '#047857', allowOutsideClick: false
+    });
+}
+
 // Superadmin Admin-account directory and access management.
 // Classic script: loaded through superadmin.html; existing hooks are retained.
 let systemAccounts = [];
-let adminAccessView = 'accounts';
 let adminLoadState = 'loading';
 let adminRefreshVersion = 0;
 const accountsPerPage = 8;
@@ -9,7 +192,8 @@ const adminStates = {
     approved: {label:'Active',action:'Suspend',detailsAction:'Suspend Access',next:'suspended'},
     pending: {label:'Pending',action:'Approve',next:'approved'},
     suspended: {label:'Suspended',action:'Restore',detailsAction:'Restore Access',next:'approved'},
-    denied: {label:'Denied'}
+    denied: {label:'Denied'},
+    awaiting_activation: {label:'Awaiting activation'}
 };
 const adminState = status => adminStates[status] || {label:'Unknown'};
 const adminName = user => [user.first_name,user.last_name].filter(Boolean).join(' ') || 'Name not recorded';
@@ -21,25 +205,9 @@ const adminTime = value => {
 };
 
 function selectAdminAccess(view) {
-    adminAccessView = view;
-    const directory = view === 'directory';
-    const pending = view === 'pending';
-    for (const choice of ['directory','accounts','pending']) {
-        document.getElementById('admin-view-'+choice).setAttribute('aria-pressed', String(choice===view));
-    }
-    document.getElementById('admin-access-description').textContent = directory
-        ? 'Browse BHW, MHO and Admin accounts by status. BHW and MHO requests are reviewed in the Admin portal.'
-        : pending ? 'Select a pending Admin registration to review, approve or decline it.'
-        : 'Review LGU Admin accounts. Select a row to view details and manage access.';
     document.getElementById('admin-search').value = '';
-    document.getElementById('admin-status-filter').value = '';
-    document.getElementById('admin-role-filter').value = '';
-    document.getElementById('admin-role-field').hidden = !directory;
-    document.getElementById('admin-status-field').hidden = pending;
-    document.getElementById('admin-pending-option').hidden = !directory;
-    document.getElementById('admin-account-heading').textContent = directory ? 'System account' : 'Admin account';
-    document.getElementById('admin-email-heading').textContent = directory ? 'Role' : 'Email';
-    document.getElementById('admin-date-heading').textContent = directory ? 'Assigned barangay' : 'Registered';
+    document.getElementById('admin-role-filter').value = view === 'accounts' ? 'admin' : '';
+    document.getElementById('admin-status-filter').value = view === 'activation' ? 'awaiting_activation' : '';
     renderAdmins();
 }
 
@@ -65,30 +233,22 @@ function renderAdmins(page = 1) {
     const listStatus = document.getElementById('admin-list-status');
     const table = document.getElementById('user-table-body');
     const pager = document.getElementById('admin-account-pager');
-    const pendingCount = document.getElementById('admin-pending-count');
     if (adminLoadState !== 'ready') {
         const message = adminLoadState === 'loading' ? 'Loading accounts…' : 'Accounts could not be loaded. Try Refresh.';
-        pendingCount.textContent = '';
         pager.innerHTML = '';
         listStatus.textContent = message;
         table.innerHTML = `<tr><td colspan="4" class="p-6 text-center">${message}</td></tr>`;
         return;
     }
 
-    const directory = adminAccessView === 'directory';
-    const pending = adminAccessView === 'pending';
-    const admins = systemAccounts.filter(user=>user.role==='admin');
-    pendingCount.textContent = admins.filter(user=>user.status==='pending').length;
-    const scope = directory ? systemAccounts : admins.filter(user=>(user.status==='pending')===pending);
     const search = document.getElementById('admin-search').value.trim().toLowerCase();
     const status = document.getElementById('admin-status-filter').value;
     const role = document.getElementById('admin-role-filter').value;
-    const rows = scope.filter(user=>(pending || !status || user.status===status) && (!directory || !role || user.role===role) && (!search ||
-        [user.system_id,adminName(user),...(directory ? [user.assigned_barangay] : [user.email,user.employee_id])].some(value=>String(value || '').toLowerCase().includes(search))));
-    const label = directory ? 'system accounts' : pending ? 'pending requests' : 'Admin accounts';
-    listStatus.textContent = `${rows.length} of ${scope.length} ${label} match.`;
-    const empty = scope.length ? 'No matching '+label+'.'
-        : pending ? 'No administrator requests awaiting approval.' : 'No '+label+' are registered.';
+    const rows = systemAccounts.filter(user => (!status || user.status === status) && (!role || user.role === role) && (!search ||
+        [user.system_id, adminName(user), user.assigned_barangay, user.email, user.employee_id]
+            .some(value => String(value || '').toLowerCase().includes(search))));
+    listStatus.textContent = `${rows.length} of ${systemAccounts.length} staff accounts match.`;
+    const empty = systemAccounts.length ? 'No matching staff accounts.' : 'No staff accounts are registered.';
     const totalPages = Math.ceil(rows.length / accountsPerPage);
     page = Math.max(1, Math.min(page, totalPages));
     const start = (page - 1) * accountsPerPage;
@@ -99,9 +259,9 @@ function renderAdmins(page = 1) {
         const assignment = user.role==='bhw' ? user.assigned_barangay || 'Not assigned' : 'Municipality';
         return `<tr${row}>
             <td class="p-4"><p class="font-semibold text-slate-900 dark:text-white">${escapeText(adminName(user))}</p><p class="mt-1 text-xs text-slate-600 dark:text-neutral-400">${escapeText(user.system_id)}</p>${user.status==='pending'?registrationSubmissionBadge(user):''}</td>
-            <td class="p-4 text-slate-700 dark:text-neutral-300">${escapeText(directory ? (user.role==='admin' ? 'Admin' : user.role.toUpperCase()) : user.email || 'Email not recorded')}</td>
+            <td class="p-4 text-slate-700 dark:text-neutral-300">${escapeText(user.role==='admin' ? 'Admin' : user.role.toUpperCase())}</td>
             <td class="p-4"><span class="hi-admin-access-status" data-status="${escapeText(user.status)}">${state.label}</span></td>
-            <td class="p-4 text-xs text-slate-600 dark:text-neutral-400">${escapeText(directory ? assignment : adminTime(user.created_at))}<span class="hi-admin-access-hint" aria-hidden="true">Open account details</span></td>
+            <td class="p-4 text-xs text-slate-600 dark:text-neutral-400">${escapeText(assignment)}<span class="hi-admin-access-hint" aria-hidden="true">Open account details</span></td>
         </tr>`;
     }).join('') : `<tr><td colspan="4" class="p-6 text-center text-slate-600 dark:text-neutral-400">${empty}</td></tr>`;
 }
@@ -159,7 +319,9 @@ function openAdminRow(event, id) {
         if (!['Enter', ' '].includes(event.key) || event.target !== event.currentTarget) return;
         event.preventDefault();
     }
-    return adminAccessView === 'directory' ? viewDirectoryAccount(id) : viewAdminAccount(id);
+    const staff = systemAccounts.find(account => account.system_id === id);
+    if (staff?.status === 'awaiting_activation') return createStaffAccount(staff);
+    return staff?.role === 'admin' ? viewAdminAccount(id) : viewDirectoryAccount(id);
 }
 
 function historyPageNumbers(page, total) {
@@ -231,36 +393,4 @@ async function viewAdminAccount(id) {
     } catch (error) {
         await Swal.fire({showCloseButton:true, closeButtonAriaLabel:"Close dialog",title:'Account history unavailable',text:error.message || 'Please try again.',icon:'error'});
     }
-}
-
-async function inviteAdmin() {
-    const result = await Swal.fire({
-        titleText: 'Invite LGU Admin', input: 'email', inputLabel: 'Employee’s Google email',
-        showCancelButton: true, confirmButtonText: 'Send invitation',
-        showLoaderOnConfirm: true, allowOutsideClick: () => !Swal.isLoading(),
-        preConfirm: async email => {
-            try {
-                const response = await fetch(HealthIntel.apiOrigin + '/api/superadmin/admin-invitations', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({email})
-                });
-                const body = await response.json();
-                if (!response.ok || !body.success) throw Error(body.error || 'Invitation unavailable.');
-                if (body.email_delivery !== 'sent') {
-                    throw Error(body.email_delivery === 'not_configured'
-                        ? 'Invitation email is currently unavailable.'
-                        : 'The mail service could not send the invitation. Check the email address and try again.');
-                }
-                return body;
-            } catch (error) {
-                Swal.showValidationMessage(error.message || 'Invitation unavailable.');
-                return false;
-            }
-        }
-    });
-    if (!result.isConfirmed) return;
-    return Swal.fire({
-        titleText: 'Invitation submitted for delivery',
-        text: 'Ask the employee to check their inbox or spam folder. Their application will appear under Pending Requests after they register with the invited Google account.',
-        icon: 'success', confirmButtonText: 'Done'
-    });
 }

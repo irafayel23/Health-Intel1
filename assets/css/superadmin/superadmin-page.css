@@ -211,3 +211,82 @@ body:not(:has(#superadmin-row-tooltip.is-visible)) .hi-admin-access-row:focus-vi
 }
 .hi-backup-password-toggle:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
 .hi-backup-password-toggle svg { width: 18px; height: 18px; }
+
+#view-users .hi-staff-create {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    flex-shrink: 0;
+    margin-top: 16px;
+    padding: 10px 16px;
+    border: 1px solid #1d4ed8;
+    border-radius: 12px;
+    background-color: #1d4ed8;
+    color: #fff;
+    font-size: .875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+#view-users .hi-staff-create:hover {
+    border-color: #1e40af;
+    background-color: #1e40af;
+}
+#view-users .hi-staff-create:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 3px;
+}
+#view-users .hi-staff-create svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.hi-superadmin-dialogs .hi-staff-code-dialog .swal2-title {
+    padding: 16px 16px 0;
+    font-size: clamp(1.15rem, 4vw, 1.55rem);
+}
+.hi-superadmin-dialogs .hi-staff-code-dialog .swal2-html-container {
+    margin: 12px 16px 0;
+    padding: 0;
+}
+.hi-staff-code-summary {
+    display: grid;
+    gap: 2px;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    overflow-wrap: anywhere;
+}
+.dark .hi-staff-code-summary { border-color: #475569; }
+.hi-staff-code-summary span { font-size: .78rem; }
+.hi-staff-code-dialog :is(input[type="email"], select) { min-height: 40px; padding: 6px 10px; }
+.hi-staff-code-dialog .swal2-actions { margin-top: 12px; gap: 6px; }
+.hi-staff-code-dialog .swal2-actions button { margin: 0; padding: 8px 10px; font-size: .875rem; }
+
+.hi-superadmin-dialogs .hi-staff-code-result .swal2-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: 12px auto 0;
+    font-size: .55rem;
+}
+.hi-superadmin-dialogs .hi-staff-code-result .swal2-icon-content { font-size: 1.75rem; }
+.hi-staff-result-content { display: grid; gap: 10px; text-align: left; font-size: .875rem; overflow-wrap: anywhere; }
+.hi-staff-result-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #ecfdf5;
+    color: #064e3b;
+}
+.dark .hi-staff-result-details { background: #052e26; color: #d1fae5; }
+.hi-staff-result-details dt { font-size: .75rem; }
+.hi-staff-result-details dd { font-weight: 600; }
+.hi-staff-result-code { grid-column: 1 / -1; }
+.hi-staff-result-code dd { font-family: ui-monospace, monospace; }
+.hi-staff-result-copy button { border: 1px solid #94a3b8; border-radius: 8px; padding: 6px 10px; min-height: 38px; }
+.hi-staff-result-copy p { margin-top: 4px; font-size: .75rem; }
+.hi-staff-result-copy p:empty { display: none; }

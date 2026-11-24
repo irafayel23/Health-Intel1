@@ -14,7 +14,7 @@
         document.querySelectorAll(".view-section").forEach(sec => sec.classList.remove("active"));
         document.getElementById(viewId).classList.add("active");
         const title=document.getElementById('superadmin-view-title');
-        if(title) title.textContent=({'view-dashboard':'Superadmin Portal','view-users':'Admin Access','view-audit':'Activity Log','view-db':'Database Backup'})[viewId] || 'Overview';
+        if(title) title.textContent=({'view-dashboard':'Superadmin Portal','view-users':'Staff Accounts','view-audit':'Activity Log','view-db':'Database Backup'})[viewId] || 'Overview';
 
         if(viewId==='view-dashboard')window.HealthIntelOverview?.refresh();
         if (window.lucide) lucide.createIcons();

@@ -51,7 +51,27 @@ function createAccountDirectory(db) {
                 FROM users u LEFT JOIN barangays b ON u.barangay_id = b.id
                 WHERE u.role IN ('bhw', 'mho', 'admin') ORDER BY u.created_at DESC`;
             const [rows] = await db.execute(query);
-            return registrationHistory(db,rows);
+            let awaiting = [];
+            try {
+                [awaiting] = await db.execute(`SELECT s.system_id,s.first_name,s.last_name,s.employee_id,s.role,
+                    'awaiting_activation' AS status,s.created_at,b.name AS assigned_barangay
+                    FROM staff_activations s LEFT JOIN barangays b ON s.barangay_id=b.id ORDER BY s.created_at DESC`);
+            } catch (error) {
+                if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
+            }
+            if (awaiting.length) {
+                try {
+                    const [delivery] = await db.execute('SELECT system_id,email,last_delivery FROM staff_activation_emails');
+                    const byId = new Map(delivery.map(item => [item.system_id, item]));
+                    awaiting = awaiting.map(account => {
+                        const saved = byId.get(account.system_id);
+                        return saved ? {...account, delivery_email:saved.email, last_email_delivery:saved.last_delivery} : account;
+                    });
+                } catch (error) {
+                    if (error.code !== 'ER_NO_SUCH_TABLE') throw error;
+                }
+            }
+            return [...awaiting, ...await registrationHistory(db,rows)];
         },
 
         async adminHistory(id) {
