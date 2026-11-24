@@ -19,7 +19,7 @@ function fixture(id){
     let layouts=0;const control=context.window.HealthIntelMapFullscreen.bind(container,()=>layouts++);
     return {document,main,other,container,next,control,listeners,windowListeners,layouts:()=>layouts,element,key(key,shiftKey=false){let prevented=false;listeners.keydown({key,shiftKey,preventDefault(){prevented=true;},stopPropagation(){}});return prevented;}};
 }
-for(const id of ['bhwMap','murciaMap'])test(id+' expands the existing map, makes the background inert and restores DOM, accessibility and focus on exit',()=>{
+for(const id of ['bhwMap','murciaMap','aa-map'])test(id+' expands the existing map, makes the background inert and restores DOM, accessibility and focus on exit',()=>{
     const f=fixture(id),button=f.control.button,originalControl=f.control.controls;
     assert.equal(button.dataset.mhoHint,'Open fullscreen map');assert.equal(button.getAttribute('aria-controls'),id);
     button.click();assert.equal(f.container.parentNode,f.document.body);assert.equal(f.main.children[0].style.height,'500px');assert.equal(f.container.classList.contains('heatmap-expanded'),true);assert.equal(f.container.getAttribute('aria-modal'),'true');assert.equal(f.main.inert,true);assert.equal(f.document.activeElement,button);assert.equal(button.getAttribute('aria-expanded'),'true');assert.equal(button.dataset.mhoHint,'Exit fullscreen map');assert.equal(f.control.controls,originalControl);
@@ -42,8 +42,8 @@ test('an open breakdown dialog keeps its native Escape handling without exiting 
     assert.equal(f.key('Escape'),true);assert.equal(f.container.classList.contains('heatmap-expanded'),false);
 });
 
-test('MHO F shortcut toggles a visible map and ignores typing, modifiers and hidden maps',()=>{
-    const f=fixture('murciaMap');
+for(const id of ['murciaMap','aa-map'])test(id+' F shortcut toggles a visible map and ignores typing, modifiers and hidden maps',()=>{
+    const f=fixture(id);
     const press=(options={})=>{let prevented=false;f.listeners.keydown({key:'f',target:{closest:()=>null},preventDefault(){prevented=true;},stopPropagation(){},...options});return prevented;};
     assert.equal(press({ctrlKey:true}),false);
     assert.equal(press({target:{closest:()=>({})}}),false);

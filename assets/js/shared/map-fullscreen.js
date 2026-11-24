@@ -4,7 +4,7 @@
         const controls=document.createElement('div');controls.className='heatmap-expand-controls';
         const hint=document.createElement('span');hint.textContent='Esc to exit';hint.hidden=true;
         const button=document.createElement('button');button.type='button';button.className='heatmap-expand-button';button.textContent='Fullscreen';
-        const iconOnly=['murciaMap','bhwMap'].includes(container.id);
+        const iconOnly=['murciaMap','bhwMap','aa-map'].includes(container.id);
         if(iconOnly)button.innerHTML="<svg class=\"mho-map-maximize\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3\"/></svg><svg class=\"mho-map-minimize\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 3v3a2 2 0 0 1-2 2H3m13-5v3a2 2 0 0 0 2 2h3M3 16h3a2 2 0 0 1 2 2v3m13-5h-3a2 2 0 0 0-2 2v3\"/></svg>";
         if(iconOnly)button.dataset.mhoHint='Open fullscreen map';
         else button.title='Open fullscreen map';
@@ -40,7 +40,7 @@
         document.addEventListener('keydown',event=>{
             const typing=event.target?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])');
             const dialogOpen=document.querySelector?.('dialog[open], .swal2-container');
-            if(container.id==='murciaMap'&&event.key.toLowerCase()==='f'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!event.repeat&&!typing&&!dialogOpen&&(expanded||container.getClientRects().length)){
+            if(['murciaMap','aa-map'].includes(container.id)&&event.key.toLowerCase()==='f'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!event.repeat&&!typing&&!dialogOpen&&(expanded||container.getClientRects().length)){
                 event.preventDefault();
                 expanded?exit():enter();
                 return;

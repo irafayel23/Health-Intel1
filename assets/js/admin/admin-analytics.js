@@ -125,7 +125,13 @@
         const geo = await response.json();
         if (signal.aborted) return;
         if (!map) {
-            map = L.map($('map'), {scrollWheelZoom:false});
+            const container = $('map');
+            map = L.map(container);
+            const fullscreen = window.HealthIntelMapFullscreen.bind(container, () => {
+                map.invalidateSize({animate:false});
+            });
+            L.DomEvent.disableClickPropagation(fullscreen.controls);
+            L.DomEvent.disableScrollPropagation(fullscreen.controls);
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom:19
             }).addTo(map);
