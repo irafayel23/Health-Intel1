@@ -1,6 +1,6 @@
-const mysql = require('mysql2/promise');
-const { loadEnvironment } = require('../config/security-config');
-const { createStaffActivation } = require('../services/staff-activation');
+const mysql = require('../server/node_modules/mysql2/promise');
+const { loadEnvironment } = require('../server/config/security-config');
+const { createStaffActivation } = require('../server/services/staff-activation');
 
 async function main() {
     loadEnvironment();
