@@ -57,17 +57,17 @@
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-data" onclick="switchMainView('view-data', 'nav-data')">
             <i data-lucide="database" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Patient Records</span>
           </button>
-          <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-diseases" onclick="switchMainView('view-diseases', 'nav-diseases')">
-            <i data-lucide="clipboard-list" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Disease Catalog</span>
-          </button>
-          <button type="button" class="nav-item flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 [&.active]:bg-blue-100 [&.active]:text-blue-800 dark:text-slate-300 dark:hover:bg-white/5 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-300" id="nav-reports" onclick="switchMainView('view-report-management','nav-reports')">
-            <i data-lucide="clipboard-list" class="h-5 w-5"></i><span class="sidebar-label whitespace-nowrap">Report Management</span>
-          </button>
           <button type="button" class="nav-item flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 [&.active]:bg-blue-100 [&.active]:text-blue-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-300" id="nav-admin-heatmap" onclick="switchMainView('view-admin-heatmap','nav-admin-heatmap')">
             <i data-lucide="map" class="h-5 w-5" aria-hidden="true"></i><span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
           </button>
           <button type="button" class="nav-item flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 [&.active]:bg-blue-100 [&.active]:text-blue-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-300" id="nav-admin-analytics" onclick="switchMainView('view-admin-analytics','nav-admin-analytics')">
             <i data-lucide="chart-no-axes-combined" class="h-5 w-5" aria-hidden="true"></i><span class="sidebar-label whitespace-nowrap">Data &amp; Predictions</span>
+          </button>
+          <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-diseases" onclick="switchMainView('view-diseases', 'nav-diseases')">
+            <i data-lucide="clipboard-list" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Disease Catalog</span>
+          </button>
+          <button type="button" class="nav-item flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 [&.active]:bg-blue-100 [&.active]:text-blue-800 dark:text-slate-300 dark:hover:bg-white/5 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-300" id="nav-reports" onclick="switchMainView('view-report-management','nav-reports')">
+            <i data-lucide="clipboard-list" class="h-5 w-5"></i><span class="sidebar-label whitespace-nowrap">Report Management</span>
           </button>
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-audit" onclick="switchMainView('view-audit', 'nav-audit')">
             <i data-lucide="history" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Operational Audit Trail</span>
@@ -355,9 +355,6 @@
             </section>
           </div>
 
-          <!-- ============================================== -->
-          <!-- 4. SECURITY AUDIT TRAIL (NEW MODULE) -->
-          <!-- ============================================== -->
           <section id="view-admin-heatmap" class="view-section" aria-labelledby="admin-heatmap-title">
             <div class="admin-analytics">
               <header class="aa-heading"><div><h2 id="admin-heatmap-title">Heatmap Cases</h2><p>Recorded case totals across the seven pilot barangays.</p></div><i data-lucide="map" aria-hidden="true"></i></header>
@@ -427,6 +424,9 @@
             </div>
           </section>
 
+          <!-- ============================================== -->
+          <!-- 4. SECURITY AUDIT TRAIL (NEW MODULE) -->
+          <!-- ============================================== -->
           <div id="view-report-management" class="view-section">
             <section class="admin-list-card" aria-labelledby="report-management-title">
               <header class="admin-list-header">
