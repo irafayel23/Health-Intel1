@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="assets/css/shared/mho.css" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261115-comparison" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="assets/css/admin/admin-analytics.css?v=2" />
+    <link rel="stylesheet" href="assets/css/admin/admin-analytics.css?v=3" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -63,9 +63,6 @@
           <button type="button" class="nav-item flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 [&.active]:bg-blue-100 [&.active]:text-blue-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-300" id="nav-admin-analytics" onclick="switchMainView('view-admin-analytics','nav-admin-analytics')">
             <i data-lucide="chart-no-axes-combined" class="h-5 w-5" aria-hidden="true"></i><span class="sidebar-label whitespace-nowrap">Data &amp; Predictions</span>
           </button>
-          <button type="button" class="nav-item flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 [&.active]:bg-blue-100 [&.active]:text-blue-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-300" id="nav-admin-training" onclick="switchMainView('view-admin-training','nav-admin-training')">
-            <i data-lucide="cpu" class="h-5 w-5" aria-hidden="true"></i><span class="sidebar-label whitespace-nowrap">Model Training</span>
-          </button>
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-diseases" onclick="switchMainView('view-diseases', 'nav-diseases')">
             <i data-lucide="clipboard-list" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Disease Catalog</span>
           </button>
@@ -73,7 +70,7 @@
             <i data-lucide="clipboard-list" class="h-5 w-5"></i><span class="sidebar-label whitespace-nowrap">Report Management</span>
           </button>
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-audit" onclick="switchMainView('view-audit', 'nav-audit')">
-            <i data-lucide="history" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Operational Audit Trail</span>
+            <i data-lucide="history" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Activity Log</span>
           </button>
         </nav>
         
@@ -131,7 +128,7 @@
  <span id="overview-catalog" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
  <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">Currently active entries<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button></div>
  <div class="grid items-start gap-5 xl:grid-cols-2"><section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-800/60"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="user-round-check" class="h-5 w-5" aria-hidden="true"></i></span>Account approval queue</span></h2><button type="button" data-overview-open="pending" class="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 dark:border-emerald-800 dark:bg-neutral-900 dark:text-emerald-200 dark:hover:bg-emerald-950">View requests</button></header><div id="overview-pending-list"><p class="p-5 text-sm font-medium text-slate-700 dark:text-slate-200">Loading requests…</p></div></section>
- <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-800/60"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="history" class="h-5 w-5" aria-hidden="true"></i></span>Recent activity</span></h2><button type="button" data-overview-open="audit" class="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 dark:border-emerald-800 dark:bg-neutral-900 dark:text-emerald-200 dark:hover:bg-emerald-950">View audit trail</button></header><div id="overview-recent-list"><p class="p-5 text-sm font-medium text-slate-700 dark:text-slate-200">Loading activity…</p></div></section></div>
+ <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-800/60"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="history" class="h-5 w-5" aria-hidden="true"></i></span>Recent activity</span></h2><button type="button" data-overview-open="audit" class="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 dark:border-emerald-800 dark:bg-neutral-900 dark:text-emerald-200 dark:hover:bg-emerald-950">View activity log</button></header><div id="overview-recent-list"><p class="p-5 text-sm font-medium text-slate-700 dark:text-slate-200">Loading activity…</p></div></section></div>
  <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 flex flex-wrap items-center justify-between gap-4 p-5"><div><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Records and catalog</h2><p class="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">Open the tools you use most without leaving your workspace.</p></div><div class="flex flex-wrap gap-2"><button type="button" data-overview-open="records" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="database" class="h-5 w-5 shrink-0" aria-hidden="true"></i>Patient records</button><button type="button" data-overview-open="catalog" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="book-open" class="h-5 w-5 shrink-0" aria-hidden="true"></i>Disease catalog</button></div></section>
  <p id="overview-load-status" class="text-sm font-medium text-slate-700 dark:text-slate-200" role="status">Loading saved overview data…</p><p id="overview-action-note" class="text-sm font-medium text-slate-700 dark:text-slate-200" role="status"></p>
  </div></div>
@@ -359,9 +356,12 @@
           </div>
 
           <section id="view-admin-heatmap" class="view-section" aria-labelledby="admin-heatmap-title">
-            <div class="admin-analytics">
-              <header class="aa-heading"><div><h2 id="admin-heatmap-title">Heatmap Cases</h2><p>Recorded case totals across the seven pilot barangays.</p></div><i data-lucide="map" aria-hidden="true"></i></header>
-              <section class="aa-panel">
+            <div class="admin-list-card">
+              <header class="admin-list-header">
+                <h1 id="admin-heatmap-title">Heatmap Cases</h1>
+                <p>Recorded case totals across the seven pilot barangays.</p>
+              </header>
+              <div class="admin-list-body admin-analytics aa-map-body">
                 <div class="aa-filter">
                   <label>Year<select id="aa-map-year"></select></label>
                   <label>Month<select id="aa-map-month"></select></label>
@@ -372,81 +372,87 @@
                 <div id="aa-map" aria-label="Map of recorded cases by barangay"></div>
                 <p class="aa-map-key"><span class="aa-key-count"></span> More recorded cases <span class="aa-key-missing"></span> No confirmed count</p>
                 <div class="aa-table"><table><caption class="sr-only">Case totals by barangay</caption><thead><tr><th scope="col">Barangay</th><th scope="col">Cases</th><th scope="col">Reporting status</th></tr></thead><tbody id="aa-map-rows"></tbody></table></div>
-              </section>
+              </div>
             </div>
           </section>
 
           <section id="view-admin-analytics" class="view-section" aria-labelledby="admin-analytics-title">
-            <div class="admin-analytics aa-workspace">
-              <header class="aa-workspace-header">
-                <div><h2 id="admin-analytics-title">Data &amp; Predictions</h2><p>Manage monthly datasets and look up existing case predictions.</p></div>
-                <span class="aa-header-icon" aria-hidden="true"><i data-lucide="chart-no-axes-combined"></i></span>
+            <div class="admin-list-card">
+              <header class="admin-list-header">
+                <h1 id="admin-analytics-title">Data &amp; Predictions</h1>
+                <p>Manage monthly datasets, look up predictions, and review model training runs.</p>
               </header>
-              <div class="aa-columns">
-                <section class="aa-panel aa-dataset-card" aria-labelledby="aa-dataset-title">
-                  <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="database"></i></span><div><h3 id="aa-dataset-title">Historical dataset</h3><p>Monthly case counts by barangay and disease.</p></div></header>
-                  <dl id="aa-dataset-summary" class="aa-summary"></dl>
-                  <p id="aa-coverage" class="aa-status aa-coverage" role="status"></p>
-                  <div class="aa-actions"><button type="button" class="aa-primary" id="aa-export"><i data-lucide="download" aria-hidden="true"></i> Download historical CSV</button><button type="button" id="aa-template"><i data-lucide="file-text" aria-hidden="true"></i> CSV template</button></div>
-                </section>
-                <section class="aa-panel aa-upload-card" aria-labelledby="aa-upload-title">
-                  <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="upload"></i></span><div><h3 id="aa-upload-title">Upload dataset</h3><p>Check the CSV before saving a new version.</p></div></header>
-                  <form id="aa-upload-form" class="aa-upload">
-                    <div class="aa-file-field">
-                      <label for="aa-upload-file">Monthly case CSV</label>
-                      <p id="aa-upload-hint">One CSV file, up to 250 KB.</p>
-                      <input id="aa-upload-file" type="file" accept=".csv,text/csv" aria-describedby="aa-upload-hint" required>
+              <div class="admin-list-body">
+                <div id="aa-tabs" class="sub-tabs admin-list-tabs" role="tablist" aria-label="Data and predictions">
+                  <button type="button" id="aa-tab-datasets" class="sub-tab-btn active" role="tab" aria-controls="aa-panel-datasets" aria-selected="true">Datasets</button>
+                  <button type="button" id="aa-tab-predictions" class="sub-tab-btn" role="tab" aria-controls="aa-panel-predictions" aria-selected="false" tabindex="-1">Predictions</button>
+                  <button type="button" id="aa-tab-training" class="sub-tab-btn" role="tab" aria-controls="view-admin-training" aria-selected="false" tabindex="-1">Model Training</button>
+                </div>
+                <div class="admin-analytics aa-workspace">
+                  <div id="aa-panel-datasets" class="aa-panels" role="tabpanel" aria-labelledby="aa-tab-datasets" tabindex="0">
+                    <div class="aa-columns">
+                      <section class="aa-panel aa-dataset-card" aria-labelledby="aa-dataset-title">
+                        <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="database"></i></span><div><h3 id="aa-dataset-title">Historical dataset</h3><p>Monthly case counts by barangay and disease.</p></div></header>
+                        <dl id="aa-dataset-summary" class="aa-summary"></dl>
+                        <p id="aa-coverage" class="aa-status aa-coverage" role="status"></p>
+                        <div class="aa-actions"><button type="button" class="aa-primary" id="aa-export"><i data-lucide="download" aria-hidden="true"></i> Download historical CSV</button><button type="button" id="aa-template"><i data-lucide="file-text" aria-hidden="true"></i> CSV template</button></div>
+                      </section>
+                      <section class="aa-panel aa-upload-card" aria-labelledby="aa-upload-title">
+                        <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="upload"></i></span><div><h3 id="aa-upload-title">Upload dataset</h3><p>Check the CSV before saving a new version.</p></div></header>
+                        <form id="aa-upload-form" class="aa-upload">
+                          <div class="aa-file-field">
+                            <label for="aa-upload-file">Monthly case CSV</label>
+                            <p id="aa-upload-hint">One CSV file, up to 250 KB.</p>
+                            <input id="aa-upload-file" type="file" accept=".csv,text/csv" aria-describedby="aa-upload-hint" required>
+                          </div>
+                          <div class="aa-actions"><button type="submit" id="aa-preview"><i data-lucide="scan-line" aria-hidden="true"></i> Preview CSV</button><button type="button" class="aa-primary" id="aa-save" disabled><i data-lucide="save" aria-hidden="true"></i> Save version</button></div>
+                        </form>
+                        <p id="aa-upload-status" class="aa-status aa-feedback" role="status"></p>
+                        <div id="aa-upload-sample" hidden></div>
+                      </section>
                     </div>
-                    <div class="aa-actions"><button type="submit" id="aa-preview"><i data-lucide="scan-line" aria-hidden="true"></i> Preview CSV</button><button type="button" class="aa-primary" id="aa-save" disabled><i data-lucide="save" aria-hidden="true"></i> Save version</button></div>
-                  </form>
-                  <p id="aa-upload-status" class="aa-status aa-feedback" role="status"></p>
-                  <div id="aa-upload-sample" hidden></div>
-                </section>
+                    <section class="aa-panel" aria-labelledby="aa-versions-title">
+                      <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="layers"></i></span><div><h3 id="aa-versions-title">Saved uploads</h3><p>Versions saved from the CSV preview.</p></div></header>
+                      <p id="aa-versions-status" class="aa-status aa-empty" role="status">Loading saved uploads…</p>
+                      <div id="aa-versions-table" class="aa-table" hidden><table><caption class="sr-only">Dataset versions</caption><thead><tr><th scope="col">Version</th><th scope="col">Coverage</th><th scope="col">Cases</th><th scope="col">Saved</th></tr></thead><tbody id="aa-versions"></tbody></table></div>
+                    </section>
+                  </div>
+                  <div id="aa-panel-predictions" class="aa-panels" role="tabpanel" aria-labelledby="aa-tab-predictions" tabindex="0" hidden>
+                    <section class="aa-panel" aria-labelledby="aa-published-title">
+                      <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="search"></i></span><div><h3 id="aa-published-title">Prediction lookup</h3><p>Find a one-month case estimate by disease and barangay.</p></div></header>
+                      <form id="aa-published-form" class="aa-filter aa-lookup">
+                        <label>Prediction source<select id="aa-published-source"><option value="demo">Saved SARIMA demonstration</option><option value="published">Published operational prediction</option></select></label>
+                        <label>Disease<select id="aa-published-disease" required></select></label>
+                        <label>Barangay<select id="aa-published-barangay" required></select></label>
+                        <button type="submit" class="aa-primary" id="aa-published-view">View prediction</button>
+                      </form>
+                      <p id="aa-published-result" class="aa-status aa-feedback" role="status"></p>
+                    </section>
+                  </div>
+                  <div id="view-admin-training" class="aa-panels" role="tabpanel" aria-labelledby="aa-tab-training" tabindex="0" hidden>
+                    <section class="aa-panel" aria-labelledby="aa-training-title">
+                      <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="sliders-horizontal"></i></span><div><h3 id="aa-training-title">Training setup</h3><p>Choose the source and dates for the current one-month SARIMA model.</p></div></header>
+                      <form id="aa-train-form" class="aa-filter aa-lookup">
+                        <label>Training source<select id="aa-run-mode" aria-describedby="aa-training-source-note"><option value="operational">Confirmed operational reports</option><option value="dataset_plus_reports">Bundled history + confirmed reports (preview)</option></select></label>
+                        <label>First month<input type="month" id="aa-run-start" required></label>
+                        <label>Last confirmed month<input type="month" id="aa-run-end" required></label>
+                        <button type="submit" id="aa-train" class="aa-primary" disabled><i data-lucide="play" aria-hidden="true"></i> Start training</button>
+                      </form>
+                      <p id="aa-training-source-note" class="aa-training-note">Training uses confirmed reports and, in preview mode, the bundled history. CSV uploads are saved for the future model workflow.</p>
+                      <p id="aa-run-status" class="aa-status aa-feedback" role="status">Checking training availability…</p>
+                    </section>
+                    <section class="aa-panel" aria-labelledby="aa-runs-title">
+                      <header class="aa-inline-heading">
+                        <div class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="history"></i></span><div><h3 id="aa-runs-title">Run history</h3><p>Check run status and open completed results.</p></div></div>
+                        <button type="button" id="aa-refresh-runs"><i data-lucide="refresh-cw" aria-hidden="true"></i> Refresh runs</button>
+                      </header>
+                      <p id="aa-runs-empty" class="aa-status aa-empty" role="status">Loading run history…</p>
+                      <div id="aa-runs-table" class="aa-table" hidden><table><caption class="sr-only">Training runs</caption><thead><tr><th scope="col">Run</th><th scope="col">Training period</th><th scope="col">Status</th><th scope="col">Results</th></tr></thead><tbody id="aa-runs"></tbody></table></div>
+                      <div id="aa-review" aria-live="polite"></div>
+                    </section>
+                  </div>
+                </div>
               </div>
-              <section class="aa-panel" aria-labelledby="aa-versions-title">
-                <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="layers"></i></span><div><h3 id="aa-versions-title">Saved uploads</h3><p>Versions saved from the CSV preview.</p></div></header>
-                <p id="aa-versions-status" class="aa-status aa-empty" role="status">Loading saved uploads…</p>
-                <div id="aa-versions-table" class="aa-table" hidden><table><caption class="sr-only">Dataset versions</caption><thead><tr><th scope="col">Version</th><th scope="col">Coverage</th><th scope="col">Cases</th><th scope="col">Saved</th></tr></thead><tbody id="aa-versions"></tbody></table></div>
-              </section>
-              <section class="aa-panel" aria-labelledby="aa-published-title">
-                <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="search"></i></span><div><h3 id="aa-published-title">Prediction lookup</h3><p>Find a one-month case estimate by disease and barangay.</p></div></header>
-                <form id="aa-published-form" class="aa-filter aa-lookup">
-                  <label>Prediction source<select id="aa-published-source"><option value="demo">Saved SARIMA demonstration</option><option value="published">Published operational prediction</option></select></label>
-                  <label>Disease<select id="aa-published-disease" required></select></label>
-                  <label>Barangay<select id="aa-published-barangay" required></select></label>
-                  <button type="submit" class="aa-primary" id="aa-published-view">View prediction</button>
-                </form>
-                <p id="aa-published-result" class="aa-status aa-feedback" role="status"></p>
-              </section>
-            </div>
-          </section>
-
-          <section id="view-admin-training" class="view-section" aria-labelledby="admin-training-title">
-            <div class="admin-analytics aa-workspace">
-              <header class="aa-workspace-header">
-                <div><h2 id="admin-training-title">Model Training</h2><p>Start a SARIMA training run and review its results.</p></div>
-                <span class="aa-header-icon" aria-hidden="true"><i data-lucide="cpu"></i></span>
-              </header>
-              <section class="aa-panel" aria-labelledby="aa-training-title">
-                <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="sliders-horizontal"></i></span><div><h3 id="aa-training-title">Training setup</h3><p>Choose the source and dates for the current one-month SARIMA model.</p></div></header>
-                <form id="aa-train-form" class="aa-filter aa-lookup">
-                  <label>Training source<select id="aa-run-mode" aria-describedby="aa-training-source-note"><option value="operational">Confirmed operational reports</option><option value="dataset_plus_reports">Bundled history + confirmed reports (preview)</option></select></label>
-                  <label>First month<input type="month" id="aa-run-start" required></label>
-                  <label>Last confirmed month<input type="month" id="aa-run-end" required></label>
-                  <button type="submit" id="aa-train" class="aa-primary" disabled><i data-lucide="play" aria-hidden="true"></i> Start training</button>
-                </form>
-                <p id="aa-training-source-note" class="aa-training-note">Training uses confirmed reports and, in preview mode, the bundled history. CSV uploads are saved for the future model workflow.</p>
-                <p id="aa-run-status" class="aa-status aa-feedback" role="status">Checking training availability…</p>
-              </section>
-              <section class="aa-panel" aria-labelledby="aa-runs-title">
-                <header class="aa-inline-heading">
-                  <div class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="history"></i></span><div><h3 id="aa-runs-title">Run history</h3><p>Check run status and open completed results.</p></div></div>
-                  <button type="button" id="aa-refresh-runs"><i data-lucide="refresh-cw" aria-hidden="true"></i> Refresh runs</button>
-                </header>
-                <p id="aa-runs-empty" class="aa-status aa-empty" role="status">Loading run history…</p>
-                <div id="aa-runs-table" class="aa-table" hidden><table><caption class="sr-only">Training runs</caption><thead><tr><th scope="col">Run</th><th scope="col">Training period</th><th scope="col">Status</th><th scope="col">Results</th></tr></thead><tbody id="aa-runs"></tbody></table></div>
-                <div id="aa-review" aria-live="polite"></div>
-              </section>
             </div>
           </section>
 
@@ -476,10 +482,10 @@
             <section class="admin-list-card" aria-labelledby="admin-audit-title">
               <header class="admin-list-header admin-disease-header">
                 <div>
-                  <h1 id="admin-audit-title">Operational Audit Trail</h1>
+                  <h1 id="admin-audit-title">Activity Log</h1>
                   <p>Recorded account, case and disease catalog changes. Select a row for details. Timestamps use Philippine time.</p>
                 </div>
-                <button type="button" onclick="loadAuditLogs()" aria-label="Refresh audit trail" title="Refresh audit trail" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800">
+                <button type="button" onclick="loadAuditLogs()" aria-label="Refresh activity log" title="Refresh activity log" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800">
                   <i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i>
                 </button>
               </header>
@@ -542,7 +548,7 @@
     <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/role-overview.js?v=20261120-restored-overview"></script>
     <script src="assets/js/admin/admin-shell.js?v=20261124-analytics"></script>
-    <script src="assets/js/admin/admin-analytics.js?v=2"></script>
+    <script src="assets/js/admin/admin-analytics.js?v=3"></script>
     <script src="assets/js/shared/registration-review.js?v=20261115-centered-result"></script>
     <script src="assets/js/shared/staff-access.js?v=4"></script>
     <script src="assets/js/admin/admin-users.js?v=20261115-account-close"></script>

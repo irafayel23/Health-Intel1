@@ -317,23 +317,49 @@
     }));
     ['map-month','map-disease','map-barangay'].forEach(id => $(id).addEventListener('change',loadMap));
     $('map-year').addEventListener('change',() => {updateMapMonths(); loadMap();});
+    const workspace = document.getElementById('view-admin-analytics');
+    const tabs = [...$('tabs').querySelectorAll('[role="tab"]')];
+    function selectAnalyticsTab(next) {
+        if (next.getAttribute('aria-selected') === 'true') return;
+        for (const tab of tabs) {
+            const selected = tab === next;
+            tab.classList.toggle('active', selected);
+            tab.setAttribute('aria-selected', String(selected));
+            tab.tabIndex = selected ? 0 : -1;
+            document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+        }
+        if (next === $('tab-training') && workspace.classList.contains('active')) void loadRuns();
+    }
+    tabs.forEach((tab, index) => {
+        tab.addEventListener('click', () => selectAnalyticsTab(tab));
+        tab.addEventListener('keydown', event => {
+            const destinations = {ArrowRight: (index + 1) % tabs.length, ArrowLeft: (index + tabs.length - 1) % tabs.length, Home: 0, End: tabs.length - 1};
+            if (!Object.hasOwn(destinations, event.key)) return;
+            event.preventDefault();
+            const next = tabs[destinations[event.key]];
+            selectAnalyticsTab(next);
+            next.focus();
+        });
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+        if (location.hash !== '#view-admin-training') return;
+        selectAnalyticsTab($('tab-training'));
+        history.replaceState(history.state, '', '#view-admin-analytics');
+    });
     window.HealthIntelAdminAnalytics = {
         activate(view) {
-            if (view === 'view-admin-analytics' || view === 'view-admin-training') {
-                document.getElementById(view).closest('.admin-page-scroll')?.scrollTo(0, 0);
+            if (view !== 'view-admin-analytics' && view !== 'view-admin-heatmap') return;
+            workspace.closest('.admin-page-scroll')?.scrollTo(0, 0);
+            if (view === 'view-admin-heatmap') {
+                void loadMap();
+                return;
             }
-            if (view === 'view-admin-heatmap') void loadMap();
-            if (view === 'view-admin-analytics') {
-                if (!metadata) status('coverage','Loading historical coverage…');
-                void getData().catch(error => {
-                    status('coverage',error.message,true);
-                    if (!metadata) status('versions-status','Saved uploads could not be loaded.',true);
-                });
-            }
-            if (view === 'view-admin-training') {
-                void getData().catch(() => {});
-                void loadRuns();
-            }
+            if (!metadata) status('coverage','Loading historical coverage…');
+            void getData().catch(error => {
+                status('coverage',error.message,true);
+                if (!metadata) status('versions-status','Saved uploads could not be loaded.',true);
+            });
+            if ($('tab-training').getAttribute('aria-selected') === 'true') void loadRuns();
         }
     };
 })();
