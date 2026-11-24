@@ -5,7 +5,7 @@
     const fmt = value => value == null ? '—' : Number(value).toLocaleString('en-PH', {maximumFractionDigits: 1});
     const monthLabels = Array.from({length:12}, (_, i) => new Date(2020, i, 1).toLocaleString('en', {month:'long'}));
     let metadata, dataRequest, upload, preview, map, polygons, mapRequest, leafletRequest;
-    let loadedTraining = false;
+    let runsRequest;
 
     function node(tag, value) {
         const element = document.createElement(tag);
@@ -64,14 +64,23 @@
         const describe = periods => periods.length <= 8 ? periods.join(', ') : periods.slice(0, 8).join(', ') + ' and ' + (periods.length - 8) + ' more';
         return [value.gaps.length && 'Missing months: ' + describe(value.gaps), value.partial.length && 'Incomplete months: ' + describe(value.partial)].filter(Boolean).join(' · ');
     }
+    function readableMonth(period, style = 'short') {
+        const [year, month] = period.split('-').map(Number);
+        return new Intl.DateTimeFormat('en-PH', {month:style, year:'numeric', timeZone:'UTC'})
+            .format(new Date(Date.UTC(year, month - 1, 1)));
+    }
+    function monthSpan(first, last) {
+        return first === last ? readableMonth(first) : readableMonth(first) + ' – ' + readableMonth(last);
+    }
     function renderDatasets(data) {
         const d = data.bundled;
-        $('dataset-summary').replaceChildren(...[['Available data', d.first + ' to ' + d.last], ['Recorded cases', fmt(d.cases)], ['Monthly rows', fmt(d.rows)]].map(([label,value]) => {
+        $('dataset-summary').replaceChildren(...[['Coverage', monthSpan(d.first, d.last)], ['Case count', fmt(d.cases)], ['Dataset rows', fmt(d.rows)]].map(([label,value]) => {
             const group = node('div'); group.append(node('dt',label),node('dd',value)); return group;
         }));
         status('coverage', [d.sources.join(' · '), coverageLine(d), d.reportingUnavailable && 'MHO confirmation history is unavailable.'].filter(Boolean).join(' · '));
-        rows($('versions'), data.versions.map(v => [v.label, v.first + ' to ' + v.last, fmt(v.cases), new Date(v.created_at).toLocaleString('en-PH', {timeZone:'Asia/Manila'})]));
-        status('versions-status', data.versions.length ? '' : 'No CSV versions have been saved.');
+        rows($('versions'), data.versions.map(v => [v.label, monthSpan(v.first, v.last), fmt(v.cases), new Date(v.created_at).toLocaleString('en-PH', {timeZone:'Asia/Manila'})]));
+        $('versions-table').hidden = !data.versions.length;
+        status('versions-status', data.versions.length ? '' : 'No uploads yet. Preview a CSV and save it to create a version.');
     }
     async function getData(force = false) {
         if (metadata && !force) return metadata;
@@ -244,7 +253,11 @@
             $('review').append(table(['Disease','Barangay','Estimated cases','Result'],result.scopes.map(row => [row.disease,row.barangay,fmt(row.prediction),row.prediction == null ? (row.reason || 'Insufficient history') : 'SARIMA'])));
         } catch (error) { $('review').textContent = error.message; }
     }
-    async function loadRuns() {
+    function loadRuns() {
+        if (!runsRequest) runsRequest = fetchRuns().finally(() => { runsRequest = null; });
+        return runsRequest;
+    }
+    async function fetchRuns() {
         $('train').disabled = true;
         status('run-status','Checking training worker and saved runs…');
         try {
@@ -254,17 +267,25 @@
                 review.type = 'button';
                 review.disabled = !['ready','published'].includes(run.status);
                 review.addEventListener('click',() => reviewRun(run.id));
-                return [run.id.slice(0,8), run.start_month + ' to ' + run.cutoff, run.status, review];
+                const badge = node('span', run.status.charAt(0).toUpperCase() + run.status.slice(1));
+                badge.className = 'aa-run-badge';
+                badge.dataset.state = run.status;
+                review.setAttribute('aria-label', 'View results for run ' + run.id.slice(0,8));
+                return [run.id.slice(0,8), monthSpan(run.start_month, run.cutoff), badge, review];
             }));
+            $('runs-table').hidden = !result.runs.length;
+            status('runs-empty', result.runs.length ? '' : 'No training runs yet. A run will appear here after you start training.');
             const active = result.runs.some(run => ['queued','running'].includes(run.status));
             $('train').disabled = !result.worker_ready || active;
             const published = result.publication?.run_id;
             status('run-status', [
                 published ? 'Published version ' + published.slice(0,8) : 'No operational version published.',
-                active ? 'Training is running. Refresh to check its status.' : result.worker_ready ? 'Training worker ready.' : result.worker_message,
-                result.runs.length ? '' : 'No training runs yet.'
+                active ? 'A run is queued or running. Refresh the run history to check progress.' : result.worker_ready ? 'Training worker ready.' : result.worker_message
             ].filter(Boolean).join(' '), !result.worker_ready && !active);
-        } catch (error) { status('run-status',error.message,true); }
+        } catch (error) {
+            status('run-status',error.message,true);
+            if ($('runs-table').hidden) status('runs-empty','Run history is unavailable. Use Refresh runs to try again.',true);
+        }
     }
     $('run-mode').addEventListener('change',() => {
         const bundled = $('run-mode').value === 'dataset_plus_reports';
@@ -291,18 +312,27 @@
         const result = await request('/predictions/' + source + '?' + query);
         const estimated = result.view.production['1'].prediction;
         const label = source === 'demo' ? 'Synthetic demonstration' : 'Operational prediction';
-        status('published-result', label + ' · ' + result.context.main_target + ' · ' + result.view.label + ' · ' + (estimated == null ? 'Prediction unavailable' : fmt(estimated) + ' estimated cases') +
+        status('published-result', label + ' · ' + readableMonth(result.context.main_target, 'long') + ' · ' + result.view.label + ' · ' + (estimated == null ? 'Prediction unavailable' : fmt(estimated) + ' estimated cases') +
             (source === 'published' && !result.current_data_matches ? ' · Source reports have changed since publication' : ''));
     }));
     ['map-month','map-disease','map-barangay'].forEach(id => $(id).addEventListener('change',loadMap));
     $('map-year').addEventListener('change',() => {updateMapMonths(); loadMap();});
     window.HealthIntelAdminAnalytics = {
         activate(view) {
+            if (view === 'view-admin-analytics' || view === 'view-admin-training') {
+                document.getElementById(view).closest('.admin-page-scroll')?.scrollTo(0, 0);
+            }
             if (view === 'view-admin-heatmap') void loadMap();
             if (view === 'view-admin-analytics') {
                 if (!metadata) status('coverage','Loading historical coverage…');
-                void getData().catch(error => status('coverage',error.message,true));
-                if (!loadedTraining) { loadedTraining = true; void loadRuns(); }
+                void getData().catch(error => {
+                    status('coverage',error.message,true);
+                    if (!metadata) status('versions-status','Saved uploads could not be loaded.',true);
+                });
+            }
+            if (view === 'view-admin-training') {
+                void getData().catch(() => {});
+                void loadRuns();
             }
         }
     };
