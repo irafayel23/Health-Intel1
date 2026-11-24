@@ -39,6 +39,7 @@ test('roster entry and Admin review dialogs finish setup with the published Swee
     assert.match(roster.form.innerHTML, /First name/);
     assert.match(roster.form.innerHTML, /<option value="" selected disabled hidden>Choose role<\/option>/);
     assert.match(roster.form.innerHTML, /Fixture barangay/);
+    assert.match(roster.form.innerHTML, /<option value="" selected disabled hidden>Choose barangay<\/option>/);
     assert.equal(roster.form.hidden, false);
     assert.equal(roster.status.hidden, true);
     assert.equal(roster.confirm.disabled, false);

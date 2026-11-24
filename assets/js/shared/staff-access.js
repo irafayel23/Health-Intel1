@@ -75,7 +75,7 @@
                   <label>Employee ID<input class="${field}" name="employee_id" maxlength="50" required></label>
                   <label>Role<select class="${field}" name="role" required><option value="" selected disabled hidden>Choose role</option><option value="bhw">BHW</option><option value="mho">MHO</option><option value="admin">Admin</option></select></label>
                 </div>
-                <label hidden>Assigned barangay<select class="${field}" name="barangay_id" disabled><option value="">Choose barangay</option>${options.map(row => option(row.id,row.name)).join('')}</select></label>
+                <label hidden>Assigned barangay<select class="${field}" name="barangay_id" disabled><option value="" selected disabled hidden>Choose barangay</option>${options.map(row => option(row.id,row.name)).join('')}</select></label>
                 <label>Verified Gmail (optional)<input class="${field}" type="email" name="email" maxlength="255" autocomplete="off"></label>
                 ${checked}`;
             form.elements.role.addEventListener('change', () => {
@@ -133,7 +133,7 @@
         const result = await formDialog('Change barangay', 'Save assignment', async form => {
             const options = (await barangays()).filter(row => row.name !== account.assigned_barangay);
             form.innerHTML = `<p>The employee keeps the same System ID. Existing sessions end when the assignment changes.</p>
-                <label>New barangay<select name="barangay_id" class="${field}" required><option value="">Choose barangay</option>${options.map(row => option(row.id,row.name)).join('')}</select></label>
+                <label>New barangay<select name="barangay_id" class="${field}" required><option value="" selected disabled hidden>Choose barangay</option>${options.map(row => option(row.id,row.name)).join('')}</select></label>
                 <label>Reason<textarea class="${field}" name="reason" maxlength="300" required></textarea></label>${checked}`;
         }, data => request('superadmin/staff-transfer', {...data, system_id:account.system_id}));
         if (result) {

@@ -14,7 +14,7 @@
     <script defer src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="assets/css/index/access.css?v=20261124-staff-focus" />
+    <link rel="stylesheet" href="assets/css/index/access.css?v=20261124-staff-help" />
   </head>
   <body>
     
@@ -111,7 +111,6 @@
 
             <div class="options-row access-options-spaced">
               <label><input type="checkbox" id="remember_me" checked /> Remember me</label>
-              <a href="#" id="forgot-pass-btn" class="access-forgot-link">Superadmin email reset</a>
             </div>
 
             <button type="submit" class="btn-primary">
@@ -119,7 +118,17 @@
               <i data-lucide="arrow-right" class="access-icon-16"></i>
             </button>
 
-            <p class="access-registration-line"><button type="button" class="access-register-link" onclick="activateStaffAccount()">Activate staff account</button> · <button type="button" class="access-register-link" onclick="activateStaffAccount(true)">Use HRIS reset code</button></p>
+            <div class="access-account-help">
+              <div class="access-staff-actions" role="group" aria-label="Staff account help">
+                <button type="button" onclick="activateStaffAccount()">
+                  <i data-lucide="user-plus" aria-hidden="true"></i><span>Activate staff account</span>
+                </button>
+                <button type="button" onclick="activateStaffAccount(true)">
+                  <i data-lucide="key-round" aria-hidden="true"></i><span>Use HRIS reset code</span>
+                </button>
+              </div>
+              <a href="#" id="forgot-pass-btn" class="access-forgot-link">Superadmin email reset</a>
+            </div>
           </form>
 
           <!-- ============================================== -->
