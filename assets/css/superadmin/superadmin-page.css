@@ -212,35 +212,68 @@ body:not(:has(#superadmin-row-tooltip.is-visible)) .hi-admin-access-row:focus-vi
 .hi-backup-password-toggle:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
 .hi-backup-password-toggle svg { width: 18px; height: 18px; }
 
-#view-users .hi-staff-create {
+.hi-staff-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+#view-users .hi-staff-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     min-height: 48px;
-    flex-shrink: 0;
-    margin-top: 16px;
     padding: 10px 16px;
-    border: 1px solid #1d4ed8;
+    border: 1px solid #bdcbea;
     border-radius: 12px;
-    background-color: #1d4ed8;
-    color: #fff;
+    background-color: #f8faff;
+    color: #1e3a8a;
     font-size: .875rem;
     font-weight: 600;
     cursor: pointer;
 }
-#view-users .hi-staff-create:hover {
+#view-users .hi-staff-action:hover {
+    border-color: #93b1f0;
+    background-color: #ecf3ff;
+}
+.dark #view-users .hi-staff-action {
+    border-color: #495979;
+    background-color: #1b2436;
+    color: #dbeafe;
+}
+.dark #view-users .hi-staff-action:hover {
+    border-color: #7ca7f4;
+    background-color: #293956;
+}
+#view-users .hi-staff-action-primary,
+.dark #view-users .hi-staff-action-primary {
+    border-color: #1d4ed8;
+    background-color: #1d4ed8;
+    color: #fff;
+}
+#view-users .hi-staff-action-primary:hover,
+.dark #view-users .hi-staff-action-primary:hover {
     border-color: #1e40af;
     background-color: #1e40af;
 }
-#view-users .hi-staff-create:focus-visible {
+#view-users .hi-staff-action:focus-visible {
     outline: 2px solid #3b82f6;
     outline-offset: 3px;
 }
-#view-users .hi-staff-create svg {
+#view-users .hi-staff-action svg {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+}
+
+@media (max-width: 540px) {
+    #view-users .hi-staff-action {
+        width: 100%;
+        justify-content: flex-start;
+    }
 }
 
 .hi-superadmin-dialogs .hi-staff-code-dialog .swal2-title {
