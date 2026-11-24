@@ -2,8 +2,9 @@
 const { text } = require('express');
 const { createAdminAnalytics } = require('../services/admin-analytics');
 const { createLowCountSarimaDemo } = require('../services/seasonal6200-sarima-demo');
+const { createConditionalCmp } = require('../services/conditional-pooled-cmp');
 
-function registerAdminAnalyticsRoutes(app, db, operational) {
+function registerAdminAnalyticsRoutes(app, db, operational, probability = createConditionalCmp()) {
     const base = '/api/admin/analytics';
     const data = createAdminAnalytics(db, operational);
     const demo = createLowCountSarimaDemo();
@@ -35,7 +36,7 @@ function registerAdminAnalyticsRoutes(app, db, operational) {
     app.get(base + '/predictions', handle(() => operational.list()));
     app.get(base + '/predictions/runs/:id', handle(req => operational.review(req.params.id)));
     app.post(base + '/predictions/runs', handle(req => operational.start(req.body || {}, req.user)));
-    app.get(base + '/predictions/demo', handle(req => demo.forecast(req.query)));
+    app.get(base + '/predictions/demo', handle(req => probability.augment(demo.forecast(req.query))));
     app.get(base + '/predictions/published', handle(req => operational.forecast(req.query)));
 }
 

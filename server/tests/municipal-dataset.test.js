@@ -60,7 +60,7 @@ test('month selection matches recorded dates across the dataset panels and live 
 });
 test('MHO keeps existing chart containers, removes separate view and unsupported controls, preserves Predictions section',()=>{
  const html=fs.readFileSync(require('node:path').join(__dirname,'../../mho.html'),'utf8');assert(!html.includes('id="dataset-analytics"'));assert(!html.includes('Analytics source'));assert(html.includes('id="operational-analytics" class="space-y-5"'));
- for(const id of ['dynamicChart','yoyMorbidityChart','mortalityChart','comparisonChart','breakdownChart','sarima-chart','monthly-updates'])assert(html.includes('id="'+id+'"'),id);
+ for(const id of ['dynamicChart','yoyMorbidityChart','mortalityChart','comparisonChart','breakdownChart','sarima-chart'])assert(html.includes('id="'+id+'"'),id);
  assert(html.indexOf('municipal-dataset.js')<html.indexOf('mho-analytics.js'));assert(html.includes('hidden disabled id="breakdown-age-tab"'));
 });
 

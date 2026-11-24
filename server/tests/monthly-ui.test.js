@@ -11,7 +11,7 @@ class Element{
 }
 const settle=async()=>{await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));};
 function app(handler, role='mho', includeProbability=false){
- const html=fs.readFileSync(path.join(root,role+'.html'),'utf8'),els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));if(els['prediction-source'])els['prediction-source'].value='demonstration';else els['view-predictive'].dataset.assignedBarangay='true';els['sarima-window'].value='24';els['sarima-score-info'].append(new Element('summary'));
+ const html=fs.readFileSync(path.join(root,role+'.html'),'utf8'),els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));if(role==='admin')els['monthly-history-source'].value='operational';else if(els['prediction-source'])els['prediction-source'].value='demonstration';else els['view-predictive'].dataset.assignedBarangay='true';if(role!=='admin'){els['sarima-window'].value='24';els['sarima-score-info'].append(new Element('summary'));}
  if(includeProbability){
   const dash=els['sarima-dashboard'],history=new Element('aside'),summary=els['sarima-summary'];
   history.append(new Element('h2'),new Element('svg'));dash.append(history,summary);
@@ -23,14 +23,16 @@ function app(handler, role='mho', includeProbability=false){
  const calls=[],document={readyState:'complete',documentElement:new Element('html'),getElementById:id=>{
   if(els[id])return els[id];
   function find(e){if(e.id===id)return e;for(const c of e.children){const hit=find(c);if(hit)return hit;}}
-  return find(els['sarima-dashboard'].parentElement||els['sarima-dashboard']);
+  return els['sarima-dashboard']?find(els['sarima-dashboard'].parentElement||els['sarima-dashboard']):undefined;
  },createElement:t=>new Element(t),createElementNS:(_n,t)=>new Element(t),addEventListener(){},querySelector:()=>new Element('button')};
  const events={};
  const context={document,window:{HealthIntelSarimaPresentation:P,HealthIntel:{apiOrigin:'http://localhost:3000'},confirm:()=>true,addEventListener:(name,handler)=>{events[name]=handler;}},fetch:async(url,options)=>{calls.push({url,options});return handler(url,options);},URLSearchParams,AbortController,Intl,Date,setTimeout,clearTimeout,setInterval,clearInterval,requestAnimationFrame:f=>f(),console};
  context.window.document=document;
- for(const file of [...(includeProbability?['cmp-presentation.js']:[]),...(role==='bhw'?[]:['operational-monthly.js']),'mho-forecast.js'])vm.runInNewContext(fs.readFileSync(path.join(root,'assets/js/mho',file),'utf8'),context);
+ const scripts=role==='admin'?['admin/operational-monthly.js']:[...(includeProbability?['mho/cmp-presentation.js']:[]),'mho/mho-forecast.js'];
+ for(const file of scripts)vm.runInNewContext(fs.readFileSync(path.join(root,'assets/js',file),'utf8'),context);
  return {els,calls,context,events};
 }
+const trainingApp=handler=>app(handler,'admin');
 const ok=data=>({ok:true,json:async()=>({success:true,data})}),error=message=>({ok:false,json:async()=>({success:false,error:message})});
 const options={diseases:['Cough'],barangays:['Salvacion'],context:{cutoff:'2026-09'},provenance:{version:'fixture-version'}};
 test('a published operational version is selected on startup, never assigned the demonstration score',async()=>{
@@ -41,24 +43,23 @@ test('an explicit source choice wins over delayed startup status; a source failu
  a.els['prediction-source'].value='demonstration';await a.els['prediction-source'].fire('change');release(ok({publication:{run_id:'fixture-version'}}));await settle();assert.equal(a.els['prediction-source'].value,'demonstration');assert(a.els['sarima-provenance'].textContent.includes('generated monthly'));
  a.els['prediction-source'].value='operational';await a.els['prediction-source'].fire('change');await settle();assert(a.els['sarima-state'].textContent.includes('No operational version'));assert(a.els['sarima-provenance'].textContent.includes('No demonstration records have been substituted'));assert.equal(a.els['forecast-months'].hidden,true);assert.equal(a.els['predictive-disease-select'].disabled,true);assert.equal(a.els['run-forecast-button'].textContent,'Retry loading');
 });
-test('opening monthly controls is read-only; publishing requires approval and switches the selected source',async()=>{
+test('Admin opening training is read-only and publishing requires approval',async()=>{
  const state={publication:null,runs:[{id:'fixture-version',cutoff:'2026-09',status:'ready'}],minimum_months:45,python_configured:true,worker_platform:'Windows bounded worker'};
  const review={run:{status:'ready'},overall:{'80_20':{'1':{within_tolerance_hits:7,available:9,attempted:9,MAE:1,RMSE:2,MAPE_positive_pct:3,within_tolerance_pct:100*7/9}},'70_30':{'1':{within_tolerance_hits:9,available:14,attempted:14}}},context:{main_target:'2026-10'},available:1,current_data_matches:true,scopes:[]};
- const a=app(async(url,opts)=>(url.endsWith('/status')||url.endsWith('/publication'))?ok(state):url.includes('/runs/')?ok(review):url.endsWith('/publish')?(state.publication={run_id:'fixture-version'},ok(state.publication)):ok(options));await settle();assert.equal(a.els['monthly-updates'].hidden,true);await a.els['prediction-updates-tab'].fire('click');assert.equal(a.els['prediction-results-panel'].hidden,true);assert.equal(a.els['monthly-updates'].hidden,false);assert.equal(a.els['prediction-updates-tab'].attributes['aria-selected'],'true');await settle();assert.equal(a.calls.filter(c=>c.options?.method==='POST').length,0);await a.els['prediction-updates-tab'].fire('keydown',{key:'ArrowLeft'});assert.equal(a.els['monthly-updates'].hidden,true);assert.equal(a.els['prediction-results-tab'].attributes['tabindex'],'0');await a.els['prediction-results-tab'].fire('keydown',{key:'End'});assert.equal(a.els['monthly-updates'].hidden,false);
- await a.els['monthly-runs'].children[0].children[1].fire('click');let approve=false;a.context.window.confirm=()=>approve;const publish=a.els['monthly-review'].children.find(e=>e.textContent==='Review and publish this version');await publish.fire('click');assert.equal(a.calls.filter(c=>c.url.endsWith('/publish')).length,0);approve=true;await publish.fire('click');assert.equal(a.els['prediction-source'].value,'operational');assert.equal(a.calls.filter(c=>c.url.endsWith('/publish')).length,1);assert.equal(a.els['run-forecast-button'].disabled,false);
+ const a=trainingApp(async(url,opts)=>(url.endsWith('/status')||url.endsWith('/publication'))?ok(state):url.includes('/runs/')?ok(review):url.endsWith('/publish')?(state.publication={run_id:'fixture-version'},ok(state.publication)):ok(options));await settle();assert.equal(a.calls.length,0);await a.context.window.HealthIntelMonthlyUpdates.setActive(true);assert.equal(a.calls.filter(c=>c.options?.method==='POST').length,0);
+ await a.els['monthly-runs'].children[0].children[1].fire('click');let approve=false;a.context.window.confirm=()=>approve;const publish=a.els['monthly-review'].children.find(e=>e.textContent==='Review and publish this version');await publish.fire('click');assert.equal(a.calls.filter(c=>c.url.endsWith('/publish')).length,0);approve=true;await publish.fire('click');assert.equal(a.calls.filter(c=>c.url.endsWith('/publish')).length,1);assert.match(a.els['monthly-message'].textContent,/published/);
 });
 test('actual operational routes deny other roles and sanitize unexpected errors without leaking internals',async()=>{
- const express=require('express'),{registerMonthlyPredictionRoutes}=require('../routes/monthly-prediction-routes');const app=express();app.use(express.json());app.use((req,res,next)=>{req.user={role:req.headers['x-fixture-role']};next();});let calls=0;registerMonthlyPredictionRoutes(app,null,{list:async()=>{calls++;throw Error('private diagnostic detail');}});const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.on('listening',r));try{const url='http://127.0.0.1:'+server.address().port+'/api/mho/operational-predictions/status';for(const role of ['bhw','admin','superadmin']){const r=await fetch(url,{headers:{'x-fixture-role':role}});assert.equal(r.status,403);}assert.equal(calls,0);const r=await fetch(url,{headers:{'x-fixture-role':'mho'}});assert.equal(r.status,503);assert.equal(r.headers.get('cache-control'),'no-store');assert(!(await r.text()).includes('private diagnostic detail'));}finally{await new Promise(r=>server.close(r));}
+ const express=require('express'),{registerMonthlyPredictionRoutes}=require('../routes/monthly-prediction-routes');const app=express();app.use(express.json());app.use((req,res,next)=>{req.user={role:req.headers['x-fixture-role']};next();});let calls=0;registerMonthlyPredictionRoutes(app,null,{list:async()=>{calls++;throw Error('private diagnostic detail');}});const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.on('listening',r));try{const url='http://127.0.0.1:'+server.address().port+'/api/admin/operational-predictions/status';for(const role of ['bhw','mho','superadmin']){const r=await fetch(url,{headers:{'x-fixture-role':role}});assert.equal(r.status,403);}assert.equal(calls,0);const r=await fetch(url,{headers:{'x-fixture-role':'admin'}});assert.equal(r.status,503);assert.equal(r.headers.get('cache-control'),'no-store');assert(!(await r.text()).includes('private diagnostic detail'));}finally{await new Promise(r=>server.close(r));}
 });
 
 test('restored monthly reports explain missing confirmations and block a known incomplete month',async()=>{
  const barangays=['Alegria','Blumentritt','Caliban','Cansilayan','Minoyan','Salvacion','Sta. Rosa'];
  const reports=barangays.map((barangay,index)=>({barangay,total:0,pending:index===6?1:0,other:0,confirmed:index<6,stale:false}));
  const state={runs:[],publication:null,python_configured:true,worker_platform:'Windows bounded worker'};
- const a=app(async url=>(url.endsWith('/status')||url.endsWith('/publication'))?ok(state):url.includes('/reports?')?ok(reports):ok(options));
+ const a=trainingApp(async url=>(url.endsWith('/status')||url.endsWith('/publication'))?ok(state):url.includes('/reports?')?ok(reports):ok(options));
  await settle();
- assert.equal(a.els['prediction-source-panel'].hidden,true);
- await a.els['prediction-updates-tab'].fire('click');
+ await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
  await a.els['monthly-load-reports'].fire('click');
  assert.match(a.els['monthly-report-summary'].textContent,/6 of 7 barangays confirmed/);
  assert.equal(a.els['monthly-step-report-status'].textContent,'6 of 7 confirmed');
@@ -170,7 +171,7 @@ test('operational probabilities render in both portals and mismatches keep the S
 
 
 test('monthly dates show the inclusive 45-month range and the next forecast month',async()=>{
- const a=app(async url=>url.endsWith('/status')||url.endsWith('/publication')?ok({runs:[],publication:null}):ok(options));
+ const a=trainingApp(async url=>url.endsWith('/status')||url.endsWith('/publication')?ok({runs:[],publication:null}):ok(options));
  await settle();
  const cutoff=a.els['monthly-cutoff'], start=a.els['monthly-start'];
  cutoff.value='2025-10';await cutoff.fire('input');
@@ -187,12 +188,12 @@ test('monthly dates show the inclusive 45-month range and the next forecast mont
 test('disease review reloads an open monthly report without stale classifications',async()=>{
  const barangays=['Alegria','Blumentritt','Caliban','Cansilayan','Minoyan','Salvacion','Sta. Rosa'];
  let pending=1;
- const a=app(async url=>{
+ const a=trainingApp(async url=>{
   if(url.endsWith('/status')||url.endsWith('/publication'))return ok({runs:[],publication:null});
   if(url.includes('/reports?'))return ok(barangays.map((barangay,i)=>({barangay,total:0,other:0,pending:i===0?pending:0,confirmed:i!==0})));
   return ok(options);
  });
- await settle();await a.els['prediction-updates-tab'].fire('click');
+ await settle();await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
  await a.els['monthly-load-reports'].fire('click');
  assert.equal(a.els['monthly-reports'].children[0].children[1].disabled,true);
  pending=0;a.events['health-intel:classification-reviewed']();await settle();
@@ -202,11 +203,11 @@ test('disease review reloads an open monthly report without stale classification
 });
 
 test('show actual worker progress when Monthly Updates is opened',async()=>{
- const a=app(async url=>url.endsWith('/status')||url.endsWith('/publication')
+ const a=trainingApp(async url=>url.endsWith('/status')||url.endsWith('/publication')
   ?ok({runs:[{id:'run-fixture',cutoff:'2025-10',status:'running',created_at:new Date(Date.now()-125000).toISOString(),progress:{completed:24}},{id:'queued-fixture',cutoff:'2025-10',status:'queued'},{id:'failed-fixture',cutoff:'2025-10',status:'failed',progress:{state:'failed',message:'Resource control stopped training: host_memory_pressure'}}],publication:null}):ok(options));
  await settle();
  try{
-  await a.els['prediction-updates-tab'].fire('click');
+  await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
   const progress=a.els['monthly-runs'].children[0].children[0].children.find(child=>child.tagName==='progress');
   assert.equal(progress.value,24);assert.equal(progress.max,70);
   a.els['monthly-cutoff'].value='2025-10';
@@ -227,7 +228,7 @@ test('show actual worker progress when Monthly Updates is opened',async()=>{
   assert.match(waiting.attributes['aria-label'],/Waiting for the worker/);
   assert.equal(a.els['monthly-load-test'],undefined);
   assert(!a.calls.some(call=>call.options?.method==='POST'));
- }finally{await a.els['prediction-results-tab'].fire('click');}
+ }finally{a.context.window.HealthIntelMonthlyUpdates.setActive(false);}
 });
 
 test('Disease Review ignores an older queue response after a newer refresh',async()=>{
@@ -252,10 +253,10 @@ test('Disease Review ignores an older queue response after a newer refresh',asyn
 test('training status shows a plain-language blocker and a technical disclosure, then clears both after rechecking',async()=>{
  let ready=false;
  const diagnostic='Scientific environment version mismatch: pandas';
- const a=app(async url=>url.endsWith('/status')||url.endsWith('/publication')
+ const a=trainingApp(async url=>url.endsWith('/status')||url.endsWith('/publication')
    ?ok({runs:[],publication:null,worker_ready:ready,python_configured:ready,worker_message:ready?null:diagnostic})
    :ok(options));
- await settle();await a.els['prediction-updates-tab'].fire('click');
+ await settle();await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
  assert.equal(a.els['monthly-worker-title'].textContent,'Training unavailable');
  assert.match(a.els['monthly-worker-message'].textContent,/still confirm/);
  assert.equal(a.els['monthly-worker-diagnostic'].textContent,diagnostic);
@@ -270,7 +271,7 @@ test('training status shows a plain-language blocker and a technical disclosure,
 
 
 test('dataset mode shows the saved start, limits report months and submits the mixed source',async()=>{
- const a=app(async url=>{
+ const a=trainingApp(async url=>{
   if(url.endsWith('/status')||url.endsWith('/publication'))return ok({runs:[],publication:null,worker_ready:true,python_configured:true});
   if(url.endsWith('/runs'))return ok({status:'ready'});
   return ok(options);
@@ -279,7 +280,7 @@ test('dataset mode shows the saved start, limits report months and submits the m
  const source=a.els['monthly-history-source'];
  source.value='dataset_plus_reports';
  await source.fire('change');
- await a.els['prediction-updates-tab'].fire('click');
+ await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
  assert.equal(a.els['monthly-start'].readOnly,true);
  assert.equal(a.els['monthly-start'].value,'2023-01');
  assert.equal(a.els['monthly-report-month'].min,'2026-10');

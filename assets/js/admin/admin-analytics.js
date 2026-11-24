@@ -1,11 +1,10 @@
 (() => {
     const $ = id => document.getElementById('aa-' + id);
-    if (!$('map') || !$('train-form')) return;
+    if (!$('map') || !$('tabs')) return;
     const endpoint = () => (window.HealthIntel?.apiOrigin || 'http://localhost:3000') + '/api/admin/analytics';
     const fmt = value => value == null ? '—' : Number(value).toLocaleString('en-PH', {maximumFractionDigits: 1});
     const monthLabels = Array.from({length:12}, (_, i) => new Date(2020, i, 1).toLocaleString('en', {month:'long'}));
     let metadata, dataRequest, upload, preview, map, polygons, mapRequest, leafletRequest;
-    let runsRequest;
 
     function node(tag, value) {
         const element = document.createElement(tag);
@@ -77,7 +76,7 @@
         $('dataset-summary').replaceChildren(...[['Coverage', monthSpan(d.first, d.last)], ['Case count', fmt(d.cases)], ['Dataset rows', fmt(d.rows)]].map(([label,value]) => {
             const group = node('div'); group.append(node('dt',label),node('dd',value)); return group;
         }));
-        status('coverage', [d.sources.join(' · '), coverageLine(d), d.reportingUnavailable && 'MHO confirmation history is unavailable.'].filter(Boolean).join(' · '));
+        status('coverage', [d.sources.join(' · '), coverageLine(d), d.reportingUnavailable && 'Confirmation history is unavailable.'].filter(Boolean).join(' · '));
         rows($('versions'), data.versions.map(v => [v.label, monthSpan(v.first, v.last), fmt(v.cases), new Date(v.created_at).toLocaleString('en-PH', {timeZone:'Asia/Manila'})]));
         $('versions-table').hidden = !data.versions.length;
         status('versions-status', data.versions.length ? '' : 'No uploads yet. Preview a CSV and save it to create a version.');
@@ -94,12 +93,6 @@
             if (!$('map-month').options.length) {
                 updateMapMonths();
                 $('map-month').value = value.current.slice(5);
-            }
-            if (!$('run-start').value) $('run-start').value = '2023-01';
-            if (!$('run-end').value) {
-                const [year, month] = value.current.split('-').map(Number);
-                $('run-end').value = new Date(Date.UTC(year, month - 2, 1)).toISOString().slice(0,7);
-                $('run-end').max = $('run-end').value;
             }
             return value;
         }).finally(() => {dataRequest = null;});
@@ -241,79 +234,39 @@
         }));
     }
 
-    async function reviewRun(id) {
-        $('review').textContent = 'Loading training results…';
-        try {
-            const result = await request('/predictions/runs/' + encodeURIComponent(id));
-            if (!result.scopes) { $('review').textContent = 'Results are not ready yet.'; return; }
-            const summary = node('p', fmt(result.available) + ' of ' + result.scopes.length + ' supported predictions · target ' + result.context.main_target);
-            const scores = result.overall?.['80_20']?.['1'];
-            $('review').replaceChildren(node('h3','Training results'), summary);
-            if (scores?.MAE != null) $('review').append(node('p','Historical mean absolute error (80/20): ' + fmt(scores.MAE) + ' cases.'));
-            $('review').append(table(['Disease','Barangay','Estimated cases','Result'],result.scopes.map(row => [row.disease,row.barangay,fmt(row.prediction),row.prediction == null ? (row.reason || 'Insufficient history') : 'SARIMA'])));
-        } catch (error) { $('review').textContent = error.message; }
-    }
-    function loadRuns() {
-        if (!runsRequest) runsRequest = fetchRuns().finally(() => { runsRequest = null; });
-        return runsRequest;
-    }
-    async function fetchRuns() {
-        $('train').disabled = true;
-        status('run-status','Checking training worker and saved runs…');
-        try {
-            const result = await request('/predictions');
-            rows($('runs'), result.runs.map(run => {
-                const review = node('button','View');
-                review.type = 'button';
-                review.disabled = !['ready','published'].includes(run.status);
-                review.addEventListener('click',() => reviewRun(run.id));
-                const badge = node('span', run.status.charAt(0).toUpperCase() + run.status.slice(1));
-                badge.className = 'aa-run-badge';
-                badge.dataset.state = run.status;
-                review.setAttribute('aria-label', 'View results for run ' + run.id.slice(0,8));
-                return [run.id.slice(0,8), monthSpan(run.start_month, run.cutoff), badge, review];
-            }));
-            $('runs-table').hidden = !result.runs.length;
-            status('runs-empty', result.runs.length ? '' : 'No training runs yet. A run will appear here after you start training.');
-            const active = result.runs.some(run => ['queued','running'].includes(run.status));
-            $('train').disabled = !result.worker_ready || active;
-            const published = result.publication?.run_id;
-            status('run-status', [
-                published ? 'Published version ' + published.slice(0,8) : 'No operational version published.',
-                active ? 'A run is queued or running. Refresh the run history to check progress.' : result.worker_ready ? 'Training worker ready.' : result.worker_message
-            ].filter(Boolean).join(' '), !result.worker_ready && !active);
-        } catch (error) {
-            status('run-status',error.message,true);
-            if ($('runs-table').hidden) status('runs-empty','Run history is unavailable. Use Refresh runs to try again.',true);
+    const probabilityPercent = new Intl.NumberFormat('en-PH', {style:'percent', maximumFractionDigits:2});
+    function showProbability(probability, source) {
+        $('cmp').hidden = false;
+        const available = probability?.status === 'available';
+        $('cmp-metrics').hidden = !available;
+        if (!available) {
+            status('cmp-status', source === 'demo' ? 'Saved COM-Poisson probabilities are unavailable for this selection.' : 'No verified COM-Poisson probabilities were published for this selection.');
+            return;
         }
+        const metrics = [
+            ['Exactly ' + probability.count + (probability.count === 1 ? ' case' : ' cases'), probabilityPercent.format(probability.exact)],
+            ['Within one case of ' + probability.count, probabilityPercent.format(probability.nearby)],
+            ['At least one case', probabilityPercent.format(probability.positive)]
+        ];
+        $('cmp-metrics').replaceChildren(...metrics.map(([label, value]) => {
+            const item = node('div');
+            item.append(node('dt', label), node('dd', value));
+            return item;
+        }));
+        const interval = probability.range95.join('–');
+        status('cmp-status', '95% model interval: ' + interval + ' cases. ' + (source === 'demo' ? 'Experimental probabilities from the synthetic demonstration.' : 'Experimental probabilities based on MHO-reviewed reports.'));
     }
-    $('run-mode').addEventListener('change',() => {
-        const bundled = $('run-mode').value === 'dataset_plus_reports';
-        $('run-start').readOnly = bundled;
-        if (bundled) $('run-start').value = '2023-01';
-    });
-    $('refresh-runs').addEventListener('click',busy($('refresh-runs'),'run-status',loadRuns));
-    $('train-form').addEventListener('submit',async event => {
-        event.preventDefault();
-        if ($('train').disabled) return;
-        $('train').disabled = true;
-        try {
-            status('run-status','Checking confirmed reports and preparing training…');
-            await request('/predictions/runs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-                mode:$('run-mode').value,start:$('run-start').value,cutoff:$('run-end').value
-            })});
-            await loadRuns();
-        } catch (error) { status('run-status',error.message,true); $('train').disabled = false; }
-    });
     $('published-form').addEventListener('submit',busy($('published-view'),'published-result',async () => {
+        $('cmp').hidden = true;
         status('published-result','Loading the prediction…');
         const query = new URLSearchParams({disease:$('published-disease').value,barangay:$('published-barangay').value});
         const source = $('published-source').value;
         const result = await request('/predictions/' + source + '?' + query);
         const estimated = result.view.production['1'].prediction;
         const label = source === 'demo' ? 'Synthetic demonstration' : 'Operational prediction';
-        status('published-result', label + ' · ' + readableMonth(result.context.main_target, 'long') + ' · ' + result.view.label + ' · ' + (estimated == null ? 'Prediction unavailable' : fmt(estimated) + ' estimated cases') +
+        status('published-result', label + ' · ' + readableMonth(result.context.main_target, 'long') + ' · ' + result.view.label + ' · ' + (estimated == null ? 'Prediction unavailable' : fmt(estimated) + ' estimated cases (SARIMA)') +
             (source === 'published' && !result.current_data_matches ? ' · Source reports have changed since publication' : ''));
+        showProbability(result.experimental_probability, source);
     }));
     ['map-month','map-disease','map-barangay'].forEach(id => $(id).addEventListener('change',loadMap));
     $('map-year').addEventListener('change',() => {updateMapMonths(); loadMap();});
@@ -328,7 +281,7 @@
             tab.tabIndex = selected ? 0 : -1;
             document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
         }
-        if (next === $('tab-training') && workspace.classList.contains('active')) void loadRuns();
+        window.HealthIntelMonthlyUpdates?.setActive(next === $('tab-training') && workspace.classList.contains('active'));
     }
     tabs.forEach((tab, index) => {
         tab.addEventListener('click', () => selectAnalyticsTab(tab));
@@ -348,7 +301,9 @@
     });
     window.HealthIntelAdminAnalytics = {
         activate(view) {
-            if (view !== 'view-admin-analytics' && view !== 'view-admin-heatmap') return;
+            const analytics = view === 'view-admin-analytics';
+            window.HealthIntelMonthlyUpdates?.setActive(analytics && $('tab-training').getAttribute('aria-selected') === 'true');
+            if (!analytics && view !== 'view-admin-heatmap') return;
             workspace.closest('.admin-page-scroll')?.scrollTo(0, 0);
             if (view === 'view-admin-heatmap') {
                 void loadMap();
@@ -359,7 +314,6 @@
                 status('coverage',error.message,true);
                 if (!metadata) status('versions-status','Saved uploads could not be loaded.',true);
             });
-            if ($('tab-training').getAttribute('aria-selected') === 'true') void loadRuns();
         }
     };
 })();

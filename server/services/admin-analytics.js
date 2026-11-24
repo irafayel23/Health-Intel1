@@ -83,7 +83,7 @@ function createAdminAnalytics(db, operational, { directory = storage, now = () =
                 for (const report of await operational.reports(period)) {
                     if (!report.confirmed || report.pending) continue;
                     for (const disease of DISEASES) rows.push({
-                        Date: period, Barangay: report.barangay, Disease: disease, Cases: report.counts[disease], Source: 'MHO-confirmed reports'
+                        Date: period, Barangay: report.barangay, Disease: disease, Cases: report.counts[disease], Source: 'Confirmed operational reports'
                     });
                 }
             } catch (error) {

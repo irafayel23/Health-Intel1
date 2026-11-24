@@ -29,7 +29,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/shared/chart-theme.js?v=20261101-summary-cards"></script>
-    <link rel="stylesheet" href="assets/css/mho/mho-page.css?v=20261123-map-type" />
+    <link rel="stylesheet" href="assets/css/mho/mho-page.css?v=20261124-read-only" />
   
     <!-- Built with npm --prefix tools/styles run build:mho. -->
     <link rel="stylesheet" href="assets/css/mho/mho-utilities.css?v=20261113-dataset" />
@@ -310,11 +310,7 @@
             <span id="predictive-validation-status" hidden></span>
           </header>
 
-          <div class="mho-prediction-tabs" role="tablist" aria-label="Prediction workspace">
-            <button id="prediction-results-tab" type="button" role="tab" aria-selected="true" aria-controls="prediction-results-panel" tabindex="0">Predictions</button>
-            <button id="prediction-updates-tab" type="button" role="tab" aria-selected="false" aria-controls="monthly-updates" tabindex="-1">Monthly Updates</button>
-          </div>
-          <section id="prediction-results-panel" role="tabpanel" aria-labelledby="prediction-results-tab" tabindex="0">
+          <section id="prediction-results-panel" aria-label="Case predictions">
           <section class="mb-5 rounded-2xl border border-slate-200 bg-white p-4 text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:p-5" id="prediction-source-panel" aria-label="Prediction data source" hidden>
             <label for="prediction-source" class="block text-sm font-semibold mb-2">Prediction history</label>
             <select id="prediction-source" class="w-full sm:max-w-md rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-950 dark:border-slate-600 dark:bg-slate-800 dark:text-white"><option value="demonstration">Saved demonstration predictions</option><option value="operational">Published operational predictions</option></select>
@@ -326,7 +322,7 @@
             <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto]">
               <div class="min-w-0"><label for="predictive-disease-select" class="mb-2 block text-xs font-semibold text-muted-foreground">Disease</label><select id="predictive-disease-select" class="min-h-12 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-blue-500" disabled><option>Loading diseases…</option></select></div>
               <div class="min-w-0"><label for="predictive-brgy-select" class="mb-2 block text-xs font-semibold text-muted-foreground">Barangay</label><select id="predictive-brgy-select" class="min-h-12 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-blue-500" disabled><option>Loading barangays…</option></select></div>
-              <button id="run-forecast-button" type="button" onclick="runPredictiveModel()" class="min-h-12 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-50 sm:col-span-2 xl:col-span-1" disabled>Predict</button>
+              <button id="run-forecast-button" type="button" onclick="runPredictiveModel()" class="min-h-12 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-50 sm:col-span-2 xl:col-span-1" disabled>View prediction</button>
             </div>
           </section>
           <p id="sarima-state" class="mb-4 text-xs leading-relaxed text-muted-foreground" role="status">Select a disease and barangay, then select Predict.</p>
@@ -373,71 +369,6 @@
 
           <!-- Compatibility hooks retained; multiple horizons and research diagnostics are not shown. -->
           <div hidden><select id="sarima-protocol"><option value="80_20">80/20</option></select><select id="sarima-evaluation-horizon"><option value="1">1</option></select><p id="sarima-other-month"></p><p id="sarima-other-estimate"></p><p id="sarima-other-range"></p><p id="sarima-other-note"></p><p id="sarima-availability"></p><p id="sarima-availability-count"></p><p id="sarima-overall-score"></p><p id="sarima-overall-note"></p><ul id="sarima-configurations"></ul><section id="sarima-calculations" hidden><p id="sarima-evaluation-label"></p><ol id="sarima-calculation-steps"></ol><table><tbody id="sarima-evaluation-rows"></tbody></table></section></div>
-          </section>
-          <section id="monthly-updates" role="tabpanel" aria-labelledby="prediction-updates-tab" tabindex="0" hidden class="mho-monthly">
-            <header class="mho-monthly-intro">
-              <div class="mho-monthly-titlebar">
-                <div><h2>Monthly Updates</h2><p><strong id="monthly-forecast-month" role="status">—</strong> forecast <span id="monthly-target-source">· Dataset-backed preview</span></p></div>
-                <p id="monthly-publication" class="mho-monthly-badge" role="status">Checking published version…</p>
-              </div>
-              <ol class="mho-monthly-steps" aria-label="Forecast update steps">
-                <li id="monthly-step-reports" aria-current="step"><span>Confirm reports</span><small id="monthly-step-report-status">Awaiting review</small></li>
-                <li id="monthly-step-train"><span>Train and test</span><small id="monthly-step-training-status">Waiting for reports</small></li>
-                <li id="monthly-step-review"><span>Review results</span><small id="monthly-step-review-status">Awaiting results</small></li>
-              </ol>
-              <p id="monthly-message" role="status" aria-live="polite" class="mho-monthly-message"></p>
-            </header>
-
-            <section class="mho-monthly-card mho-monthly-report-card" aria-labelledby="monthly-reports-title">
-              <h3 id="monthly-reports-title">Confirm barangay reports</h3>
-              <p>Review all seven barangays for a completed month. Confirm zero cases only when reporting is complete. Resolve pending disease classifications before confirming.</p>
-              <div class="mho-monthly-fields">
-                <select id="monthly-history-source" aria-label="Training history" hidden>
-                  <option value="dataset_plus_reports" selected>Saved dataset + new reports</option>
-                </select>
-                <label for="monthly-report-month">Reporting month<input id="monthly-report-month" type="month" required></label>
-                <button id="monthly-load-reports" type="button" class="mho-monthly-button">Load reports</button>
-              </div>
-              <p id="monthly-report-summary" class="mho-monthly-report-summary" role="status">Select a completed month and load its reports.</p>
-              <div id="monthly-reports" class="mho-monthly-list"></div>
-            </section>
-
-            <section class="mho-monthly-card mho-monthly-prepare-card" aria-labelledby="monthly-prepare-title">
-              <h3 id="monthly-prepare-title">Train and test SARIMA</h3>
-              <dl id="monthly-dataset-summary" class="mho-monthly-data">
-                <div><dt>Saved dataset</dt><dd>January 2023 – September 2026</dd></div>
-                <div><dt>New report months</dt><dd id="monthly-new-reports">—</dd></div>
-              </dl>
-              <p id="monthly-history-description" hidden></p>
-              <div class="mho-monthly-fields">
-                <label for="monthly-start" id="monthly-start-field" hidden><span id="monthly-start-label">History starts</span><input id="monthly-start" type="month" aria-describedby="monthly-range-help" required></label>
-                <label for="monthly-cutoff">Last completed month<input id="monthly-cutoff" type="month" aria-describedby="monthly-range-help" required></label>
-                <button id="monthly-use-range" type="button" class="mho-monthly-button">Use 45-month range</button>
-              </div>
-              <p id="monthly-range-help" role="status"></p>
-              <div id="monthly-environment" class="mho-monthly-environment">
-                <div role="status"><strong id="monthly-worker-title">Checking training status…</strong><p id="monthly-worker-message"></p></div>
-                <details id="monthly-worker-details" hidden><summary>Technical details</summary><p id="monthly-worker-diagnostic"></p></details>
-              </div>
-              <div class="mho-monthly-fields">
-                <button id="monthly-create" type="button" class="mho-monthly-button mho-monthly-primary" aria-describedby="monthly-worker-title monthly-worker-message" disabled>Prepare update</button>
-                <button id="monthly-check-worker" type="button" class="mho-monthly-button" hidden>Check again</button>
-              </div>
-              <p id="monthly-prepare-message" class="mho-monthly-message" role="status"></p>
-            </section>
-
-            <section class="mho-monthly-card mho-monthly-versions-card" aria-labelledby="monthly-versions-title">
-              <div class="mho-monthly-titlebar">
-                <h3 id="monthly-versions-title">Training progress and results</h3>
-                <button id="monthly-refresh" type="button" class="mho-monthly-button" aria-label="Refresh update status" data-mho-hint="Refresh update status"><i data-lucide="refresh-cw" class="h-4 w-4" aria-hidden="true"></i></button>
-              </div>
-              <div id="monthly-runs" class="mho-monthly-list"></div>
-              <div id="monthly-review" class="mt-4 space-y-3"></div>
-              <details id="monthly-past-attempts" class="mho-monthly-past" hidden>
-                <summary>Past attempts <span id="monthly-past-count"></span></summary>
-                <div id="monthly-past-runs" class="mho-monthly-list"></div>
-              </details>
-            </section>
           </section>
         </div>
 
@@ -637,9 +568,8 @@
     </script>
     <script src="assets/js/mho/mho-shell.js?v=20261111-pager"></script>
     <script src="assets/js/mho/sarima-presentation.js?v=20261120-seasonal-formula"></script>
-    <script src="assets/js/mho/operational-monthly.js?v=20261115-report-first"></script>
     <script src="assets/js/mho/cmp-presentation.js?v=20261119-probability"></script>
-    <script src="assets/js/mho/mho-forecast.js?v=20261120-seasonal-formula"></script>
+    <script src="assets/js/mho/mho-forecast.js?v=20261124-view-only"></script>
     <script src="assets/js/mho/municipal-dataset.js?v=20261118-chart-month"></script>
     <script src="assets/js/mho/mho-analytics.js?v=20261118-month-any-year"></script>
     <script src="assets/js/mho/mho-daily-bhw.js?v=20261120-activity-summary"></script>

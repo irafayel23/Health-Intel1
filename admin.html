@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="assets/css/shared/mho.css" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261115-comparison" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="assets/css/admin/admin-analytics.css?v=3" />
+    <link rel="stylesheet" href="assets/css/admin/admin-analytics.css?v=5" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -419,7 +419,7 @@
                   </div>
                   <div id="aa-panel-predictions" class="aa-panels" role="tabpanel" aria-labelledby="aa-tab-predictions" tabindex="0" hidden>
                     <section class="aa-panel" aria-labelledby="aa-published-title">
-                      <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="search"></i></span><div><h3 id="aa-published-title">Prediction lookup</h3><p>Find a one-month case estimate by disease and barangay.</p></div></header>
+                      <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="search"></i></span><div><h3 id="aa-published-title">Prediction lookup</h3><p>Look up the one-month SARIMA estimate and any available COM-Poisson probabilities.</p></div></header>
                       <form id="aa-published-form" class="aa-filter aa-lookup">
                         <label>Prediction source<select id="aa-published-source"><option value="demo">Saved SARIMA demonstration</option><option value="published">Published operational prediction</option></select></label>
                         <label>Disease<select id="aa-published-disease" required></select></label>
@@ -427,28 +427,79 @@
                         <button type="submit" class="aa-primary" id="aa-published-view">View prediction</button>
                       </form>
                       <p id="aa-published-result" class="aa-status aa-feedback" role="status"></p>
+                      <section id="aa-cmp" class="aa-feedback" aria-labelledby="aa-cmp-title" hidden>
+                        <h3 id="aa-cmp-title">COM-Poisson probabilities</h3>
+                        <dl id="aa-cmp-metrics" class="aa-summary"></dl>
+                        <p id="aa-cmp-status" class="aa-status" role="status"></p>
+                      </section>
                     </section>
                   </div>
                   <div id="view-admin-training" class="aa-panels" role="tabpanel" aria-labelledby="aa-tab-training" tabindex="0" hidden>
-                    <section class="aa-panel" aria-labelledby="aa-training-title">
-                      <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="sliders-horizontal"></i></span><div><h3 id="aa-training-title">Training setup</h3><p>Choose the source and dates for the current one-month SARIMA model.</p></div></header>
-                      <form id="aa-train-form" class="aa-filter aa-lookup">
-                        <label>Training source<select id="aa-run-mode" aria-describedby="aa-training-source-note"><option value="operational">Confirmed operational reports</option><option value="dataset_plus_reports">Bundled history + confirmed reports (preview)</option></select></label>
-                        <label>First month<input type="month" id="aa-run-start" required></label>
-                        <label>Last confirmed month<input type="month" id="aa-run-end" required></label>
-                        <button type="submit" id="aa-train" class="aa-primary" disabled><i data-lucide="play" aria-hidden="true"></i> Start training</button>
-                      </form>
-                      <p id="aa-training-source-note" class="aa-training-note">Training uses confirmed reports and, in preview mode, the bundled history. CSV uploads are saved for the future model workflow.</p>
-                      <p id="aa-run-status" class="aa-status aa-feedback" role="status">Checking training availability…</p>
-                    </section>
-                    <section class="aa-panel" aria-labelledby="aa-runs-title">
-                      <header class="aa-inline-heading">
-                        <div class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="history"></i></span><div><h3 id="aa-runs-title">Run history</h3><p>Check run status and open completed results.</p></div></div>
-                        <button type="button" id="aa-refresh-runs"><i data-lucide="refresh-cw" aria-hidden="true"></i> Refresh runs</button>
+                    <section id="monthly-updates" class="admin-monthly">
+                      <header class="admin-monthly-intro">
+                        <div class="admin-monthly-titlebar">
+                          <div><h2>Monthly Updates</h2><p><strong id="monthly-forecast-month" role="status">—</strong> forecast <span id="monthly-target-source">· Operational reports</span></p></div>
+                          <p id="monthly-publication" class="admin-monthly-badge" role="status">Checking published version…</p>
+                        </div>
+                        <ol class="admin-monthly-steps" aria-label="Forecast update steps">
+                          <li id="monthly-step-reports" aria-current="step"><span>Confirm reports</span><small id="monthly-step-report-status">Awaiting review</small></li>
+                          <li id="monthly-step-train"><span>Train and test</span><small id="monthly-step-training-status">Waiting for reports</small></li>
+                          <li id="monthly-step-review"><span>Review &amp; publish</span><small id="monthly-step-review-status">Awaiting results</small></li>
+                        </ol>
+                        <p id="monthly-message" role="status" aria-live="polite" class="admin-monthly-message"></p>
                       </header>
-                      <p id="aa-runs-empty" class="aa-status aa-empty" role="status">Loading run history…</p>
-                      <div id="aa-runs-table" class="aa-table" hidden><table><caption class="sr-only">Training runs</caption><thead><tr><th scope="col">Run</th><th scope="col">Training period</th><th scope="col">Status</th><th scope="col">Results</th></tr></thead><tbody id="aa-runs"></tbody></table></div>
-                      <div id="aa-review" aria-live="polite"></div>
+
+                      <section class="admin-monthly-card admin-monthly-report-card" aria-labelledby="monthly-reports-title">
+                        <h3 id="monthly-reports-title">Confirm barangay reports</h3>
+                        <p>Review all seven barangays for a completed month. Confirm zero cases only when reporting is complete. Resolve pending disease classifications before confirming.</p>
+                        <div class="admin-monthly-fields">
+                          <label for="monthly-report-month">Reporting month<input id="monthly-report-month" type="month" required></label>
+                          <button id="monthly-load-reports" type="button" class="admin-monthly-button">Load reports</button>
+                        </div>
+                        <p id="monthly-report-summary" class="admin-monthly-report-summary" role="status">Select a completed month and load its reports.</p>
+                        <div id="monthly-reports" class="admin-monthly-list"></div>
+                      </section>
+
+                      <section class="admin-monthly-card admin-monthly-prepare-card" aria-labelledby="monthly-prepare-title">
+                        <h3 id="monthly-prepare-title">Train and test SARIMA</h3>
+                        <label class="admin-monthly-source">Training source<select id="monthly-history-source">
+                          <option value="operational">Confirmed operational reports</option>
+                          <option value="dataset_plus_reports">Bundled history + confirmed reports (preview)</option>
+                        </select></label>
+                        <dl id="monthly-dataset-summary" class="admin-monthly-data">
+                          <div><dt>Saved dataset</dt><dd>January 2023 – September 2026</dd></div>
+                          <div><dt>New report months</dt><dd id="monthly-new-reports">—</dd></div>
+                        </dl>
+                        <p id="monthly-history-description" hidden></p>
+                        <div class="admin-monthly-fields">
+                          <label for="monthly-start" id="monthly-start-field" hidden><span id="monthly-start-label">History starts</span><input id="monthly-start" type="month" aria-describedby="monthly-range-help" required></label>
+                          <label for="monthly-cutoff">Last completed month<input id="monthly-cutoff" type="month" aria-describedby="monthly-range-help" required></label>
+                          <button id="monthly-use-range" type="button" class="admin-monthly-button">Use 45-month range</button>
+                        </div>
+                        <p id="monthly-range-help" role="status"></p>
+                        <div id="monthly-environment" class="admin-monthly-environment">
+                          <div role="status"><strong id="monthly-worker-title">Checking training status…</strong><p id="monthly-worker-message"></p></div>
+                          <details id="monthly-worker-details" hidden><summary>Technical details</summary><p id="monthly-worker-diagnostic"></p></details>
+                        </div>
+                        <div class="admin-monthly-fields">
+                          <button id="monthly-create" type="button" class="admin-monthly-button admin-monthly-primary" aria-describedby="monthly-worker-title monthly-worker-message" disabled>Start training</button>
+                          <button id="monthly-check-worker" type="button" class="admin-monthly-button" hidden>Check again</button>
+                        </div>
+                        <p id="monthly-prepare-message" class="admin-monthly-message" role="status"></p>
+                      </section>
+
+                      <section class="admin-monthly-card admin-monthly-versions-card" aria-labelledby="monthly-versions-title">
+                        <div class="admin-monthly-titlebar">
+                          <h3 id="monthly-versions-title">Training progress and results</h3>
+                          <button id="monthly-refresh" type="button" class="admin-monthly-button" aria-label="Refresh update status" title="Refresh update status"><i data-lucide="refresh-cw" class="h-4 w-4" aria-hidden="true"></i></button>
+                        </div>
+                        <div id="monthly-runs" class="admin-monthly-list"></div>
+                        <div id="monthly-review" class="mt-4 space-y-3"></div>
+                        <details id="monthly-past-attempts" class="admin-monthly-past" hidden>
+                          <summary>Past attempts <span id="monthly-past-count"></span></summary>
+                          <div id="monthly-past-runs" class="admin-monthly-list"></div>
+                        </details>
+                      </section>
                     </section>
                   </div>
                 </div>
@@ -548,7 +599,8 @@
     <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/role-overview.js?v=20261120-restored-overview"></script>
     <script src="assets/js/admin/admin-shell.js?v=20261124-analytics"></script>
-    <script src="assets/js/admin/admin-analytics.js?v=3"></script>
+    <script src="assets/js/admin/operational-monthly.js?v=1"></script>
+    <script src="assets/js/admin/admin-analytics.js?v=5"></script>
     <script src="assets/js/shared/registration-review.js?v=20261115-centered-result"></script>
     <script src="assets/js/shared/staff-access.js?v=4"></script>
     <script src="assets/js/admin/admin-users.js?v=20261115-account-close"></script>

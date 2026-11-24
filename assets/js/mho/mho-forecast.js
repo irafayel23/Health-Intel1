@@ -52,7 +52,7 @@
     function clearSelection() {
         S.sequence++; S.controller?.abort(); reset('Predict to view this selection.');
         $('sarima-dashboard').setAttribute('aria-busy', 'false');
-        $('run-forecast-button').disabled = false; text('run-forecast-button', 'Predict');
+        $('run-forecast-button').disabled = false; text('run-forecast-button', (assignedScope() ? 'Predict' : 'View prediction'));
         text('sarima-state', 'Selection changed. Predict to update the results.');
     }
     async function get(path, signal) {
@@ -168,7 +168,7 @@
         } finally {
             clearTimeout(timeout);
             if (sequence === S.sequence) {
-                button.disabled = false; text('run-forecast-button', choicesReady ? 'Predict' : 'Retry loading');
+                button.disabled = false; text('run-forecast-button', choicesReady ? (assignedScope() ? 'Predict' : 'View prediction') : 'Retry loading');
                 $('sarima-dashboard').setAttribute('aria-busy', 'false');
             }
         }
@@ -414,6 +414,7 @@
     function start() {
         if (!$('view-predictive')) return;
         if (assignedScope()) $('run-forecast-button').addEventListener('click', run);
+        $('prediction-source')?.addEventListener('change', () => window.selectSarimaSource());
         if (!P) { chartMessage('The prediction display module could not load. Refresh the page.'); return; }
         ['predictive-disease-select', 'predictive-brgy-select'].forEach(id => $(id).addEventListener('change', clearSelection));
         $('sarima-window').addEventListener('change', () => { S.chart = null; drawChart(); });

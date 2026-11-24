@@ -20,7 +20,7 @@ test('Admin CSV validation preserves zeros and rejects duplicates, current month
     assert.throws(() => readUpload(csv(['2026-10,Alegria,Cough,-1']), current), /whole case count/);
     assert.throws(() => readUpload(csv(['2026-10,Other,Cough,1']), current), /Unknown barangay/);
     assert.throws(() => readUpload(csv(['2026-10,Alegria,<script>,1']), current), /Unknown disease/);
-    assert.equal(readUpload(header + ',Source\n' + october + ',MHO-confirmed reports', current)[0].Source,'Uploaded, unverified');
+    assert.equal(readUpload(header + ',Source\n' + october + ',Confirmed operational reports', current)[0].Source,'Uploaded, unverified');
 });
 
 test('Admin preview and export keep historical, confirmed, incomplete and missing values distinct', async () => {
@@ -43,7 +43,7 @@ test('Admin preview and export keep historical, confirmed, incomplete and missin
         assert.deepEqual(history.gaps, ['2026-11']);
         assert.deepEqual(history.partial, ['2026-10']);
         const exportCsv = await api.exportCsv();
-        assert.match(exportCsv,/2026-10,Alegria,Cough,0,MHO-confirmed reports/);
+        assert.match(exportCsv,/2026-10,Alegria,Cough,0,Confirmed operational reports/);
         assert.doesNotMatch(exportCsv,/2026-10,Blumentritt/);
         const map = await api.map({period:'2026-10',disease:'Cough'});
         assert.deepEqual(map.rows.map(row=>row.cases),[0,null]);
@@ -75,6 +75,42 @@ test('Admin-only routes and the existing MHO and BHW boundaries stay separate', 
         const rule = rules.find(([verb, pattern]) => verb === method && pattern.test(path));
         assert.deepEqual(rule[2], ['admin']);
     }
-    const report = rules.find(([verb,regex])=>verb==='POST' && regex.test('/mho/operational-predictions/reports'));
-    assert.deepEqual(report[2], ['mho']);
+    const permitted = (method, path) => rules.find(([verb, pattern]) => verb === method && pattern.test(path))?.[2];
+    const run = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+    for (const action of ['reports', 'runs', 'runs/' + run + '/probability', 'publish']) {
+        assert.deepEqual(permitted('POST','/admin/operational-predictions/' + action), ['admin']);
+        assert.equal(permitted('POST','/mho/operational-predictions/' + action), undefined);
+    }
+    assert.deepEqual(permitted('GET','/mho/operational-predictions/prediction'), ['mho']);
+    assert.deepEqual(permitted('GET','/bhw/operational-predictions/prediction'), ['bhw']);
+});
+
+test('only Admin can confirm reports, start runs, prepare probabilities and publish', async () => {
+    const { registerMonthlyPredictionRoutes } = require('../routes/monthly-prediction-routes');
+    const routes = new Map();
+    const app = {
+        get: (route, ...handlers) => routes.set('GET ' + route, handlers.at(-1)),
+        post: (route, ...handlers) => routes.set('POST ' + route, handlers.at(-1))
+    };
+    const calls = [];
+    const service = Object.fromEntries(['confirm','start','prepareProbability','publish'].map(action => [action, (...args) => {
+        calls.push({ action, role: args.at(-1).role });
+        return { action };
+    }]));
+    registerMonthlyPredictionRoutes(app, {}, service);
+    const paths = [
+        ['confirm','/reports'], ['start','/runs'], ['prepareProbability','/runs/:id/probability'], ['publish','/publish']
+    ];
+    for (const [action, path] of paths) {
+        assert.equal(routes.has('POST /api/mho/operational-predictions' + path), false);
+        const handler = routes.get('POST /api/admin/operational-predictions' + path);
+        for (const role of ['mho','bhw','superadmin','admin']) {
+            const res = { code:200, set() {}, status(code) { this.code=code; return this; }, json(data) { this.data=data; } };
+            await handler({ user:{role}, body:{}, params:{id:'fixture-run'} }, res);
+            assert.equal(res.code, role === 'admin' ? 200 : 403);
+            if (role === 'admin') assert.equal(res.data.data.action, action);
+        }
+    }
+    assert.deepEqual(calls, paths.map(([action]) => ({action,role:'admin'})));
+    assert.equal(routes.has('GET /api/mho/operational-predictions/prediction'), true);
 });

@@ -76,3 +76,23 @@ test('production opt-in preserves frozen means and attaches only matching probab
   }
  }
 });
+
+test('Admin prediction lookup reuses the verified demonstration and published probability results', async () => {
+ const {registerAdminAnalyticsRoutes}=require('../routes/admin-analytics-routes');
+ const registered=new Map();
+ const app={get(url,handler){registered.set(url,handler);},post(){}};
+ const key={disease:'Cough',barangay:'Salvacion'};
+ const published={experimental_probability:{status:'unavailable',reason:'genuine_history_review_required'}};
+ registerAdminAnalyticsRoutes(app,{}, {forecast:async()=>published},cmp);
+ const demoUrl='/api/admin/analytics/predictions/demo';
+ const response=await request(registered,demoUrl,{role:'admin',query:key});
+ assert.equal(response.status,200);
+ assert.equal(percent(validate(response.body.data).exact),'32.27%');
+ assert.equal((await request(registered,demoUrl,{role:'mho',query:key})).status,403);
+ const operational=await request(registered,'/api/admin/analytics/predictions/published',{role:'admin',query:key});
+ assert.deepEqual(operational.body.data,published);
+ registerAdminAnalyticsRoutes(app,{}, {},createConditionalCmp({env:{...env,ENABLE_EXPERIMENTAL_CMP:'false'}}));
+ const disabled=await request(registered,demoUrl,{role:'admin',query:key});
+ assert.equal(disabled.status,200);
+ assert.equal(disabled.body.data.experimental_probability,undefined);
+});
