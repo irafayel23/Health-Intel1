@@ -47,6 +47,7 @@
         document.getElementById(viewId).classList.add("active");
 
         if(viewId==='view-overview')window.HealthIntelOverview?.refresh();
+        window.HealthIntelAdminAnalytics?.activate(viewId);
 
         // Refresh logs if the audit tab is clicked
         if(viewId === 'view-audit') {

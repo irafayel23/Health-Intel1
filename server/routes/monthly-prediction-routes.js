@@ -1,8 +1,10 @@
 const {createMonthlyPredictions}=require('../services/monthly-predictions');
+const {registerAdminAnalyticsRoutes}=require('./admin-analytics-routes');
 function registerMonthlyPredictionRoutes(app,db,service){
  // Lazy construction keeps existing demonstration and ordinary modules available before local migration/configuration.
  let cached=service;const get=()=>cached||(cached=createMonthlyPredictions(db));
  const handle=work=>async(req,res)=>{if(req.user?.role!=='mho')return res.status(403).json({success:false,error:'MHO access is required.'});try{res.set('Cache-Control','no-store');res.json({success:true,data:await work(get(),req)});}catch(e){res.status(e.status||503).json({success:false,error:e.status?e.message:'The operational monthly workflow is unavailable. Ask the maintainer to check its migration and scientific environment.',code:e.code||'MONTHLY_WORKFLOW_UNAVAILABLE'});}};
+ registerAdminAnalyticsRoutes(app, db, { reports: (...args) => get().reports(...args), recorded: (...args) => get().recorded(...args), list: (...args) => get().list(...args), review: (...args) => get().review(...args), start: (...args) => get().start(...args), publicationStatus: (...args) => get().publicationStatus(...args), forecast: (...args) => get().forecast(...args) });
  const base='/api/mho/operational-predictions';
  // BHW gets only its own selection and shared dates, without municipal totals.
  const scoped=({overall,context,...data})=>({...data,context:{cutoff:context.cutoff,main_target:context.main_target}});

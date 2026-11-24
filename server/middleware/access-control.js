@@ -20,6 +20,8 @@ const rules = [
     ['GET', /^\/bhw\/sarima-demo(?:\/options)?$/, ['bhw']],
     ['GET', /^\/mho\/followups$/, ['mho']],
     ['GET', /^\/mho\/sarima-demo(?:\/options)?$/, ['mho']],
+    ['GET', /^\/admin\/analytics\/(datasets|heatmap|historical\.csv|template\.csv|predictions(?:\/(?:demo|published|runs\/[a-f0-9-]{36}))?)$/, ['admin']],
+    ['POST', /^\/admin\/analytics\/(datasets\/(?:preview|save)|predictions\/runs)$/, ['admin']],
     ['GET', /^\/session$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['POST', /^\/logout$/, ['bhw', 'mho', 'admin', 'superadmin']],
     ['GET', /^\/encoding\/residents$/, ['bhw', 'mho']],
@@ -135,7 +137,7 @@ function createAccessControl(db, secret) {
             if (req.path === '/change-password' && req.body.system_id && req.body.system_id !== user.system_id) {
                 return deny(res, 403, 'You can only change your own password.', 'ACCESS_DENIED');
             }
-            if (req.method === 'POST' && /^\/admin\//.test(req.path)) {
+            if (req.method === 'POST' && /^\/admin\/(approve-user|deny-user|undo-deny|suspend-user|restore-suspended)$/.test(req.path)) {
                 const targetId = req.body.temp_system_id || req.body.system_id;
                 if (!targetId) return deny(res, 400, 'A target account is required.', 'INVALID_INPUT');
                 const [targets] = await db.execute('SELECT role FROM users WHERE system_id = ?', [targetId]);

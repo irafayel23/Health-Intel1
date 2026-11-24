@@ -17,6 +17,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="assets/css/shared/mho.css" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261115-comparison" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="assets/css/admin/admin-analytics.css?v=1" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -60,6 +62,12 @@
           </button>
           <button type="button" class="nav-item flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 [&.active]:bg-blue-100 [&.active]:text-blue-800 dark:text-slate-300 dark:hover:bg-white/5 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-300" id="nav-reports" onclick="switchMainView('view-report-management','nav-reports')">
             <i data-lucide="clipboard-list" class="h-5 w-5"></i><span class="sidebar-label whitespace-nowrap">Report Management</span>
+          </button>
+          <button type="button" class="nav-item flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 [&.active]:bg-blue-100 [&.active]:text-blue-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-300" id="nav-admin-heatmap" onclick="switchMainView('view-admin-heatmap','nav-admin-heatmap')">
+            <i data-lucide="map" class="h-5 w-5" aria-hidden="true"></i><span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
+          </button>
+          <button type="button" class="nav-item flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm font-medium text-slate-600 hover:bg-slate-100 [&.active]:bg-blue-100 [&.active]:text-blue-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-300" id="nav-admin-analytics" onclick="switchMainView('view-admin-analytics','nav-admin-analytics')">
+            <i data-lucide="chart-no-axes-combined" class="h-5 w-5" aria-hidden="true"></i><span class="sidebar-label whitespace-nowrap">Data &amp; Predictions</span>
           </button>
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-audit" onclick="switchMainView('view-audit', 'nav-audit')">
             <i data-lucide="history" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Operational Audit Trail</span>
@@ -350,6 +358,75 @@
           <!-- ============================================== -->
           <!-- 4. SECURITY AUDIT TRAIL (NEW MODULE) -->
           <!-- ============================================== -->
+          <section id="view-admin-heatmap" class="view-section" aria-labelledby="admin-heatmap-title">
+            <div class="admin-analytics">
+              <header class="aa-heading"><div><h2 id="admin-heatmap-title">Heatmap Cases</h2><p>Recorded case totals across the seven pilot barangays.</p></div><i data-lucide="map" aria-hidden="true"></i></header>
+              <section class="aa-panel">
+                <div class="aa-filter">
+                  <label>Year<select id="aa-map-year"></select></label>
+                  <label>Month<select id="aa-map-month"></select></label>
+                  <label>Disease<select id="aa-map-disease"><option value="all">All study diseases</option></select></label>
+                  <label>Barangay<select id="aa-map-barangay"><option value="all">All barangays</option></select></label>
+                </div>
+                <p id="aa-map-status" class="aa-status" role="status"></p>
+                <div id="aa-map" aria-label="Map of recorded cases by barangay"></div>
+                <p class="aa-map-key"><span class="aa-key-count"></span> More recorded cases <span class="aa-key-missing"></span> No confirmed count</p>
+                <div class="aa-table"><table><caption class="sr-only">Case totals by barangay</caption><thead><tr><th scope="col">Barangay</th><th scope="col">Cases</th><th scope="col">Reporting status</th></tr></thead><tbody id="aa-map-rows"></tbody></table></div>
+              </section>
+            </div>
+          </section>
+
+          <section id="view-admin-analytics" class="view-section" aria-labelledby="admin-analytics-title">
+            <div class="admin-analytics">
+              <header class="aa-heading"><div><h2 id="admin-analytics-title">Data &amp; Predictions</h2><p>Manage monthly case datasets and review SARIMA training runs.</p></div><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></header>
+              <div class="aa-columns">
+                <section class="aa-panel" aria-labelledby="aa-dataset-title">
+                  <header><h3 id="aa-dataset-title">Historical dataset</h3><p>Monthly aggregate counts by barangay and disease.</p></header>
+                  <dl id="aa-dataset-summary" class="aa-summary"></dl>
+                  <p id="aa-coverage" class="aa-status" role="status"></p>
+                  <div class="aa-actions"><button type="button" class="aa-primary" id="aa-export"><i data-lucide="download" aria-hidden="true"></i> Download historical CSV</button><button type="button" id="aa-template">CSV template</button></div>
+                </section>
+                <section class="aa-panel" aria-labelledby="aa-upload-title">
+                  <header><h3 id="aa-upload-title">Upload dataset</h3><p>Preview a monthly CSV before saving it as a new version.</p></header>
+                  <form id="aa-upload-form" class="aa-upload">
+                    <label for="aa-upload-file">CSV file</label>
+                    <input id="aa-upload-file" type="file" accept=".csv,text/csv" required>
+                    <div class="aa-actions"><button type="submit" id="aa-preview">Preview CSV</button><button type="button" class="aa-primary" id="aa-save" disabled>Save version</button></div>
+                  </form>
+                  <p id="aa-upload-status" class="aa-status" role="status"></p>
+                  <div class="aa-table" id="aa-upload-sample" hidden></div>
+                </section>
+              </div>
+              <section class="aa-panel">
+                <header><h3>Saved uploads</h3></header>
+                <p id="aa-versions-status" class="aa-status" role="status"></p>
+                <div class="aa-table"><table><caption class="sr-only">Dataset versions</caption><thead><tr><th scope="col">Version</th><th scope="col">Coverage</th><th scope="col">Cases</th><th scope="col">Saved</th></tr></thead><tbody id="aa-versions"></tbody></table></div>
+              </section>
+              <section class="aa-panel" aria-labelledby="aa-training-title">
+                <header class="aa-inline-heading"><div><h3 id="aa-training-title">SARIMA training</h3><p>Train the current model on confirmed operational reports or the bundled historical data plus confirmed reports. Saved uploads are available for the next model workflow.</p></div><button type="button" id="aa-refresh-runs"><i data-lucide="refresh-cw" aria-hidden="true"></i> Refresh runs</button></header>
+                <form id="aa-train-form" class="aa-filter">
+                  <label>Training source<select id="aa-run-mode"><option value="operational">Confirmed operational reports</option><option value="dataset_plus_reports">Bundled history + confirmed reports (preview)</option></select></label>
+                  <label>First month<input type="month" id="aa-run-start" required></label>
+                  <label>Last confirmed month<input type="month" id="aa-run-end" required></label>
+                  <button type="submit" id="aa-train" class="aa-primary" disabled>Start training</button>
+                </form>
+                <p id="aa-run-status" class="aa-status" role="status"></p>
+                <div class="aa-table"><table><caption class="sr-only">Training runs</caption><thead><tr><th scope="col">Run</th><th scope="col">Training period</th><th scope="col">Status</th><th scope="col">Results</th></tr></thead><tbody id="aa-runs"></tbody></table></div>
+                <div id="aa-review" aria-live="polite"></div>
+              </section>
+              <section class="aa-panel" aria-labelledby="aa-published-title">
+                <header><h3 id="aa-published-title">View predictions</h3><p>Browse the existing one-month predictions by disease and barangay.</p></header>
+                <form id="aa-published-form" class="aa-filter">
+                  <label>Prediction source<select id="aa-published-source"><option value="demo">Saved SARIMA demonstration</option><option value="published">Published operational prediction</option></select></label>
+                  <label>Disease<select id="aa-published-disease" required></select></label>
+                  <label>Barangay<select id="aa-published-barangay" required></select></label>
+                  <button type="submit" id="aa-published-view">View prediction</button>
+                </form>
+                <p id="aa-published-result" class="aa-status" role="status"></p>
+              </section>
+            </div>
+          </section>
+
           <div id="view-report-management" class="view-section">
             <section class="admin-list-card" aria-labelledby="report-management-title">
               <header class="admin-list-header">
@@ -438,7 +515,8 @@
     <div id="admin-row-tooltip" aria-hidden="true">Click to see details</div>
     <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/role-overview.js?v=20261120-restored-overview"></script>
-    <script src="assets/js/admin/admin-shell.js?v=20261107-audit-trail"></script>
+    <script src="assets/js/admin/admin-shell.js?v=20261124-analytics"></script>
+    <script src="assets/js/admin/admin-analytics.js?v=1"></script>
     <script src="assets/js/shared/registration-review.js?v=20261115-centered-result"></script>
     <script src="assets/js/shared/staff-access.js?v=4"></script>
     <script src="assets/js/admin/admin-users.js?v=20261115-account-close"></script>
