@@ -25,18 +25,25 @@
             title, confirmButtonText, showCancelButton:true, cancelButtonText:'Close',
             confirmButtonColor:'#047857', showLoaderOnConfirm:true,
             allowOutsideClick: () => !Swal.isLoading(),
-            html:'<form class="grid gap-3 text-left text-sm"><p role="status">Loading…</p></form>',
+            html:'<p role="status" class="text-left text-sm">Loading…</p><form class="grid gap-3 text-left text-sm" hidden></form>',
+            willOpen: () => { Swal.getConfirmButton().disabled = true; },
             didOpen: async popup => {
                 const form = popup.querySelector('form');
+                const status = popup.querySelector('[role="status"]');
+                const confirm = Swal.getConfirmButton();
                 form.addEventListener('submit', event => { event.preventDefault(); Swal.clickConfirm(); });
-                Swal.disableConfirmButton();
                 try {
                     await setup(form);
                     if (!form.isConnected) return;
+                    status.hidden = true;
+                    form.hidden = false;
                     ready = true;
-                    Swal.enableConfirmButton();
+                    confirm.disabled = false;
                 } catch (error) {
-                    if (form.isConnected) form.querySelector('[role="status"]').textContent = error.message;
+                    if (!form.isConnected) return;
+                    status.textContent = error.name === 'TimeoutError'
+                        ? 'The request timed out. Close this dialog and try again.'
+                        : error.message || 'Could not load this form. Close it and try again.';
                 }
             },
             preConfirm: async () => {
