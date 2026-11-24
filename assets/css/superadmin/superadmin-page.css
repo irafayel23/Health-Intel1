@@ -276,6 +276,47 @@ body:not(:has(#superadmin-row-tooltip.is-visible)) .hi-admin-access-row:focus-vi
     }
 }
 
+.hi-staff-guide {
+    margin-top: 12px;
+    font-size: .875rem;
+}
+.hi-staff-guide summary {
+    width: fit-content;
+    padding: 6px 2px;
+    color: #1d4ed8;
+    font-weight: 600;
+    cursor: pointer;
+}
+.hi-staff-guide summary:hover {
+    text-decoration: underline;
+}
+.hi-staff-guide summary:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+.hi-staff-guide ol {
+    max-width: 74ch;
+    margin: 6px 0 0;
+    padding: 14px 16px 14px 38px;
+    border: 1px solid #d5e2f6;
+    border-radius: 12px;
+    background: #f8faff;
+    color: #334155;
+    list-style: decimal;
+}
+.hi-staff-guide li + li {
+    margin-top: 8px;
+}
+.dark .hi-staff-guide summary {
+    color: #93c5fd;
+}
+.dark .hi-staff-guide ol {
+    border-color: #495979;
+    background: #1b2436;
+    color: #e2e8f0;
+}
+
 .hi-superadmin-dialogs .hi-staff-code-dialog .swal2-title {
     padding: 16px 16px 0;
     font-size: clamp(1.15rem, 4vw, 1.55rem);
