@@ -5,18 +5,16 @@
         const pwdInput = document.getElementById('login_password');
         const eyeIcon = document.getElementById('togglePassword');
 
-        if (pwdInput.type === 'password') {
-          pwdInput.type = 'text';
-          eyeIcon.setAttribute('data-lucide', 'eye-off');
-        } else {
-          pwdInput.type = 'password';
-          eyeIcon.setAttribute('data-lucide', 'eye');
-        }
-        lucide.createIcons(); // Re-render the icon
+        const showing = pwdInput.type === 'password';
+        pwdInput.type = showing ? 'text' : 'password';
+        eyeIcon.closest('button').setAttribute('aria-label', showing ? 'Hide password' : 'Show password');
+        eyeIcon.setAttribute('data-lucide', showing ? 'eye-off' : 'eye');
+        window.lucide?.createIcons();
       }
 
       // --- REMEMBER ME LOGIC (On Load) ---
       document.addEventListener('DOMContentLoaded', () => {
+        window.lucide?.createIcons();
         const savedId = localStorage.getItem('remembered_system_id');
         if (savedId) {
           document.getElementById('login_id').value = savedId;

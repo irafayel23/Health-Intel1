@@ -1,5 +1,5 @@
 async function activateStaffAccount(reset = false) {
-    const passwordField = (name, label) => `<div>
+    const passwordField = (name, label) => `<div class="staff-activation-secret">
         <label for="staff-${name}">${label}</label>
         <div class="staff-activation-password">
             <input id="staff-${name}" name="${name}" type="password" autocomplete="new-password" minlength="8" required>
@@ -8,14 +8,21 @@ async function activateStaffAccount(reset = false) {
     </div>`;
     const result = await Swal.fire({
         title: reset ? 'Reset staff password' : 'Activate staff account',
-        html: `<p>Enter the System ID and one-time code from HRIS, then ${reset ? 'choose a new password' : 'create your password'}.</p>
+        width: '36rem', heightAuto: false,
+        customClass: { popup: 'staff-activation-popup' },
+        html: `<p class="staff-activation-intro">Use the System ID and one-time code from HRIS.</p>
             <div class="staff-activation-fields">
-              <label class="input-group">System ID<input name="system_id" autocomplete="username" maxlength="50" required></label>
-              <div>
+              <label class="staff-activation-id">System ID<input name="system_id" autocomplete="username" maxlength="50" required></label>
+              <div class="staff-activation-token">
                 <label for="staff-code">${reset ? 'Reset code' : 'Activation code'}</label>
                 <div class="staff-activation-code">
                     <input id="staff-code" name="code" autocomplete="one-time-code" spellcheck="false" maxlength="40" required>
-                    <button type="button" data-paste-activation>Paste</button>
+                    <button type="button" data-paste-activation aria-label="Paste text" title="Paste text">
+                        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="8" y="3" width="8" height="4" rx="1"></rect>
+                            <path d="M8 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M8 11h8m-8 4h5"></path>
+                        </svg>
+                    </button>
                 </div>
                 <p data-paste-status role="status"></p>
               </div>
@@ -43,7 +50,7 @@ async function activateStaffAccount(reset = false) {
             });
             popup.querySelector('[data-paste-activation]').addEventListener('click', async () => {
                 try {
-                    if (!fillActivation(await navigator.clipboard.readText())) status.textContent = 'Copy the activation code and try again.';
+                    if (!fillActivation(await navigator.clipboard.readText())) status.textContent = 'Copy the one-time code and try again.';
                 } catch {
                     status.textContent = 'Use your keyboard or context menu to paste.';
                 }

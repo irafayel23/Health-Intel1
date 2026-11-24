@@ -73,7 +73,7 @@
                   <label>First name<input class="${field}" name="first_name" maxlength="100" required></label>
                   <label>Last name<input class="${field}" name="last_name" maxlength="100" required></label>
                   <label>Employee ID<input class="${field}" name="employee_id" maxlength="50" required></label>
-                  <label>Role<select class="${field}" name="role" required><option value="">Choose role</option><option value="bhw">BHW</option><option value="mho">MHO</option><option value="admin">Admin</option></select></label>
+                  <label>Role<select class="${field}" name="role" required><option value="" selected disabled hidden>Choose role</option><option value="bhw">BHW</option><option value="mho">MHO</option><option value="admin">Admin</option></select></label>
                 </div>
                 <label hidden>Assigned barangay<select class="${field}" name="barangay_id" disabled><option value="">Choose barangay</option>${options.map(row => option(row.id,row.name)).join('')}</select></label>
                 <label>Verified Gmail (optional)<input class="${field}" type="email" name="email" maxlength="255" autocomplete="off"></label>

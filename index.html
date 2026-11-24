@@ -14,7 +14,7 @@
     <script defer src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="assets/css/index/access.css?v=20261123-staff-controls" />
+    <link rel="stylesheet" href="assets/css/index/access.css?v=20261124-compact-activation" />
   </head>
   <body>
     
@@ -105,7 +105,7 @@
                 <div class="input-icon-box access-purple-text"><i data-lucide="lock" class="access-icon-18"></i></div>
                 <input type="password" id="login_password" placeholder="Enter your password" required autocomplete="current-password" />
           
-                <button type="button" onclick="togglePasswordVisibility()" class="access-password-button" aria-label="Toggle password visibility"><i data-lucide="eye" id="togglePassword" class="access-password-toggle"></i></button>
+                <button type="button" onclick="togglePasswordVisibility()" class="access-password-button" aria-controls="login_password" aria-label="Show password"><i data-lucide="eye" id="togglePassword" class="access-password-toggle"></i></button>
               </div>
             </div>
 
@@ -170,8 +170,8 @@
     <!-- ============================================== -->
     <!-- JAVASCRIPT LOGIC (100% INTACT) -->
     <!-- ============================================== -->
-    <script defer src="assets/js/index/index-shell.js?v=20261124-staff-access"></script>
+    <script defer src="assets/js/index/index-shell.js?v=20261124-access-icons"></script>
     <script defer src="assets/js/index/index-recovery.js"></script>
-    <script defer src="assets/js/index/index-login.js?v=20261124-staff-access"></script>
+    <script defer src="assets/js/index/index-login.js?v=20261124-compact-activation"></script>
   </body>
 </html>
