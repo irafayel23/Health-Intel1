@@ -212,6 +212,33 @@ body:not(:has(#superadmin-row-tooltip.is-visible)) .hi-admin-access-row:focus-vi
 .hi-backup-password-toggle:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
 .hi-backup-password-toggle svg { width: 18px; height: 18px; }
 
+.hi-staff-detail-action {
+    --staff-action-color: #1e40af;
+    min-height: 42px;
+    padding: 8px 12px;
+    border: 1px solid color-mix(in srgb, var(--staff-action-color) 38%, transparent);
+    border-radius: 12px;
+    color: var(--staff-action-color);
+    background: color-mix(in srgb, var(--staff-action-color) 8%, transparent);
+    font-weight: 600;
+    cursor: pointer;
+}
+.hi-staff-detail-action:hover {
+    background: color-mix(in srgb, var(--staff-action-color) 16%, transparent);
+    border-color: var(--staff-action-color);
+}
+.hi-staff-detail-action:focus-visible {
+    outline: 2px solid var(--staff-action-color);
+    outline-offset: 2px;
+}
+.hi-staff-detail-action[data-tone="reset"] { --staff-action-color: #92400e; }
+.hi-staff-detail-action[data-tone="suspend"] { --staff-action-color: #b91c1c; }
+.hi-staff-detail-action[data-tone="restore"] { --staff-action-color: #047857; }
+.dark .hi-staff-detail-action { --staff-action-color: #93c5fd; }
+.dark .hi-staff-detail-action[data-tone="reset"] { --staff-action-color: #fcd34d; }
+.dark .hi-staff-detail-action[data-tone="suspend"] { --staff-action-color: #fca5a5; }
+.dark .hi-staff-detail-action[data-tone="restore"] { --staff-action-color: #6ee7b7; }
+
 .hi-staff-actions {
     display: flex;
     flex-wrap: wrap;

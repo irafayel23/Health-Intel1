@@ -367,13 +367,13 @@ function renderHistoryPagination(page, total, countLabel, navLabel) {
 const accessField = (label,value)=>`<div><dt class="text-xs">${escapeText(label)}</dt><dd class="mt-1 whitespace-pre-wrap [overflow-wrap:anywhere]">${escapeText(value || 'Not recorded')}</dd></div>`;
 
 function staffAccessButtons(account, includeStatus) {
-    const action = (key, label) => `<button type="button" data-staff-action="${key}" class="rounded-xl border border-slate-300 px-3 py-2 font-semibold">${label}</button>`;
+    const action = (key, label, tone = key) => `<button type="button" data-staff-action="${key}" class="hi-staff-detail-action" data-tone="${tone}">${label}</button>`;
     const active = account.status === 'approved';
     const state = adminState(account.status);
     const buttons = [
         active && action('reset', 'Reset password'),
         active && account.role === 'bhw' && action('transfer', 'Change barangay'),
-        includeStatus && ['approved','suspended'].includes(account.status) && action('status', state.action)
+        includeStatus && ['approved','suspended'].includes(account.status) && action('status', state.action, active ? 'suspend' : 'restore')
     ].filter(Boolean);
     return buttons.length ? `<div class="mb-4 flex flex-wrap gap-2">${buttons.join('')}</div>` : '';
 }
