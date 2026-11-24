@@ -82,6 +82,7 @@
                 list('overview-pending-list',Array.isArray(pending)?pending.slice(0,3):null,'No pending BHW or MHO registrations.','accounts');
                 list('overview-recent-list',recent(data(6)),'No operational activity has been recorded.','activity');
             }else{
+                win.loadSystemHealth?.(results[2].status === 'fulfilled' ? results[2].value : null);
                 const users=data(1),health=data(2),admins=Array.isArray(users)?users.filter(u=>String(u.role).toLowerCase()==='admin'):null;
                 put('overview-accounts',admins?number(admins.length):'—');
                 const awaiting = Array.isArray(users) ? users.filter(user => user.status === 'awaiting_activation') : null;
@@ -99,7 +100,7 @@
         }
         el('overview-refresh').addEventListener('click',refresh);
         win.HealthIntelOverview={refresh,open};
-        refresh();
+        if (role !== 'superadmin' || !/^#view-(?:users|staff|audit|db)$/.test(win.location?.hash || '')) void refresh();
     }
     const api={accountSummary,recent,time,number,init};
     if(typeof module==='object'&&module.exports)module.exports=api;

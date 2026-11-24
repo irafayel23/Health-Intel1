@@ -16,7 +16,9 @@
         const title=document.getElementById('superadmin-view-title');
         if(title) title.textContent=({'view-dashboard':'Superadmin Portal','view-users':'Staff Accounts','view-audit':'Activity Log','view-db':'Database Backup'})[viewId] || 'Overview';
 
-        if(viewId==='view-dashboard')window.HealthIntelOverview?.refresh();
+        if (viewId === 'view-dashboard') window.HealthIntelOverview?.refresh();
+        if (viewId === 'view-users') void loadAdmins();
+        if (viewId === 'view-audit') void loadAuditLogs();
         if (window.lucide) lucide.createIcons();
       }
 

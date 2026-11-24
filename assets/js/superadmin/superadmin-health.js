@@ -1,11 +1,12 @@
 // Superadmin health overview and manual service-restart guidance.
 // Classic script: load through superadmin.html; cross-feature functions share its page scope.
-      async function loadSystemHealth() {
+      async function loadSystemHealth(result) {
           try {
-              const res = await fetch("http://localhost:3000/api/superadmin/health");
-              const result = await res.json();
-
-              if(res.ok===false || !result.success)throw Error('Connection check unavailable');
+              if (result === undefined) {
+                  const res = await fetch('http://localhost:3000/api/superadmin/health');
+                  result = res.ok ? await res.json() : null;
+              }
+              if (!result?.success) throw Error('Connection check unavailable');
               if (result.success) {
                   const data = result.data;
                   document.getElementById("stat-total-logs").innerText = data.total_logs;

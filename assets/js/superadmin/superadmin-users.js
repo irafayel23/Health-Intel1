@@ -42,16 +42,19 @@ async function cancelStaffAccount(staff) {
 
 async function createStaffAccount(staff) {
     const inputStyle = 'mt-1 block w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-slate-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-white';
-    let barangays = [];
-    try {
-        if (!staff || staff.role === 'bhw') {
-            const response = await fetch('http://localhost:3000/api/superadmin/staff-barangays');
-            const result = await response.json();
-            if (!response.ok || !result.success || !Array.isArray(result.data)) throw Error();
-            barangays = result.data;
-        }
-    } catch {
-        return Swal.fire({ icon: 'error', title: 'Could not load barangays', text: 'Try opening staff account creation again.' });
+    let barangays;
+    function loadBarangays() {
+        return barangays ||= fetch('http://localhost:3000/api/superadmin/staff-barangays', {signal: AbortSignal.timeout(10000)})
+            .then(async response => {
+                const result = await response.json();
+                if (!response.ok || !result.success || !Array.isArray(result.data) || !result.data.length) {
+                    throw Error('Could not load barangays. Try again.');
+                }
+                return result.data;
+            }).catch(() => {
+                barangays = null;
+                throw Error('Could not load barangays. Try again.');
+            });
     }
     const result = await Swal.fire({
         title: staff ? 'New activation code' : 'Create staff account',
@@ -68,7 +71,11 @@ async function createStaffAccount(staff) {
               <label class="font-semibold">Employee ID<input class="${inputStyle}" name="employee_id" maxlength="50" required></label>
               <label class="font-semibold">Role<select class="${inputStyle}" name="role" required><option value="" disabled selected>Choose role</option><option value="bhw">BHW</option><option value="mho">MHO</option><option value="admin">Admin</option></select></label>
             </div>
-            <label class="font-semibold" data-assignment hidden>Assigned barangay<select class="${inputStyle}" name="barangay_id"><option value="">Choose barangay</option></select></label>`}
+            <div data-assignment hidden>
+              <label class="font-semibold">Assigned barangay<select class="${inputStyle}" name="barangay_id" disabled><option value="">Choose barangay</option></select></label>
+              <p class="mt-1 text-sm" data-barangay-status role="status"></p>
+              <button type="button" class="mt-1 text-sm font-semibold underline" data-barangay-retry hidden>Retry loading barangays</button>
+            </div>`}
             <label class="font-semibold">How should the employee receive the code?
               <select class="${inputStyle}" name="delivery_method">
                 <option value="manual">In person</option>
@@ -98,13 +105,29 @@ async function createStaffAccount(staff) {
             };
             delivery_method.addEventListener('change', updateDelivery);
             if (!staff) {
-                barangays.forEach(barangay => barangay_id.add(new Option(barangay.name, barangay.id)));
-                const updateAssignment = () => {
-                    form.querySelector('[data-assignment]').hidden = role.value !== 'bhw';
-                    barangay_id.required = role.value === 'bhw';
+                const assignment = form.querySelector('[data-assignment]');
+                const status = form.querySelector('[data-barangay-status]');
+                const retry = form.querySelector('[data-barangay-retry]');
+                const updateAssignment = async () => {
+                    const isBhw = role.value === 'bhw';
+                    assignment.hidden = !isBhw;
+                    barangay_id.required = isBhw;
+                    if (!isBhw || !barangay_id.disabled) return;
+                    status.textContent = 'Loading barangays…';
+                    retry.hidden = true;
+                    try {
+                        const options = await loadBarangays();
+                        if (!form.isConnected || !barangay_id.disabled) return;
+                        options.forEach(barangay => barangay_id.add(new Option(barangay.name, barangay.id)));
+                        barangay_id.disabled = false;
+                        status.textContent = '';
+                    } catch (error) {
+                        status.textContent = error.message;
+                        retry.hidden = false;
+                    }
                 };
                 role.addEventListener('change', updateAssignment);
-                updateAssignment();
+                retry.addEventListener('click', updateAssignment);
             }
             if (staff?.delivery_email) {
                 delivery_email.value = staff.delivery_email;
@@ -118,12 +141,19 @@ async function createStaffAccount(staff) {
             if (!form.reportValidity()) return false;
             const fields = ['first_name', 'last_name', 'employee_id', 'role', 'barangay_id'];
             const data = Object.fromEntries(fields.map(name => [name, staff?.[name] ?? form.elements[name]?.value]));
-            if (staff?.role === 'bhw') data.barangay_id = barangays.find(barangay => barangay.name === staff.assigned_barangay)?.id;
+            if (!staff && data.role === 'bhw' && form.elements.barangay_id.disabled) {
+                Swal.showValidationMessage('Load the assigned barangay before creating this account.');
+                return false;
+            }
             data.delivery_method = form.elements.delivery_method.value;
             if (data.delivery_method === 'email') data.delivery_email = form.elements.delivery_email.value;
             data.identity_checked = form.elements.identity_checked.checked;
             if (staff) data.reissue_system_id = staff.system_id;
             try {
+                if (staff?.role === 'bhw') {
+                    data.barangay_id = (await loadBarangays()).find(barangay => barangay.name === staff.assigned_barangay)?.id;
+                    if (!data.barangay_id) throw Error('The assigned barangay could not be found.');
+                }
                 const response = await fetch('http://localhost:3000/api/superadmin/staff-accounts', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)
                 });

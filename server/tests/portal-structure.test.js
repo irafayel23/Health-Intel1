@@ -304,7 +304,8 @@ test('Superadmin logout clears the session immediately without confirmation',asy
 test('Superadmin startup, ledger Sync and canceled backup survive script separation',async()=>{
     const p=page('superadmin.html');p.load();await p.start();p.hooks();
     assert.deepEqual(p.errors,[]);
-    for(const endpoint of ['superadmin/users','superadmin/audit-logs','superadmin/health'])assert.ok(p.requests.some(r=>r.url.endsWith('/api/'+endpoint)),endpoint);
+    assert.equal(p.requests.filter(r=>r.url.includes('/api/superadmin/')).length,0);
+    await p.s.loadSystemHealth({success:true,data:{total_logs:0,db_size:1,uptime:1}});
     assert.equal(p.elements['status-db'].innerText,'Connected');
     p.s.response=()=>({success:true,data:[{user_id:'FIXTURE-BHW',role:'BHW',action:'Patient Encoded',created_at:'2026-09-30',details:'Fixture case'}]});
     await p.s.loadAuditLogs();assert.match(p.elements['audit-table-body'].innerHTML,/FIXTURE-BHW/);
