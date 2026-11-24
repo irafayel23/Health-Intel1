@@ -14,7 +14,7 @@
     <script defer src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="assets/css/index/access.css?v=20261124-staff-help" />
+    <link rel="stylesheet" href="assets/css/index/access.css?v=20261124-compact-help" />
   </head>
   <body>
     
@@ -127,44 +127,7 @@
                   <i data-lucide="key-round" aria-hidden="true"></i><span>Use HRIS reset code</span>
                 </button>
               </div>
-              <a href="#" id="forgot-pass-btn" class="access-forgot-link">Superadmin email reset</a>
             </div>
-          </form>
-
-          <!-- ============================================== -->
-          <!-- SCREEN 4: PASSWORD RESET -->
-          <!-- ============================================== -->
-          <form id="reset-screen" class="hidden">
-            <div class="access-reset-notice">
-                We sent a 6-digit code to your email.
-            </div>
-            
-            <div class="input-group">
-              <label>6-Digit Verification Code</label>
-              <div class="input-wrapper">
-                <div class="input-icon-box"><i data-lucide="key" class="access-icon-18"></i></div>
-                <input type="text" id="reset_otp" placeholder="e.g. 123456" maxlength="6" required autocomplete="off" class="access-reset-code" />
-              </div>
-            </div>
-            <div class="input-group">
-              <label>New Password</label>
-              <div class="input-wrapper">
-                <div class="input-icon-box"><i data-lucide="lock" class="access-icon-18"></i></div>
-                <input type="password" id="reset_new_password" placeholder="At least 8 characters" minlength="8" maxlength="72" required autocomplete="new-password" />
-              </div>
-            </div>
-            <div class="input-group">
-              <label>Confirm Password</label>
-              <div class="input-wrapper">
-                <div class="input-icon-box"><i data-lucide="shield-check" class="access-icon-18"></i></div>
-                <input type="password" id="reset_confirm_password" placeholder="Repeat your new password" minlength="8" maxlength="72" required autocomplete="new-password" />
-              </div>
-            </div>
-            <button type="submit" class="btn-primary access-space-top-15">
-              Reset Password
-              <div class="btn-icon"><i data-lucide="save" class="access-icon-16"></i></div>
-            </button>
-            <button type="button" onclick="toggleForms('login')" class="access-back-login access-cancel-gateway">Back to Login</button>
           </form>
 
           <div class="security-badge">
@@ -180,7 +143,6 @@
     <!-- JAVASCRIPT LOGIC (100% INTACT) -->
     <!-- ============================================== -->
     <script defer src="assets/js/index/index-shell.js?v=20261124-access-icons"></script>
-    <script defer src="assets/js/index/index-recovery.js"></script>
     <script defer src="assets/js/index/index-login.js?v=20261124-staff-focus"></script>
   </body>
 </html>

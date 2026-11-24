@@ -118,38 +118,28 @@ body { display:block; overflow-x:clip; min-height:100svh; }
 .options-row { justify-content:space-between; }
 .btn-primary { box-shadow:none; }
 .btn-primary:hover { box-shadow:none; transform:none; }
-.access-staff-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.access-staff-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
 .access-staff-actions button {
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:7px;
-    min-height:44px;
-    padding:8px;
+    gap:6px;
+    min-height:36px;
+    padding:5px 10px;
     border:1px solid #a8cdd0;
-    border-radius:10px;
+    border-radius:8px;
     background:#f2f9f9;
     color:#005b60;
     font:inherit;
-    font-size:.875rem;
+    font-size:.75rem;
     font-weight:600;
     line-height:1.35;
+    white-space:nowrap;
     cursor:pointer;
 }
-.access-staff-actions button svg { width:17px; height:17px; flex-shrink:0; }
+.access-staff-actions button svg { width:15px; height:15px; flex-shrink:0; }
 .access-staff-actions button:hover { background:#e0f2f2; border-color:#007d82; }
-.access-forgot-link {
-    display:inline-block;
-    margin-top:9px;
-    padding:6px 4px;
-    color:#005b60;
-    font-size:.8125rem;
-    text-underline-offset:3px;
-}
-.access-staff-actions button:focus-visible, .access-forgot-link:focus-visible { outline:2px solid #007d82; outline-offset:2px; }
-@media (max-width:420px) {
-    .access-staff-actions { grid-template-columns:1fr; }
-}
+.access-staff-actions button:focus-visible { outline:2px solid #007d82; outline-offset:2px; }
 .login-card:has(#login-form.hidden) .login-subtitle { display:none; }
 .login-card:has(#login-form.hidden) .form-header { margin-bottom:20px; }
 .access-privacy-consent { align-items:flex-start; text-align:left; }

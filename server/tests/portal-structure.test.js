@@ -489,23 +489,11 @@ test('Access-page retains sign-in and offers staff activation and reset',async()
     p.load();await p.start();p.hooks();
     assert.match(p.html,/activateStaffAccount\(\)/);
     assert.match(p.html,/activateStaffAccount\(true\)/);
+    assert.doesNotMatch(p.html,/forgot-pass-btn|Superadmin email reset|index-recovery\.js/);
     assert.doesNotMatch(p.html,/index-registration\.js|btn-google-login/);
     p.elements.login_id.value='fixture-bhw';await p.elements['login-form'].emit('submit');await settle();
     assert.equal(p.storage.get('health_intel_token'),'fixture-session');assert.equal(p.s.location.href,'bhw.html');
     assert.deepEqual(p.errors,[]);
-});
-
-test('Access-page recovery continues across the screen helper and reset scripts',async()=>{
-    const p=page('index.html');p.s.response=()=>({success:true,message:'Fixture reset requested'});
-    p.s.Swal.fire=async options=>options.input==='email'?{value:'fixture@example.invalid'}:{};
-    p.load();await p.start();
-    await p.elements['forgot-pass-btn'].emit('click');
-    assert.equal(p.s.resetEmailCache,'fixture@example.invalid');assert.equal(p.elements['form-subtitle'].innerText,'Secure Password Reset');
-    p.elements.reset_otp.value='123456';p.elements.reset_new_password.value=p.elements.reset_confirm_password.value='Synthetic-password-2026';
-    await p.elements['reset-screen'].emit('submit');await settle();
-    const reset=p.requests.find(r=>r.url.endsWith('/reset-password'));assert.ok(reset);
-    assert.equal(JSON.parse(reset.options.body).email,'fixture@example.invalid');
-    assert.equal(p.elements['form-subtitle'].innerText,'Welcome back');assert.deepEqual(p.errors,[]);
 });
 
 test('connected and archived pages resolve local scripts, styles, images and page links',()=>{
