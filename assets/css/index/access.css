@@ -240,14 +240,14 @@ body { display:block; overflow-x:clip; min-height:100svh; }
 .staff-activation-secret { grid-column:span 3; }
 .staff-activation-fields label { display:grid; gap:5px; margin:0; color:#103b50; font-size:.875rem; font-weight:600; }
 .staff-activation-fields input { box-sizing:border-box; width:100%; min-height:44px; padding:8px 10px; border:1px solid #b9cbd5; border-radius:10px; background:#f8fbfc; color:#102c40; font:inherit; font-size:1rem; }
-.staff-activation-fields input:focus-visible { outline:2px solid #007d82; outline-offset:2px; }
+.staff-activation-fields input:focus-visible { outline:2px solid #007d82; outline-offset:-3px; }
 .staff-activation-fields > div > label { margin-bottom:5px; }
 .staff-activation-code, .staff-activation-password { position:relative; }
 .staff-activation-code input, .staff-activation-password input { padding-right:44px; }
 .staff-activation-code button, .staff-activation-password button { position:absolute; inset:1px 1px 1px auto; display:grid; place-items:center; width:42px; border:0; border-radius:8px; color:#00676c; background:transparent; cursor:pointer; }
 .staff-activation-code button:hover, .staff-activation-password button:hover { background:#e8f3f4; }
 .staff-activation-fields button svg { width:19px; height:19px; }
-.staff-activation-fields button:focus-visible { outline:2px solid #007d82; outline-offset:2px; }
+.staff-activation-fields button:focus-visible { outline:2px solid #007d82; outline-offset:-3px; }
 .staff-activation-fields [data-paste-status] { margin:5px 0 0; font-size:.75rem; }
 .staff-activation-fields [data-paste-status]:empty { display:none; }
 
