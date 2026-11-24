@@ -4,7 +4,7 @@
     const endpoint = () => (window.HealthIntel?.apiOrigin || 'http://localhost:3000') + '/api/admin/analytics';
     const fmt = value => value == null ? '—' : Number(value).toLocaleString('en-PH', {maximumFractionDigits: 1});
     const monthLabels = Array.from({length:12}, (_, i) => new Date(2020, i, 1).toLocaleString('en', {month:'long'}));
-    let metadata, dataRequest, upload, preview, map, polygons, mapRequest, leafletRequest;
+    let metadata, dataRequest, upload, preview, map, mapLayers, mapRequest, leafletRequest;
 
     function node(tag, value) {
         const element = document.createElement(tag);
@@ -110,9 +110,9 @@
             leafletRequest = new Promise((resolve, reject) => {
                 const script = node('script');
                 script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-                const timer = setTimeout(() => {script.remove(); reject(Error('Map could not load. The case totals are shown below.'));}, 10000);
+                const timer = setTimeout(() => {script.remove(); reject(Error('Map could not load. Reopen Heatmap Cases to retry.'));}, 10000);
                 script.onload = () => {clearTimeout(timer); resolve(window.L);};
-                script.onerror = () => {clearTimeout(timer); script.remove(); reject(Error('Map could not load. The case totals are shown below.'));};
+                script.onerror = () => {clearTimeout(timer); script.remove(); reject(Error('Map could not load. Reopen Heatmap Cases to retry.'));};
                 document.head.append(script);
             }).catch(error => {leafletRequest = null; throw error;});
         }
@@ -121,7 +121,7 @@
     async function drawMap(result, signal) {
         const L = await leaflet();
         const response = await fetch('assets/img/maps/murcia-pilot-barangays.geojson', {signal});
-        if (!response.ok) throw Error('Map boundaries could not load. The case totals are shown below.');
+        if (!response.ok) throw Error('Map boundaries could not load.');
         const geo = await response.json();
         if (signal.aborted) return;
         if (!map) {
@@ -132,24 +132,33 @@
             map.attributionControl.addAttribution('Barangay boundaries: NAMRIA/PSA via OCHA COD-AB');
         }
         const counts = new Map(result.rows.map(row => [row.barangay, row]));
-        const max = Math.max(1, ...result.rows.map(row => row.cases ?? 0));
-        if (polygons) polygons.remove();
-        polygons = L.geoJSON(geo, {
+        const markers = L.layerGroup();
+        const boundaries = L.geoJSON(geo, {
             filter: feature => counts.has(feature.properties.name),
-            style: feature => {
-                const row = counts.get(feature.properties.name);
-                return { color: '#155e75', weight: 1.5, fillColor: row.cases == null ? '#94a3b8' : '#0e7490',
-                    fillOpacity: row.cases == null ? .28 : .16 + .68 * row.cases / max };
-            },
+            style: {color:'#334c79', weight:1.5, dashArray:'5 4', fillOpacity:.05},
+            interactive: false,
             onEachFeature: (feature, layer) => {
                 const row = counts.get(feature.properties.name);
-                layer.bindTooltip(node('span', row.barangay + ' · ' + (row.cases == null ? 'No confirmed count' : fmt(row.cases) + ' cases')));
+                const count = row.cases == null ? 'No confirmed count' : fmt(row.cases) + (row.cases === 1 ? ' case' : ' cases');
+                const size = $('map').clientWidth < 600 ? 48 : 64;
+                const circle = window.HealthIntelMapDetails.marker({activity:{observed_cases:row.cases}},false);
+                const marker = L.marker(layer.getBounds().getCenter(), {
+                    icon:L.divIcon({className:'heatmap-summary-marker',html:circle,iconSize:[size,size],iconAnchor:[size/2,size/2]}),
+                    title:row.barangay + ': ' + count
+                }).addTo(markers);
+                marker.bindTooltip(node('span',row.barangay), {
+                    permanent:true, direction:'bottom', offset:[0,size/2 - 3], className:'aa-map-place'
+                });
+                const details = node('div');
+                details.append(node('strong',row.barangay),node('p',count + ' · ' + readableMonth(result.period,'long')),node('p',row.status));
+                marker.bindPopup(details, {offset:[0,-size/2]});
             }
-        }).addTo(map);
+        });
+        mapLayers = L.layerGroup([boundaries,markers]).addTo(map);
         $('map').hidden = false;
-        map.invalidateSize();
-        const bounds = polygons.getBounds();
-        if (bounds.isValid()) map.fitBounds(bounds, {padding:[20,20], maxZoom:14});
+        map.invalidateSize({pan:false});
+        const bounds = boundaries.getBounds();
+        if (bounds.isValid()) map.fitBounds(bounds, {padding:[32,40], maxZoom:14, animate:false});
     }
     async function loadMap() {
         mapRequest?.abort();
@@ -157,15 +166,13 @@
         mapRequest = requestID;
         const signal = AbortSignal.any([requestID.signal, AbortSignal.timeout(25000)]);
         status('map-status','Loading recorded case counts…');
-        rows($('map-rows'), []);
-        if (polygons) {polygons.remove(); polygons = null;}
+        if (mapLayers) {map.closePopup(); map.stop(); mapLayers.remove(); mapLayers = null;}
         try {
             await getData();
             if (requestID.signal.aborted) return;
             const params = new URLSearchParams({period:$('map-year').value + '-' + $('map-month').value, disease:$('map-disease').value, barangay:$('map-barangay').value});
             const result = await request('/heatmap?' + params, {signal});
             if (requestID.signal.aborted) return;
-            rows($('map-rows'), result.rows.map(row => [row.barangay, fmt(row.cases), row.status]));
             const known = result.rows.filter(row => row.cases != null);
             const label = result.source + ' · ' + result.period + ' · ' + (known.length ? fmt(known.reduce((sum,row)=>sum+row.cases,0)) + ' recorded cases' : 'No confirmed counts');
             status('map-status',label);
