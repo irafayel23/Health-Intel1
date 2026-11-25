@@ -115,11 +115,14 @@ async function createStaffAccount(staff) {
                 if (!form.isConnected) return;
                 employees = rows;
                 if (employee_id) {
-                    const eligible = rows.filter(row => row.role !== 'admin' || row.admin_review === 'approved');
-                    employee_id.replaceChildren(new Option('Choose employee', ''));
+                    const eligible = rows.filter(row => !Number(row.account_in_use) && (row.role !== 'admin' || row.admin_review === 'approved'));
+                    const placeholder = new Option('Choose employee', '', true, true);
+                    placeholder.disabled = true;
+                    placeholder.hidden = true;
+                    employee_id.replaceChildren(placeholder);
                     for (const row of eligible) employee_id.add(new Option(`${row.first_name} ${row.last_name} · ${row.employee_id}`, row.employee_id));
                     employee_id.disabled = eligible.length === 0;
-                    status.textContent = eligible.length ? '' : 'Add a roster entry or complete an Admin access review first.';
+                    status.textContent = eligible.length ? '' : 'No verified employees are ready for a new account. Manage existing accounts in the directory.';
                 }
                 updateDelivery();
             }).catch(error => {

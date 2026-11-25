@@ -56,7 +56,7 @@ function registerAuthRoutes(app, db, JWT_SECRET, { loginThrottleOptions, publicO
         legacyHeaders: false,
         message: { success: false, error: 'Too many onboarding requests. Please try again later.' }
     });
-    const staffAccess = createStaffAccess(db);
+    const staffAccess = createStaffAccess(db, {initializeActivations: () => staff.initialize()});
     const staff = createStaffActivation(db, { publicOrigin, sendEmail, emailConfigured, staffAccess });
     app.get('/api/superadmin/staff-roster', staffAccess.rosterList);
     app.post('/api/superadmin/staff-roster', staffAccess.rosterAdd);

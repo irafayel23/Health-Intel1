@@ -76,6 +76,7 @@ test('HRIS issues staff accounts, restricts the first Admin exception and revoke
         const reviewer = {system_id:firstIssued.payload.system_id,role:'admin'};
         expectStatus(await review(second,reviewer),200);
         await db.execute("INSERT INTO users(system_id,role,status,employee_id) VALUES('ADM-099','admin','pending',?)",[second.employee_id]);
+        assert.equal(Number((await invoke(access.rosterList,superadmin,{})).payload.data.find(row=>row.employee_id===second.employee_id).account_in_use),0);
         const existingAdmin = await issue(second);
         expectStatus(existingAdmin,201);
         assert.equal(existingAdmin.payload.system_id,'ADM-099');
@@ -85,11 +86,17 @@ test('HRIS issues staff accounts, restricts the first Admin exception and revoke
 
         expectStatus(await issue({...worker,barangay_id:2}),409);
         expectStatus(await issue(worker,{delivery_method:'email',delivery_email:'other@example.invalid'}),409);
+        const rosterRow = async id => (await invoke(access.rosterList,superadmin,{})).payload.data.find(row=>row.employee_id===id);
+        assert.equal(Number((await rosterRow(worker.employee_id)).account_in_use),0);
         const workerIssued = await issue(worker,{delivery_method:'email',delivery_email:email});
         expectStatus(workerIssued,201);
         assert.equal(workerIssued.payload.email_delivery,'not_configured');
         assert.equal(workerIssued.payload.delivery_recipient,email);
+        assert.equal(Number((await rosterRow(worker.employee_id)).account_in_use),1);
         expectStatus(await activate(workerIssued.payload),200);
+        await db.execute('UPDATE users SET employee_id=? WHERE system_id=?',[' emp-03 ',workerIssued.payload.system_id]);
+        assert.equal(Number((await rosterRow(worker.employee_id)).account_in_use),1);
+        expectStatus(await issue(worker),409);
         const workerId = workerIssued.payload.system_id;
         const reset = () => invoke(access.issueReset,superadmin,{system_id:workerId,identity_checked:true});
         const firstReset = await reset();

@@ -17,7 +17,7 @@ const staffId = value => plain(value, 'System ID', 50).toUpperCase();
 const readId = req => staffId(req.body?.system_id);
 const adminBootstrapAction = 'First Admin Exception Approved';
 
-function createStaffAccess(db) {
+function createStaffAccess(db, {initializeActivations} = {}) {
     let storage;
     function initialize() {
         return storage ||= (async () => {
@@ -79,7 +79,17 @@ function createStaffAccess(db) {
     }
 
     const rosterList = reply(async () => {
+        await initializeActivations?.();
         const [rows] = await db.execute(`SELECT r.employee_id,r.first_name,r.last_name,r.role,r.barangay_id,r.email,b.name AS barangay,
+            (EXISTS (
+                SELECT 1 FROM staff_activations s WHERE BINARY UPPER(TRIM(s.employee_id)) = BINARY r.employee_id
+            ) OR EXISTS (
+                SELECT 1 FROM users u WHERE BINARY UPPER(TRIM(u.employee_id)) = BINARY r.employee_id
+                GROUP BY BINARY UPPER(TRIM(u.employee_id))
+                HAVING COUNT(*) > 1 OR SUM(CASE WHEN r.role='admin' AND u.role='admin'
+                    AND u.status IN ('pending','denied') AND u.system_id REGEXP '^ADM-([0-9]{3,9}|S[A-F0-9]{12})$'
+                    THEN 0 ELSE 1 END) > 0
+            )) AS account_in_use,
             CASE WHEN a.system_id IS NOT NULL THEN 'issued' WHEN a.reviewer IS NOT NULL THEN 'approved'
                 WHEN a.employee_id IS NOT NULL THEN 'pending' END AS admin_review
             FROM staff_roster r LEFT JOIN barangays b ON b.id=r.barangay_id
