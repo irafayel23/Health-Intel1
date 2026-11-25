@@ -21,10 +21,12 @@ function summarize(rows,barangay){
  return {barangay,digest:hash(records),counts,total:Object.values(counts).reduce((a,b)=>a+b,0),pending,other};
 }
 function validateInput(input){
- const dates=months(input.start,input.cutoff);if(dates.length<45)throw fail('At least 45 consecutive, confirmed operational months are required for the primary and secondary historical evaluations.');
+ const dates=months(input.start,input.cutoff);if(dates.length<45)throw fail('At least 45 consecutive complete months are required for the historical evaluations.');
  if(!['operational',MIXED].includes(input.mode)||input.target!==next(input.cutoff)||input.scopes.length!==70)throw fail('Invalid prediction input.');
- if(input.mode===MIXED&&(input.start!==DATASET_START||input.cutoff<FIRST_REPORT_MONTH||input.historical_dataset_sha256!==SOURCE_HASH))throw fail('Invalid dataset-backed prediction input.');
- const keys=new Set();for(const s of input.scopes){const key=s.disease+'\0'+s.barangay;if(!DISEASES.includes(s.disease)||!BARANGAYS.includes(s.barangay)||keys.has(key)||s.history.length!==dates.length||s.history.some(v=>!Number.isSafeInteger(v)||v<0))throw fail('Operational histories must contain all 70 unique selections and confirmed monthly integer counts.');keys.add(key);}
+ if(input.uploaded_dataset_sha256!==undefined){
+  if(input.mode!==MIXED||typeof input.uploaded_dataset_sha256!=='string'||!(/^[a-f0-9]{64}$/).test(input.uploaded_dataset_sha256)||input.historical_dataset_sha256!==undefined||input.report_digests?.length!==0)throw fail('Invalid saved CSV prediction input.');
+ }else if(input.mode===MIXED&&(input.start!==DATASET_START||input.cutoff<FIRST_REPORT_MONTH||input.historical_dataset_sha256!==SOURCE_HASH))throw fail('Invalid dataset-backed prediction input.');
+ const keys=new Set();for(const s of input.scopes){const key=s.disease+'\0'+s.barangay;if(!DISEASES.includes(s.disease)||!BARANGAYS.includes(s.barangay)||keys.has(key)||s.history.length!==dates.length||s.history.some(v=>!Number.isSafeInteger(v)||v<0))throw fail('Training histories must contain all 70 unique selections and monthly integer counts.');keys.add(key);}
  return dates;
 }
 function validateOutput(input,output){

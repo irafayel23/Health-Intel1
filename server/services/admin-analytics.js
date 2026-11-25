@@ -70,6 +70,37 @@ function coverage(rows, first, last) {
     };
 }
 
+function trainingRange({ first, last, gaps, partial }) {
+    const missing = new Set([...gaps, ...partial]);
+    let streak = [];
+    let range = null;
+    for (const period of dateRange(first, last)) {
+        if (missing.has(period)) {
+            streak = [];
+            continue;
+        }
+        streak.push(period);
+        const months = Math.min(streak.length, 120);
+        if (months >= 45 && months >= (range?.months ?? 0)) {
+            range = { start: streak[streak.length - months], cutoff: period, months };
+        }
+    }
+    return range;
+}
+
+async function readSavedDataset(version, directory = storage) {
+    if (typeof version !== 'string' || !/^[a-f0-9]{64}$/.test(version)) throw fail('Choose a saved CSV version.');
+    const raw = await fs.readFile(path.join(directory, 'datasets', version + '.json'), 'utf8').catch(error => {
+        if (error.code === 'ENOENT') throw fail('This saved version was not found.', 404);
+        throw error;
+    });
+    const { rows, descriptor } = JSON.parse(raw);
+    if (!Array.isArray(rows) || descriptor?.id !== version || digest(JSON.stringify(rows)) !== version) {
+        throw fail('The saved CSV version could not be verified.', 409);
+    }
+    return { rows, descriptor };
+}
+
 function createAdminAnalytics(db, operational, { directory = storage, now = () => new Date() } = {}) {
     const versions = path.join(directory, 'datasets');
     const audit = createSystemAudit(db);
@@ -125,7 +156,8 @@ function createAdminAnalytics(db, operational, { directory = storage, now = () =
 
     const preview = text => {
         const rows = readUpload(text, latest());
-        return { id: digest(JSON.stringify(rows)), ...coverage(rows), sample: rows.slice(0, 5) };
+        const summary = coverage(rows);
+        return { id: digest(JSON.stringify(rows)), ...summary, trainingRange: trainingRange(summary), sample: rows.slice(0, 5) };
     };
 
     async function save(text, id, user) {
@@ -147,9 +179,18 @@ function createAdminAnalytics(db, operational, { directory = storage, now = () =
     async function datasets() {
         const { rows, reportingUnavailable } = await historical();
         const previous = dateRange('2023-01', latest()).at(-2);
-        const summaries = await Promise.all((await list(versions, /^[0-9a-f]{64}\.json$/)).map(async file => (await read(path.join(versions, file))).descriptor));
+        const summaries = await Promise.all((await list(versions, /^[0-9a-f]{64}\.json$/)).map(async file => {
+            const { descriptor } = await read(path.join(versions, file));
+            return { ...descriptor, trainingRange: trainingRange(descriptor) };
+        }));
+        const summary = coverage(rows, '2023-01', previous);
+        const confirmed = rows.filter(row => row.Source === 'Confirmed operational reports');
+        const latestConfirmed = confirmed.at(-1)?.Date ?? null;
+        const complete = coverage(confirmed);
+        const latestComplete = latestConfirmed ? dateRange(complete.first, complete.last).findLast(period =>
+            !complete.gaps.includes(period) && !complete.partial.includes(period)) ?? null : null;
         return {
-            bundled: { id: 'historical', label: 'Historical case counts', ...coverage(rows, '2023-01', previous), reportingUnavailable },
+            bundled: { id: 'historical', label: 'Historical case counts', ...summary, latestConfirmed, latestComplete, reportingUnavailable },
             versions: summaries.sort((a, b) => b.created_at.localeCompare(a.created_at)),
             diseases: DISEASES, barangays: BARANGAYS, current: latest()
         };
@@ -190,4 +231,4 @@ function createAdminAnalytics(db, operational, { directory = storage, now = () =
     };
 }
 
-module.exports = { createAdminAnalytics, readUpload, coverage };
+module.exports = { createAdminAnalytics, readUpload, readSavedDataset, coverage };

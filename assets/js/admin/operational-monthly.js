@@ -66,7 +66,28 @@
     }finally{if(sequence===reportSequence)load.disabled=false;}
  }
  const mixedMode='dataset_plus_reports';
- const trainingMode=()=>$('monthly-history-source').value===mixedMode?mixedMode:'operational';
+ const uploadedVersions=new Map();
+ const uploadId=()=>{
+    const source=$('monthly-history-source').value;
+    return source.startsWith('upload:')?source.slice(7):undefined;
+ };
+ const trainingMode=()=>$('monthly-history-source').value===mixedMode||uploadId()?mixedMode:'operational';
+ function setDatasets(versions){
+    const source=$('monthly-history-source');
+    const selected=source.value;
+    uploadedVersions.clear();
+    for(const option of [...source.options]){
+        if(option.value.startsWith('upload:'))option.remove();
+    }
+    for(const version of versions){
+        if(!version.trainingRange)continue;
+        uploadedVersions.set(version.id,version);
+        const {start,cutoff}=version.trainingRange;
+        source.add(new Option(version.label+' · '+monthLabel(start)+' – '+monthLabel(cutoff)+' (preview)','upload:'+version.id));
+    }
+    if(uploadedVersions.has(selected.slice(7)))source.value=selected;
+    if(source.value!==selected)updateRange();
+ }
  const datasetStart='2023-01',firstReport='2026-10';
  const monthIndex=value=>Number(value.slice(0,4))*12+Number(value.slice(5))-1;
  const shiftMonth=(month,delta)=>{
@@ -75,22 +96,29 @@
  };
  const monthLabel=value=>new Intl.DateTimeFormat('en',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(value+'-01T00:00:00Z'));
  function updateRange(){
+    const upload=uploadedVersions.get(uploadId());
     const start=$('monthly-start'),cutoffField=$('monthly-cutoff'),cutoff=cutoffField.value;
     const mixed=trainingMode()===mixedMode;
     const reports=$('monthly-report-month');
     reports.min=mixed?firstReport:'1900-01';
-    cutoffField.min=mixed?firstReport:'1903-09';
-    cutoffField.max=mixed&&shiftMonth(datasetStart,119)<latestCompletedMonth?shiftMonth(datasetStart,119):latestCompletedMonth;
+    cutoffField.min=upload?shiftMonth(upload.trainingRange.start,44):mixed?firstReport:'1903-09';
+    cutoffField.max=upload?upload.trainingRange.cutoff:mixed&&shiftMonth(datasetStart,119)<latestCompletedMonth?shiftMonth(datasetStart,119):latestCompletedMonth;
     start.readOnly=mixed;
     $('monthly-start-field').hidden=mixed;
     $('monthly-dataset-summary').hidden=!mixed;
-    $('monthly-history-description').hidden=mixed;
-    message(mixed?'· Dataset-backed preview':'· Operational reports','monthly-target-source');
+    $('monthly-history-description').hidden=mixed&&!upload;
+    if($('monthly-report-card'))$('monthly-report-card').hidden=Boolean(upload);
+    message(upload?'Use saved CSV':'Confirm reports','monthly-step-source-label');
+    message(mixed?'Review results':'Review & publish','monthly-step-review-label');
+    message(upload?'· Saved CSV preview':mixed?'· Dataset-backed preview':'· Operational reports','monthly-target-source');
     renderSteps();
     $('monthly-use-range').hidden=mixed;
     message(mixed?'History starts':'First confirmed month','monthly-start-label');
-    message(mixed?'The dataset supplies January 2023 through September 2026. Confirm all seven barangays for each month you add, starting in October 2026.':'Use at least 45 consecutive months of confirmed reports from all seven barangays (3 years and 9 months).','monthly-history-description');
-    if(mixed){
+    message(upload?'This preview uses the saved CSV and stays in Model Training. Published predictions are unaffected.':mixed?'The dataset supplies January 2023 through September 2026. Confirm all seven barangays for each month you add, starting in October 2026.':'Use at least 45 consecutive months of confirmed reports from all seven barangays (3 years and 9 months).','monthly-history-description');
+    if(upload){
+        start.value=upload.trainingRange.start;
+        start.min=start.max=start.value;
+    }else if(mixed){
         start.value=datasetStart;start.min=datasetStart;start.max=datasetStart;
         if(reports.value<firstReport&&latestCompletedMonth>=firstReport){reports.value=firstReport;clearReports();}
     }
@@ -110,8 +138,8 @@
     const count=start.value?monthIndex(cutoff)-monthIndex(start.value)+1:null;
     const picked=count===null?'':count<1?'The first month must come before the last month. ':count+' months selected. ';
     message(monthLabel(shiftMonth(cutoff,1)),'monthly-forecast-month');
-    if(mixed)message(cutoff===firstReport?monthLabel(firstReport):monthLabel(firstReport)+' – '+monthLabel(cutoff),'monthly-new-reports');
-    message(mixed?picked+'Includes '+(monthIndex(cutoff)-monthIndex(firstReport)+1)+' new report month(s). Review the results in Model Training.':
+    if(mixed&&!upload)message(cutoff===firstReport?monthLabel(firstReport):monthLabel(firstReport)+' – '+monthLabel(cutoff),'monthly-new-reports');
+    message(upload?picked+'Training uses all seven barangays and ten disease categories.':mixed?picked+'Includes '+(monthIndex(cutoff)-monthIndex(firstReport)+1)+' new report month(s). Review the results in Model Training.':
         picked+'A 45-month range ending '+monthLabel(cutoff)+' starts in '+monthLabel(start.max)+'.','monthly-range-help');
  }
  async function review(run,focus=false){clearTimeout(probabilityTimer);reviewedRun=run;const data=await request('/runs/'+run),host=$('monthly-review');if(!host||reviewedRun!==run)return;host.replaceChildren();const mixed=data.mode===mixedMode;
@@ -119,10 +147,11 @@
  heading.tabIndex=-1;
  host.append(heading);
  if(focus)heading.focus();
- if(mixed)host.append(node('p','text-sm','Historical dataset through September 2026 and confirmed reports from October 2026 onward. The historical dataset includes generated counts. This preview cannot be published as an operational prediction.'));
+ if(data.dataset_id)host.append(node('p','text-sm','Saved CSV upload '+data.dataset_id.slice(0,8)+'. Results are for preview in Model Training.'));
+ else if(mixed)host.append(node('p','text-sm','Historical dataset through September 2026 and confirmed reports from October 2026 onward. The historical dataset includes generated counts. This preview cannot be published as an operational prediction.'));
  if(!data.overall){host.append(node('p','text-sm',`${data.run.status}: ${data.run.error||'The fitting run has not completed.'}`));return;}
- host.append(node('p','text-sm text-slate-800 dark:text-slate-200',`${data.context.main_target}: ${data.available}/70 accepted SARIMA predictions. ${data.current_data_matches?'Confirmed input records still match.':'Records changed since fitting; reconfirm and prepare a new version.'}`));
- if(mixed&&data.current_data_matches)host.append(node('p','text-sm','Review the forecasts by disease and barangay below. This dataset-backed preview stays in Model Training. After the forecast month ends, confirm its reports to prepare the following month’s forecast.'));
+ host.append(node('p','text-sm text-slate-800 dark:text-slate-200',`${data.context.main_target}: ${data.available}/70 accepted SARIMA predictions. ${data.dataset_id?(data.current_data_matches?'Saved CSV verified.':'The saved CSV could not be verified.'):(data.current_data_matches?'Confirmed input records still match.':'Records changed since fitting; reconfirm and prepare a new version.')}`));
+ if(mixed&&!data.dataset_id&&data.current_data_matches)host.append(node('p','text-sm','Review the forecasts by disease and barangay below. This dataset-backed preview stays in Model Training. After the forecast month ends, confirm its reports to prepare the following month’s forecast.'));
  const probability=data.probability;
  if(!mixed)host.append(node('p','text-sm text-slate-800 dark:text-slate-200',probability?.status==='prepared'
   ? `Experimental probabilities ${data.run.status==='published'?'published':'prepared'} for ${probability.available}/70 selections.`
@@ -164,13 +193,13 @@
  const isUpdating=run=>['queued','running'].includes(run.status);
  function renderSteps(){
     const cutoff=$('monthly-cutoff').value,mode=trainingMode();
-    const matching=lastRuns.filter(run=>run.cutoff===cutoff&&(run.mode||'operational')===mode);
+    const matching=lastRuns.filter(run=>run.cutoff===cutoff&&(run.mode||'operational')===mode&&(run.dataset_id||undefined)===uploadId());
     const updating=matching.some(isUpdating);
     const verified=matching.some(run=>['ready','published'].includes(run.status));
-    const reportsDone=loadedReportMonth===cutoff&&reportComplete;
+    const reportsDone=Boolean(uploadId())||loadedReportMonth===cutoff&&reportComplete;
     const reportsNeedReview=loadedReportMonth===cutoff&&confirmedCount!==null&&!reportsDone;
     const activeStep=updating?'train':reportsNeedReview?'reports':verified?'review':reportsDone?'train':'reports';
-    const reportStatus=loadedReportMonth===cutoff&&confirmedCount!==null?confirmedCount+' of 7 confirmed':updating||verified?'Confirmed for run':'Awaiting review';
+    const reportStatus=uploadId()?'Saved CSV selected':loadedReportMonth===cutoff&&confirmedCount!==null?confirmedCount+' of 7 confirmed':updating||verified?'Confirmed for run':'Awaiting review';
     message(reportStatus,'monthly-step-report-status');
     message(updating?'In progress':verified?'Complete':reportsDone?'Ready to prepare':'Waiting for reports','monthly-step-training-status');
     message(verified&&!updating?'Results available':'Awaiting results','monthly-step-review-status');
@@ -192,7 +221,7 @@
     const badge=node('p','admin-monthly-badge',published?'Currently published':labels[run.status]||run.status);
     badge.dataset.state=published||run.status==='ready'?'confirmed':run.status==='failed'?'attention':'waiting';
     copy.append(node('p','font-semibold',monthLabel(shiftMonth(run.cutoff,1))+' forecast'),badge);
-    copy.append(node('p','admin-monthly-run-context',(run.mode===mixedMode?'Dataset-backed preview':'Operational reports')+' · History through '+monthLabel(run.cutoff)));
+    copy.append(node('p','admin-monthly-run-context',(run.dataset_id?'Saved CSV '+run.dataset_id.slice(0,8):run.mode===mixedMode?'Dataset-backed preview':'Operational reports')+' · History through '+monthLabel(run.cutoff)));
     const completed=run.progress?.completed;
     if(updating){
         const hasCount=Number.isInteger(completed)&&completed>=0&&completed<=70;
@@ -284,7 +313,11 @@
     $('monthly-report-month').value=latestCompletedMonth;
     $('monthly-cutoff').value=latestCompletedMonth;
     updateRange();
-    $('monthly-history-source').addEventListener('change',updateRange);
+    $('monthly-history-source').addEventListener('change',()=>{
+        const version=uploadedVersions.get(uploadId());
+        $('monthly-cutoff').value=version?.trainingRange.cutoff||latestCompletedMonth;
+        updateRange();
+    });
     $('monthly-start').addEventListener('input',updateRange);
     $('monthly-cutoff').addEventListener('input',updateRange);
     $('monthly-use-range').addEventListener('click',()=>{$('monthly-start').value=$('monthly-start').max;updateRange();});
@@ -297,11 +330,11 @@
     $('monthly-create').addEventListener('click',async()=>{
         if(!canPrepare||preparing)return;
         const tell=text=>message(text,'monthly-prepare-message');
-        const b=$('monthly-create'),start=$('monthly-start').value,cutoff=$('monthly-cutoff').value,mode=trainingMode();
+        const b=$('monthly-create'),start=$('monthly-start').value,cutoff=$('monthly-cutoff').value,mode=trainingMode(),dataset_id=uploadId();
         if(!start||!cutoff||start>cutoff||cutoff>latestCompletedMonth){tell('Choose a valid range of completed reporting months.');return;}
         const count=monthIndex(cutoff)-monthIndex(start)+1;
         if(count<45||count>120){tell('Choose 45 to 120 months in a row. Use the 45-month range button for the minimum.');return;}
-        if(loadedReportMonth>=(mode===mixedMode?firstReport:start)&&loadedReportMonth<=cutoff&&!reportComplete){
+        if(!dataset_id&&loadedReportMonth>=(mode===mixedMode?firstReport:start)&&loadedReportMonth<=cutoff&&!reportComplete){
             tell('Finish confirming all seven reports for '+loadedReportMonth+' before preparing this update.');
             return;
         }
@@ -309,16 +342,16 @@
         b.disabled=true;
         tell('');
         try{
-            const description=mode===mixedMode?'Train with the historical dataset and newer confirmed reports. Review the resulting preview below.':'The system checks all selected months for complete reports before starting. Your current predictions stay available while the update runs.';
+            const description=dataset_id?'Train and test SARIMA with the selected saved CSV. Results stay in Model Training.':mode===mixedMode?'Train with the historical dataset and newer confirmed reports. Review the resulting preview below.':'The system checks all selected months for complete reports before starting. Your current predictions stay available while the update runs.';
             if(!await approval('Prepare a new SARIMA update?',description))return;
-            if(start!==$('monthly-start').value||cutoff!==$('monthly-cutoff').value||mode!==trainingMode())return;
-            const run=await request('/runs',{start,cutoff,mode});
-            tell(['ready','published'].includes(run.status)?'A verified version already exists for these reports. Review it below.':'Update requested. Follow its progress in Training progress and results.');
+            if(start!==$('monthly-start').value||cutoff!==$('monthly-cutoff').value||mode!==trainingMode()||dataset_id!==uploadId())return;
+            const run=await request('/runs',{start,cutoff,mode,...(dataset_id?{dataset_id}:{})});
+            tell(['ready','published'].includes(run.status)?'A verified version already exists for this input. Review it below.':'Update requested. Follow its progress in Training progress and results.');
             await loadStatus();
         }catch(e){tell(e.message);}
         finally{preparing=false;b.disabled=!canPrepare;}
     });
-    window.HealthIntelMonthlyUpdates={setActive};
+    window.HealthIntelMonthlyUpdates={setActive,setDatasets};
  }
 
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);else initialize();

@@ -293,3 +293,30 @@ test('dataset mode shows the saved start, limits report months and submits the m
   assert.deepEqual(JSON.parse(a.calls.find(call=>call.options?.method==='POST').options.body),{start:'2023-01',cutoff:'2026-10',mode:'dataset_plus_reports'});
  }
 });
+
+
+test('Admin selects an eligible saved CSV and submits its immutable version for preview training',async()=>{
+ const id='a'.repeat(64);
+ const a=trainingApp(async(url,options)=>url.endsWith('/runs')&&options?.method==='POST'
+  ?ok({id:'preview-run',status:'ready'}):ok({runs:[],publication:null,worker_ready:true,python_configured:true}));
+ const source=a.els['monthly-history-source'];
+ source.options=[{value:'operational'},{value:'dataset_plus_reports'}];
+ source.add=option=>source.options.push(option);
+ a.context.Option=function(text,value){return {text,value,remove(){source.options=source.options.filter(option=>option.value!==value);}};};
+ await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
+ a.context.window.HealthIntelMonthlyUpdates.setDatasets([
+  {id,label:'Upload aaaaaaaa',trainingRange:{start:'2023-01',cutoff:'2026-09',months:45}},
+  {id:'b'.repeat(64),label:'Incomplete',trainingRange:null}
+ ]);
+ assert.equal(source.options.length,3);
+ source.value='upload:'+id;
+ await source.fire('change');
+ assert.equal(a.els['monthly-start'].value,'2023-01');
+ assert.equal(a.els['monthly-cutoff'].value,'2026-09');
+ assert.equal(a.els['monthly-report-card'].hidden,true);
+ assert.equal(a.els['monthly-step-review-label'].textContent,'Review results');
+ await a.els['monthly-create'].fire('click');
+ const posted=a.calls.find(call=>call.url.endsWith('/runs')&&call.options?.method==='POST');
+ assert.deepEqual(JSON.parse(posted.options.body),{start:'2023-01',cutoff:'2026-09',mode:'dataset_plus_reports',dataset_id:id});
+ await a.context.window.HealthIntelMonthlyUpdates.setActive(false);
+});

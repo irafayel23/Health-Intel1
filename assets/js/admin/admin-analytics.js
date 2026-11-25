@@ -76,8 +76,12 @@
         $('dataset-summary').replaceChildren(...[['Coverage', monthSpan(d.first, d.last)], ['Case count', fmt(d.cases)], ['Dataset rows', fmt(d.rows)]].map(([label,value]) => {
             const group = node('div'); group.append(node('dt',label),node('dd',value)); return group;
         }));
-        status('coverage', [d.sources.join(' · '), coverageLine(d), d.reportingUnavailable && 'Confirmation history is unavailable.'].filter(Boolean).join(' · '));
-        rows($('versions'), data.versions.map(v => [v.label, monthSpan(v.first, v.last), fmt(v.cases), new Date(v.created_at).toLocaleString('en-PH', {timeZone:'Asia/Manila'})]));
+        const confirmed = d.reportingUnavailable ? 'Confirmation history is unavailable.' :
+            d.latestConfirmed ? 'Latest confirmed entries: ' + readableMonth(d.latestConfirmed, 'long') : 'No confirmed operational reports yet.';
+        const complete = d.latestComplete ? 'Latest fully confirmed month: ' + readableMonth(d.latestComplete, 'long') :
+            d.latestConfirmed && 'No month has all seven barangays confirmed.';
+        status('coverage', [d.through && 'Checked through ' + readableMonth(d.through, 'long'), confirmed, complete, coverageLine(d), d.sources.join(' · ')].filter(Boolean).join(' · '));
+        rows($('versions'), data.versions.map(v => [v.label, monthSpan(v.first, v.last), fmt(v.cases), v.trainingRange ? v.trainingRange.months + ' complete months' : 'Needs 45 complete months in a row', new Date(v.created_at).toLocaleString('en-PH', {timeZone:'Asia/Manila'})]));
         $('versions-table').hidden = !data.versions.length;
         status('versions-status', data.versions.length ? '' : 'No uploads yet. Preview a CSV and save it to create a version.');
     }
@@ -86,6 +90,7 @@
         if (!dataRequest) dataRequest = request('/datasets').then(value => {
             metadata = value;
             renderDatasets(value);
+            window.HealthIntelMonthlyUpdates?.setDatasets(value.versions);
             for (const id of ['map-disease','published-disease']) select(id, value.diseases, id === 'map-disease' ? 'All study diseases' : null);
             for (const id of ['map-barangay','published-barangay']) select(id, value.barangays, id === 'map-barangay' ? 'All barangays' : null);
             const year = Number(value.current.slice(0,4));
@@ -222,7 +227,9 @@
         $('upload-sample').replaceChildren(table(['Month','Barangay','Disease','Cases'], result.sample.map(r=>[r.Date,r.Barangay,r.Disease,fmt(r.Cases)])));
         $('upload-sample').hidden = false;
         $('save').disabled = false;
-        status('upload-status', 'Valid CSV · ' + fmt(result.rows) + ' rows · ' + fmt(result.cases) + ' cases. ' + coverageLine(result));
+        status('upload-status', 'Valid CSV · ' + fmt(result.rows) + ' rows · ' + fmt(result.cases) + ' cases. ' + [coverageLine(result),
+            result.trainingRange ? 'Eligible for a SARIMA preview.' : 'Training needs 45 complete months in a row.'
+        ].filter(Boolean).join(' · '));
     }));
     $('save').addEventListener('click',async () => {
         if (!preview) return;
