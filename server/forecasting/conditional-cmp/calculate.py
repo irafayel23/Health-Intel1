@@ -19,19 +19,21 @@ CMP.CMP = CMP
 def calculate(scopes):
     pairs = {}
     for scope in scopes:
-        pairs.setdefault(scope['disease'], []).extend(scope['prior_pairs'])
+        pairs.setdefault((scope['disease'], scope.get('horizon', 1)), []).extend(scope['prior_pairs'])
 
     fits = {}
-    for disease, earlier_pairs in pairs.items():
+    for key, earlier_pairs in pairs.items():
         try:
-            fits[disease] = conditional_fit(earlier_pairs)
+            fits[key] = conditional_fit(earlier_pairs)
         except (ValueError, IndexError, ArithmeticError, AssertionError):
-            fits[disease] = {'status': 'numerical_failure'}
+            fits[key] = {'status': 'numerical_failure'}
 
     rows = []
     for scope in scopes:
         row = {key: scope[key] for key in ('disease', 'barangay', 'mean')}
-        fit = fits[row['disease']]
+        if 'horizon' in scope:
+            row.update(horizon=scope['horizon'], target=scope['target'])
+        fit = fits[(row['disease'], scope.get('horizon', 1))]
         mean = row['mean']
         if mean is None:
             row['reason'] = 'SARIMA_unavailable'

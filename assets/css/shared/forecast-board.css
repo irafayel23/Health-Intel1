@@ -1,0 +1,658 @@
+/* Shared prediction view. Uses the portal typography and follows the app theme. */
+.forecast-board {
+    --fb-text: #14283c;
+    --fb-secondary: #465a70;
+    --fb-border: #d9e3ed;
+    --fb-surface: #fff;
+    --fb-soft: #f0f5f9;
+    --fb-tint: #eaf7f4;
+    --fb-link: #075d63;
+    --fb-accent: #0b796f;
+    --fb-warn: #72520c;
+    --fb-warn-bg: #fff5dc;
+    color: var(--fb-text);
+    min-width: 0;
+    display: grid;
+    gap: 1rem;
+}
+.dark .forecast-board {
+    --fb-text: #e4edf5;
+    --fb-secondary: #b3c4d7;
+    --fb-border: #35485d;
+    --fb-surface: #172539;
+    --fb-soft: #22344a;
+    --fb-tint: #173d40;
+    --fb-link: #90eee3;
+    --fb-accent: #5cd8c5;
+    --fb-warn: #f7d895;
+    --fb-warn-bg: #403017;
+}
+.forecast-board [hidden] { display: none !important; }
+.forecast-panel, .forecast-toolbar {
+    border: 1px solid var(--fb-border);
+    background: var(--fb-surface);
+    border-radius: 1rem;
+    padding: clamp(.75rem, 2vw, 1.5rem);
+    min-width: 0;
+}
+.forecast-toolbar { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; align-items: end; }
+.forecast-control { display: grid; gap: .35rem; max-width: 100%; font-size: .85rem; font-weight: 600; }
+.forecast-toolbar select, .forecast-board .forecast-action {
+    border: 1px solid var(--fb-border);
+    background: var(--fb-surface);
+    color: var(--fb-text);
+    padding: .55rem .75rem;
+    border-radius: .6rem;
+    min-height: 42px;
+    max-width: 100%;
+}
+.forecast-board :is(button, select, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--fb-accent);
+    outline-offset: 2px;
+}
+.forecast-meta { flex: 1 1 25rem; overflow-wrap: anywhere; font-size: .84rem; color: var(--fb-secondary); }
+.forecast-meta strong, .forecast-panel h2, .forecast-panel h3 { color: var(--fb-text); font-weight: 700; }
+.forecast-panel h2 { font-size: 1.125rem; margin-bottom: .35rem; }
+.forecast-panel h3 { font-size: 1rem; }
+.forecast-board p { margin: 0; }
+.forecast-info { color: var(--fb-secondary); font-size: .84rem; }
+.forecast-leaders { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem; margin-top: .75rem; }
+.forecast-leader { background: var(--fb-tint); padding: .7rem .85rem; border-radius: .7rem; border-inline-start: 3px solid var(--fb-accent); }
+.forecast-leader strong, .forecast-leader span { display: block; }
+.forecast-leader span { margin-top: .15rem; font-size: 1.22rem; font-weight: 700; }
+.forecast-table { width: 100%; border-collapse: collapse; font-size: .9rem; table-layout: fixed; }
+.forecast-table th, .forecast-table td { padding: .6rem .45rem; border-bottom: 1px solid var(--fb-border); text-align: end; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; vertical-align: middle; }
+.forecast-table thead { background: var(--fb-soft); color: var(--fb-secondary); }
+.forecast-table :is(th,td):first-child { text-align: start; width: 40%; }
+.forecast-table td.forecast-expansion { width: auto; padding: .6rem; background: var(--fb-soft); }
+.forecast-table button { text-align: start; font-weight: 650; color: var(--fb-link); min-height: 42px; width: 100%; display: flex; align-items: center; gap: .35rem; }
+.forecast-table button:hover, .forecast-board summary:hover { text-decoration: underline; }
+.forecast-table button[aria-expanded="true"] .forecast-chevron { transform: rotate(90deg); }
+.forecast-table-wrap { margin-top: .7rem; }
+.forecast-detail { border: 1px solid var(--fb-border); background: var(--fb-surface); padding: .8rem; border-radius: .7rem; margin-top: .5rem; }
+.forecast-detail details { border-top: 1px solid var(--fb-border); margin-top: .55rem; padding-top: .3rem; }
+.forecast-detail summary, .forecast-board summary { cursor: pointer; color: var(--fb-link); font-weight: 650; min-height: 38px; padding: .45rem .1rem; }
+.forecast-chart { display: block; width: 100%; height: auto; max-height: 210px; }
+.forecast-chart text { fill: var(--fb-secondary); }
+.forecast-chart .observed { stroke: var(--fb-text); fill: none; }
+.forecast-chart .estimated { stroke: var(--fb-accent); stroke-dasharray: 5 4; fill: none; }
+.forecast-chart .band { stroke: var(--fb-accent); opacity: .6; }
+.forecast-chart .estimated-dot { fill: var(--fb-accent); }
+.forecast-chart .missing { fill: var(--fb-warn-bg); }
+.forecast-scroll { overflow-x: auto; }
+.forecast-scroll .forecast-table { table-layout: auto; min-width: 38rem; }
+.forecast-scroll .forecast-table th:first-child, .forecast-scroll .forecast-table td:first-child { width: auto; }
+.forecast-board .forecast-table .forecast-small { display: block; font-size: .74rem; color: var(--fb-secondary); line-height: 1.3; }
+.forecast-empty { padding: .8rem 0; }
+.forecast-outcomes { display: grid; gap: .45rem; }
+@media (max-width: 600px) {
+    .forecast-board { gap: .75rem; }
+    .forecast-leaders { gap: .3rem; }
+    .forecast-leader { padding: .5rem .35rem; font-size: .75rem; overflow-wrap: anywhere; }
+    .forecast-leader span { font-size: 1rem; }
+    .forecast-table { font-size: .78rem; }
+    .forecast-table th, .forecast-table td { padding: .45rem .25rem; }
+    .forecast-toolbar select { width: 100%; }
+}
+
+
+@media (max-width: 600px) {
+    .forecast-chart text { font-size: 19px; }
+    .forecast-detail .forecast-scroll { overflow: visible; }
+    .forecast-detail .forecast-scroll .forecast-table { min-width: 0; display: block; }
+    .forecast-detail .forecast-scroll thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        clip-path: inset(50%);
+        overflow: hidden;
+    }
+    .forecast-detail .forecast-scroll tbody { display: grid; gap: .55rem; }
+    .forecast-detail .forecast-scroll tr {
+        display: grid;
+        border: 1px solid var(--fb-border);
+        border-radius: .6rem;
+        padding: .35rem .55rem;
+        min-width: 0;
+    }
+    .forecast-detail .forecast-scroll :is(th,td) { border: 0; width: 100%; padding: .25rem 0; }
+    .forecast-detail .forecast-scroll th[scope="row"] { font-weight: 750; }
+    .forecast-detail .forecast-scroll td {
+        display: flex;
+        gap: .5rem;
+        justify-content: space-between;
+        overflow-wrap: anywhere;
+    }
+    .forecast-detail .forecast-scroll td::before {
+        content: attr(data-column);
+        color: var(--fb-secondary);
+        text-align: start;
+        flex: 0 0 42%;
+    }
+}
+
+/* Forecast list and detail panel share the portal's inherited theme. */
+.forecast-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem 1.3rem;
+    padding-block: .3rem;
+}
+.forecast-metadata > span { display: grid; gap: .15rem; }
+.forecast-metadata small { color: var(--fb-secondary); }
+.forecast-metadata strong { font-weight: 650; }
+[data-forecast-board="admin"] > .forecast-toolbar .forecast-meta { flex-basis: 100%; }
+[data-forecast-board]:not([data-forecast-board="admin"]) > .forecast-toolbar { align-items: center; padding-block: .7rem; gap: .4rem 1rem; }
+.forecast-leaders { margin: 0; }
+.forecast-leader { border: 1px solid var(--fb-border); border-block-start: 3px solid var(--fb-accent); border-radius: .8rem; }
+.forecast-leader small { color: var(--fb-secondary); }
+.forecast-leader strong { margin-top: .2rem; }
+.forecast-leader span { font-size: 1rem; }
+.forecast-layout { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: .9rem; min-width: 0; }
+.forecast-list { padding: 1rem; overflow: hidden; }
+.forecast-board .forecast-disease-table .forecast-table,
+.forecast-board .forecast-places .forecast-table { table-layout: fixed; }
+.forecast-board :is(.forecast-disease-table,.forecast-places) .forecast-table :is(th,td) {
+    padding: .22rem .35rem;
+    background: transparent;
+    text-transform: none;
+    letter-spacing: normal;
+    box-shadow: none;
+}
+.forecast-board :is(.forecast-disease-table,.forecast-places) .forecast-table thead th {
+    padding-block: .65rem;
+    background: var(--fb-soft);
+}
+.forecast-board .forecast-disease-table .forecast-table :is(th,td):first-child { width: 35%; }
+.forecast-board .forecast-disease-table .forecast-table :is(th,td):last-child { width: 4rem; text-align: center; white-space: nowrap; }
+.forecast-board .forecast-disease-table tbody tr:hover { background: var(--fb-soft); }
+.forecast-board .forecast-disease-table tbody tr[data-selected] { background: var(--fb-tint); }
+.forecast-board .forecast-disease-table tbody tr[data-selected] th:first-child { box-shadow: inset 3px 0 var(--fb-accent); }
+.forecast-board :is(.forecast-disease-table,.forecast-places) .forecast-table button {
+    display: block;
+    padding: .15rem .28rem;
+    min-height: 42px;
+    color: var(--fb-link);
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: .4rem;
+    font: inherit;
+    font-weight: 650;
+    margin: 0;
+    max-width: 100%;
+}
+.forecast-board :is(.forecast-disease-table,.forecast-places) .forecast-table button:focus-visible { outline-offset: 0; }
+.forecast-board :is(.forecast-disease-table,.forecast-places) .forecast-table button:hover,
+.forecast-board .forecast-places button[aria-pressed=true] { background: var(--fb-tint); border-color: var(--fb-border); }
+.forecast-board .forecast-table .forecast-month-button { text-align: end; }
+.forecast-board .forecast-table .forecast-row-details { text-align: center; font-size: 1.25rem; }
+.forecast-drawer { min-width: 0; border: 1px solid var(--fb-border); border-radius: 1rem; background: var(--fb-surface); color: var(--fb-text); overflow: hidden; }
+.forecast-drawer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: .55rem;
+    padding: .85rem 1rem;
+    background: var(--fb-soft);
+    border-bottom: 1px solid var(--fb-border);
+}
+.forecast-drawer-head h2 { font-size: 1.12rem; font-weight: 750; }
+.forecast-drawer .forecast-close {
+    flex: none;
+    padding: .25rem .55rem;
+    min-height: 42px;
+    border: 1px solid var(--fb-border);
+    border-radius: .5rem;
+    background: var(--fb-surface);
+    color: var(--fb-link);
+    font-weight: 650;
+}
+.forecast-drawer-content { display: grid; align-content: start; gap: .55rem; padding: .85rem; overflow: auto; max-height: calc(100dvh - 13rem); overscroll-behavior: contain; }
+.forecast-drawer-content h3 { font-weight: 700; font-size: .94rem; }
+.forecast-drawer-content .forecast-places { margin: 0; }
+.forecast-drawer-content .forecast-detail { margin: 0; padding: 0; border: 0; }
+.forecast-estimate { padding: .65rem .75rem; background: var(--fb-tint); border-radius: .65rem; }
+.forecast-estimate strong { display: block; font-size: 1.4rem; }
+.forecast-drawer-trend,.forecast-probabilities { margin-top: .8rem; padding: .65rem; border: 1px solid var(--fb-border); border-radius: .65rem; }
+.forecast-drawer .forecast-chart { max-height: 150px; }
+.forecast-drawer .forecast-chart text { font-size: 17px; }
+.forecast-chart .selected-dot { stroke: var(--fb-text); stroke-width: 2.5; }
+.forecast-drawer-modal {
+    position: fixed;
+    inset: 0 0 0 auto;
+    margin: 0;
+    padding: 0;
+    height: 100dvh;
+    max-height: none;
+    width: min(100%, 33rem);
+    max-width: none;
+    border: 0;
+    background: var(--fb-surface);
+    color: var(--fb-text);
+}
+.forecast-drawer-modal::backdrop { background: #071726a8; }
+.forecast-drawer-modal .forecast-drawer { height: 100%; border: 0; border-radius: 0; display: flex; flex-direction: column; }
+.forecast-drawer-modal .forecast-drawer-content { flex: 1; max-height: none; }
+@media (min-width: 1200px) {
+    .forecast-layout-open { grid-template-columns: minmax(0, 1fr) clamp(22rem, 34vw, 31rem); }
+    .forecast-drawer { position: sticky; top: .25rem; }
+}
+@media (max-width: 599px) {
+    .forecast-list { padding: .6rem; }
+    .forecast-metadata { gap: .45rem 1rem; font-size: .75rem; }
+    .forecast-board .forecast-disease-table .forecast-table :is(th,td) { padding-inline: .17rem; }
+    .forecast-board .forecast-disease-table .forecast-table :is(th,td):last-child { width: 2.85rem; }
+    .forecast-board .forecast-disease-table .forecast-table :is(th,td):first-child { width: 34%; }
+    .forecast-board .forecast-disease-table .forecast-table button { padding-inline: .15rem; }
+    .forecast-board .forecast-table .forecast-small { font-size: .63rem; }
+    .forecast-leader { min-width: 0; }
+    .forecast-board .forecast-disease-table thead th:last-child { font-size: .65rem; }
+}
+
+
+/* Compact prediction header and compare view. */
+.forecast-page-heading { margin-block-end: .65rem; }
+.forecast-board { gap: .75rem; }
+.forecast-board > .forecast-toolbar,
+[data-forecast-board]:not([data-forecast-board="admin"]) > .forecast-toolbar {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0 0 .65rem;
+    border-bottom: 1px solid var(--fb-border);
+    align-items: center;
+    gap: .5rem .85rem;
+}
+.forecast-metadata {
+    gap: .35rem 1rem;
+    padding: 0;
+    align-items: baseline;
+    color: var(--fb-secondary);
+    font-size: .8rem;
+}
+.forecast-metadata > .forecast-meta-entry { display: inline; }
+.forecast-meta-entry strong { margin-right: .25rem; }
+.forecast-meta .forecast-source-badge {
+    border-radius: .3rem;
+    padding: .15rem .42rem;
+    color: var(--fb-link);
+    background: var(--fb-tint);
+}
+.forecast-meta .forecast-model-label { color: var(--fb-secondary); }
+.forecast-report-note { flex-basis: 100%; padding-left: .6rem; border-left: 2px solid var(--fb-accent); line-height: 1.4; }
+.forecast-summary h2 { margin: 0 0 .4rem; font-size: .88rem; font-weight: 700; }
+.forecast-leader {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: center;
+    gap: .15rem .5rem;
+    background: var(--fb-surface);
+    border-top-width: 2px;
+    padding: .55rem .7rem;
+}
+.forecast-leader strong { grid-column: 1; grid-row: 2; margin: 0; }
+.forecast-leader .forecast-leader-count {
+    grid-column: 2; grid-row: 1 / span 2; margin: 0;
+    color: var(--fb-link); font-size: 1.14rem; font-weight: 750; white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.forecast-list-heading { display: flex; align-items: center; justify-content: space-between; gap: .35rem .7rem; flex-wrap: wrap; }
+.forecast-list-heading h2 { margin: 0; }
+.forecast-list-heading label { display: flex; gap: .4rem; align-items: center; font-size: .75rem; }
+.forecast-list-heading select {
+    min-height: 38px; max-width: 13rem; padding: .25rem .5rem;
+    border: 1px solid var(--fb-border); border-radius: .4rem; background: var(--fb-surface); color: var(--fb-text);
+}
+.forecast-board .forecast-disease-table .forecast-table :is(th,td):first-child { width: 37%; }
+.forecast-board .forecast-disease-table .forecast-table :is(th,td):last-child { width: 4.45rem; }
+.forecast-board .forecast-table button.forecast-row-details {
+    min-height: 40px; border-color: var(--fb-border); font-size: .72rem; white-space: nowrap;
+}
+.forecast-disease-table th[aria-sort] { color: var(--fb-link); }
+.forecast-drawer .forecast-close { display: grid; place-items: center; width: 44px; font-size: 1.45rem; line-height: 1; }
+.forecast-drawer-head { flex-shrink: 0; }
+.forecast-version { color: var(--fb-secondary); font-size: .76rem; overflow-wrap: anywhere; }
+.forecast-probability-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .4rem; margin: .5rem 0; }
+.forecast-probability-grid > div { border: 1px solid var(--fb-border); border-radius: .5rem; padding: .4rem .5rem; }
+.forecast-probability-grid dt { color: var(--fb-secondary); font-size: .74rem; }
+.forecast-probability-grid dd { margin: 0; font-weight: 750; }
+.forecast-probability-event { background: var(--fb-tint); }
+.forecast-probability-event dd { color: var(--fb-link); font-size: 1.2rem; }
+.forecast-chart .sarima-band { stroke: var(--fb-secondary); stroke-dasharray: 3 3; }
+.forecast-chart .estimated-dot:focus-visible { outline: 0; stroke: var(--fb-text); stroke-width: 3.5; }
+.forecast-chart .estimated-dot:hover { stroke: var(--fb-text); stroke-width: 2.5; }
+.forecast-chart-legend { display: flex; flex-wrap: wrap; gap: .15rem .7rem; margin: .3rem 0 0; padding: 0; list-style: none; }
+.forecast-chart-legend li { display: flex; align-items: center; gap: .25rem; font-size: .71rem; color: var(--fb-secondary); }
+.forecast-chart-legend li::before { content: ""; display: inline-block; width: .8rem; border-top: 2px solid var(--fb-text); }
+.forecast-chart-legend [data-key="estimated"]::before { border-top: 2px dashed var(--fb-accent); }
+.forecast-chart-legend [data-key="missing"]::before { border: 1px solid var(--fb-border); height: .6rem; background: var(--fb-warn-bg); }
+.forecast-chart-legend [data-key$="-band"]::before { width: .3rem; height: .7rem; border: 0; background: var(--fb-accent); opacity: .6; }
+.forecast-chart-legend [data-key="sarima-band"]::before { background: transparent; border-left: 2px dashed var(--fb-secondary); }
+.forecast-chart-readout { min-height: 1.25rem; font-size: .76rem; color: var(--fb-secondary); }
+@media (max-width: 599px) {
+    .forecast-meta { font-size: .73rem; }
+    .forecast-leader { grid-template-columns: minmax(0,1fr); padding: .42rem; gap: .16rem; }
+    .forecast-leader strong { grid-row: 3; }
+    .forecast-leader .forecast-leader-count { grid-column: 1; grid-row: 2; font-size: .91rem; }
+    .forecast-board .forecast-disease-table .forecast-table :is(th,td):first-child { width: 34%; }
+    .forecast-board .forecast-disease-table .forecast-table :is(th,td):last-child { width: 2.9rem; }
+    .forecast-board .forecast-table button.forecast-row-details { font-size: .65rem; }
+}
+/* If Lucide is unavailable, the original i elements still have a simple glyph. */
+[data-theme-toggle] i[data-lucide],
+#dropdown-user-initial i[data-lucide],
+#account-profile i[data-lucide],
+:is([data-target="view-predictive"],#nav-admin-analytics) i[data-lucide] {
+    display: inline-grid; place-items: center; flex: none; font-style: normal; line-height: 1;
+}
+[data-theme-toggle] i[data-lucide="moon"]::before { content: "☾"; font-size: 1.1rem; }
+[data-theme-toggle] i[data-lucide="sun"]::before { content: "☀"; font-size: 1rem; }
+:is([data-target="view-predictive"],#nav-admin-analytics) i[data-lucide]::before { content: "▥"; font-size: 1rem; }
+:is(#dropdown-user-initial,#account-profile) i[data-lucide] { position: relative; }
+:is(#dropdown-user-initial,#account-profile) i[data-lucide]::before {
+    content: ""; position: absolute; top: 1px; width: 7px; height: 7px; border: 1.5px solid currentColor; border-radius: 50%;
+}
+:is(#dropdown-user-initial,#account-profile) i[data-lucide]::after {
+    content: ""; position: absolute; bottom: 1px; width: 13px; height: 8px; border: 1.5px solid currentColor; border-bottom: 0; border-radius: 7px 7px 0 0;
+}
+
+.forecast-list-controls { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.forecast-board .forecast-recommendation-action { padding: .35rem .6rem; min-height: 2rem; }
+.forecast-previous-heading { color: var(--fb-link); }
+.forecast-drawer-filters { display: flex; gap: .45rem; flex-wrap: wrap; }
+.forecast-drawer-filters label { flex: 1 1 8rem; }
+.forecast-drawer-filters select { min-height: 2rem; padding: .25rem .45rem; color: var(--fb-text); background: var(--fb-soft); border: 1px solid var(--fb-border); border-radius: .45rem; }
+.forecast-drawer-tabs { display: grid; grid-template-columns: .8fr 1.2fr 1fr; gap: .2rem; margin: 0 0 .7rem; padding: .25rem; background: var(--fb-soft); border: 1px solid var(--fb-border); border-radius: .55rem; }
+.forecast-drawer-tabs button { min-width: 0; min-height: 2.2rem; padding: .2rem; color: var(--fb-text); font-size: .76rem; border-radius: .35rem; }
+.forecast-drawer-tabs button[aria-selected="true"] { color: var(--fb-link); background: var(--fb-tint); font-weight: 700; }
+.forecast-drawer [role="tabpanel"][hidden] { display: none; }
+.forecast-recommendation-list { display: grid; gap: .5rem; }
+.forecast-board .forecast-recommendation { padding: .65rem; }
+.forecast-recommendation h4 { margin: 0; font-weight: 700; }
+.forecast-recommendation p { margin: .2rem 0; }
+.forecast-recommendation a { color: var(--fb-link); text-decoration: underline; }
+.forecast-drawer .forecast-table td { overflow-wrap: anywhere; }
+.forecast-board .forecast-disease-table:has(.forecast-previous-heading) th:first-child { width: 30%; }
+@media (max-width: 480px) {
+    .forecast-board .forecast-disease-table:has(.forecast-previous-heading) :is(th,td):last-child { width: 2.5rem; }
+    .forecast-previous-heading small { font-size: .59rem; }
+}
+
+/* Approved Predictive Analytics workspace. The portal owns navigation and theme. */
+.prediction-workspace {
+    --panel: var(--fb-surface);
+    --bg: var(--fb-soft);
+    --ink: var(--fb-text);
+    --muted: var(--fb-secondary);
+    --line: var(--fb-border);
+    --blue: #2457bc;
+    --teal: var(--fb-accent);
+    --soft: var(--fb-tint);
+    min-width: 0;
+    color: var(--ink);
+
+    & [hidden] { display: none !important; }
+    & :is(.row, .filters, nav, .legend, .matrixLegend, .performanceHelp) { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; }
+    & .row { justify-content: space-between; }
+    & .filters label { display: grid; gap: .15rem; font-size: .78rem; font-weight: 650; }
+    & :is(select, button) { color: inherit; border: 1px solid var(--line); background: var(--panel); border-radius: .5rem; padding: .38rem .58rem; cursor: pointer; }
+    & select { min-width: 0; max-width: min(100%, 15rem); }
+    & :is(h2, h3, h4) { margin: 0; font-weight: 700; }
+    & h2 { font-size: 1.12rem; }
+    & h3 { font-size: 1rem; }
+    & :is(p, small, label) { color: var(--muted); }
+    & p { margin: .3rem 0; }
+    & a { color: var(--blue); text-decoration: underline; }
+    & nav { margin: 0 0 .8rem; border-bottom: 1px solid var(--line); }
+    & nav button { border: 0; border-radius: 0; background: none; color: var(--muted); padding: .6rem .45rem; }
+    & nav button[aria-current="true"] { color: var(--blue); box-shadow: inset 0 -3px var(--blue); font-weight: 700; }
+    & :is(.cards, .pair, .models, .mini) { display: grid; gap: .75rem; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; min-width: 0; }
+    & .cards { grid-template-columns: repeat(auto-fit,minmax(8.25rem,1fr)); }
+    & .card { display: grid; grid-template-columns: minmax(0,1fr) auto; text-align: left; align-items: center; border-inline-start: 3px solid var(--teal); padding: .65rem .8rem; height: 100%; }
+    & .card strong { grid-row: span 2; font-size: 1.5rem; }
+    & .card[aria-pressed="true"] { background: var(--soft); }
+    & .card[data-previous-prediction] { border-inline-start-color: var(--fb-warn); }
+    & .card[data-previous-prediction] small { color: var(--fb-warn); }
+    & .card[data-previous-prediction][aria-pressed="true"] { background: var(--fb-warn-bg); }
+    & :is(article, dialog) { background: var(--panel); border: 1px solid var(--line); border-radius: .85rem; padding: clamp(.75rem,1.6vw,1.25rem); color: var(--ink); min-width: 0; }
+    & article { margin: .8rem 0; }
+    & .pair > article { margin-top: 0; }
+    & .tag { display: inline-block; border-radius: .3rem; background: var(--soft); color: var(--fb-link); padding: .18rem .45rem; font-size: .75rem; font-weight: 650; }
+    & .models > section { border-top: 3px solid var(--teal); background: var(--bg); padding: .75rem; border-radius: .5rem; height: 100%; }
+    & .models > section + section { border-color: var(--blue); }
+    & .cardScope { font-weight: 700; }
+    & .caseNumber { font-size: 1.9rem; }
+    & .mini { gap: .5rem; margin: .45rem 0; }
+    & .mini b { display: block; font-size: 1.15rem; }
+    & .intervals b { font-size: .97rem; }
+    & .metricBlock { padding: .4rem .55rem; border: 1px solid var(--line); border-radius: .4rem; background: var(--panel); }
+    & button.infoIcon { border-radius: 50%; font: 700 .85rem Georgia,serif; width: 1.6rem; height: 1.6rem; padding: 0; color: var(--blue); flex: none; }
+    & .actionPreview { border-inline-start: 3px solid var(--teal); padding-inline-start: .7rem; margin-top: .55rem; }
+    & .bars button { display: grid; grid-template-columns: minmax(8rem, 40%) 1fr minmax(2ch,auto); gap: .4rem; align-items: center; width: 100%; background: none; border: 0; text-align: start; font-size: .85rem; }
+    & .bars b { text-align: end; }
+    & .bar { height: .6rem; border-radius: 0 .35rem .35rem 0; background: var(--teal); }
+    & .wrap { overflow: auto; }
+    & table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    & :is(th,td) { padding: .42rem .5rem; text-align: end; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    & :is(th,td):first-child { text-align: start; }
+    & thead { font-size: .8rem; }
+    & td button { border: 0; background: none; color: var(--blue); font-weight: 650; }
+    & .matrixCell { display: block; text-align: center; border-radius: .25rem; }
+    & .matrixCell button { width: 100%; color: var(--ink); }
+    & .matrixRamp { width: 6rem; height: .7rem; border-radius: .25rem; background: linear-gradient(90deg,color-mix(in srgb,var(--teal) 10%,var(--panel)),color-mix(in srgb,var(--teal) 50%,var(--panel))); }
+    & .legend, & .note, & .prediction-readout { font-size: .82rem; }
+    & .legend b { color: var(--fb-link); }
+    & .legend i { color: var(--blue); font-style: normal; }
+    & .prediction-plot { position: relative; }
+    & .prediction-point-tip {
+        position: absolute; z-index: 2; pointer-events: none;
+        min-width: 9rem; max-width: min(17rem, 100%); padding: .45rem .65rem;
+        background: var(--panel); color: var(--ink);
+        border: 1px solid var(--line); border-radius: .55rem;
+        box-shadow: 0 .3rem 1rem #10283e26; font-size: .82rem;
+    }
+    & .prediction-point-tip span { display: block; color: var(--muted); }
+    & .prediction-dot { cursor: pointer; }
+    & .prediction-dot:focus-visible { outline: none; stroke-width: 3.5; }
+    & .prediction-plot svg { display: block; width: 100%; }
+    & .prediction-plot svg text { fill: var(--muted); font: 11px system-ui,sans-serif; }
+    & .prediction-period-band { fill: var(--soft); }
+    & .prediction-missing-band { fill: var(--fb-warn-bg); }
+    & .prediction-gridline { stroke: var(--line); stroke-dasharray: 3 4; }
+    & .prediction-cutoff { stroke: var(--muted); stroke-dasharray: 2 4; }
+    & .prediction-series { fill: none; stroke: var(--teal); stroke-width: 2.6; }
+    & .prediction-series.predicted { stroke: var(--blue); stroke-dasharray: 6 5; }
+    & .prediction-dot { fill: var(--panel); stroke: var(--teal); stroke-width: 2; }
+    & .prediction-dot.predicted { stroke: var(--blue); }
+    & .prediction-interval { stroke: var(--blue); stroke-width: 6; opacity: .35; }
+    & .prediction-readout { min-height: 1.25rem; }
+    & dialog { position: fixed; inset: 0; margin: auto; width: min(53rem, calc(100vw - 1.5rem)); max-height: 90dvh; overflow: auto; }
+    & dialog::backdrop { background: #10283e70; }
+    & dialog[data-region="quickInfo"] { width: min(28rem, calc(100vw - 1.5rem)); font-size: .88rem; max-height: calc(100dvh - 1.5rem); }
+    & dialog[data-region="quickInfo"]::backdrop { background: #10283e24; }
+    & dialog details { margin-block: .65rem; }
+    & summary { cursor: pointer; color: var(--blue); font-weight: 650; }
+    & .mathSteps section { margin-top: .65rem; }
+    & .mathFormula { font: 600 .88rem/1.6 Consolas,monospace; padding: .45rem; background: var(--soft); border-radius: .35rem; overflow-wrap: anywhere; }
+    & [data-region="calc"] :is(td,th), & [data-region="quickInfo"] :is(td,th) { white-space: normal; }
+}
+.dark .prediction-workspace { --blue: #9dbdff; }
+@media (min-width: 651px) {
+    .prediction-workspace dialog[data-region="quickInfo"] { margin: 0; right: auto; bottom: auto; }
+}
+@media (max-width: 950px) {
+    .prediction-workspace .pair { grid-template-columns: minmax(0,1fr); gap: 0; }
+}
+@media (max-width: 650px) {
+    .prediction-workspace article > .row > .filters {
+        display: grid;
+        grid-template-columns: repeat(2,minmax(0,1fr));
+        width: 100%;
+        gap: .35rem .55rem;
+    }
+    .prediction-workspace article > .row > .filters select { width: 100%; }
+    .prediction-workspace nav button { padding-inline: .3rem; font-size: .76rem; }
+    .prediction-workspace .models { grid-template-columns: minmax(0,1fr); }
+    .prediction-workspace .cards { grid-template-columns: repeat(2,minmax(0,1fr)); gap: .35rem; }
+    .prediction-workspace .card { display: flex; flex-direction: column; align-items: start; padding: .4rem; }
+    .prediction-workspace .card strong { font-size: 1.25rem; }
+    .prediction-workspace nav { gap: .15rem; font-size: .8rem; }
+}
+
+/* Match the portal navigation and form controls inside Predictive Analytics. */
+.prediction-workspace {
+    font-family: inherit;
+    font-size: .875rem;
+    line-height: 1.55;
+
+    & :is(button,select) { font-family: inherit; font-size: inherit; font-weight: 600; }
+    & h2 { font-size: 1.125rem; line-height: 1.35; }
+    & h3 { font-size: 1rem; line-height: 1.35; }
+    & nav { gap: .35rem; padding-bottom: .45rem; }
+    & nav button { border-radius: .55rem; padding: .5rem .7rem; }
+    & nav button:is(:hover,[aria-current="true"]) {
+        box-shadow: none; color: var(--blue); background: color-mix(in srgb,var(--blue) 10%,var(--panel));
+    }
+    & .filters label > span { color: var(--ink); }
+    & .prediction-field { display: grid; gap: .3rem; min-width: 0; font-size: .8125rem; font-weight: 600; }
+    & .prediction-field .hi-select-trigger { min-height: 2.55rem; padding: .35rem .55rem .35rem .7rem !important; }
+    & .prediction-field .hi-select-arrow { width: 1.5rem; height: 1.5rem; }
+    & .prediction-field .hi-select-trigger > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    & .prediction-field .hi-select, & .prediction-field select { width: 100%; max-width: 100%; }
+    & .filters .prediction-field { min-width: min(8rem,100%); }
+    & .models { margin-top: .8rem; }
+    & .models > section {
+        padding: 1rem; border: 1px solid var(--line); border-radius: .75rem;
+        background: color-mix(in srgb,var(--soft) 36%,var(--panel)); height: auto;
+    }
+    & .models > section + section { border-color: var(--line); background: var(--panel); }
+    & .models .cardScope { font-weight: 650; margin-top: .55rem; }
+    & .models .caseNumber { display: inline-block; margin-top: .4rem; line-height: 1.25; }
+    & .models .row > p { flex: 1 1 12rem; }
+    & .models .row > .prediction-field { flex: 0 1 10rem; }
+    & .metricBlock { background: var(--bg); border: 0; padding: .55rem .65rem; border-radius: .5rem; }
+    & .metricBlock small { font-size: .75rem; }
+    & .prediction-action { min-height: 2.5rem; border-radius: .55rem; padding: .42rem .75rem; color: var(--blue); }
+    & .prediction-action:hover { background: color-mix(in srgb,var(--blue) 9%,var(--panel)); }
+    & .prediction-action#allActions { color: #fff; background: #1d4ed8; border-color: #1d4ed8; }
+    & .prediction-action#allActions:hover { background: #1e40af; }
+    & .actionPreview {
+        margin-top: .65rem; padding: .75rem .9rem; border: 1px solid var(--line);
+        border-inline-start: 3px solid var(--teal); border-radius: .65rem; background: var(--bg);
+    }
+    & .actionPreview :is(small,a) { font-size: .78rem; }
+    & .bars { margin-top: .45rem; }
+    & .bars button { min-height: 2.45rem; border-radius: .45rem; font-weight: 500; }
+    & .bars button:hover { background: var(--bg); }
+    & .bar { border-radius: 999px; }
+    & .wrap thead { background: var(--bg); color: var(--muted); }
+    & .wrap th { font-weight: 650; }
+    & .wrap td button { padding-block: .24rem; }
+    & .wrap tbody tr:hover { background: var(--bg); }
+    & .prediction-plot svg text { font-family: inherit; }
+}
+@media (max-width: 650px) {
+    .prediction-workspace nav button { padding: .36rem .42rem; }
+    .prediction-workspace .filters .prediction-field { min-width: 0; }
+    .prediction-workspace .models .row > .prediction-field { flex: 1 1 8rem; }
+}
+
+.prediction-workspace {
+    & .card.prediction-month-card {
+        display: grid; grid-template-columns: minmax(0,1fr) auto .65rem;
+        gap: .55rem; min-height: 4.4rem; padding: .7rem .85rem;
+        line-height: 1.35; letter-spacing: normal;
+    }
+    & .prediction-month-card:hover { border-color: var(--teal); background: var(--soft); }
+    & .prediction-month-copy { display: grid; gap: .18rem; min-width: 0; }
+    & .prediction-month-copy b { overflow-wrap: anywhere; }
+    & .prediction-month-card strong { grid-row: auto; font-variant-numeric: tabular-nums; }
+    & .prediction-month-arrow {
+        width: .42rem; height: .42rem; transform: rotate(-45deg);
+        border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+    }
+    & .prediction-month-summary { padding-top: .55rem; }
+    & .prediction-month-summary > span { margin-inline-start: .4rem; color: var(--muted); }
+    & .prediction-month-value { font-size: 1.85rem; font-variant-numeric: tabular-nums; }
+    & .prediction-month-summary small { display: block; margin-top: .55rem; }
+}
+@media (max-width: 650px) {
+    .prediction-workspace .card.prediction-month-card {
+        grid-template-columns: minmax(0,1fr) auto; padding: .55rem .6rem; gap: .35rem;
+    }
+    .prediction-workspace .prediction-month-copy small { font-size: .68rem; }
+    .prediction-workspace .prediction-month-arrow { display: none; }
+}
+
+/* Shared analysis toolbars and centered prediction details. */
+.prediction-workspace {
+    & .prediction-section-context { margin-top: .25rem; }
+    & .prediction-section-head { display: grid; gap: .65rem; margin-bottom: .7rem; }
+    & .prediction-section-head:has(> .prediction-section-actions) {
+        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+    }
+    & .prediction-section-actions:empty { display: none; }
+    & .prediction-filter-bar {
+        display: flex; align-items: end; gap: .55rem .75rem; flex-wrap: wrap;
+        padding: .65rem .75rem; border: 1px solid var(--line); border-radius: .65rem;
+        background: var(--bg);
+    }
+    & .prediction-filter-bar > .prediction-field { flex: 0 1 10rem; }
+    & .prediction-filter-bar > .prediction-field:has(#prediction-field-disease) { flex-basis: 14rem; }
+    & .models > section { align-self: stretch; }
+    & .prediction-hero { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem; }
+    & .models #explain { margin-top: .4rem; }
+    & .prediction-probability-scope {
+        display: flex; gap: .5rem; flex-wrap: wrap; align-items: end; justify-content: space-between;
+        margin: .35rem 0 .65rem;
+    }
+    & .prediction-probability-scope .prediction-field { width: min(100%,10rem); }
+    & .prediction-matrix {
+        margin-top: .6rem; overflow: auto; border: 1px solid var(--line);
+        border-radius: .65rem;
+    }
+    & .prediction-matrix th:first-child {
+        position: sticky; left: 0; z-index: 1; background: var(--panel);
+        max-width: 13rem; white-space: normal; text-align: start;
+        box-shadow: 1px 0 var(--line);
+    }
+    & .prediction-matrix thead th:first-child { background: var(--bg); }
+    & .prediction-matrix :is(th,td):not(:first-child) { text-align: center; }
+    & .prediction-matrix .matrixCell button { min-width: 3.7rem; min-height: 2.35rem; }
+    & .prediction-matrix .matrixCell button:hover { box-shadow: inset 0 0 0 2px var(--teal); }
+    & .prediction-matrix .matrixCell button:focus-visible { outline-offset: -3px; }
+    & .prediction-performance-summary { margin-block: .65rem; }
+    & .prediction-performance-summary .wrap { border: 1px solid var(--line); border-radius: .65rem; }
+    & .prediction-performance-summary tr[data-selected="true"] { background: var(--soft); }
+    & .prediction-performance-comparison { border-top: 1px solid var(--line); padding-top: .75rem; }
+    & .prediction-performance-comparison .wrap { margin-top: .45rem; }
+    & .prediction-performance-comparison details > summary { margin-top: .4rem; }
+    & .prediction-action-list .forecast-detail { border: 0; padding: 0; }
+    & .prediction-action-list .forecast-recommendation-list { gap: .65rem; margin-top: .65rem; }
+    & .prediction-action-list .forecast-recommendation { margin: 0; padding: .85rem 1rem; border-inline-start: 3px solid var(--teal); }
+    & dialog[data-region="drawer"] {
+        position: fixed; inset: 0; margin: auto;
+        width: min(44rem,calc(100vw - 1.5rem)); height: fit-content; max-height: calc(100dvh - 1.5rem);
+        padding: 0; overflow: hidden; border-radius: 1rem;
+    }
+    & dialog[data-region="drawer"]:has(.prediction-month-summary) { width: min(34rem,calc(100vw - 1.5rem)); }
+    & dialog[data-region="drawer"][open] { display: grid; grid-template-rows: auto minmax(0,1fr) auto; }
+    & .prediction-dialog-header, & .prediction-dialog-footer {
+        display: flex; align-items: center; gap: .5rem; padding: .7rem 1rem;
+    }
+    & .prediction-dialog-header { justify-content: space-between; background: var(--bg); border-bottom: 1px solid var(--line); }
+    & .prediction-dialog-header h2 { font-size: 1rem; }
+    & .prediction-dialog-header .prediction-dialog-x { min-width: 2.5rem; min-height: 2.5rem; padding: 0; font: 500 1.65rem/1 system-ui,sans-serif; border-color: transparent; background: transparent; }
+    & .prediction-dialog-header .prediction-dialog-x:hover { border-color: var(--line); background: var(--panel); }
+    & .prediction-dialog-body { padding: .85rem 1rem; overflow: auto; overscroll-behavior: contain; }
+    & .prediction-dialog-body .prediction-month-summary { padding-top: 0; }
+    & .prediction-dialog-estimate { padding: .55rem .7rem; margin: .55rem 0 .8rem; background: var(--soft); border-radius: .55rem; }
+    & .prediction-dialog-footer { justify-content: flex-end; flex-wrap: wrap; border-top: 1px solid var(--line); }
+    & .prediction-dialog-footer .prediction-primary { color: #fff; background: #1d4ed8; border-color: #1d4ed8; }
+    & .prediction-dialog-footer .prediction-primary:hover { background: #1e40af; }
+}
+@media (max-width: 650px) {
+    .prediction-workspace .prediction-filter-bar { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .prediction-workspace .prediction-matrix th:first-child { width: 8rem; min-width: 8rem; }
+    .prediction-workspace .prediction-dialog-footer .prediction-action { font-size: .78rem; }
+}

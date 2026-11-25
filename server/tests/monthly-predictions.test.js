@@ -145,14 +145,17 @@ test('operational workflow: completeness, frozen run, honest publication, outcom
  await expectPublication(run.id);
 
  const probabilityService=createMonthlyPredictions(db,{directory,python:enginePython,now:()=>clock,calculateProbability:(python,scopes)=>{
-  assert.equal(scopes.length,70);
+  assert.equal(scopes.length,280);
+  assert.deepEqual([...new Set(scopes.map(scope=>scope.horizon))],[1,2,3,4]);
   assert(scopes.every(s=>s.prior_pairs.every(p=>p.j>=31&&p.j<45)));
-  assert.equal(scopes.find(s=>s.disease==='Influenza'&&s.barangay==='Caliban').prior_pairs.length,9);
+  assert.equal(scopes.find(s=>s.disease==='Influenza'&&s.barangay==='Caliban'&&s.horizon===1).prior_pairs.length,9);
   return calculate(python,scopes);
  }});
  assert.equal((await probabilityService.prepareProbability(alternate,params,user)).status,'calculating');
  const prepared=await waitForProbability(probabilityService);
- assert.equal(prepared.available,70,'Frozen calculator on isolated replay fixture');
+ assert.equal(prepared.by_horizon[1],70,'Frozen H1 calculator on isolated replay fixture');
+ assert.equal(prepared.by_horizon[3],0,'Legacy archived worker has no H3 fit output');
+ assert.equal(prepared.by_horizon[4],0,'Legacy archived worker has no H4 fit output');
  assert.match(prepared.sha256,/^[a-f0-9]{64}$/);
  await assert.rejects(s.publish({run_id:alternate,acknowledged:true},user),/Review the candidate again/);
  await expectPublication(run.id);
@@ -185,7 +188,7 @@ test('operational workflow: completeness, frozen run, honest publication, outcom
  await db.execute("UPDATE prediction_runs SET status='ready' WHERE id=?",[alternate]);
  clock=new Date('2026-11-02T00:00:00Z');await assert.rejects(s.publish({run_id:alternate,acknowledged:true},user),/already ended/);await assert.rejects(s.outcomes(alternate),/published/);
  const stopped=crypto.randomUUID();await db.execute("INSERT INTO prediction_runs(id,start_month,cutoff,status,input_hash,created_by) VALUES(?,?,?,'running',?,?)",[stopped,'2023-01','2026-09',run.input_hash,user.system_id]);assert.equal((await s.review(stopped)).run.status,'failed');await assert.rejects(s.publish({run_id:stopped,acknowledged:true},user),/Only a verified/);assert.equal((await s.publicationStatus()).publication.run_id,run.id,'A failed candidate cannot replace the published version');
- clock=new Date('2026-11-02T00:00:00Z');for(const b of D.BARANGAYS)await s.confirm({month:'2026-10',barangay:b,complete:true},user);const outcome=await s.outcomes(run.id);assert.equal(outcome.metrics.attempted,70);assert.ok(outcome.rows.every(r=>r.actual===0));assert.equal(outcome.evaluation_type,'issued_during_target_month_not_full_month_independent_validation');
+ clock=new Date('2026-11-02T00:00:00Z');for(const b of D.BARANGAYS)await s.confirm({month:'2026-10',barangay:b,complete:true},user);const compared=await s.compareIssued(run.id);assert.equal(compared.targets[0].status,'issued_during_target');assert.equal(compared.targets[0].rows.length,70);assert.ok(compared.targets[0].rows.every(r=>r.actual===0));assert.equal(compared.targets[1].status,'month_open');const outcome=await s.outcomes(run.id);assert.equal(outcome.metrics.attempted,70);assert.ok(outcome.rows.every(r=>r.actual===0));assert.equal(outcome.evaluation_type,'issued_during_target_month_not_full_month_independent_validation');
  await db.execute("UPDATE health_cases SET disease_review_status='Pending' WHERE id=1");const changed=await s.reports('2023-01');assert.ok(changed.some(r=>r.stale));await assert.rejects(s.publish({run_id:run.id,acknowledged:true},user),/changed/);await assert.rejects(s.confirm({month:'2023-01',barangay:'Salvacion',complete:true},user),/pending/);
  assert.equal((await s.forecast({disease:'Cough',barangay:'Salvacion'})).current_data_matches,false,'Published history remains frozen and explicitly stale');
 });

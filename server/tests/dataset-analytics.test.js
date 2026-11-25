@@ -93,10 +93,9 @@ test('both dashboards retain their layouts without the standalone dataset select
     for (const role of ['mho', 'bhw']) {
         const html = fs.readFileSync(path.join(__dirname, '../../' + role + '.html'), 'utf8');
         assert.doesNotMatch(html, /id="dataset-analytics"|Analytics source/);
-        const cmpVersion=role==='mho'?'20261115-model-labels':'20261114-compact';
-        assert.ok(html.includes('cmp-presentation.js?v='+cmpVersion));
-        const forecastVersion=role==='mho'?'20261115-model-labels':'20261113-operational-cmp';
-        assert.ok(html.includes('mho-forecast.js?v='+forecastVersion));
+        assert.match(html, /data-forecast-board=/);
+        assert.match(html, /forecast-board\.js\?v=/);
+        assert.doesNotMatch(html, /forecast-legacy|predictive-disease-select|run-forecast-button|mho-forecast\.js\?v=/);
     }
 });
 

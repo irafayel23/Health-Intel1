@@ -2,6 +2,8 @@
 const {reportingExcluded}=require('./case-reporting');
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),{spawn,execFile}=require('node:child_process');
 const CMP=require('./operational-cmp');
+const H=require('./forecast-horizons');
+const {displayRows,probabilityOf}=require('./forecast-overview');
 const {loadDataset,SOURCE_HASH}=require('./dataset-analytics');
 const {readSavedDataset}=require('./admin-analytics');
 const D=require('./monthly-data'),{createSystemAudit}=require('./system-audit');
@@ -41,7 +43,7 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
     return value;
    })
   })));
-  const input={mode:D.MIXED,start,cutoff,target:D.next(cutoff),policy_sha256:policyHash,
+  const input={mode:D.MIXED,start,cutoff,target:D.next(cutoff),policy_sha256:policyHash,forecast_format:H.FORMAT,
    uploaded_dataset_sha256:version,report_digests:[],scopes};
   D.validateInput(input);
   return input;
@@ -65,7 +67,7 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
    if(rows.some(row=>!row.confirmed||row.pending))throw D.fail(`Reporting is incomplete or changed for ${month}. Confirm every pilot barangay, including genuinely zero-case reports.`,409);
    liveReports.set(month,rows);
   }
-  const input={mode,start,cutoff,target:D.next(cutoff),policy_sha256:policyHash,
+  const input={mode,start,cutoff,target:D.next(cutoff),policy_sha256:policyHash,forecast_format:H.FORMAT,
    ...(mixed?{historical_dataset_sha256:SOURCE_HASH}:{}),
    report_digests:[...liveReports].map(([month,rows])=>({month,barangays:rows.map(({barangay,digest})=>({barangay,digest}))})),
    scopes:D.DISEASES.flatMap(disease=>D.BARANGAYS.map(barangay=>({disease,barangay,history:dates.map(month=>
@@ -75,7 +77,7 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
   D.validateInput(input);return input;
  }
  async function getRun(run,c=db){const [[r]]=await c.execute('SELECT * FROM prediction_runs WHERE id=?',[id(run)]);if(!r)throw D.fail('Prediction version was not found.',404);return r;}
- function verified(row){const input=read(row.id,'input.json');if(D.hash(input)!==row.input_hash||input.policy_sha256!==policyHash)throw D.fail('Frozen input integrity check failed.',409);const output=read(row.id,'output.json');if(row.output_hash&&D.hash(output)!==row.output_hash)throw D.fail('Frozen output integrity check failed.',409);return {input,output,result:D.validateOutput(input,output)};}
+ function verified(row){const input=read(row.id,'input.json');if(D.hash(input)!==row.input_hash||input.policy_sha256!==policyHash)throw D.fail('Frozen input integrity check failed.',409);const output=read(row.id,'output.json');if(row.output_hash&&D.hash(output)!==row.output_hash)throw D.fail('Frozen output integrity check failed.',409);const result=D.validateOutput(input,output);return {input,output,result:input.forecast_format===H.FORMAT?H.extend(input,output,result):result};}
  async function finishRun(run, succeeded, connection=db){
   const row=await getRun(run,connection);
   if(!['running','queued'].includes(row.status))return row;
@@ -112,7 +114,7 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
   if(activeRuns.has(row.id))return row;
   return finishRun(row.id,false,connection);
  }
- async function freshness(input,c=db){try{return D.hash(await inputFor(input.start,input.cutoff,c,input.mode,input.uploaded_dataset_sha256))===D.hash(input);}catch{return false;}}
+ async function freshness(input,c=db){try{const current=await inputFor(input.start,input.cutoff,c,input.mode,input.uploaded_dataset_sha256);if(!input.forecast_format)delete current.forecast_format;return D.hash(current)===D.hash(input);}catch{return false;}}
  async function list(){const readiness=await probe(python);const [rows]=await db.query('SELECT * FROM prediction_runs ORDER BY created_at DESC LIMIT 30');const result=[];for(const row of rows){const r=await reconcile(row);let progress=null;try{progress=read(row.id,'progress.json');}catch{}let mode,dataset_id;try{const input=read(row.id,'input.json');mode=input.mode;dataset_id=input.uploaded_dataset_sha256;}catch{}result.push({...r,progress,mode,dataset_id});}const [[publication]]=await db.query('SELECT * FROM prediction_publications WHERE id=1');return {runs:result,publication,minimum_months:45,source:'Operational database cases only',dataset_history:{start:D.DATASET_START,last_month:'2026-09',first_report_month:D.FIRST_REPORT_MONTH},worker_platform:process.platform==='win32'?'Windows bounded worker':process.platform==='linux'?'Linux cgroup-v2 bounded worker':'Unsupported worker platform',worker_ready:readiness.ready,worker_message:readiness.message||null,python_configured:readiness.ready,diseases:D.DISEASES,barangays:D.BARANGAYS};}
  async function confirm({month,barangay,complete},user){D.closed(month,now());if(typeof complete!=='boolean'||!D.BARANGAYS.includes(barangay))throw D.fail('Choose a pilot barangay and an explicit completeness decision.');return locked(async c=>{await c.beginTransaction();try{const summary=D.summarize(await monthRows(month,c),barangay);if(complete&&summary.pending)throw D.fail('Resolve pending disease classifications before confirming this report.',409);if(complete)await c.execute('INSERT INTO prediction_month_reports(month,barangay,digest,confirmed_by) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE digest=VALUES(digest),confirmed_by=VALUES(confirmed_by),confirmed_at=CURRENT_TIMESTAMP',[month,barangay,summary.digest,user.system_id]);else await c.execute('DELETE FROM prediction_month_reports WHERE month=? AND barangay=?',[month,barangay]);await createSystemAudit(c).record(user,'Monthly Report Reviewed',{summary:complete?'Completed operational monthly report confirmed':'Operational monthly report reopened',target_type:'Monthly report',target_id:month+' / '+barangay,outcome:'Succeeded'});await c.commit();return {month,barangay,complete};}catch(e){await c.rollback();throw e;}});}
  async function start({start,cutoff,mode,dataset_id},user){verifyEngine();const readiness=await probe(python);if(!readiness.ready)throw D.fail(readiness.message||'Scientific worker is not ready.',503);return locked(async c=>{const [pending]=await c.query("SELECT * FROM prediction_runs WHERE status IN ('running','queued')");for(const row of pending){const updated=await reconcile(row,c);if(['running','queued'].includes(updated.status))throw D.fail('A monthly fitting run is already active. Wait for it to finish.',409);}await c.beginTransaction();let run;try{const input=await inputFor(start,cutoff,c,mode,dataset_id);const [existing]=await c.execute("SELECT * FROM prediction_runs WHERE input_hash=? AND status IN ('ready','published') ORDER BY created_at DESC LIMIT 1",[D.hash(input)]);if(existing.length){verified(existing[0]);await c.commit();return existing[0];}run=crypto.randomUUID();write(run,'input.json',input);await c.execute("INSERT INTO prediction_runs(id,start_month,cutoff,status,input_hash,created_by) VALUES(?,?,?,'queued',?,?)",[run,start,cutoff,D.hash(input),user.system_id]);await createSystemAudit(c).record(user,'Prediction Update Prepared',{summary:input.uploaded_dataset_sha256?'Saved CSV preview prepared for SARIMA':input.mode===D.MIXED?'Dataset-backed preview prepared for SARIMA':'Frozen operational monthly totals prepared for SARIMA',target_type:'Prediction version',target_id:run,outcome:'Prepared'});await c.commit();}catch(e){await c.rollback();throw e;}
@@ -176,7 +178,7 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
  async function finishProbability(row,v,review){
    const run=row.id;
    const packet={
-    schema:1,binding:CMP.binding(run,v),review,
+    schema:v.input.forecast_format===H.FORMAT?2:1,binding:CMP.binding(run,v),review,
     rows:await calculateProbability(python,CMP.earlierPairs(v)),
    };
    return locked(async c=>{
@@ -199,7 +201,7 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
    if(!packet)return CMP.unavailable('genuine_history_review_required');
    const digest=await CMP.publishedDigest(db,v.row.id);
    if(D.hash(packet)!==digest)return CMP.unavailable('probability_evidence_mismatch');
-   const selected=packet.rows.find(r=>r.disease===view.disease&&r.barangay===view.barangay);
+   const selected=packet.rows.find(r=>r.disease===view.disease&&r.barangay===view.barangay&&(r.horizon??1)===1);
    if(selected.reason)return CMP.unavailable(selected.reason);
    return {schema:1,status:'available',experimental:true,policy:packet.binding.cmp_policy,
     binding:{...packet.binding,probability_sha256:digest},...selected};
@@ -219,7 +221,54 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
  async function options(){const v=await published();return {diseases:D.DISEASES,barangays:D.BARANGAYS,context:v.result.context,overall:v.result.overall,provenance:{mode:'verified_operational_monthly_snapshot',synthetic:false,retraining:false,version:v.row.id,dataset_sha256:v.row.input_hash},current_data_matches:await freshness(v.input)};}
  async function forecast(query){if(!D.DISEASES.includes(query.disease)||!D.BARANGAYS.includes(query.barangay)||!['80_20','70_30',undefined].includes(query.protocol)||!['1',undefined].includes(query.horizon))throw D.fail('Choose one pilot disease and barangay for a one-month prediction.');const v=await published(),view=v.result.views[query.disease+'\0'+query.barangay];return {context:v.result.context,view,experimental_probability:await publishedProbability(v,view),selection:{disease:query.disease,barangay:query.barangay,protocol:query.protocol||'80_20',horizon:'1'},overall:v.result.overall,provenance:{mode:'verified_operational_monthly_snapshot',synthetic:false,version:v.row.id,dataset_sha256:v.row.input_hash,sarima_output_sha256:v.row.output_hash,sarima_policy_sha256:v.input.policy_sha256},loaded_saved_results:true,retrained:false,current_data_matches:await freshness(v.input)};}
  async function outcomes(run){const row=await getRun(run);if(row.status!=='published')throw D.fail('Only predictions published before outcomes were available can be assessed.',409);const v=verified(row),target=v.input.target;D.closed(target,now());if(!row.first_published_epoch||Number(row.first_published_epoch)>=Date.parse(D.next(target)+'-01T00:00:00+08:00')/1000)throw D.fail('This version was not published before the target month ended. It cannot be reported as a forward-issued prediction.',409);const actual=await reports(target);if(actual.some(x=>!x.confirmed||x.pending))throw D.fail('Confirm the target month reporting before assessing prediction errors.',409);const rows=Object.values(v.result.views).map(s=>({disease:s.disease,barangay:s.barangay,actual:actual.find(x=>x.barangay===s.barangay).counts[s.disease],prediction:s.production['1'].prediction,actual_model:s.production['1'].actual_model}));return {target,run_id:row.id,evaluation_type:Number(row.first_published_epoch)<Date.parse(target+'-01T00:00:00+08:00')/1000?'issued_before_target_month':'issued_during_target_month_not_full_month_independent_validation',metrics:require('./seasonal6200-sarima-demo').metrics(rows),rows};}
+ async function overview(barangay, version){
+  let v;
+  if(version){
+   const row=await getRun(version);
+   if(!['ready','published'].includes(row.status)||!row.output_hash)throw D.fail('This version is not ready to review.',409);
+   v={...verified(row),row};
+  }else v=await published();
+  const targets=H.windowFrom(v.input.cutoff,v.input.target);
+  const issued=v.row.first_published_epoch?new Date(Number(v.row.first_published_epoch)*1000).toISOString():null;
+  const probabilities=new Map();
+  if(v.input.mode==='operational'){
+   try{
+    const packet=probabilityPacket(v.row,v);
+    if(packet&&(v.row.status==='ready'||D.hash(packet)===await CMP.publishedDigest(db,v.row.id))){
+     for(const row of packet.rows)probabilities.set(H.keyFor(row.disease,row.barangay)+'\0'+(row.horizon??1),row);
+    }
+   }catch{ /* Unverified probability evidence remains unavailable. */ }
+  }
+  const views=Object.values(v.result.views).filter(view=>!barangay||view.barangay===barangay);
+  return {source:v.input.mode==='operational'?'operational':v.input.uploaded_dataset_sha256?'uploaded preview':'dataset-backed preview',
+   status:v.row.status==='published'?'published':'draft',cutoff:v.input.cutoff,reference:v.input.target,targets,issued,
+   expired:targets.at(-1).target<D.currentMonth(now()),dataset_version:v.input.uploaded_dataset_sha256||v.row.input_hash,model_version:v.row.id,
+   barangay:barangay??null,rows:displayRows(views,targets,(view,h)=>probabilityOf(probabilities.get(H.keyFor(view.disease,view.barangay)+'\0'+h)))};
+ }
+ async function publicationVersions(){
+  const [rows]=await db.query("SELECT id,cutoff,status,created_at,first_published_epoch FROM prediction_runs WHERE status IN ('ready','published') AND output_hash IS NOT NULL ORDER BY created_at DESC LIMIT 30");
+  const {publication}=await publicationStatus();
+  return {active:publication?.run_id??null,versions:rows.map(({id,cutoff,status,created_at,first_published_epoch})=>({id,cutoff,status,created_at,issued:first_published_epoch?new Date(Number(first_published_epoch)*1000).toISOString():null}))};
+ }
+ async function compareIssued(run){
+  const row=await getRun(run);
+  if(row.status!=='published'||!row.first_published_epoch||!row.output_hash)throw D.fail('Choose an issued operational prediction version.',409);
+  const v=verified(row);
+  if(v.input.mode!=='operational')throw D.fail('Choose an issued operational prediction version.',409);
+  const issued=new Date(Number(row.first_published_epoch)*1000).toISOString();
+  const version={issued,model_version:row.id,dataset_version:row.input_hash};
+  const targets=[];
+  for(const {target,horizon} of H.windowFrom(v.input.cutoff,v.input.target)){
+   if(horizon>1&&!v.result.context.horizons){targets.push({target,horizon,status:'unavailable',rows:[]});continue;}
+   if(target>=D.currentMonth(now())){targets.push({target,horizon,status:'month_open',rows:[]});continue;}
+   const forecast=Object.values(v.result.views).map(view=>({disease:view.disease,barangay:view.barangay,horizon,prediction:view.production[horizon]?.prediction??null}));
+   targets.push({horizon,...H.outcomesFor(target,forecast,await reports(target),issued)});
+  }
+  return {...version,targets};
+ }
+
+
  async function publicationStatus(){const [[p]]=await db.query('SELECT run_id FROM prediction_publications WHERE id=1');return {publication:p?.run_id?{run_id:p.run_id}:null};}
- return {reports,recorded,confirm,start,list,review,prepareProbability,publish,options,forecast,outcomes,publicationStatus};
+ return {reports,recorded,confirm,start,list,review,prepareProbability,publish,options,forecast,outcomes,publicationStatus,overview,publicationVersions,compareIssued};
 }
 module.exports={migrateMonthlyPredictions,createMonthlyPredictions,probeWorker};

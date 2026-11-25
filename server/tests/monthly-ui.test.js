@@ -4,6 +4,9 @@ class Element{
  constructor(tag='div'){Object.assign(this,{tagName:tag,children:[],parentElement:null,attributes:{},listeners:{},value:'',_text:'',disabled:false,hidden:false,open:false,clientWidth:700,dataset:{},classList:{contains:()=>false,toggle(){},add(){},remove(){}}});}
  set textContent(v){this._text=String(v);this.children=[];} get textContent(){return this._text+this.children.map(e=>e.textContent).join('');}
  append(...elements){for(const e of elements){if(e.parentElement)e.parentElement.children=e.parentElement.children.filter(c=>c!==e);e.parentElement=this;this.children.push(e);}}
+ createTHead(){const head=new Element('thead');this.append(head);return head;}
+ createTBody(){const body=new Element('tbody');this.append(body);return body;}
+ insertRow(){const row=new Element('tr');this.append(row);return row;}
  before(e){const p=this.parentElement;p.children.splice(p.children.indexOf(this),0,e);e.parentElement=p;}
  after(e){const p=this.parentElement;p.children.splice(p.children.indexOf(this)+1,0,e);e.parentElement=p;}
  replaceChildren(...e){this.children=[];this.append(...e);this._text='';} setAttribute(k,v){this.attributes[k]=String(v);} addEventListener(k,f){(this.listeners[k]??=[]).push(f);}
@@ -11,7 +14,7 @@ class Element{
 }
 const settle=async()=>{await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));};
 function app(handler, role='mho', includeProbability=false){
- const html=fs.readFileSync(path.join(root,role+'.html'),'utf8'),els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));if(role==='admin')els['monthly-history-source'].value='operational';else if(els['prediction-source'])els['prediction-source'].value='demonstration';else els['view-predictive'].dataset.assignedBarangay='true';if(role!=='admin'){els['sarima-window'].value='24';els['sarima-score-info'].append(new Element('summary'));}
+ const html=role==='admin'?fs.readFileSync(path.join(root,role+'.html'),'utf8'):require('./helpers/legacy-forecast-markup')(role),els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));if(role==='admin')els['monthly-history-source'].value='operational';else if(els['prediction-source'])els['prediction-source'].value='demonstration';else els['view-predictive'].dataset.assignedBarangay='true';if(role!=='admin'){els['sarima-window'].value='24';els['sarima-score-info'].append(new Element('summary'));}
  if(includeProbability){
   const dash=els['sarima-dashboard'],history=new Element('aside'),summary=els['sarima-summary'];
   history.append(new Element('h2'),new Element('svg'));dash.append(history,summary);
@@ -45,7 +48,7 @@ test('an explicit source choice wins over delayed startup status; a source failu
 });
 test('Admin opening training is read-only and publishing requires approval',async()=>{
  const state={publication:null,runs:[{id:'fixture-version',cutoff:'2026-09',status:'ready'}],minimum_months:45,python_configured:true,worker_platform:'Windows bounded worker'};
- const review={run:{status:'ready'},overall:{'80_20':{'1':{within_tolerance_hits:7,available:9,attempted:9,MAE:1,RMSE:2,MAPE_positive_pct:3,within_tolerance_pct:100*7/9}},'70_30':{'1':{within_tolerance_hits:9,available:14,attempted:14}}},context:{main_target:'2026-10'},available:1,current_data_matches:true,scopes:[]};
+ const review={run:{status:'ready'},overall:{'80_20':{'1':{within_tolerance_hits:7,available:9,attempted:9,MAE:1,RMSE:2,MAPE_positive_pct:3,within_tolerance_pct:100*7/9}},'70_30':{'1':{within_tolerance_hits:9,available:14,attempted:14}}},context:{main_target:'2026-10',cutoff:'2026-09'},available:1,current_data_matches:true,scopes:[]};
  const a=trainingApp(async(url,opts)=>(url.endsWith('/status')||url.endsWith('/publication'))?ok(state):url.includes('/runs/')?ok(review):url.endsWith('/publish')?(state.publication={run_id:'fixture-version'},ok(state.publication)):ok(options));await settle();assert.equal(a.calls.length,0);await a.context.window.HealthIntelMonthlyUpdates.setActive(true);assert.equal(a.calls.filter(c=>c.options?.method==='POST').length,0);
  await a.els['monthly-runs'].children[0].children[1].fire('click');let approve=false;a.context.window.confirm=()=>approve;const publish=a.els['monthly-review'].children.find(e=>e.textContent==='Review and publish this version');await publish.fire('click');assert.equal(a.calls.filter(c=>c.url.endsWith('/publish')).length,0);approve=true;await publish.fire('click');assert.equal(a.calls.filter(c=>c.url.endsWith('/publish')).length,1);assert.match(a.els['monthly-message'].textContent,/published/);
 });
@@ -179,10 +182,10 @@ test('monthly dates show the inclusive 45-month range and the next forecast mont
  await a.els['monthly-use-range'].fire('click');
  assert.equal(start.value,'2022-02');
  assert.match(a.els['monthly-range-help'].textContent,/45 months selected/);
- assert.equal(a.els['monthly-forecast-month'].textContent,'November 2025');
+ assert.equal(a.els['monthly-forecast-month'].textContent,'November 2025 – January 2026');
  cutoff.value='2025-11';await cutoff.fire('input');
  assert.match(a.els['monthly-range-help'].textContent,/46 months selected.*March 2022/);
- assert.equal(a.els['monthly-forecast-month'].textContent,'December 2025');
+ assert.equal(a.els['monthly-forecast-month'].textContent,'December 2025 – February 2026');
 });
 
 test('disease review reloads an open monthly report without stale classifications',async()=>{
@@ -288,7 +291,7 @@ test('dataset mode shows the saved start, limits report months and submits the m
  const cutoff=a.els['monthly-cutoff'];
  if(cutoff.max>='2026-10'){
   cutoff.value='2026-10';await cutoff.fire('input');
-  assert.equal(a.els['monthly-forecast-month'].textContent,'November 2026');
+  assert.equal(a.els['monthly-forecast-month'].textContent,'November 2026 – January 2027');
   await a.els['monthly-create'].fire('click');
   assert.deepEqual(JSON.parse(a.calls.find(call=>call.options?.method==='POST').options.body),{start:'2023-01',cutoff:'2026-10',mode:'dataset_plus_reports'});
  }

@@ -17,7 +17,7 @@ class Element {
 }
 const settle=async()=>{await new Promise(resolve=>setImmediate(resolve));await new Promise(resolve=>setImmediate(resolve));};
 function app({width=700,fetcher,role='mho'}={}){
- const html=fs.readFileSync(path.join(root,role+'.html'),'utf8'),els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
+ const html=require('./helpers/legacy-forecast-markup')(role),els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
  if(role==='bhw')els['view-predictive'].dataset.assignedBarangay='true';
  els['sarima-window'].value='24';els['sarima-chart'].clientWidth=width;
  els['sarima-score-info'].append(new Element('summary'));

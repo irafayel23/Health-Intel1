@@ -5,6 +5,7 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { execFile } = require('node:child_process');
 const D = require('./monthly-data');
+const H = require('./forecast-horizons');
 const { validateRow } = require('./conditional-pooled-cmp');
 
 const POLICY = 'conditional-pooled-CMP';
@@ -22,15 +23,20 @@ function unavailable(reason) {
 }
 
 // validateOutput has checked each date, actual, training prefix, and accepted SARIMA fit.
-function earlierPairs({ output, result }) {
-    return output.scopes.map(scope => ({
+function earlierPairs({ input, output, result }) {
+    const extended = input?.forecast_format === H.FORMAT;
+    return output.scopes.flatMap(scope => (extended ? H.HORIZONS : [1]).map(horizon => ({
         disease: scope.disease,
         barangay: scope.barangay,
-        mean: result.views[scope.disease + '\0' + scope.barangay].production['1'].prediction,
-        prior_pairs: scope.outputs.filter(o => o.n < scope.history.length && o.sarima.usable)
-            .map(o => ({ mu: o.sarima.prediction, y: o.actual, j: o.n, barangay: scope.barangay })),
-    }));
+        ...(extended ? { horizon, target: H.shift(input.cutoff, horizon) } : {}),
+        mean: result.views[H.keyFor(scope.disease, scope.barangay)].production[horizon].prediction,
+        prior_pairs: scope.outputs.filter(o => o.n + horizon - 1 < scope.history.length)
+            .map(o => ({ step: H.step(o.sarima, horizon), o }))
+            .filter(({ step }) => step)
+            .map(({ step, o }) => ({ mu: step.prediction, y: scope.history[o.n + horizon - 1], j: o.n, barangay: scope.barangay })),
+    })));
 }
+
 
 function binding(run, verified) {
     const { input, output } = verified;
@@ -38,22 +44,27 @@ function binding(run, verified) {
         mode: MODE, sarima_version: run, dataset_sha256: D.hash(input), sarima_output_sha256: D.hash(output),
         sarima_policy_sha256: input.policy_sha256, cmp_policy: POLICY, cmp_policy_sha256: POLICY_HASH,
         cmp_source_sha256: MATH_HASH, cutoff: input.cutoff, target: input.target,
+        ...(input.forecast_format === H.FORMAT ? { horizons: H.HORIZONS } : {}),
     };
 }
 
 function validatePacket(packet, run, verified) {
     const expected = binding(run, verified);
-    if (packet.schema !== 1 || D.hash(packet.binding) !== D.hash(expected) ||
+    const extended = !!expected.horizons;
+    if (packet.schema !== (extended ? 2 : 1) || D.hash(packet.binding) !== D.hash(expected) ||
         packet.review?.genuine_history_reviewed !== true || packet.review.outcomes_unknown !== true || !packet.review.reviewed_by ||
         !Number.isFinite(Date.parse(packet.review.reviewed_at)) ||
         D.currentMonth(new Date(packet.review.reviewed_at)) !== expected.target ||
-        !Array.isArray(packet.rows) || packet.rows.length !== Object.keys(verified.result.views).length) {
+        !Array.isArray(packet.rows) || packet.rows.length !== Object.keys(verified.result.views).length * (extended ? 4 : 1)) {
         throw Error('Operational probability binding is invalid');
     }
     const seen = new Set();
     for (const row of packet.rows) {
-        const key = row.disease + '\0' + row.barangay;
-        const forecast = verified.result.views[key]?.production['1'];
+        const horizon = extended ? row.horizon : 1;
+        const scope = H.keyFor(row.disease, row.barangay);
+        const key = scope + '\0' + horizon;
+        if (extended && (!H.HORIZONS.includes(horizon) || row.target !== H.shift(expected.cutoff, horizon))) throw Error('Invalid probability target');
+        const forecast = verified.result.views[scope]?.production[horizon];
         if (!forecast || seen.has(key) || row.mean !== forecast.prediction ||
             (forecast.actual_model !== 'SARIMA' && row.reason !== 'SARIMA_unavailable')) {
             throw Error('Operational probability scope or mean is invalid');
@@ -89,7 +100,7 @@ async function calculate(python, scopes) {
 }
 
 function summary(packet) {
-    return packet ? { status: 'prepared', available: packet.rows.filter(row => !row.reason).length, sha256: D.hash(packet) } : { status: 'unavailable' };
+    return packet ? { status: 'prepared', available: packet.rows.filter(row => !row.reason).length, sha256: D.hash(packet), ...(packet.schema === 2 ? { by_horizon: Object.fromEntries(H.HORIZONS.map(h => [h, packet.rows.filter(row => row.horizon === h && !row.reason).length])) } : {}) } : { status: 'unavailable' };
 }
 
 async function publishedDigest(db, run) {

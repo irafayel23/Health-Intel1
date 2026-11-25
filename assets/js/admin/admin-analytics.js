@@ -73,14 +73,16 @@
     }
     function renderDatasets(data) {
         const d = data.bundled;
-        $('dataset-summary').replaceChildren(...[['Coverage', monthSpan(d.first, d.last)], ['Case count', fmt(d.cases)], ['Dataset rows', fmt(d.rows)]].map(([label,value]) => {
+        const history = data.historicalCoverage ?? d;
+        $('dataset-summary').replaceChildren(...[['Historical coverage', monthSpan(history.first, history.last)], ['Latest observed', readableMonth(history.last)], ['Cases / records', fmt(history.cases)+' / '+fmt(history.rows)], ['Forecast coverage', data.diseases.length+' diseases · '+data.barangays.length+' barangays']].map(([label,value]) => {
             const group = node('div'); group.append(node('dt',label),node('dd',value)); return group;
         }));
         const confirmed = d.reportingUnavailable ? 'Confirmation history is unavailable.' :
-            d.latestConfirmed ? 'Latest confirmed entries: ' + readableMonth(d.latestConfirmed, 'long') : 'No confirmed operational reports yet.';
+            d.latestConfirmed ? 'Operational reports · ' + readableMonth(d.latestConfirmed, 'long') + (data.operationalConfirmation ? ' · ' + data.operationalConfirmation.confirmedBarangays + '/7 barangays confirmed' : '') : 'No confirmed operational reports yet.';
         const complete = d.latestComplete ? 'Latest fully confirmed month: ' + readableMonth(d.latestComplete, 'long') :
             d.latestConfirmed && 'No month has all seven barangays confirmed.';
-        status('coverage', [d.through && 'Checked through ' + readableMonth(d.through, 'long'), confirmed, complete, coverageLine(d), d.sources.join(' · ')].filter(Boolean).join(' · '));
+        const coverage = [confirmed, complete, coverageLine(d), 'Historical export · ' + d.sources.join(' and ') + ' · ' + fmt(d.rows) + ' rows'].filter(Boolean);
+        $('coverage').replaceChildren(...coverage.map(line => node('span', line)));
         rows($('versions'), data.versions.map(v => [v.label, monthSpan(v.first, v.last), fmt(v.cases), v.trainingRange ? v.trainingRange.months + ' complete months' : 'Needs 45 complete months in a row', new Date(v.created_at).toLocaleString('en-PH', {timeZone:'Asia/Manila'})]));
         $('versions-table').hidden = !data.versions.length;
         status('versions-status', data.versions.length ? '' : 'No uploads yet. Preview a CSV and save it to create a version.');

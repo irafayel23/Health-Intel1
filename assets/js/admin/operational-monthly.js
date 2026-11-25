@@ -137,7 +137,7 @@
     }
     const count=start.value?monthIndex(cutoff)-monthIndex(start.value)+1:null;
     const picked=count===null?'':count<1?'The first month must come before the last month. ':count+' months selected. ';
-    message(monthLabel(shiftMonth(cutoff,1)),'monthly-forecast-month');
+    message(monthLabel(shiftMonth(cutoff,1))+' – '+monthLabel(shiftMonth(cutoff,3)),'monthly-forecast-month');
     if(mixed&&!upload)message(cutoff===firstReport?monthLabel(firstReport):monthLabel(firstReport)+' – '+monthLabel(cutoff),'monthly-new-reports');
     message(upload?picked+'Training uses all seven barangays and ten disease categories.':mixed?picked+'Includes '+(monthIndex(cutoff)-monthIndex(firstReport)+1)+' new report month(s). Review the results in Model Training.':
         picked+'A 45-month range ending '+monthLabel(cutoff)+' starts in '+monthLabel(start.max)+'.','monthly-range-help');
@@ -154,7 +154,7 @@
  if(mixed&&!data.dataset_id&&data.current_data_matches)host.append(node('p','text-sm','Review the forecasts by disease and barangay below. This dataset-backed preview stays in Model Training. After the forecast month ends, confirm its reports to prepare the following month’s forecast.'));
  const probability=data.probability;
  if(!mixed)host.append(node('p','text-sm text-slate-800 dark:text-slate-200',probability?.status==='prepared'
-  ? `Experimental probabilities ${data.run.status==='published'?'published':'prepared'} for ${probability.available}/70 selections.`
+  ? `Experimental probabilities ${data.run.status==='published'?'published':'prepared'} for ${probability.available}/${Object.keys(probability.by_horizon||{1:true}).length*70} estimates.`
   : probability?.status==='invalid'?'The experimental probability file could not be verified. Ask the maintainer to check it.'
   : probability?.status==='calculating'?'Calculating experimental probabilities. You can leave this page and return to review the version.'
   : probability?.status==='failed'?'Experimental probability preparation failed. Retry or publish SARIMA alone.'
@@ -169,8 +169,43 @@
    message('');
   }));
  }
- for(const p of ['80_20','70_30']){const m=data.overall[p]['1'];host.append(node('p','text-sm text-slate-800 dark:text-slate-200',`${p==='80_20'?'Primary 80/20':'Separate 70/30'}: ${m.within_tolerance_hits}/${m.available} within proposed limit (${fmt(m.within_tolerance_pct)}%); ${m.available}/${m.attempted} available. MAE ${fmt(m.MAE)}, RMSE ${fmt(m.RMSE)}, positive-only MAPE ${fmt(m.MAPE_positive_pct)}%.`));}
- const wrap=node('div','admin-monthly-results'),table=node('table','w-full text-left text-sm');wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','Results by disease and barangay');const head=node('thead','bg-slate-100 dark:bg-slate-800');const hr=node('tr');for(const text of ['Disease / barangay','Next month','Historical score','MAE / RMSE / MAPE','Configuration / limitation'])hr.append(node('th','p-3',text));head.append(hr);table.append(head);const body=node('tbody');for(const s of data.scopes){const m=s.metrics,row=node('tr','border-b border-slate-200 dark:border-slate-700');for(const t of [s.disease+' / '+s.barangay,fmt(s.prediction),`${m.within_tolerance_hits}/${m.available} (${fmt(m.within_tolerance_pct)}%) · ${m.unavailable} missing`,`${fmt(m.MAE)} / ${fmt(m.RMSE)} / ${fmt(m.MAPE_positive_pct)}%`,s.configuration+' · '+(s.prediction===null?s.reason:s.annual_supported?'Annual screen supported':'Annual seasonal evidence weak or uncertain')])row.append(node('td','p-3 align-top',t));body.append(row);}table.append(body);wrap.append(table);host.append(wrap);
+ const steps=Object.entries(data.overall['80_20']);
+ const scores=node('div','admin-monthly-results');
+ const scoreTable=node('table','w-full text-left text-sm');
+ const header=scoreTable.createTHead().insertRow();
+ for(const text of ['Horizon','Forecast available','Historical scored','Within tolerance','MAE','RMSE','MAPE','Probabilities']){
+    const th=node('th','p-3',text);th.scope='col';header.append(th);
+ }
+ const body=scoreTable.createTBody();
+ for(const [h,m] of steps){
+    const row=body.insertRow(), available=data.context.availability?.[h] ?? data.available;
+    const probabilityCount=data.probability?.by_horizon?.[h] ?? (h==='1'?data.probability?.available:null);
+    for(const value of [h+' month'+(h==='1'?'':'s')+' ahead',available+'/70',m.available+'/'+m.attempted,
+       fmt(m.within_tolerance_pct)+'%',fmt(m.MAE),fmt(m.RMSE),fmt(m.MAPE_positive_pct)+'%',probabilityCount==null?'Unavailable':probabilityCount+'/70']){
+       row.append(node('td','p-3',value));
+    }
+ }
+ scores.append(scoreTable);
+ host.append(node('p','text-sm','Model version '+run+' · Last observed '+monthLabel(data.context.cutoff)),scores);
+ const targetMonths=Array.from({length:Math.min(3,steps.length)},(_,i)=>monthLabel(shiftMonth(data.context.cutoff,i+1)));
+ host.append(node('p','text-sm','Forecast window · '+targetMonths.join(' · ')));
+ const technical=node('details','mt-4');technical.append(node('summary','cursor-pointer font-semibold','Technical details and scope-level performance'));
+ const wrap=node('div','admin-monthly-results'),table=node('table','w-full text-left text-sm');
+ wrap.tabIndex=0;wrap.setAttribute('role','region');wrap.setAttribute('aria-label','Results by disease and barangay');
+ const hr=table.createTHead().insertRow();
+ for(const text of ['Disease / barangay','First target','Within tolerance','MAE / RMSE / MAPE','Configuration'])hr.append(node('th','p-3',text));
+ const rows=table.createTBody();
+ for(const s of data.scopes){
+    const m=s.metrics,row=rows.insertRow();
+    for(const value of [s.disease+' / '+s.barangay,fmt(s.prediction),m.within_tolerance_hits+'/'+m.available,
+       fmt(m.MAE)+' / '+fmt(m.RMSE)+' / '+fmt(m.MAPE_positive_pct)+'%',s.configuration+' · '+(s.prediction===null?s.reason:s.annual_supported?'Annual screen supported':'Annual evidence weak or uncertain')])row.append(node('td','p-3',value));
+ }
+ wrap.append(table);technical.append(wrap);
+ for(const [h,m] of Object.entries(data.overall['70_30']||{})){
+    technical.append(node('p','text-sm','70/30 · H'+h+' · '+m.available+'/'+m.attempted+' forecasts scored · MAE '+fmt(m.MAE)+' · RMSE '+fmt(m.RMSE)+' · MAPE '+(m.MAPE_positive_pct==null?'Unavailable':fmt(m.MAPE_positive_pct)+'%')));
+ }
+ host.append(technical);
+
  if(!mixed&&data.current_data_matches&&data.available>0&&(data.run.status==='published'||!['invalid','calculating'].includes(probability?.status)))host.append(button(data.run.status==='published'?'Select this published version (rollback)':'Review and publish this version',async()=>{if(!await approval('Publish this operational version?',`${data.context.main_target}: ${data.available}/70 predictions available. Unavailable results stay unavailable. Experimental probability estimates, if prepared, publish with this version. Historical percentages measure past test performance.`))return;await request('/publish',{run_id:run,acknowledged:true,probability_sha256:probability?.sha256||null});message('Operational version published.');await loadStatus();await review(run);},true));
  if(data.run.status==='published')host.append(button('Assess actual outcomes',async()=>{const outcome=await request('/outcomes/'+run);const m=outcome.metrics;message(`${outcome.target} observed outcomes (${outcome.evaluation_type.replaceAll('_',' ')}): ${m.available}/${m.attempted} predictions available; MAE ${fmt(m.MAE)}, RMSE ${fmt(m.RMSE)}, within proposed limit ${m.within_tolerance_hits}/${m.available}.`);}));
  }

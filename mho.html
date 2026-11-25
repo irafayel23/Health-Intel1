@@ -43,6 +43,7 @@
     <link rel="stylesheet" href="assets/css/shared/resident-vital.css">
     <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261120-loading">
   <link rel="stylesheet" href="assets/css/shared/account-settings.css?v=20261107-password-renewal">
+    <link rel="stylesheet" href="assets/css/shared/forecast-board.css?v=20261125-centered-details" />
   </head>
   <body class="hi-portal hi-role-readable hi-clinical-readable h-screen flex overflow-hidden antialiased selection:bg-emerald-500/30 bg-slate-100 dark:bg-neutral-950">
     <a class="hi-skip-link" href="#portal-main">Skip to main content</a>
@@ -305,71 +306,10 @@
         </section>
 
         <div id="view-predictive" class="view-section hidden mx-auto w-full max-w-[1440px] min-w-0 [&_[hidden]]:!hidden">
-          <header class="mb-6 flex flex-wrap items-start justify-between gap-3">
+          <header class="forecast-page-heading">
             <div><h1 class="text-3xl font-bold tracking-tight text-foreground">Predictive Analytics</h1><p class="mt-2 text-sm leading-relaxed text-muted-foreground">Explore estimated monthly disease cases and the history behind them.</p></div>
-            <span id="predictive-validation-status" hidden></span>
           </header>
-
-          <section id="prediction-results-panel" aria-label="Case predictions">
-          <section class="mb-5 rounded-2xl border border-slate-200 bg-white p-4 text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-white sm:p-5" id="prediction-source-panel" aria-label="Prediction data source" hidden>
-            <label for="prediction-source" class="block text-sm font-semibold mb-2">Prediction history</label>
-            <select id="prediction-source" class="w-full sm:max-w-md rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-950 dark:border-slate-600 dark:bg-slate-800 dark:text-white"><option value="demonstration">Saved demonstration predictions</option><option value="operational">Published operational predictions</option></select>
-            <p class="mt-2 text-sm text-slate-700 dark:text-slate-200">Choose which saved predictions to display.</p>
-          </section>
-
-
-          <section class="mb-5 rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5" aria-label="Prediction selection">
-            <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto]">
-              <div class="min-w-0"><label for="predictive-disease-select" class="mb-2 block text-xs font-semibold text-muted-foreground">Disease</label><select id="predictive-disease-select" class="min-h-12 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-blue-500" disabled><option>Loading diseases…</option></select></div>
-              <div class="min-w-0"><label for="predictive-brgy-select" class="mb-2 block text-xs font-semibold text-muted-foreground">Barangay</label><select id="predictive-brgy-select" class="min-h-12 w-full min-w-0 rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-blue-500" disabled><option>Loading barangays…</option></select></div>
-              <button id="run-forecast-button" type="button" onclick="runPredictiveModel()" class="min-h-12 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:cursor-wait disabled:opacity-50 sm:col-span-2 xl:col-span-1" disabled>View prediction</button>
-            </div>
-          </section>
-          <p id="sarima-state" class="mb-4 text-xs leading-relaxed text-muted-foreground" role="status">Select a disease and barangay, then select Predict.</p>
-
-          <div id="sarima-dashboard" class="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.85fr)_minmax(320px,1fr)]" aria-busy="false">
-            <section class="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-6" aria-labelledby="sarima-chart-title">
-              <div class="flex flex-wrap items-start justify-between gap-3"><div class="min-w-0"><h2 id="sarima-chart-title" class="text-lg font-bold text-foreground">Cases and prediction</h2><p id="sarima-chart-subtitle" class="mt-1 text-xs leading-relaxed text-muted-foreground">Recorded history and saved SARIMA estimates</p></div><label for="sarima-window" class="sr-only">Chart history</label><select id="sarima-window" class="min-h-10 rounded-lg border border-border bg-background px-2 text-xs text-foreground"><option value="24">Last 24 months</option><option value="45">Full history</option></select></div>
-              <div class="mb-1 mt-5 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted-foreground"><span class="flex items-center gap-2"><i class="h-0.5 w-5 rounded bg-blue-500" aria-hidden="true"></i>Recorded cases</span><span class="flex items-center gap-2"><i class="h-0.5 w-5 rounded bg-violet-500" aria-hidden="true"></i>Past predictions</span><span class="flex items-center gap-2"><i class="w-5 border-t-2 border-dashed border-teal-600" aria-hidden="true"></i>Prediction</span></div>
-              <canvas id="predictionChart" hidden aria-hidden="true"></canvas>
-              <div id="sarima-chart" class="min-h-[330px] w-full min-w-0 sm:min-h-[420px]" role="region" aria-label="Interactive disease case prediction"><div class="grid min-h-[330px] place-content-center px-5 text-center sm:min-h-[420px]"><svg class="mx-auto mb-3 h-9 w-9 text-blue-300 dark:text-blue-700" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M5 5v22h22M8 22l7-8 5 4 7-11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><p class="text-sm font-medium text-foreground">Your prediction will appear here</p><p class="mt-1 text-xs text-muted-foreground">Choose a disease and barangay, then select Predict.</p></div></div>
-              <div class="mt-2 flex items-center gap-2 rounded-xl bg-slate-50 p-2 dark:bg-slate-800/70"><button id="sarima-previous-point" type="button" class="grid h-9 w-9 shrink-0 place-content-center rounded-lg border border-border bg-card text-foreground disabled:opacity-30" aria-label="Inspect previous month" disabled>‹</button><p id="sarima-chart-readout" class="min-w-0 flex-1 text-xs leading-relaxed text-muted-foreground" aria-live="polite">Point to a month or use the arrows to inspect its values.</p><button id="sarima-next-point" type="button" class="grid h-9 w-9 shrink-0 place-content-center rounded-lg border border-border bg-card text-foreground disabled:opacity-30" aria-label="Inspect next month" disabled>›</button></div>
-              <p id="sarima-chart-note" class="mt-3 text-[11px] leading-relaxed text-muted-foreground">The shaded area separates the prediction from recorded history. Available ranges show model uncertainty.</p>
-            </section>
-
-            <aside class="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6" aria-label="Historical prediction performance">
-              <div class="flex items-start justify-between gap-3"><div><h2 class="text-base font-bold text-foreground">Historical prediction accuracy</h2><p id="sarima-scope" class="mt-1 text-xs leading-relaxed text-muted-foreground">Results for your selection</p></div><details id="sarima-score-info" class="relative shrink-0"><summary class="grid h-8 w-8 cursor-pointer list-none place-content-center rounded-full border border-border text-xs font-bold text-muted-foreground marker:hidden" aria-label="How historical accuracy is calculated">i</summary><div class="absolute right-0 top-10 z-30 w-72 max-w-[calc(100vw-6rem)] rounded-xl border border-border bg-card p-4 text-xs leading-relaxed text-foreground shadow-xl" role="note"><p class="font-semibold">Past predictions within the proposed error limit</p><p id="sarima-score-formula" class="mt-2">Select Predict to see the calculation for this selection.</p><p class="mt-2">A prediction passes if its absolute error is at most 20% of actual cases or one case, whichever is larger. This proposed rule requires panel acceptance.</p><p class="mt-2">Tests use earlier months to predict later months. This percentage is not the probability of future cases.</p></div></details></div>
-              <svg viewBox="0 0 200 200" class="mx-auto my-3 h-44 w-44 sm:h-48 sm:w-48" role="img" aria-label="Selected historical predictions within the proposed error limit"><circle cx="100" cy="100" r="78" fill="none" stroke="#e8eef4" stroke-width="12"/><circle id="sarima-score-ring" cx="100" cy="100" r="78" fill="none" stroke="#0dbd9b" stroke-width="12" stroke-linecap="round" transform="rotate(-90 100 100)" stroke-dasharray="0 491"/><text id="sarima-score" x="100" y="100" text-anchor="middle" fill="currentColor" class="text-foreground" font-size="30" font-weight="750">—</text><text x="100" y="121" text-anchor="middle" fill="#64748b" font-size="11">within error limit</text></svg>
-              <p id="sarima-score-count" class="text-center text-sm font-semibold leading-relaxed text-foreground">Select Predict to see past performance.</p><p id="sarima-score-note" class="mt-2 text-center text-xs leading-relaxed text-muted-foreground"></p>
-              <p class="mt-4 rounded-xl bg-teal-50 px-3 py-2 text-center text-[11px] leading-relaxed text-teal-900 dark:bg-teal-950/40 dark:text-teal-200">Historical test performance, not a guarantee of future cases.</p>
-              <div class="mt-5 border-t border-border pt-5"><div class="flex items-baseline justify-between gap-2"><h3 class="text-xs font-semibold text-foreground">Prediction errors</h3><span class="text-[10px] text-muted-foreground">Lower is better</span></div><div class="mt-4 grid grid-cols-3 divide-x divide-border"><div class="pr-2"><abbr class="text-[11px] font-semibold text-muted-foreground no-underline" title="Mean Absolute Error: average absolute error in cases." tabindex="0">MAE</abbr><p id="sarima-mae" class="mt-2 break-words text-xl font-bold tabular-nums text-foreground">—</p><p class="mt-1 text-[10px] text-muted-foreground">Average case error</p></div><div class="px-2"><abbr class="text-[11px] font-semibold text-muted-foreground no-underline" title="Root Mean Squared Error: gives larger mistakes more weight." tabindex="0">RMSE</abbr><p id="sarima-rmse" class="mt-2 break-words text-xl font-bold tabular-nums text-foreground">—</p><p class="mt-1 text-[10px] text-muted-foreground">Weighted case error</p></div><div class="pl-2"><abbr class="text-[11px] font-semibold text-muted-foreground no-underline" title="Mean Absolute Percentage Error for positive actual counts. Zero counts are excluded; not the accuracy percentage." tabindex="0">MAPE</abbr><p id="sarima-mape" class="mt-2 break-words text-xl font-bold tabular-nums text-foreground">—</p><p class="mt-1 text-[10px] text-muted-foreground">Percentage error</p></div></div><p id="sarima-mape-denominator" class="mt-3 text-[10px] text-muted-foreground"></p></div>
-            </aside>
-          </div>
-
-          <section id="sarima-fallback" class="mt-5 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6" aria-labelledby="sarima-fallback-title" hidden>
-            <h2 id="sarima-fallback-title" class="text-base font-bold text-foreground">Seasonal fallback estimates</h2>
-            <p id="sarima-fallback-coverage" class="mt-1 text-xs leading-relaxed text-muted-foreground"></p>
-            <ul id="sarima-fallback-rows" class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2"></ul>
-          </section>
-
-          <section id="sarima-summary" class="mt-5 rounded-2xl border border-border bg-card shadow-sm" aria-labelledby="sarima-summary-title">
-            <header class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4 sm:px-6"><div class="flex items-center gap-3"><span class="grid h-10 w-10 shrink-0 place-content-center rounded-xl bg-teal-100 text-teal-900 dark:bg-teal-950 dark:text-teal-100" aria-hidden="true"><i data-lucide="calendar-range" class="h-5 w-5"></i></span><div><h2 id="sarima-summary-title" class="text-lg font-bold text-foreground">Prediction Summary</h2><p class="mt-0.5 text-xs text-muted-foreground">Your selected month, estimated cases and change</p></div></div><span class="rounded-full border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-900 dark:border-teal-800 dark:bg-teal-950 dark:text-teal-100" id="sarima-method">Prediction method</span></header>
-            <div class="p-5 sm:p-6">
-              <div id="forecast-months" class="mb-5 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)]" hidden>
-                <div class="min-w-0 rounded-2xl border border-teal-200 bg-teal-100/70 p-5 dark:border-teal-800 dark:bg-teal-950/70"><div class="flex items-start justify-between gap-3"><h3 id="mho-estimate-model" class="mb-2 text-sm font-bold text-teal-950 dark:text-teal-100">SARIMA case estimate</h3><details id="sarima-estimate-info" class="relative shrink-0" hidden><summary class="grid h-8 w-8 cursor-pointer list-none place-content-center rounded-full border border-border bg-card text-xs font-bold text-foreground marker:hidden" aria-label="Show the SARIMA forecast calculation" title="Show the SARIMA forecast calculation">i</summary><div class="absolute right-0 top-10 z-30 w-72 max-w-[calc(100vw-6rem)] rounded-xl border border-border bg-card p-4 text-xs leading-relaxed text-foreground shadow-xl" role="note"><p class="font-semibold">How SARIMA gets this estimate</p><p id="sarima-estimate-info-scope" class="mt-2 font-medium"></p><div id="sarima-estimate-info-content" class="mt-2 space-y-2"></div></div></details></div><p id="sarima-main-month" class="text-xs font-semibold text-teal-950 dark:text-teal-100">Prediction month</p><div class="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1"><strong id="sarima-main-estimate" class="break-words text-5xl font-bold tracking-tight tabular-nums text-foreground">—</strong><span class="text-sm text-teal-950 dark:text-teal-100">estimated cases</span></div><p id="mho-estimate-unrounded" class="mt-2 text-xs text-teal-950 dark:text-teal-100"></p><p id="sarima-main-range" class="mt-4 rounded-lg bg-white/70 px-3 py-2 text-xs font-medium text-teal-950 dark:bg-slate-900/60 dark:text-teal-100"></p><p id="sarima-main-note" class="mt-3 text-xs leading-relaxed text-teal-950 dark:text-teal-100"></p></div>
-                <dl class="grid min-w-0 grid-cols-1 content-start gap-4 sm:grid-cols-2"><div class="rounded-xl border border-border px-4 py-3 sm:col-span-2"><dt class="text-xs text-muted-foreground">Disease and barangay</dt><dd id="sarima-summary-scope" class="mt-1 text-sm font-semibold leading-relaxed text-foreground"></dd></div><div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-900"><dt id="sarima-previous-month" class="text-xs text-muted-foreground">Previous recorded month</dt><dd id="sarima-previous-cases" class="mt-2 text-sm font-semibold text-foreground"></dd></div><div class="rounded-xl bg-slate-50 p-4 dark:bg-slate-900"><dt id="sarima-trend" class="text-xs text-muted-foreground">Projected change</dt><dd id="sarima-change" class="mt-2 text-sm font-semibold leading-relaxed text-foreground"></dd></div></dl>
-              </div>
-              <p id="predictive-insight-text" class="text-sm leading-relaxed text-foreground" aria-live="polite">Select a disease and barangay to view a demonstration prediction.</p><p id="sarima-history-summary" class="mt-2 text-xs leading-relaxed text-muted-foreground"></p>
-              <div class="mt-4 rounded-xl border border-border bg-slate-50 px-4 py-3 dark:bg-slate-900"><p class="text-xs font-semibold text-foreground">About the estimate</p><p id="sarima-evaluation-summary" class="mt-1 text-xs leading-relaxed text-muted-foreground"></p><p id="sarima-seasonality-note" class="mt-2 text-xs leading-relaxed text-muted-foreground" hidden></p></div>
-              <div id="sarima-missing" class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100" hidden><p id="sarima-missing-note"></p><details class="mt-2"><summary class="cursor-pointer font-semibold">Affected disease and barangay</summary><ul id="sarima-missing-list" class="mt-2 space-y-1"></ul></details></div>
-            </div>
-          </section>
-          <section class="mt-5 overflow-hidden rounded-2xl border border-border bg-card shadow-sm" aria-labelledby="sarima-recommendations-title"><header class="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4 sm:px-6"><div class="flex items-start gap-3"><span class="grid h-10 w-10 shrink-0 place-content-center rounded-xl bg-teal-100 text-teal-900 dark:bg-teal-950 dark:text-teal-100" aria-hidden="true"><i data-lucide="clipboard-check" class="h-5 w-5"></i></span><div><h2 id="sarima-recommendations-title" class="text-lg font-bold text-foreground">Automated Recommendations</h2><p class="mt-1 text-xs leading-relaxed text-muted-foreground">Based on World Health Organization guidance</p></div></div><span class="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-100">For MHO approval</span></header><div class="p-5 sm:p-6"><p id="forecast-recommendation-status" class="text-sm text-muted-foreground" aria-live="polite">Select Predict to see suggested actions.</p><ul id="forecast-recommendations" class="grid grid-cols-1 gap-4 lg:grid-cols-2" hidden></ul></div></section>
-          <p id="sarima-provenance" class="mt-4 rounded-xl border border-border bg-slate-50 px-4 py-3 text-xs leading-relaxed text-muted-foreground dark:bg-slate-900">Data source: ITR-derived records combined with generated monthly counts · History through September 2026.</p>
-
-          <!-- Compatibility hooks retained; multiple horizons and research diagnostics are not shown. -->
-          <div hidden><select id="sarima-protocol"><option value="80_20">80/20</option></select><select id="sarima-evaluation-horizon"><option value="1">1</option></select><p id="sarima-other-month"></p><p id="sarima-other-estimate"></p><p id="sarima-other-range"></p><p id="sarima-other-note"></p><p id="sarima-availability"></p><p id="sarima-availability-count"></p><p id="sarima-overall-score"></p><p id="sarima-overall-note"></p><ul id="sarima-configurations"></ul><section id="sarima-calculations" hidden><p id="sarima-evaluation-label"></p><ol id="sarima-calculation-steps"></ol><table><tbody id="sarima-evaluation-rows"></tbody></table></section></div>
-          </section>
+          <section class="forecast-board" data-forecast-board="mho" aria-label="Monthly disease predictions"></section>
         </div>
 
         <div id="view-reports" class="view-section hidden">
@@ -555,7 +495,6 @@
 
     <script src="assets/js/shared/app.js"></script>
     <script src="assets/js/shared/lazy-heatmap.js?v=20261123-map-header"></script>
-    <script src="assets/js/mho/mho-action-guidance.js?v=20261111-who"></script>
     <script src="assets/js/mho/mho-insights.js?v=20261118-month-any-year"></script>
     <script src="assets/js/mho/mho-walkins.js?v=20261117-archive-icon"></script>
     <div id="mho-cursor-tooltip" aria-hidden="true"></div>
@@ -567,9 +506,6 @@
       lucide.createIcons();
     </script>
     <script src="assets/js/mho/mho-shell.js?v=20261111-pager"></script>
-    <script src="assets/js/mho/sarima-presentation.js?v=20261120-seasonal-formula"></script>
-    <script src="assets/js/mho/cmp-presentation.js?v=20261119-probability"></script>
-    <script src="assets/js/mho/mho-forecast.js?v=20261124-view-only"></script>
     <script src="assets/js/mho/municipal-dataset.js?v=20261118-chart-month"></script>
     <script src="assets/js/mho/mho-analytics.js?v=20261118-month-any-year"></script>
     <script src="assets/js/mho/mho-daily-bhw.js?v=20261120-activity-summary"></script>
@@ -580,6 +516,8 @@
     <script src="assets/js/shared/portal-navigation.js?v=20261120-loading"></script>
     <script src="assets/js/shared/portal-history.js?v=20261108-history"></script>
     <script src="assets/js/shared/dataset-analytics.js?v=20261113-dataset"></script>
+    <script src="assets/js/mho/mho-action-guidance.js?v=20261125-details"></script>
+    <script src="assets/js/shared/forecast-board.js?v=20261125-centered-details"></script>
   </body>
 </html>
 

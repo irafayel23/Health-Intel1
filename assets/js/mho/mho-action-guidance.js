@@ -102,14 +102,13 @@
         ]
     };
 
-    function prediction(view, predicted, previous) {
+    function prediction(view, predicted, previous, target = view.production?.['1']?.target) {
         if (!Number.isFinite(predicted) || predicted < 0) return [];
         const selection = actions[view.disease];
         if (!Array.isArray(selection)) return [];
 
         const [title, owner, action, source] = selection;
         const place = view.barangay === 'ALL' ? 'the selected barangays' : view.barangay;
-        const target = view.production?.['1']?.target;
         const month = /^\d{4}-(0[1-9]|1[0-2])$/.test(target || '')
             ? new Date(target + '-01T12:00:00Z').toLocaleDateString('en-PH', {
                 month: 'long', year: 'numeric', timeZone: 'UTC'

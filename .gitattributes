@@ -1,2 +1,3 @@
 server/data/seasonal-sarima-6200/** -text
 server/forecasting/policy-a/** -text
+server/forecasting/policy-a-portable/* text eol=lf

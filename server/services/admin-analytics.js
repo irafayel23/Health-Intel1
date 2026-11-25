@@ -185,12 +185,15 @@ function createAdminAnalytics(db, operational, { directory = storage, now = () =
             return { ...descriptor, trainingRange: trainingRange(descriptor) };
         }));
         const summary = coverage(rows, '2023-01', previous);
+        const historicalCoverage = coverage(loadDataset());
         const confirmed = rows.filter(row => row.Source === 'Confirmed operational reports');
         const latestConfirmed = confirmed.at(-1)?.Date ?? null;
         const complete = coverage(confirmed);
         const latestComplete = latestConfirmed ? dateRange(complete.first, complete.last).findLast(period =>
             !complete.gaps.includes(period) && !complete.partial.includes(period)) ?? null : null;
         return {
+            historicalCoverage,
+            operationalConfirmation: { latest: latestConfirmed, complete: latestComplete, confirmedBarangays: new Set(confirmed.filter(row => row.Date === latestConfirmed).map(row => row.Barangay)).size },
             bundled: { id: 'historical', label: 'Historical case counts', ...summary, latestConfirmed, latestComplete, reportingUnavailable },
             versions: summaries.sort((a, b) => b.created_at.localeCompare(a.created_at)),
             diseases: DISEASES, barangays: BARANGAYS, current: latest()

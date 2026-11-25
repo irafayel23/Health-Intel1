@@ -1,7 +1,7 @@
 // BHW navigation, context startup and cross-feature refresh events.
 // Classic script: load through bhw.html; cross-feature functions share its page scope.
 
-      lucide.createIcons();
+      window.lucide?.createIcons();
 
       // 1. SIDEBAR TAB SWITCHING
       const navButtons = document.querySelectorAll(".nav-menu .nav-item");

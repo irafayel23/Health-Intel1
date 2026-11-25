@@ -28,3 +28,23 @@ test('frozen calculator distinguishes zero, unavailable SARIMA, and sparse or im
     assert.ok(rows.slice(21).every(row => row.reason === 'zero_mean_positive_training_outcome'));
     assert.ok(rows.filter(row => row.reason).every(row => row.probabilities === undefined));
 });
+
+test('the native calculator keeps horizon-specific means, fits, and scarce evidence separate', async () => {
+    const python = process.env.HEALTH_INTEL_QA_CMP_PYTHON;
+    assert.ok(python);
+    const scopes = [1,2,3,4].flatMap(horizon => Array.from({length:7},(_,index)=>{
+        const barangay = 'QA-' + index;
+        const outcomes = horizon === 4 ? [0,1,2] : horizon === 1 ? [0,1,2,3,4] : [1,2,2,2,3];
+        return {disease:'QA',barangay,horizon,target:'2026-'+String(horizon).padStart(2,'0'),mean:horizon+1,
+            prior_pairs:outcomes.map((y,j)=>({mu:2,y,j:30+j,barangay}))};
+    }));
+    const rows=await calculate(python, scopes);
+    assert.equal(rows.length,28);
+    for (const [i,row] of rows.entries()) {
+        const {horizon,target,mean}=scopes[i];
+        assert.deepEqual([row.horizon,row.target,row.mean],[horizon,target,mean]);
+        if(horizon===4) assert.equal(row.reason,'insufficient_prior_prediction_pairs');
+        else require('../services/conditional-pooled-cmp').validateRow(row);
+    }
+    assert.notEqual(rows[0].nu,rows[7].nu);
+});

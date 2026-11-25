@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261115-comparison" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261124-admin-fullscreen" />
-    <link rel="stylesheet" href="assets/css/admin/admin-analytics.css?v=6" />
+    <link rel="stylesheet" href="assets/css/admin/admin-analytics.css?v=20261125-multi-month" />
     <link rel="stylesheet" href="assets/css/admin/admin-overview.css?v=1" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -34,6 +34,7 @@
   <link rel="stylesheet" href="assets/css/shared/account-settings.css?v=20261107-password-renewal">
       <script src="assets/js/shared/date-format.js"></script>
     <script defer src="assets/js/shared/daily-submissions.js?v=20261119-view-report"></script>
+    <link rel="stylesheet" href="assets/css/shared/forecast-board.css?v=20261125-centered-details" />
   </head>
   <body class="hi-portal hi-role-readable">
     <a class="hi-skip-link" href="#portal-main">Skip to main content</a>
@@ -338,13 +339,13 @@
             <div class="admin-list-card">
               <header class="admin-list-header">
                 <h1 id="admin-analytics-title">Data &amp; Predictions</h1>
-                <p>Manage monthly datasets, look up predictions, and review model training runs.</p>
+                <p>Manage monthly datasets, train models, and review published forecasts.</p>
               </header>
               <div class="admin-list-body">
                 <div id="aa-tabs" class="sub-tabs admin-list-tabs" role="tablist" aria-label="Data and predictions">
                   <button type="button" id="aa-tab-datasets" class="sub-tab-btn active" role="tab" aria-controls="aa-panel-datasets" aria-selected="true">Datasets</button>
-                  <button type="button" id="aa-tab-predictions" class="sub-tab-btn" role="tab" aria-controls="aa-panel-predictions" aria-selected="false" tabindex="-1">Predictions</button>
                   <button type="button" id="aa-tab-training" class="sub-tab-btn" role="tab" aria-controls="view-admin-training" aria-selected="false" tabindex="-1">Model Training</button>
+                  <button type="button" id="aa-tab-predictions" class="sub-tab-btn" role="tab" aria-controls="aa-panel-predictions" aria-selected="false" tabindex="-1">Published Predictions</button>
                 </div>
                 <div class="admin-analytics aa-workspace">
                   <div id="aa-panel-datasets" class="aa-panels" role="tabpanel" aria-labelledby="aa-tab-datasets" tabindex="0">
@@ -376,7 +377,8 @@
                     </section>
                   </div>
                   <div id="aa-panel-predictions" class="aa-panels" role="tabpanel" aria-labelledby="aa-tab-predictions" tabindex="0" hidden>
-                    <section class="aa-panel" aria-labelledby="aa-published-title">
+                    <section class="forecast-board" data-forecast-board="admin" aria-label="Published and preview predictions"></section>
+                    <section class="aa-panel" aria-labelledby="aa-published-title" hidden>
                       <header class="aa-card-heading"><span class="aa-card-icon" aria-hidden="true"><i data-lucide="search"></i></span><div><h3 id="aa-published-title">Prediction lookup</h3><p>Look up the one-month SARIMA estimate and any available COM-Poisson probabilities.</p></div></header>
                       <form id="aa-published-form" class="aa-filter aa-lookup">
                         <label>Prediction source<select id="aa-published-source"><option value="demo">Saved SARIMA demonstration</option><option value="published">Published operational prediction</option></select></label>
@@ -396,7 +398,7 @@
                     <section id="monthly-updates" class="admin-monthly">
                       <header class="admin-monthly-intro">
                         <div class="admin-monthly-titlebar">
-                          <div><h2>Monthly Updates</h2><p><strong id="monthly-forecast-month" role="status">—</strong> forecast <span id="monthly-target-source">· Operational reports</span></p></div>
+                          <div><h2>Monthly Updates</h2><p><strong id="monthly-forecast-month" role="status">—</strong> <span id="monthly-target-source">· Operational reports</span></p></div>
                           <p id="monthly-publication" class="admin-monthly-badge" role="status">Checking published version…</p>
                         </div>
                         <ol class="admin-monthly-steps" aria-label="Forecast update steps">
@@ -556,17 +558,19 @@
     <div id="admin-row-tooltip" aria-hidden="true">Click to see details</div>
     <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/role-overview.js?v=20261125-admin"></script>
-    <script src="assets/js/admin/admin-shell.js?v=20261125-overview"></script>
-    <script src="assets/js/admin/operational-monthly.js?v=3"></script>
+    <script src="assets/js/admin/admin-shell.js?v=20261125-polish"></script>
+    <script src="assets/js/admin/operational-monthly.js?v=20261125-multi-month"></script>
     <script src="assets/js/shared/map-details.js?v=20261123-map-periods"></script>
     <script src="assets/js/shared/map-fullscreen.js?v=20261124-admin-fullscreen"></script>
-    <script src="assets/js/admin/admin-analytics.js?v=9"></script>
+    <script src="assets/js/admin/admin-analytics.js?v=20261125-multi-month"></script>
     <script src="assets/js/shared/staff-access.js?v=4"></script>
     <script src="assets/js/admin/admin-records.js?v=20261111-page-start"></script>
     <script src="assets/js/admin/admin-registry.js?v=20261107-dialog-actions"></script>
     <script src="assets/js/admin/admin-audit.js?v=20261111-page-start"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261120-loading"></script>
     <script src="assets/js/shared/portal-history.js?v=20261108-history"></script>
+    <script src="assets/js/mho/mho-action-guidance.js?v=20261125-details"></script>
+    <script src="assets/js/shared/forecast-board.js?v=20261125-centered-details"></script>
   </body>
 </html>
 

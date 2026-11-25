@@ -1,7 +1,7 @@
 
       function escapeText(value) { return window.HealthIntelText.escape(value); }
 
-      lucide.createIcons();
+      window.lucide?.createIcons();
       function toggleAdminTheme() {
           HealthIntelTheme.toggle();
       }
@@ -92,5 +92,5 @@
                 labels.forEach(l => l.classList.remove("hidden"));
                 if (icon) icon.setAttribute("data-lucide", "panel-left-close");
             }
-            lucide.createIcons();
+            window.lucide?.createIcons();
         }

@@ -90,11 +90,11 @@ def fit_spec(values,index,variant,diff,ann):
             if not np.isfinite(residual).all() or not diagnostics or any(x['pvalue'] is None or x['pvalue']<P['severe_residual_alpha'] for x in diagnostics):
                 detail['diagnostic_status']='residual_model_problem';raise ValueError('residual_autocorrelation_screen_failed')
             detail['diagnostic_status']='passed_registered_residual_checks'
-            stage='forecast';prediction,bounds=fitted.predict(2,return_conf_int=True,alpha=.05);raw=float(prediction[0]);lo,hi=map(float,bounds[0])
-            if not np.isfinite(np.r_[prediction,np.asarray(bounds).ravel()]).all() or any(float(b[0])>float(b[1]) for b in bounds):raise ValueError('invalid_forecast_or_interval')
+            stage='forecast';prediction,bounds=fitted.predict(4,return_conf_int=True,alpha=.05);raw=float(prediction[0]);lo,hi=map(float,bounds[0])
+            if not np.isfinite(np.r_[prediction[:2],np.asarray(bounds[:2]).ravel()]).all() or any(float(b[0])>float(b[1]) for b in bounds[:2]):raise ValueError('invalid_forecast_or_interval')
             seasonal_params={name:float(v) for name,v in zip(r.param_names,r.params) if '.S.' in name}
             assert seasonal_params,'No estimated seasonal AR/MA parameter'
-            detail['forecast_steps']=[{'horizon':h+1,'raw_prediction':float(prediction[h]),'prediction':max(0.,float(prediction[h])),'lower':max(0.,float(bounds[h][0])),'upper':max(0.,float(bounds[h][1]))} for h in range(2)]
+            detail['forecast_steps']=[{'horizon':h+1,'raw_prediction':float(prediction[h]),'prediction':max(0.,float(prediction[h])),'lower':max(0.,float(bounds[h][0])),'upper':max(0.,float(bounds[h][1]))} if h<2 or (np.isfinite([prediction[h],*bounds[h]]).all() and bounds[h][0]<=prediction[h]<=bounds[h][1]) else None for h in range(4)]
             detail.update(estimated_seasonal_parameters=seasonal_params,raw_prediction=raw,prediction=max(0.,raw),lower=max(0.,lo),upper=max(0.,hi),interval_method='Nominal 95% Gaussian interval clipped at zero; model-selection uncertainty omitted; not accuracy')
         detail['warnings']=[str(w.message) for w in caught]
         return clean(dict(usable=True,actual_model='SARIMA',stage='complete',reason='Registered numerical and residual checks passed',**detail))

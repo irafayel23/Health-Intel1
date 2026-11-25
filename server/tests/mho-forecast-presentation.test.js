@@ -112,7 +112,7 @@ class Element {
 }
 const settle=async()=>{await new Promise(resolve=>setImmediate(resolve));await new Promise(resolve=>setImmediate(resolve));};
 function app({width=700,fetcher}={}){
- const html=fs.readFileSync(path.join(root,'mho.html'),'utf8'),els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
+ const html=require('./helpers/legacy-forecast-markup')('mho'),els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
  els['sarima-window'].value='24';els['sarima-chart'].clientWidth=width;
  els['sarima-score-info'].append(new Element('summary'));
  const docRoot=new Element('html'),document={readyState:'complete',documentElement:docRoot,getElementById:id=>els[id]||null,createElement:tag=>new Element(tag),createElementNS:(_ns,tag)=>new Element(tag),addEventListener(){},querySelector:()=>new Element('button')};

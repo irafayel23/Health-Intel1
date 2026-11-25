@@ -45,7 +45,7 @@ def main():
                 def get(n,c):
                     nonlocal worker,calls
                     if (n,c) in local:return local[n,c]
-                    prefix=values[:n];key=digest([policy_hash,'optimized',c,prefix]);cache=cache_dir/(key+'.json')
+                    prefix=values[:n];key=digest([policy_hash,'optimized','sarima-four-horizons-v1',c,prefix]);cache=cache_dir/(key+'.json')
                     if cache.exists():
                         saved=json.loads(cache.read_text());assert saved['key']==key
                         local[n,c]=saved['result'];return local[n,c]

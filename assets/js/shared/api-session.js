@@ -133,7 +133,7 @@
                 if (pageRole) lockPortal(detail.reason);
                 else if (sessionStorage.getItem(tokenKey) === token) signInAgain();
             }
-            throw new Error(detail.error || `Request failed (${response.status}). Please try again.`);
+            throw Object.assign(new Error(detail.error || `Request failed (${response.status}). Please try again.`), { status: response.status });
         }
         return response;
     };
