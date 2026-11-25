@@ -8,7 +8,6 @@
 
       window.addEventListener('DOMContentLoaded', () => {
         enableAdminRowTooltip();
-        loadUsers();
         fetchPatientRecords();
         loadArchivedPatients();
         loadDiseases();
@@ -17,7 +16,7 @@
 
       function enableAdminRowTooltip() {
         const tooltip = document.getElementById('admin-row-tooltip');
-        const rowSelector = '.admin-personnel-row, .admin-case-row, .admin-disease-row, .admin-audit-row';
+        const rowSelector = '.admin-case-row, .admin-disease-row, .admin-audit-row';
         const hide = () => tooltip.classList.remove('is-visible');
         document.addEventListener('pointermove', event => {
           if (event.pointerType !== 'mouse' || !event.target.closest(rowSelector)) return hide();
@@ -46,7 +45,10 @@
         document.querySelectorAll(".view-section").forEach((view) => view.classList.remove("active"));
         document.getElementById(viewId).classList.add("active");
 
-        if(viewId==='view-overview')window.HealthIntelOverview?.refresh();
+        if(viewId==='view-overview') {
+          document.querySelector('.admin-page-scroll')?.scrollTo(0,0);
+          window.HealthIntelOverview?.refresh();
+        }
         window.HealthIntelAdminAnalytics?.activate(viewId);
 
         // Refresh logs if the audit tab is clicked
@@ -59,7 +61,7 @@
         for (const tab of ['active', 'archived', 'pending']) {
           const button = document.getElementById(`btn-${module}-${tab}`);
           button?.classList.toggle('active', tab === type);
-          if (module === 'iam' || module === 'disease') button?.setAttribute('aria-pressed', String(tab === type));
+          if (module === 'disease') button?.setAttribute('aria-pressed', String(tab === type));
         }
         
         document.getElementById(`${module}-active-view`) && (document.getElementById(`${module}-active-view`).style.display = "none");

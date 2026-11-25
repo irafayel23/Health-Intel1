@@ -320,6 +320,13 @@
         history.replaceState(history.state, '', '#view-admin-analytics');
     });
     window.HealthIntelAdminAnalytics = {
+        openTab(name, period) {
+            const tab = $('tab-' + name);
+            selectAnalyticsTab(tab);
+            const panel = document.getElementById(tab.getAttribute('aria-controls'));
+            if (name === 'training') window.HealthIntelMonthlyUpdates?.openReports(period);
+            panel.focus();
+        },
         activate(view) {
             const analytics = view === 'view-admin-analytics';
             window.HealthIntelMonthlyUpdates?.setActive(analytics && $('tab-training').getAttribute('aria-selected') === 'true');

@@ -11,6 +11,7 @@ function loadAdminScripts(sandbox) {
     vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
     const html = fs.readFileSync(path.join(__dirname,'../../admin.html'),'utf8');
     for(const [,name] of html.matchAll(/<script src="assets\/js\/(admin\/admin-[^"?]+\.js)(?:\?[^" ]*)?"><\/script>/g)) {
+        if(name==='admin/admin-analytics.js')continue; // Dedicated analytics fixtures cover this workspace.
         vm.runInNewContext(script(name),sandbox,{filename:name});
     }
 }
@@ -220,7 +221,7 @@ test('Admin scripts load in HTML order and initialize all feature views with exi
     events.DOMContentLoaded();
     await new Promise(resolve=>setImmediate(resolve));
     assert.deepEqual(errors,[]);
-    for(const endpoint of ['/admin/pending-users','/admin/active-users','/admin/denied-users','/patients','/patients/archived','/diseases','/diseases/archived','/admin/audit-logs']) {
+    for(const endpoint of ['/patients','/patients/archived','/diseases','/diseases/archived','/admin/audit-logs']) {
         assert.ok(requests.includes('http://localhost:3000/api'+endpoint),endpoint);
     }
     const html = fs.readFileSync(path.join(__dirname,'../../admin.html'),'utf8');
@@ -252,6 +253,7 @@ test('resident directory reloads after saved case changes and when its real side
     vm.runInNewContext(script('encoding-controls.js'),sandbox);sandbox.HealthIntelEncoding=sandbox.window.HealthIntelEncoding;
     const bhwHtml = fs.readFileSync(path.join(__dirname,'../../bhw.html'),'utf8');
     for (const [,name] of bhwHtml.matchAll(/<script src="assets\/js\/(bhw\/bhw-(?:records|residents|dashboard|startup)\.js)(?:\?[^"]*)?"><\/script>/g)) {
+        if(name==='admin/admin-analytics.js')continue; // Dedicated analytics fixtures cover this workspace.
         vm.runInNewContext(script(name),sandbox,{filename:name});
     }
     await sandbox.loadResidentDirectory();
@@ -325,19 +327,17 @@ test('PDF loading retries a failed plugin without downloading the core library a
     await sandbox.window.HealthIntelPDF.ensure();assert.equal(tags.length,3);
 });
 
-test('account and registry failures show errors without refreshing or reporting success', async () => {
+test('registry failures show errors without refreshing or reporting success', async () => {
     for (const failure of ['http','network','rejected']) {
         const notices=[];let refreshes=0;
         const sandbox={console,window:{addEventListener(){}},document:{getElementById(){return null;}},lucide:{createIcons(){}},
             fetch:async()=>{if(failure==='network')throw Error('Connection lost');return {ok:failure==='rejected',json:async()=>({success:false,error:'Change rejected'})};},
             Swal:{fire:async (...args)=>{notices.push(args);return {isConfirmed:true};}}};
-        loadAdminScripts(sandbox);sandbox.loadUsers=()=>{refreshes++;};sandbox.loadDiseases=()=>{refreshes++;};
-        await sandbox.denyUser('QA-PENDING');await sandbox.undoDeny('QA-PENDING');
-        await sandbox.suspendUser('QA-BHW');await sandbox.restoreSuspended('QA-BHW');
+        loadAdminScripts(sandbox);sandbox.loadDiseases=()=>{refreshes++;};
         await sandbox.archiveDisease(42);await sandbox.restoreDisease(42);
         await new Promise(resolve=>setImmediate(resolve));
         assert.equal(refreshes,0);
-        const errors=notices.filter(args=>args[2]==='error');assert.equal(errors.length,6);
+        const errors=notices.filter(args=>args[2]==='error');assert.equal(errors.length,2);
         assert.ok(errors.every(args=>args[1]===(failure==='network'?'Connection lost':'Change rejected')));
         assert.ok(!notices.some(args=>args[2]==='success'||args[0]?.icon==='success'));
     }

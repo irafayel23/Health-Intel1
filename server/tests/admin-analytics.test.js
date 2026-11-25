@@ -45,7 +45,9 @@ test('Admin preview and export keep historical, confirmed, incomplete and missin
         assert.deepEqual(history.gaps, ['2026-11']);
         assert.deepEqual(history.partial, ['2026-10']);
         const exportCsv = await api.exportCsv();
-        assert.match(exportCsv,/2026-10,Alegria,Cough,0,Confirmed operational reports/);
+        assert.equal(exportCsv.split(/\r?\n/)[0],'Date,Barangay,Disease,Cases');
+        assert.match(exportCsv,/2026-10,Alegria,Cough,0(?:\r?\n|$)/);
+        assert.doesNotMatch(exportCsv,/Synthetic demonstration|Confirmed operational reports/);
         assert.doesNotMatch(exportCsv,/2026-10,Blumentritt/);
         const map = await api.map({period:'2026-10',disease:'Cough'});
         assert.deepEqual(map.rows.map(row=>row.cases),[0,null]);

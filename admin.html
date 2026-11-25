@@ -25,7 +25,7 @@
     
     <!-- Built with npm --prefix tools/styles run build:portals. -->
     <link rel="stylesheet" href="assets/css/admin/admin-utilities.css?v=20261107-account-pages" />
-    <link rel="stylesheet" href="assets/css/admin/admin-page.css?v=20261119-view-report" />
+    <link rel="stylesheet" href="assets/css/admin/admin-page.css?v=20261125-overview" />
 
       <link rel="stylesheet" href="assets/css/shared/encoding-controls.css?v=20261101-chevron">
     <script src="assets/js/shared/encoding-controls.js?v=20261101-select-scroll"></script>
@@ -52,9 +52,7 @@
           <button class="nav-item text-slate-600 dark:text-slate-300 active w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-overview" onclick="switchMainView('view-overview', 'nav-overview')">
             <i data-lucide="layout-dashboard" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Overview</span>
           </button>
-<button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-iam" onclick="switchMainView('view-iam', 'nav-iam')">
-            <i data-lucide="users-round" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">User Management</span>
-          </button>
+
           <button class="nav-item text-slate-600 dark:text-slate-300 w-full flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white [&.active]:bg-brandBlue/10 [&.active]:text-blue-700 dark:[&.active]:text-blue-300 [&.active]:border-l-4 [&.active]:border-brandBlue" id="nav-data" onclick="switchMainView('view-data', 'nav-data')">
             <i data-lucide="database" class="w-5 h-5"></i> <span class="sidebar-label whitespace-nowrap">Patient Records</span>
           </button>
@@ -108,100 +106,60 @@
         <!-- DASHBOARD WRAPPER -->
         <div class="admin-page-scroll flex-1 overflow-y-auto p-6 md:p-8">
           
-          <!-- ============================================== -->
-          <!-- 1. USER MANAGEMENT (IAM) -->
-<!-- 1. USER MANAGEMENT (IAM) -->
-          <!-- ============================================== -->
-          <div id="view-overview" class="view-section active"><div id="role-overview" data-overview-role="admin" class="space-y-6" aria-busy="true">
- <div class="flex flex-wrap items-start justify-between gap-4"><div><h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Administration overview</h1><p class="mt-2 text-sm font-medium text-slate-700 dark:text-slate-200">Manage your people, records and disease catalog in one workspace.</p></div><button type="button" id="overview-refresh" aria-label="Refresh overview" title="Refresh overview" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i></button></div>
- <section class="relative overflow-hidden rounded-2xl admin-overview-hero p-6 text-white shadow-sm"><div class="flex flex-wrap items-center justify-between gap-5"><div class="min-w-0 flex-1"><p class="text-xs font-medium uppercase tracking-widest text-emerald-100">Administrator workspace</p><h2 id="overview-welcome" class="mt-2 break-words text-2xl font-bold tracking-tight">Welcome to your workspace</h2><p id="overview-hero-title" class="mt-3 font-semibold text-white">Your approval queue at a glance</p><p class="mt-1 max-w-xl text-sm text-emerald-100">Review BHW and MHO registrations, manage access and keep your records organized.</p></div><button type="button" data-overview-open="pending" class="admin-overview-cta shrink-0 rounded-xl bg-white px-4 py-3 text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">Review requests</button><button type="button" onclick="HealthIntelStaffAccess.reviewAdminAccess()" class="admin-overview-cta shrink-0 rounded-xl bg-white px-4 py-3 text-sm font-semibold shadow-sm">Admin access reviews</button></div></section>
- <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"><button type="button" data-overview-open="accounts" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
- <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">BHW & MHO accounts</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="users-round" class="h-5 w-5" aria-hidden="true"></i></span></span>
- <span id="overview-accounts" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
- <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">All registration statuses<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button><button type="button" data-overview-open="pending" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
- <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">Awaiting approval</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200"><i data-lucide="user-round-check" class="h-5 w-5" aria-hidden="true"></i></span></span>
- <span id="overview-pending" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
- <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">Review account requests<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button><button type="button" data-overview-open="records" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
- <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">Active disease cases</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="clipboard-list" class="h-5 w-5" aria-hidden="true"></i></span></span>
- <span id="overview-records" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
- <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">Non-archived active cases<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button><button type="button" data-overview-open="catalog" class="group min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 p-5 text-left transition-colors hover:border-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600">
- <span class="flex items-center justify-between gap-3"><span class="text-sm font-medium font-medium text-slate-700 dark:text-slate-200">Catalog diseases</span><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="book-open" class="h-5 w-5" aria-hidden="true"></i></span></span>
- <span id="overview-catalog" class="mt-3 block text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white">—</span>
- <span class="mt-2 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">Currently active entries<i data-lucide="arrow-up-right" class="h-4 w-4 shrink-0" aria-hidden="true"></i></span></button></div>
- <div class="grid items-start gap-5 xl:grid-cols-2"><section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-800/60"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="user-round-check" class="h-5 w-5" aria-hidden="true"></i></span>Account approval queue</span></h2><button type="button" data-overview-open="pending" class="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 dark:border-emerald-800 dark:bg-neutral-900 dark:text-emerald-200 dark:hover:bg-emerald-950">View requests</button></header><div id="overview-pending-list"><p class="p-5 text-sm font-medium text-slate-700 dark:text-slate-200">Loading requests…</p></div></section>
- <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50/80 px-5 py-4 dark:border-neutral-800 dark:bg-neutral-800/60"><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white"><span class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200"><i data-lucide="history" class="h-5 w-5" aria-hidden="true"></i></span>Recent activity</span></h2><button type="button" data-overview-open="audit" class="inline-flex min-h-11 shrink-0 items-center rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-700 dark:border-emerald-800 dark:bg-neutral-900 dark:text-emerald-200 dark:hover:bg-emerald-950">View activity log</button></header><div id="overview-recent-list"><p class="p-5 text-sm font-medium text-slate-700 dark:text-slate-200">Loading activity…</p></div></section></div>
- <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 flex flex-wrap items-center justify-between gap-4 p-5"><div><h2 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Records and catalog</h2><p class="mt-1 text-sm font-medium text-slate-700 dark:text-slate-200">Open the tools you use most without leaving your workspace.</p></div><div class="flex flex-wrap gap-2"><button type="button" data-overview-open="records" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="database" class="h-5 w-5 shrink-0" aria-hidden="true"></i>Patient records</button><button type="button" data-overview-open="catalog" class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100 dark:hover:bg-neutral-800"><i data-lucide="book-open" class="h-5 w-5 shrink-0" aria-hidden="true"></i>Disease catalog</button></div></section>
- <p id="overview-load-status" class="text-sm font-medium text-slate-700 dark:text-slate-200" role="status">Loading saved overview data…</p><p id="overview-action-note" class="text-sm font-medium text-slate-700 dark:text-slate-200" role="status"></p>
- </div></div>
-<div id="view-iam" class="view-section">
-            <section class="admin-list-card" aria-labelledby="admin-personnel-title">
-              <header class="admin-list-header">
-                <h1 id="admin-personnel-title">User Management</h1>
-                <p>Review registrations and manage BHW and MHO account access.</p>
+          <div id="view-overview" class="view-section active">
+            <section id="role-overview" data-overview-role="admin" class="admin-list-card admin-overview" aria-labelledby="admin-overview-title" aria-busy="true">
+              <header class="admin-list-header admin-overview-header">
+                <div>
+                  <h1 id="admin-overview-title">Admin Overview</h1>
+                  <p>Track barangay reporting, active cases, and recent activity.</p>
+                </div>
+                <div class="admin-overview-actions">
+                  <button type="button" class="admin-overview-button admin-overview-primary" data-overview-open="reports"><i data-lucide="clipboard-check" aria-hidden="true"></i> Review reports</button>
+                  <button type="button" class="admin-overview-button" id="overview-refresh" aria-label="Refresh overview" title="Refresh overview"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>
+                </div>
               </header>
-              <div class="admin-list-body">
-                <div class="sub-tabs admin-list-tabs" role="group" aria-label="Personnel lists">
-                  <button class="sub-tab-btn active" id="btn-iam-pending" aria-pressed="true" onclick="switchSubView('iam', 'pending')">
-                    Pending Approvals
+              <div class="admin-list-body admin-overview-body">
+                <div class="admin-overview-metrics">
+                  <button type="button" class="admin-overview-metric" data-overview-open="records">
+                    <span class="admin-overview-metric-heading"><span>Active cases</span><span class="admin-overview-icon" aria-hidden="true"><i data-lucide="clipboard-list"></i></span></span>
+                    <strong id="overview-records">—</strong>
+                    <span class="admin-overview-footer">Patient Records <i data-lucide="arrow-up-right" aria-hidden="true"></i></span>
                   </button>
-                  <button class="sub-tab-btn" id="btn-iam-active" aria-pressed="false" onclick="switchSubView('iam', 'active')">
-                    Active Personnel Directory
+                  <button type="button" class="admin-overview-metric" data-overview-open="reports">
+                    <span class="admin-overview-metric-heading"><span>Monthly reports confirmed</span><span class="admin-overview-icon" aria-hidden="true"><i data-lucide="clipboard-check"></i></span></span>
+                    <strong id="overview-confirmed">—</strong>
+                    <span class="admin-overview-footer"><span id="overview-report-month">Latest closed month</span><i data-lucide="arrow-up-right" aria-hidden="true"></i></span>
                   </button>
-                  <button class="sub-tab-btn" id="btn-iam-archived" aria-pressed="false" onclick="switchSubView('iam', 'archived')">
-                    Archived / Denied
+                  <button type="button" class="admin-overview-metric" data-overview-open="datasets">
+                    <span class="admin-overview-metric-heading"><span>Latest fully confirmed month</span><span class="admin-overview-icon" aria-hidden="true"><i data-lucide="calendar-check"></i></span></span>
+                    <strong id="overview-latest-month" class="admin-overview-date">—</strong>
+                    <span class="admin-overview-footer">Dataset coverage <i data-lucide="arrow-up-right" aria-hidden="true"></i></span>
+                  </button>
+                  <button type="button" class="admin-overview-metric" data-overview-open="catalog">
+                    <span class="admin-overview-metric-heading"><span>Active diseases</span><span class="admin-overview-icon" aria-hidden="true"><i data-lucide="book-open"></i></span></span>
+                    <strong id="overview-catalog">—</strong>
+                    <span class="admin-overview-footer">Disease Catalog <i data-lucide="arrow-up-right" aria-hidden="true"></i></span>
                   </button>
                 </div>
-
-                <!-- Pending Approvals View -->
-                <div id="iam-pending-view">
-                  <div class="table-container">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th scope="col">Account</th>
-                          <th scope="col">Employee ID</th>
-                          <th scope="col">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody id="pending-table-body"></tbody>
-                    </table>
-                  </div>
-                  <nav id="pending-table-body-pagination" class="admin-case-pages" aria-label="Pending approvals pages"></nav>
+                <div class="admin-overview-panels">
+                  <section class="admin-overview-panel" aria-labelledby="overview-report-title">
+                    <header>
+                      <div><h2 id="overview-report-title">Barangay reporting status</h2><p id="overview-report-period">Latest closed month</p></div>
+                    </header>
+                    <div id="overview-report-list"><p class="admin-overview-empty">Loading reports…</p></div>
+                  </section>
+                  <section class="admin-overview-panel" aria-labelledby="overview-activity-title">
+                    <header>
+                      <h2 id="overview-activity-title">Recent activity</h2>
+                      <button type="button" class="admin-overview-button" data-overview-open="audit">View activity log</button>
+                    </header>
+                    <div id="overview-recent-list"><p class="admin-overview-empty">Loading activity…</p></div>
+                  </section>
                 </div>
-
-                <!-- Active Personnel View -->
-                <div id="iam-active-view" class="admin-hidden-subview">
-                  <div class="table-container">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th scope="col">Account</th>
-                          <th scope="col">Role</th>
-                          <th scope="col">Assigned Barangay</th>
-                          <th scope="col">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody id="active-users-table-body"></tbody>
-                    </table>
-                  </div>
-                  <nav id="active-users-table-body-pagination" class="admin-case-pages" aria-label="Active personnel pages"></nav>
-                </div>
-
-                <!-- Archived / Denied View -->
-                <div id="iam-archived-view" class="admin-hidden-subview">
-                  <div class="table-container">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th scope="col">Account</th>
-                          <th scope="col">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody id="denied-table-body"></tbody>
-                    </table>
-                  </div>
-                  <nav id="denied-table-body-pagination" class="admin-case-pages" aria-label="Archived and denied accounts pages"></nav>
-                </div>
+                <footer class="admin-overview-meta">
+                  <p id="overview-load-status" role="status">Loading overview…</p>
+                  <button type="button" class="admin-overview-review" onclick="HealthIntelStaffAccess.reviewAdminAccess()"><i data-lucide="shield-check" aria-hidden="true"></i> Admin access reviews</button>
+                </footer>
               </div>
             </section>
           </div>
@@ -596,15 +554,13 @@
     <!-- ============================================== -->
     <div id="admin-row-tooltip" aria-hidden="true">Click to see details</div>
     <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
-    <script src="assets/js/shared/role-overview.js?v=20261120-restored-overview"></script>
-    <script src="assets/js/admin/admin-shell.js?v=20261124-analytics"></script>
-    <script src="assets/js/admin/operational-monthly.js?v=2"></script>
+    <script src="assets/js/shared/role-overview.js?v=20261125-admin"></script>
+    <script src="assets/js/admin/admin-shell.js?v=20261125-overview"></script>
+    <script src="assets/js/admin/operational-monthly.js?v=3"></script>
     <script src="assets/js/shared/map-details.js?v=20261123-map-periods"></script>
     <script src="assets/js/shared/map-fullscreen.js?v=20261124-admin-fullscreen"></script>
-    <script src="assets/js/admin/admin-analytics.js?v=8"></script>
-    <script src="assets/js/shared/registration-review.js?v=20261115-centered-result"></script>
+    <script src="assets/js/admin/admin-analytics.js?v=9"></script>
     <script src="assets/js/shared/staff-access.js?v=4"></script>
-    <script src="assets/js/admin/admin-users.js?v=20261115-account-close"></script>
     <script src="assets/js/admin/admin-records.js?v=20261111-page-start"></script>
     <script src="assets/js/admin/admin-registry.js?v=20261107-dialog-actions"></script>
     <script src="assets/js/admin/admin-audit.js?v=20261111-page-start"></script>

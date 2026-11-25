@@ -302,6 +302,16 @@
     clearTimeout(probabilityTimer);clearTimeout(timer);clearInterval(elapsedTimer);
  }
 
+ function openReports(period=latestCompletedMonth){
+    const source=$('monthly-history-source');
+    if(uploadId()||(trainingMode()===mixedMode&&period<firstReport)){
+        source.value='operational';
+        updateRange();
+    }
+    $('monthly-report-month').value=period;
+    return loadReports().catch(error=>message(error.message,'monthly-report-summary'));
+ }
+
  function initialize(){
     if(!$('monthly-updates'))return;
     const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit'}).formatToParts(new Date());
@@ -351,7 +361,7 @@
         }catch(e){tell(e.message);}
         finally{preparing=false;b.disabled=!canPrepare;}
     });
-    window.HealthIntelMonthlyUpdates={setActive,setDatasets};
+    window.HealthIntelMonthlyUpdates={setActive,setDatasets,openReports};
  }
 
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);else initialize();

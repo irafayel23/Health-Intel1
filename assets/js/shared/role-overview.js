@@ -1,9 +1,9 @@
 (function (global) {
     'use strict';
     const number = n => n !== null && n !== undefined && n !== '' && Number.isFinite(Number(n)) && Number(n) >= 0 ? Number(n).toLocaleString('en-PH') : '—';
-    function accountSummary(pending, active, inactive) {
-        if (![pending, active, inactive].every(Array.isArray)) return null;
-        return {total:new Set([...pending,...active,...inactive].map(u=>u.system_id)).size,pending:pending.length,active:active.length};
+    function monthLabel(period) {
+        return /^\d{4}-(0[1-9]|1[0-2])$/.test(period) ?
+            new Intl.DateTimeFormat('en-PH',{year:'numeric',month:'long',timeZone:'UTC'}).format(new Date(period+'-01T00:00:00Z')) : '—';
     }
     function recent(rows) {
         return Array.isArray(rows) ? [...rows].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)||Number(b.id)-Number(a.id)).slice(0,3) : null;
@@ -16,7 +16,7 @@
         const root=doc.getElementById('role-overview');
         const role=root?.getAttribute('data-overview-role');
         if (!['admin','superadmin'].includes(role)) return;
-        let version=0;
+        let version=0,reportPeriod;
         const el=id=>doc.getElementById(id);
         const put=(id,value)=>{if(el(id))el(id).textContent=value;};
         async function read(path) {
@@ -51,11 +51,45 @@
             });
             win.lucide?.createIcons();
         }
+        function renderReports(rows,period) {
+            const label=monthLabel(period);
+            put('overview-report-month',label==='—'?'Latest closed month':label);
+            put('overview-report-period',label==='—'?'Latest closed month':label);
+            put('overview-confirmed','—');
+            const host=el('overview-report-list');
+            host.replaceChildren();
+            if(!Array.isArray(rows)||rows.length!==7){
+                const empty=doc.createElement('p');
+                empty.className='admin-overview-empty';
+                empty.textContent='Reporting status could not be loaded. Refresh to try again.';
+                host.append(empty);
+                return;
+            }
+            const confirmed=rows.filter(row=>row.confirmed&&!row.pending).length;
+            put('overview-confirmed',confirmed+' / 7');
+            const entries=doc.createElement('ul');
+            for(const row of rows){
+                const item=doc.createElement('li');
+                const place=doc.createElement('span');
+                const badge=doc.createElement('span');
+                place.textContent=row.barangay;
+                badge.className='admin-overview-badge';
+                const complete=row.confirmed&&!row.pending;
+                badge.setAttribute('data-state',complete?'confirmed':'pending');
+                badge.textContent=row.pending?'Pending classification':row.stale?'Changed · review again':complete?'Confirmed':'Awaiting confirmation';
+                item.append(place,badge);
+                entries.append(item);
+            }
+            host.append(entries);
+        }
         function open(destination) {
-            const map=role==='admin'?{accounts:['view-iam','nav-iam'],pending:['view-iam','nav-iam'],records:['view-data','nav-data'],catalog:['view-diseases','nav-diseases'],audit:['view-audit','nav-audit']}:{directory:['view-users','nav-users'],accounts:['view-users','nav-users'],activation:['view-users','nav-users'],audit:['view-audit','nav-audit'],backup:['view-db','nav-db']};
+            const map=role==='admin'?{records:['view-data','nav-data'],reports:['view-admin-analytics','nav-admin-analytics'],datasets:['view-admin-analytics','nav-admin-analytics'],catalog:['view-diseases','nav-diseases'],audit:['view-audit','nav-audit']}:{directory:['view-users','nav-users'],accounts:['view-users','nav-users'],activation:['view-users','nav-users'],audit:['view-audit','nav-audit'],backup:['view-db','nav-db']};
             const target=map[destination];if(!target)return;
             win.switchMainView(...target);
-            if(role==='admin'&&['accounts','pending'].includes(destination))win.switchSubView('iam',destination==='pending'?'pending':'active');
+            if(role==='admin'&&['reports','datasets'].includes(destination)){
+                win.HealthIntelAdminAnalytics?.openTab(destination==='reports'?'training':'datasets',destination==='reports'?reportPeriod:undefined);
+                return;
+            }
             if(role==='superadmin'&&target[0]==='view-users')win.selectAdminAccess(destination);
             const heading=doc.getElementById(target[0])?.querySelector('h1,h2,h3');
             if(heading){heading.setAttribute('tabindex','-1');heading.focus();}
@@ -64,23 +98,27 @@
         async function refresh() {
             const run=++version;el('overview-refresh').disabled=true;
             root.setAttribute('aria-busy','true');put('overview-load-status','Refreshing overview…');
-            const paths=role==='admin'?['/api/session','/api/admin/pending-users','/api/admin/active-users','/api/admin/denied-users','/api/patients','/api/diseases','/api/admin/audit-logs']:['/api/session','/api/superadmin/users','/api/superadmin/health','/api/superadmin/audit-logs'];
-            const results=await Promise.allSettled(paths.map(read));if(run!==version)return;
+            const paths=role==='admin'?['/api/session','/api/patients','/api/diseases','/api/admin/audit-logs','/api/admin/analytics/datasets']:['/api/session','/api/superadmin/users','/api/superadmin/health','/api/superadmin/audit-logs'];
+            const requests=paths.map(read);
+            if(role==='admin')requests.push(requests[4].then(({data})=>{
+                const period=data?.bundled?.through;
+                if(monthLabel(period)==='—')throw Error('Reporting month unavailable');
+                return read('/api/admin/operational-predictions/reports?month='+encodeURIComponent(period));
+            }));
+            const results=await Promise.allSettled(requests);if(run!==version)return;
             const data=i=>results[i].status==='fulfilled'?results[i].value.data:null;
             const session=results[0].status==='fulfilled'?results[0].value.user:null;
             const accountName=role==='superadmin'?'SUPERADMIN-***':'ADM-***';
             put('overview-welcome',session?.system_id?`Welcome back, ${accountName}`:'Welcome to your workspace');
             put('overview-account-id',session?.system_id?accountName:'Account unavailable');
             if(role==='admin'){
-                const summary=accountSummary(data(1),data(2),data(3));
-                put('overview-accounts',summary?number(summary.total):'—');
-                put('overview-pending',Array.isArray(data(1))?number(data(1).length):'—');
-                put('overview-records',Array.isArray(data(4))?number(data(4).filter(r=>r.status==='Active'&&!Number(r.is_archived)).length):'—');
-                put('overview-catalog',Array.isArray(data(5))?number(data(5).length):'—');
-                const pending=data(1);
-                put('overview-hero-title',Array.isArray(pending)?pending.length?`${pending.length} account request${pending.length===1?' needs':'s need'} your review`:'Your approval queue is clear':'Review your account requests');
-                list('overview-pending-list',Array.isArray(pending)?pending.slice(0,3):null,'No pending BHW or MHO registrations.','accounts');
-                list('overview-recent-list',recent(data(6)),'No operational activity has been recorded.','activity');
+                const coverage=data(4)?.bundled;
+                put('overview-records',Array.isArray(data(1))?number(data(1).filter(r=>r.status==='Active'&&!Number(r.is_archived)).length):'—');
+                put('overview-catalog',Array.isArray(data(2))?number(data(2).length):'—');
+                put('overview-latest-month',!coverage||coverage.reportingUnavailable?'—':coverage.latestComplete?monthLabel(coverage.latestComplete):'None yet');
+                reportPeriod=coverage?.through;
+                renderReports(data(5),reportPeriod);
+                list('overview-recent-list',recent(data(3)),'No operational activity has been recorded.','activity');
             }else{
                 win.loadSystemHealth?.(results[2].status === 'fulfilled' ? results[2].value : null);
                 const users=data(1),health=data(2),admins=Array.isArray(users)?users.filter(u=>String(u.role).toLowerCase()==='admin'):null;
@@ -102,7 +140,7 @@
         win.HealthIntelOverview={refresh,open};
         if (role !== 'superadmin' || !/^#view-(?:users|staff|audit|db)$/.test(win.location?.hash || '')) void refresh();
     }
-    const api={accountSummary,recent,time,number,init};
+    const api={recent,time,number,init};
     if(typeof module==='object'&&module.exports)module.exports=api;
     if(global.document)global.document.addEventListener('DOMContentLoaded',()=>init(global.document,global));
 })(typeof window==='object'?window:globalThis);

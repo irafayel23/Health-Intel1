@@ -8,7 +8,8 @@ const { loadDataset, FIRST_LIVE_CASE_DATE } = require('./dataset-analytics');
 const { DISEASES, BARANGAYS, month, next, currentMonth, fail } = require('./monthly-data');
 const { createSystemAudit } = require('./system-audit');
 
-const columns = ['Date', 'Barangay', 'Disease', 'Cases', 'Source'];
+const columns = ['Date', 'Barangay', 'Disease', 'Cases'];
+const acceptedHeaders = [...columns, 'Source'];
 const storage = path.join(__dirname, '../data/operational-predictions/admin-analytics');
 const maxBytes = 256000;
 const compare = (a, b) => a.Date.localeCompare(b.Date) || a.Barangay.localeCompare(b.Barangay) || a.Disease.localeCompare(b.Disease);
@@ -29,7 +30,7 @@ function readUpload(text, latest = currentMonth()) {
         rows = parse(text, {
             bom: true, skip_empty_lines: true, trim: true, max_record_size: 512,
             columns: header => {
-                if (![4, 5].includes(header.length) || header.some((value, index) => value !== columns[index])) {
+                if (![4, 5].includes(header.length) || header.some((value, index) => value !== acceptedHeaders[index])) {
                     throw fail('Use these CSV headers: Date, Barangay, Disease, Cases, and optional Source.');
                 }
                 return header;
@@ -227,7 +228,7 @@ function createAdminAnalytics(db, operational, { directory = storage, now = () =
     return {
         datasets, preview, save, map,
         exportCsv: async () => stringify((await historical()).rows, { header: true, columns }),
-        template: () => stringify([], { header: true, columns: columns.slice(0, 4) })
+        template: () => stringify([], { header: true, columns })
     };
 }
 

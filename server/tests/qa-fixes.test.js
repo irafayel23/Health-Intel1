@@ -157,10 +157,11 @@ test('BHW/MHO account actions reject stale states and concurrent approvals canno
     for(const role of ['bhw','mho']){
         const id='QA-STATUS-'+role.toUpperCase();
         await db.execute("INSERT INTO users(system_id,first_name,last_name,role,password_hash,status) VALUES(?,'Status','Fixture',?,?,'pending')",[id,role,actor.password_hash]);
+        assert.equal((await request('/api/admin/approve-user','admin',{temp_system_id:id})).status,403);
         for(const [action,[from,to]] of Object.entries(actions))for(const state of ['pending','approved','denied','suspended']){
             await db.execute('UPDATE users SET status=? WHERE system_id=?',[state,id]);
             const [[before]]=await db.query('SELECT COUNT(*) AS count FROM system_audit_logs');
-            const response=await request('/api/admin/'+action,'admin',{temp_system_id:id,reason:'Fixture identity information needs correction'});
+            const response=await request('/api/admin/'+action,'superadmin',{temp_system_id:id,reason:'Fixture identity information needs correction'});
             assert.equal(response.status,state===from?200:409,`${role}: ${action} from ${state}`);
             const [[account]]=await db.execute('SELECT status FROM users WHERE system_id=?',[id]);
             const [[after]]=await db.query('SELECT COUNT(*) AS count FROM system_audit_logs');
@@ -168,10 +169,10 @@ test('BHW/MHO account actions reject stale states and concurrent approvals canno
             assert.equal(after.count-before.count,state===from?1:0,'Rejected requests must not alter the audit history');
         }
         await db.execute("UPDATE users SET status='pending' WHERE system_id=?",[id]);
-        const results=await Promise.all([request('/api/admin/approve-user','admin',{temp_system_id:id}),request('/api/admin/approve-user','admin',{temp_system_id:id})]);
+        const results=await Promise.all([request('/api/admin/approve-user','superadmin',{temp_system_id:id}),request('/api/admin/approve-user','superadmin',{temp_system_id:id})]);
         assert.deepEqual(results.map(r=>r.status).sort(),[200,409],'Only one simultaneous approval succeeds');
         assert.equal((await request('/api/admin/suspend-user','superadmin',{system_id:id})).status,200);
-        assert.equal((await request('/api/admin/approve-user','admin',{temp_system_id:id})).status,409,'An old approval cannot restore a suspended account');
+        assert.equal((await request('/api/admin/approve-user','superadmin',{temp_system_id:id})).status,409,'An old approval cannot restore a suspended account');
         assert.equal((await request('/api/admin/restore-suspended','superadmin',{system_id:id})).status,200);
     }
 });

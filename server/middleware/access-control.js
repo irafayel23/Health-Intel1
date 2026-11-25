@@ -10,7 +10,7 @@ const publicEndpoints = new Set([
     'POST /activate-staff', 'POST /forgot-password', 'POST /reset-password'
 ]);
 const rules = [
-    ['GET', /^\/admin\/registration-evidence\/[^/]+$/, ['admin','superadmin']],
+    ['GET', /^\/admin\/registration-evidence\/[^/]+$/, ['superadmin']],
     ['GET', /^\/bhw\/(dataset-analytics|reports\/historical-counts)$/, ['bhw']],
     ['GET', /^\/mho\/(dataset-analytics|reports\/historical-counts)$/, ['mho']],
     ['GET', /^\/bhw\/operational-predictions\/(status|options|prediction)$/, ['bhw']],
@@ -28,9 +28,10 @@ const rules = [
     ['GET', /^\/encoding\/residents$/, ['bhw', 'mho']],
     ['GET', /^\/mho\/patients(?:\/(?:resident|legacy)\/\d+)?$/, ['mho']],
     ['POST', /^\/change-password$/, ['bhw', 'mho', 'admin', 'superadmin']],
-    ['GET', /^\/admin\/(pending-users|active-users|denied-users|audit-logs)$/, ['admin', 'superadmin']],
+    ['GET', /^\/admin\/(pending-users|active-users|denied-users)$/, ['superadmin']],
+    ['GET', /^\/admin\/audit-logs$/, ['admin', 'superadmin']],
     ['GET', /^\/admin\/cases\/\d+$/, ['admin']],
-    ['POST', /^\/admin\/(approve-user|deny-user|undo-deny|suspend-user|restore-suspended)$/, ['admin', 'superadmin']],
+    ['POST', /^\/admin\/(approve-user|deny-user|undo-deny|suspend-user|restore-suspended)$/, ['superadmin']],
     ['GET', /^\/superadmin\/(pending-admins|health|users|audit-logs|staff-barangays|staff-roster)$/, ['superadmin']],
     ['GET', /^\/superadmin\/admins\/[^/]+\/history$/, ['superadmin']],
     ['GET', /^\/staff-admin-reviews$/, ['admin','superadmin']],
@@ -143,7 +144,7 @@ function createAccessControl(db, secret) {
                 if (!targetId) return deny(res, 400, 'A target account is required.', 'INVALID_INPUT');
                 const [targets] = await db.execute('SELECT role FROM users WHERE system_id = ?', [targetId]);
                 if (!targets.length) return deny(res, 404, 'Account not found.', 'NOT_FOUND');
-                const allowedTargets = user.role === 'superadmin' ? ['bhw', 'mho', 'admin'] : ['bhw', 'mho'];
+                const allowedTargets = ['bhw', 'mho', 'admin'];
                 if (!allowedTargets.includes(targets[0].role)) {
                     return deny(res, 403, 'You cannot manage this account role.', 'ACCESS_DENIED');
                 }
