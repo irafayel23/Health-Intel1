@@ -112,3 +112,51 @@ test('frozen baseline artifacts still match the issued research manifests', () =
         ['conditional-cmp-6200','results.json','bcce83fde73fd60017d3a6c5e2c61b8e0bc3b54ded8963c4a68a21a716d4a9e4']
     ]) assert.equal(crypto.createHash('sha256').update(fs.readFileSync(require.resolve('../data/'+dir+'/'+file))).digest('hex'),hash);
 });
+
+
+test('automatic viewer selection replays the demo only with an opt-in and no published version', async () => {
+    const { registerMonthlyPredictionRoutes } = require('../routes/monthly-prediction-routes');
+    const routes = new Map();
+    const app = { get: (url, handler) => routes.set(url, handler), post() {} };
+    const code = 'OPERATIONAL_PREDICTIONS_UNPUBLISHED';
+    const unavailable = Object.assign(new Error('Unpublished'), { status: 409, code });
+    const broken = Object.assign(new Error('Integrity check failed'), { status: 409 });
+    const published = { status: 'published' };
+    const saved = { NODE_ENV: process.env.NODE_ENV, ENABLE_SARIMA_DEMO: process.env.ENABLE_SARIMA_DEMO };
+    let result = unavailable;
+    const service = { overview: async () => {
+        if (result instanceof Error) throw result;
+        return result;
+    } };
+    const db = { execute: async () => [[{ name: 'Alegria' }]] };
+    async function load(role) {
+        let response;
+        const res = { set() {}, status() { return this; }, json(value) { response = value; } };
+        const request = { user: { role, barangay_id: 1 }, query: { source: 'auto' } };
+        await routes.get('/api/' + role + '/operational-predictions/overview')(request, res);
+        return response;
+    }
+    try {
+        process.env.NODE_ENV = 'production';
+        process.env.ENABLE_SARIMA_DEMO = 'true';
+        registerMonthlyPredictionRoutes(app, db, service);
+        assert.equal((await load('mho')).data.status, 'demonstration');
+        const bhw = (await load('bhw')).data;
+        assert.equal(bhw.status, 'demonstration');
+        assert.equal(bhw.barangay, 'Alegria');
+        assert.ok(bhw.rows.every(row => row.barangay === 'Alegria'));
+
+        result = published;
+        assert.equal((await load('mho')).data, published);
+        result = broken;
+        assert.equal((await load('mho')).success, false);
+        result = unavailable;
+        process.env.ENABLE_SARIMA_DEMO = 'false';
+        assert.equal((await load('mho')).code, code);
+    } finally {
+        for (const [key, value] of Object.entries(saved)) {
+            if (value === undefined) delete process.env[key];
+            else process.env[key] = value;
+        }
+    }
+});
