@@ -51,8 +51,8 @@ function registerDailySubmissions(app,db) {
         await ready();
         // Preserve the initial receipt and avoid moving its timestamp on identical retries.
         await db.execute(`INSERT INTO daily_report_submissions
-            (report_date,barangay_id,case_count,consultation_count,first_submitted_at,submitted_at,submitted_by)
-            VALUES (?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP(),?)
+            (report_date,barangay_id,case_count,consultation_count,first_submitted_at,submitted_at,submitted_by,report_snapshot)
+            VALUES (?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP(),?,?)
             ON DUPLICATE KEY UPDATE
               submitted_at=IF(case_count<>VALUES(case_count) OR consultation_count<>VALUES(consultation_count),UTC_TIMESTAMP(),submitted_at),
               submitted_by=IF(case_count<>VALUES(case_count) OR consultation_count<>VALUES(consultation_count),VALUES(submitted_by),submitted_by),
