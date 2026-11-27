@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-withdraw" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-referral-card" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -145,28 +145,21 @@
           </div>
 
           <div id="bhw-dashboard-content" class="space-y-5">
-          <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
-            <button type="button" class="hi-referral-trigger" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog"><i data-lucide="clipboard-list" class="w-4 h-4" aria-hidden="true"></i>Visits and referrals</button>
-            <p class="mt-1 text-sm text-[hsl(var(--muted-foreground))]">Track referral requests, arrivals and barangay follow-ups.</p>
-          </section>
-          <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm" aria-labelledby="bhw-dashboard-followup-title">
-            <h2 id="bhw-dashboard-followup-title" class="mb-3 text-base font-semibold text-slate-950 dark:text-slate-50">Follow-up tracking</h2>
-            <div class="flex flex-wrap gap-3" aria-live="polite">
-              <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="today"><strong id="bhw-dashboard-followup-today">—</strong> Due today</button>
-              <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="past"><strong id="bhw-dashboard-followup-past">—</strong> Past due</button>
-            </div>
-            <p id="bhw-dashboard-followup-status" class="hi-field-help" role="status"></p>
-          </section>
           <div class="grid grid-cols-2 xl:grid-cols-4 gap-3" aria-label="Barangay case totals">
             <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm min-w-0">
               <h2 class="text-sm font-medium text-slate-700 dark:text-slate-300">Recorded cases</h2>
               <div id="stat-total" class="text-3xl font-bold tracking-tight tabular-nums text-slate-950 dark:text-slate-50 mt-2">—</div>
               <p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Historical dataset · All years</p>
             </section>
-            <section role="button" tabindex="0" onclick="openFilteredPatientRecords('Active','')" onkeydown="if(event.key==='Enter' || event.key===' '){event.preventDefault();this.click()}" class="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 p-4 shadow-sm min-w-0">
-              <h2 class="text-sm font-medium text-teal-900 dark:text-teal-100">Active cases</h2>
-              <div id="stat-active" class="text-3xl font-bold tracking-tight tabular-nums text-slate-950 dark:text-slate-50 mt-2">—</div>
-              <p class="text-xs text-teal-900 dark:text-teal-200 mt-1">Live records · Currently active</p>
+            <section aria-label="Active cases and referrals" class="bhw-active-card rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 p-4 shadow-sm min-w-0">
+              <button type="button" onclick="openFilteredPatientRecords('Active','')" class="bhw-active-case-link w-full rounded-lg text-left">
+                <span class="block text-sm font-medium text-teal-900 dark:text-teal-100">Active cases</span>
+                <span id="stat-active" class="block text-3xl font-bold tracking-tight tabular-nums text-slate-950 dark:text-slate-50 mt-2">—</span>
+                <span class="block text-xs text-teal-900 dark:text-teal-200 mt-1">View active records</span>
+              </button>
+              <button type="button" class="hi-referral-trigger bhw-active-referral-link" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog">
+                <i data-lucide="clipboard-list" class="w-4 h-4" aria-hidden="true"></i><span>Visits and referrals</span>
+              </button>
             </section>
             <section role="button" tabindex="0" onclick="openFilteredPatientRecords('Cleared','')" onkeydown="if(event.key==='Enter' || event.key===' '){event.preventDefault();this.click()}" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm min-w-0">
               <h2 class="text-sm font-medium text-slate-700 dark:text-slate-300">Cleared cases</h2>
@@ -180,6 +173,14 @@
             </section>
           </div>
           <p id="bhw-dashboard-status" role="status" aria-live="polite" class="text-xs text-slate-700 dark:text-slate-300">Loading your assigned-barangay totals…</p>
+          <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm flex flex-wrap items-center gap-x-4 gap-y-2" aria-labelledby="bhw-dashboard-followup-title">
+            <h2 id="bhw-dashboard-followup-title" class="text-sm font-semibold text-slate-950 dark:text-slate-50">Scheduled follow-ups</h2>
+            <div class="flex flex-wrap gap-2" aria-live="polite">
+              <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="today"><strong id="bhw-dashboard-followup-today">—</strong> Due today</button>
+              <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="past"><strong id="bhw-dashboard-followup-past">—</strong> Past due</button>
+            </div>
+            <p id="bhw-dashboard-followup-status" class="hi-field-help bhw-followup-summary-status" role="status"></p>
+          </section>
 
           <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.8fr)_minmax(250px,1fr)] gap-5 items-start">
             <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm min-w-0" aria-labelledby="bhw-trend-heading">

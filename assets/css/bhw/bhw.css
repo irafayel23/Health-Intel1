@@ -745,3 +745,17 @@ body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-
   }
   body.hi-portal .bhw-page-scroll::-webkit-scrollbar { display: initial; }
 }
+
+/* Dashboard actions have independent focus and click targets. */
+.bhw-active-card { display: flex; flex-direction: column; gap: .75rem; }
+.bhw-active-case-link:hover { background: rgb(13 148 136 / .08); }
+.bhw-active-card button:focus-visible { outline: 2px solid #0d9488; outline-offset: 3px; }
+.bhw-active-card .bhw-active-referral-link {
+  align-self: flex-start;
+  max-width: 100%;
+  padding-inline: .6rem;
+  text-align: left;
+  margin-top: auto;
+}
+.bhw-active-referral-link svg { flex: none; }
+.bhw-followup-summary-status:empty { display: none; }
