@@ -42,7 +42,7 @@ const rules = [
     ['GET', /^\/bhw\/report-data$/, ['bhw']],
     ['GET', /^\/admin\/reports\/daily-submissions(?:\/pdf)?$/, ['admin']],
     ['GET', /^\/bhw\/reports\/daily-submission$/, ['bhw']],
-    ['POST', /^\/bhw\/reports\/daily-submission$/, ['bhw']],
+    ['POST', /^\/bhw\/reports\/daily-submission(?:\/withdraw)?$/, ['bhw']],
     ['GET', /^\/bhw\/reports\/(today|daily)$/, ['bhw']],
     ['GET', /^\/mho\/disease-reviews$/, ['mho']],
     ['PUT', /^\/mho\/cases\/\d+\/reporting-eligibility$/, ['mho']],

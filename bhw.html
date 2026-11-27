@@ -14,7 +14,7 @@
     <script src="assets/js/shared/case-corrections.js?v=20261116-placeholder"></script>
     <script src="assets/js/shared/date-format.js"></script>
     <script src="assets/js/shared/daily-report-controls.js"></script>
-    <script defer src="assets/js/shared/daily-submissions.js?v=20261119"></script>
+    <script defer src="assets/js/shared/daily-submissions.js?v=20261127-withdraw"></script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="assets/img/Health-Intel-Symbol.png?v=20261003" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261126-daily-layout" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-withdraw" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -350,7 +350,10 @@
                 <button id="bhw-daily-download" type="button" class="bhw-daily-button" onclick="generateBHWTodayReport()"><i data-lucide="download" aria-hidden="true"></i> Download daily PDF</button>
               </div>
             </div>
-            <p id="daily-submission-status" role="status"></p>
+            <div class="bhw-daily-submission-feedback">
+              <p id="daily-submission-status" role="status"></p>
+              <button id="daily-submission-withdraw" type="button" class="bhw-daily-button" hidden>Withdraw submission</button>
+            </div>
             <small id="bhw-daily-help">Dates use Philippine time. Choose an earlier date to recover a missed report.</small>
           </section>
           

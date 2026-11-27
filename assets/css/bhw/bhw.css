@@ -520,6 +520,14 @@ body :is(.nav-menu, .swal2-html-container, .swal2-popup, .heatmap-info-panel)::-
   color: hsl(var(--foreground));
 }
 .bhw-daily-report #daily-submission-status:empty { display: none; }
+.bhw-daily-submission-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem .75rem;
+}
+.bhw-daily-submission-feedback #daily-submission-status { flex: 1 1 16rem; }
+#daily-submission-withdraw[hidden] { display: none; }
 .hi-today-report.bhw-daily-report small { margin: 0; }
 @media (max-width: 480px) {
   .bhw-daily-report-actions { width: 100%; }

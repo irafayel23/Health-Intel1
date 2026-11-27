@@ -8,53 +8,86 @@
         timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'
     }).format(new Date(value));
     async function json(url,options) {
-        return (await fetch(url,options)).json();
+        const response=await fetch(url,options);
+        const data=await response.json();
+        if(!response.ok)throw Error(data.error||'The daily report request failed.');
+        return data;
     }
 
     const bhwDate=byId('bhw-report-date');
     if(bhwDate) {
         const send=byId('daily-submission-send');
+        const withdraw=byId('daily-submission-withdraw');
         const message=byId('daily-submission-status');
         const endpoint='/api/bhw/reports/daily-submission';
         let pending=0, preview, saving=false;
+        function activeSubmission(data) {
+            return data?.submission?.withdrawn_at ? null : data?.submission;
+        }
+        function totalsChanged(data,saved) {
+            return saved&&(saved.case_count!==data.case_count||saved.consultation_count!==data.consultation_count);
+        }
+        function updateControls() {
+            const saved=activeSubmission(preview);
+            const changed=totalsChanged(preview,saved);
+            send.textContent=changed||preview?.submission?.withdrawn_at?'Resubmit Report':saved?'Report Submitted':'Submit Report';
+            send.disabled=saving||!preview||Boolean(saved&&!changed);
+            if(withdraw) {
+                withdraw.hidden=!saved;
+                withdraw.disabled=saving;
+            }
+        }
         async function refresh() {
             const request=++pending;
             preview=null;
-            send.disabled=true;
+            updateControls();
             if(!bhwDate.value){message.textContent='Choose a report date.';return;}
             message.textContent='Loading reported totals…';
             try {
                 const data=await json(endpoint+'?'+new URLSearchParams({date:bhwDate.value}));
                 if(request!==pending)return;
                 preview=data;
-                const totals=`${data.case_count} cases · ${data.consultation_count} consultations`;
-                const saved=data.submission;
-                const changed=saved&&(saved.case_count!==data.case_count||saved.consultation_count!==data.consultation_count);
-                message.textContent=saved ? `${totals}. Last submitted ${format(saved.submitted_at)}.${changed?' Totals have changed.':''}` : `${totals}. Awaiting submission.`;
-                send.textContent=changed?'Resubmit Report':saved?'Report Submitted':'Submit Report';
-                send.disabled=saving||Boolean(saved&&!changed);
+                const totals=data.case_count+' cases · '+data.consultation_count+' consultations';
+                const saved=activeSubmission(data);
+                if(saved)message.textContent=totals+'. Last submitted '+format(saved.submitted_at)+'.'+(totalsChanged(data,saved)?' Totals have changed.':'');
+                else if(data.submission?.withdrawn_at)message.textContent=totals+'. Submission withdrawn. Review and resubmit when ready.';
+                else message.textContent=totals+'. Awaiting submission.';
+                updateControls();
             } catch(error) {if(request===pending)message.textContent=error.message;}
         }
-        send.addEventListener('click',async()=>{
-            const data=preview;
-            if(saving||!data||data.date!==bhwDate.value)return;
-            if(!await Swal.fire({title:'Submit Daily Report?',text:`${data.date} · ${data.case_count} cases · ${data.consultation_count} consultations. Confirm the totals, including a zero-case day when reporting is complete.`,
-                icon:'question',showCancelButton:true,confirmButtonText:'Submit report'}).then(result=>result.isConfirmed))return;
-            if(data!==preview||data.date!==bhwDate.value)return;
+        async function postReport(url,body) {
             saving=true;
-            send.disabled=true;
+            updateControls();
             try {
-                await json(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({date:data.date,case_count:data.case_count,consultation_count:data.consultation_count})});
+                await json(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
                 await refresh();
             } catch(error) {
                 await refresh();
-                message.textContent=error.message;
+                if(bhwDate.value===body.date)message.textContent=error.message;
             } finally {
                 saving=false;
-                const s=preview?.submission;
-                send.disabled=!preview||Boolean(s&&s.case_count===preview.case_count&&s.consultation_count===preview.consultation_count);
+                updateControls();
             }
+        }
+        send.addEventListener('click',async()=>{
+            const data=preview;
+            if(send.disabled||!data||data.date!==bhwDate.value)return;
+            const result=await Swal.fire({title:'Submit daily report?',
+                text:data.date+' · '+data.case_count+' cases · '+data.consultation_count+' consultations. Confirm the totals when reporting is complete.',
+                icon:'question',showCancelButton:true,confirmButtonText:'Submit report'});
+            if(!result.isConfirmed||saving||data!==preview||data.date!==bhwDate.value)return;
+            await postReport(endpoint,{date:data.date,case_count:data.case_count,consultation_count:data.consultation_count});
+        });
+        withdraw?.addEventListener('click',async()=>{
+            const data=preview;
+            const saved=activeSubmission(data);
+            if(saving||!saved||data.date!==bhwDate.value)return;
+            const result=await Swal.fire({title:'Withdraw this submission?',
+                text:'Withdraw the report for '+data.date+' from Admin’s submitted list. You can review and resubmit it later.',
+                icon:'warning',showCancelButton:true,focusCancel:true,confirmButtonText:'Withdraw submission'});
+            if(!result.isConfirmed||saving||data!==preview||data.date!==bhwDate.value)return;
+            await postReport(endpoint+'/withdraw',{date:data.date,submitted_at:saved.submitted_at});
+            if(preview?.submission?.withdrawn_at&&document.activeElement===document.body)send.focus();
         });
         bhwDate.addEventListener('change',refresh);
         document.querySelector('[data-daily-today="bhw"]').addEventListener('click',()=>queueMicrotask(refresh));
@@ -65,12 +98,14 @@
 
     const adminDate=byId('admin-report-date');
     if(adminDate) {
+        const isSubmitted=row=>Boolean(row.submitted_at&&!row.withdrawn_at);
         const barangay=byId('admin-report-barangay'), body=byId('admin-report-rows'), message=byId('admin-report-status');
         let request=0, records=[], reportDate='';
         adminDate.value=adminDate.max=today();
         async function viewReport(row,date,status) {
             const details=[date,status];
-            if(row.submitted_at) {
+            if(row.withdrawn_at)details.push('Withdrawn '+format(row.withdrawn_at)+' Philippine time. The barangay can submit again.');
+            else if(row.submitted_at) {
                 details.push(`${row.case_count} cases · ${row.consultation_count} consultations`,
                     `Last submitted ${format(row.submitted_at)} Philippine time.`);
                 if(!row.has_pdf)details.push('This earlier submission saved totals only.');
@@ -91,10 +126,10 @@
             const list=records.filter(row=>!barangay.value||String(row.id)===barangay.value);
             body.replaceChildren();
             for(const row of list) {
-                const submitted=row.submitted_at!==null;
+                const submitted=isSubmitted(row);
                 const late=submitted&&dateAtSubmission(row.first_submitted_at)>reportDate;
                 const status=submitted?(row.case_count===0?'Submitted with zero cases':'Submitted')+(late?' · Late':'')
-                    :reportDate===today()?'Awaiting submission':'Missing';
+                    :row.withdrawn_at?'Withdrawn · Awaiting resubmission':reportDate===today()?'Awaiting submission':'Missing';
                 const tr=body.insertRow();
                 tr.className='border-b border-slate-200 dark:border-slate-800';
                 const date=reportDate;
@@ -107,11 +142,11 @@
                 const nameCell=tr.insertCell();
                 nameCell.className='p-3';
                 nameCell.append(open);
-                for(const value of [status,row.case_count??'—',row.consultation_count??'—',submitted?format(row.submitted_at):'—']) {
+                for(const value of [status,submitted?row.case_count:'—',submitted?row.consultation_count:'—',submitted?format(row.submitted_at):'—']) {
                     const cell=tr.insertCell();cell.className='p-3';cell.textContent=value;
                 }
             }
-            if(records.length)message.textContent=`${list.filter(row=>row.submitted_at).length} of ${list.length} barangays submitted.`;
+            if(records.length)message.textContent=`${list.filter(isSubmitted).length} of ${list.length} barangays submitted.`;
         }
         async function refresh() {
             const current=++request;
