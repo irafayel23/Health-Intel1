@@ -23,16 +23,16 @@ function openBhwTodayReport() {
     input.focus();
 }
 
-const bhwTrendPanels = {
-    dashboard: {chart:'bhwDashboardTrendChart', total:'bhw-dashboard-total', period:'bhw-dashboard-trend-period', status:'bhw-dashboard-trend-status'},
-    reports: {chart:'bhwChart', total:'stat-total', period:'bhw-trend-period', status:'bhw-trend-status'}
+const bhwTrendPanel = {
+    chart:'bhwDashboardTrendChart', total:'bhw-dashboard-total',
+    period:'bhw-dashboard-trend-period', status:'bhw-dashboard-trend-status'
 };
-const bhwTrendCharts = new Map();
+let bhwTrendChart;
 const bhwChartColor = () => document.documentElement.classList.contains('dark') ? '#2dd4bf' : '#0f766e';
 let bhwDatasetRequest;
-async function loadTrendChart(view = 'reports') {
-    if (bhwTrendCharts.has(view)) return;
-    const panel = bhwTrendPanels[view];
+async function loadTrendChart() {
+    if (bhwTrendChart) return;
+    const panel = bhwTrendPanel;
     try {
         // The authenticated endpoint resolves the scope from the BHW account.
         bhwDatasetRequest ??= fetch('http://localhost:3000/api/bhw/dataset-analytics').then(async res => {
@@ -44,7 +44,7 @@ async function loadTrendChart(view = 'reports') {
             return data;
         }).catch(error => { bhwDatasetRequest = undefined; throw error; });
         const data = await bhwDatasetRequest;
-        if (bhwTrendCharts.has(view)) return;
+        if (bhwTrendChart) return;
         const year = data.months.at(-1).label.slice(0, 4);
         const latest = data.months.filter(row => row.label.startsWith(year));
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -54,7 +54,7 @@ async function loadTrendChart(view = 'reports') {
         const canvas = document.getElementById(panel.chart);
         canvas.setAttribute('aria-label', data.filters.barangay + ', ' + year + ' historical monthly cases: ' + displayLabels.map((month, i) => month + ' ' + displayData[i]).join(', ') + '.');
         setBhwDashboardText(panel.period, (latest.length===1 ? displayLabels[0] : displayLabels[0]+'–'+displayLabels.at(-1))+' '+year);
-        const chart = new Chart(canvas.getContext('2d'), {
+        bhwTrendChart = new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: { labels: displayLabels, datasets: [{label:'Historical dataset cases', data:displayData, borderColor:bhwChartColor, backgroundColor:() => document.documentElement.classList.contains('dark') ? 'rgba(45,212,191,0.10)' : 'rgba(15,118,110,0.08)', pointBackgroundColor:bhwChartColor, pointRadius:3, pointHoverRadius:6, borderWidth:2, fill:true, tension:0}] },
             options: {
@@ -64,7 +64,6 @@ async function loadTrendChart(view = 'reports') {
                 scales:{y:{beginAtZero:true,ticks:{precision:0},title:{display:true,text:'Cases'}},x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:6},title:{display:true,text:'Month'}}}
             }
         });
-        bhwTrendCharts.set(view,chart);
         setBhwDashboardText(panel.status, '');
         document.getElementById(panel.status).hidden = true;
     } catch (error) {

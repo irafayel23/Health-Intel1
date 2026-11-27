@@ -204,11 +204,11 @@ test('BHW feature scripts initialize context, residents and charts without loadi
     p.s.openBhwTodayReport();await settle();
     assert.equal(p.elements['bhw-report-date'].value,p.s.HealthIntelDate.todayInManila());
     assert.equal(p.elements['view-reports'].classList.contains('hidden'),false);
-    assert.equal(p.elements['stat-total'].innerText,'40');
-    assert.equal(p.elements['bhw-trend-period'].innerText,'Jan 2026');
-    assert.equal(p.elements['bhw-trend-status'].hidden,true);
     assert.equal(p.elements['bhw-dashboard-trend-status'].hidden,true);
-    assert.match(p.elements.bhwChart.getAttribute('aria-label'),/Blumentritt/);
+    assert.match(p.elements.bhwDashboardTrendChart.getAttribute('aria-label'),/Blumentritt/);
+    assert.equal(p.elements.bhwChart,undefined);
+    assert.ok(p.elements['daily-submission-send']);
+    assert.ok(p.elements['bhw-report-month']);
     assert.equal(p.requests.filter(r=>r.url.endsWith('/api/bhw/dataset-analytics')).length,1);
     assert.ok(p.requests.some(r=>r.url.includes('/api/bhw/puroks')),'report filters load locations only when opened');
     assert.equal(p.elements['bhw-purok-filter'].children.length,1);

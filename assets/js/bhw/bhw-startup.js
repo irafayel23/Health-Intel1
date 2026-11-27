@@ -26,7 +26,6 @@
               view.classList.remove("hidden"); if(view.classList.contains("flex-col")){ view.classList.add("flex"); } else { view.classList.add("block"); }
 
           }
-          if (targetId === 'view-reports') loadTrendChart();
           if (targetId === 'view-dashboard') loadBhwDashboardCharts();
         });
       });
@@ -77,7 +76,7 @@
 
       function loadBhwDashboardCharts() {
         if (document.getElementById('view-dashboard')?.classList.contains('hidden')) return;
-        loadTrendChart('dashboard');
+        loadTrendChart();
         loadBhwVisitActivity();
       }
       window.addEventListener('health-intel:referrals-changed', () => {
