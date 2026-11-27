@@ -56,7 +56,7 @@ function page(file) {
             append(...nodes){e.children.push(...nodes);},prepend(node){e.children.unshift(node);},replaceChildren(...nodes){e.children=nodes;},reset(){},
             insertRow(){const row=element();row.insertCell=()=>{const cell=element();row.append(cell);return cell;};e.append(row);return row;},
             createTHead(){return element();},createTBody(){return element();},
-            isConnected:true,querySelector:()=>null,querySelectorAll:()=>[],closest:()=>null,getClientRects:()=>[],hasAttribute:k=>k in attributes,
+            isConnected:true,contains:node=>e===node||e.children.some(child=>child.contains?.(node)),querySelector:()=>null,querySelectorAll:()=>[],closest:()=>null,getClientRects:()=>[],hasAttribute:k=>k in attributes,
             getContext:()=>({createLinearGradient:()=>({addColorStop(){}})}),focus(){},scrollIntoView(){}};
         Object.defineProperty(e,'options',{get:()=>e.children});
         return e;
@@ -235,12 +235,17 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.ok(p.requests.slice(before).some(r=>r.url.includes('/api/patients/archived')),'returning to Resident Profiles keeps the open archive');
 });
 
-test('BHW sidebar renders saved visits and referrals inline and refreshes after saving',async()=>{
+test('BHW visit rows open a separate dialog with the selected details and referral actions',async()=>{
     const p=page('bhw.html'), base=p.s.response;
     p.load();
     const root=p.elements['bhw-visit-history'];
     const fields=Object.fromEntries(['status','list','pages','tools'].map(key=>[key,p.s.document.createElement('div')]));
     root.querySelector=selector=>fields[selector.slice(15,-1)];
+    const modal=p.elements['bhw-visit-detail-modal'];
+    const modalFields=Object.fromEntries(['name','initials','meta','status','details','error','close'].map(key=>[key,p.s.document.createElement('div')]));
+    modal.querySelector=selector=>modalFields[selector.slice('[data-visit-'.length,-1)]||null;
+    p.s.document.body.children=[p.elements['portal-main'],modal];
+    p.elements['portal-main'].contains=()=>false;
     vm.runInNewContext(fs.readFileSync(scriptPath('patient-referrals.js'),'utf8'),p.s);
     let visits=[];
     p.s.response=url=>url.startsWith('/api/bhw/intakes?')?{success:true,data:visits}:base(url);
@@ -255,17 +260,35 @@ test('BHW sidebar renders saved visits and referrals inline and refreshes after 
     p.s.dispatchEvent(new Event('health-intel:referrals-changed'));await settle();
     const textOf=node=>[node.textContent,...node.children.flatMap(textOf)];
     assert.ok(textOf(fields.list).includes('Fixture visit'));
-    assert.ok(textOf(fields.list).includes('Request referral'));
     const [row]=fields.list.children;
-    assert.equal(row.tagName,'details');
-    assert.equal(row.children[0].tagName,'summary');
-    assert.equal(row.open,false);
-    assert.ok(textOf(row.children[0]).includes('Visit saved'));
-    assert.ok(!textOf(row.children[0]).includes('Fixture concern'));
-    row.open=true;
-    fields.list.querySelectorAll=()=>fields.list.children.filter(item=>item.open);
+    assert.equal(row.tagName,'button');
+    assert.equal(row.getAttribute('aria-haspopup'),'dialog');
+    assert.ok(textOf(row).includes('Visit saved'));
+    assert.ok(!textOf(row).includes('Fixture concern'));
+    assert.equal(modal.classList.contains('hidden'),true);
+    row.focus=()=>{p.s.document.activeElement=row;};
+    modal.querySelector=selector=>selector==='[data-modal-initial-focus]'?modalFields.close:modalFields[selector.slice('[data-visit-'.length,-1)]||null;
+    modalFields.close.focus=()=>{p.s.document.activeElement=modalFields.close;};
+    row.onclick();
+    assert.equal(modal.classList.contains('hidden'),false);
+    assert.equal(p.elements['portal-main'].inert,true);
+    assert.equal(modalFields.name.textContent,'Fixture visit');
+    assert.equal(modalFields.status.textContent,'Visit saved');
+    assert.ok(textOf(modalFields.details).includes('Fixture concern'));
+    assert.ok(textOf(modalFields.details).includes('Request referral'));
+    assert.equal(p.s.document.activeElement,modalFields.close);
+    await modalFields.close.emit('click');
+    assert.equal(p.s.document.activeElement,row);
+    assert.equal(modal.classList.contains('hidden'),true);
+    assert.equal(Boolean(p.elements['portal-main'].inert),false);
+    visits=[{...visits[0],id:8,patient_name:'Other fixture',concern:'Other concern',state:'sent',sent_at:'2026-11-27T07:00:00Z',destination:'Fixture MHO',referral_reason:'Fixture referral'}];
     await fields.tools.children[0].onclick();
-    assert.equal(fields.list.children[0].open,true,'refresh preserves expanded rows on the current page');
+    fields.list.children[0].onclick();
+    assert.equal(modalFields.name.textContent,'Other fixture');
+    assert.ok(textOf(modalFields.details).includes('Other concern'));
+    assert.ok(!textOf(modalFields.details).includes('Fixture concern'));
+    assert.ok(textOf(modalFields.details).includes('Print referral slip'));
+    assert.ok(textOf(modalFields.details).includes('Referral timeline'));
     const workspace=p.html.slice(p.html.indexOf('id="view-patients"'),p.html.indexOf('id="view-resident-profiles"'));
     assert.doesNotMatch(workspace,/Search recorded cases|View visits and referrals/);
 });

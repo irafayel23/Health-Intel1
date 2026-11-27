@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-visit-rows" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-visit-dialog" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -430,6 +430,26 @@
       </div>
     </main>
 
+    <div id="bhw-visit-detail-modal" role="dialog" aria-modal="true" aria-labelledby="bhw-visit-detail-name" aria-describedby="bhw-visit-detail-meta" tabindex="-1" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center items-center p-4">
+      <div class="bhw-profile-dialog bhw-visit-dialog">
+        <header class="bhw-profile-header">
+          <span class="bhw-profile-avatar" data-visit-initials aria-hidden="true"></span>
+          <div class="bhw-profile-identity">
+            <h2 id="bhw-visit-detail-name" data-visit-name></h2>
+            <p id="bhw-visit-detail-meta" data-visit-meta></p>
+          </div>
+          <button type="button" data-visit-close data-modal-initial-focus aria-label="Close visit details" class="hi-vital-button bhw-profile-close">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </header>
+        <div class="bhw-profile-content">
+          <div class="bhw-visit-dialog-heading"><h3>Visit details</h3><span data-visit-status class="hi-referral-badge"></span></div>
+          <div data-visit-details class="bhw-visit-dialog-details"></div>
+          <p data-visit-error class="bhw-visit-history-status" role="status"></p>
+        </div>
+      </div>
+    </div>
+
     <!-- PATIENT PROFILE MODAL -->
     <div id="patientProfileModal" role="dialog" aria-modal="true" aria-labelledby="profile-name" tabindex="-1" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center items-center p-4 animate-in fade-in duration-200">
       <div class="hi-dossier bhw-profile-dialog">
@@ -481,7 +501,7 @@
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
-  <script src="assets/js/shared/patient-referrals.js?v=20261127-visit-rows"></script>
+  <script src="assets/js/shared/patient-referrals.js?v=20261127-visit-dialog"></script>
   <script src="assets/js/bhw/bhw-dialogs.js?v=20261127-birthdate-limit"></script>
     <script src="assets/js/shared/historical-reports.js?v=20261123-report-periods"></script>
     <script src="assets/js/shared/followup-tracking.js?v=20261126-referral-workspace"></script>

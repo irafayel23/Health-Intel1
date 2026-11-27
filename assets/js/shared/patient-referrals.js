@@ -48,20 +48,21 @@
     function stateLabel(row) {
         return row.state==='arrived' && row.assessed_at ? 'Awaiting outcome' : labels[row.state];
     }
-    function mountQueue(root,{role,firstPage=1,filters=()=>({}),emptyMessage=()=>'No records on this page.',patientHistory=false,compactRows=false}) {
+    function mountQueue(root,{role,firstPage=1,filters=()=>({}),emptyMessage=()=>'No records on this page.',patientHistory=false,visitDialog=null}) {
         const mho=role==='mho',base=mho?'/api/mho/referrals':'/api/bhw/intakes';
         const find=selector=>root.querySelector(selector);
         const status=find('[data-referral-status]');
         const list=find('[data-referral-list]');
         const pages=find('[data-referral-pages]');
+        const visitError=visitDialog?.querySelector('[data-visit-error]');
         let page=firstPage,revision=0;
-        function action(parent,label,run) {
+        function action(parent,label,run,errorStatus=status) {
             const button=add(parent,'button',label,buttonStyle);
             button.type='button';
             button.onclick=async()=>{
                 button.disabled=true;
                 try { await run(); }
-                catch (error) { status.textContent=error.message; }
+                catch (error) { errorStatus.textContent=error.message; }
                 finally { button.disabled=false; }
             };
             return button;
@@ -86,29 +87,52 @@
                     }catch(error){Swal.showValidationMessage(error.message);return false;}
                 }
             }).then(result=>{
-                if(result.isConfirmed)load(patientHistory);
+                if(!result.isConfirmed)return;
+                if(visitDialog)HealthIntelModal.close(visitDialog);
+                load(patientHistory);
             });
         }
-        function render(row, expanded) {
-            const item=add(list,compactRows?'details':'article','',compactRows?'bhw-visit-row':'hi-referral-card');
-            let card=item;
-            if(compactRows){
-                item.dataset.visitId=String(row.id);
-                item.open=expanded.has(item.dataset.visitId);
-                const summary=add(item,'summary','');
-                const identity=add(summary,'span',row.patient_name,'bhw-visit-row-name');
+        function showVisit(row,button) {
+            const name=row.patient_name?.trim()||'Name not recorded';
+            const initials=name.trim().split(/\s+/).map(part=>part[0]);
+            visitDialog.querySelector('[data-visit-initials]').textContent=(initials[0]+(initials.length>1?initials.at(-1):'')).toUpperCase();
+            visitDialog.querySelector('[data-visit-name]').textContent=name;
+            visitDialog.querySelector('[data-visit-meta]').textContent=[ '#INT-'+row.id, formatDay(row.visit_date), row.barangay_name ].filter(Boolean).join(' · ');
+            const badge=visitDialog.querySelector('[data-visit-status]');
+            badge.textContent=stateLabel(row);
+            badge.dataset.state=row.state;
+            const details=visitDialog.querySelector('[data-visit-details]');
+            details.replaceChildren();
+            visitError.textContent='';
+            renderDetails(details,row,visitError);
+            details.parentElement.scrollTop=0;
+            button.focus({preventScroll:true});
+            HealthIntelModal.open(visitDialog);
+        }
+        function render(row) {
+            if(visitDialog){
+                const button=add(list,'button','','bhw-visit-row');
+                button.type='button';
+                button.dataset.visitId=String(row.id);
+                button.setAttribute('aria-haspopup','dialog');
+                button.setAttribute('aria-controls',visitDialog.id);
+                const identity=add(button,'span',row.patient_name||'Name not recorded','bhw-visit-row-name');
                 add(identity,'small','#INT-'+row.id);
-                add(summary,'span',formatDay(row.visit_date),'bhw-visit-row-date');
-                add(summary,'span',stateLabel(row),'hi-referral-badge').dataset.state=row.state;
-                add(summary,'span','','bhw-visit-row-chevron').setAttribute('aria-hidden','true');
-                card=add(item,'div','','bhw-visit-row-detail');
-            }else{
-                const header=add(card,'div','','hi-referral-card-header');
-                const identity=add(header,'div','');
-                add(identity,'h3',patientHistory?formatDay(row.visit_date):row.patient_name);
-                add(identity,'p',patientHistory?'#INT-'+row.id:'#INT-'+row.id+' · '+row.barangay_name+' · '+formatDay(row.visit_date),'hi-referral-meta');
-                add(header,'span',stateLabel(row),'hi-referral-badge').dataset.state=row.state;
+                add(button,'span',formatDay(row.visit_date),'bhw-visit-row-date');
+                add(button,'span',stateLabel(row),'hi-referral-badge').dataset.state=row.state;
+                add(button,'span','','bhw-visit-row-chevron').setAttribute('aria-hidden','true');
+                button.onclick=()=>showVisit(row,button);
+                return;
             }
+            const card=add(list,'article','','hi-referral-card');
+            const header=add(card,'div','','hi-referral-card-header');
+            const identity=add(header,'div','');
+            add(identity,'h3',patientHistory?formatDay(row.visit_date):row.patient_name);
+            add(identity,'p',patientHistory?'#INT-'+row.id:'#INT-'+row.id+' · '+row.barangay_name+' · '+formatDay(row.visit_date),'hi-referral-meta');
+            add(header,'span',stateLabel(row),'hi-referral-badge').dataset.state=row.state;
+            renderDetails(card,row);
+        }
+        function renderDetails(card,row,errorStatus=status) {
             const concern=add(card,'div','','hi-referral-concern');
             add(concern,'strong','Reason for visit');
             add(concern,'p',row.concern);
@@ -145,7 +169,7 @@
                     primary('Complete follow-up',()=>note(row,'follow_up_done','Complete follow-up','Follow-up result'));
                 }
             }
-            if(row.sent_at)action(buttons,'Print referral slip',()=>printSlip(row));
+            if(row.sent_at)action(buttons,'Print referral slip',()=>printSlip(row),errorStatus);
         }
         function summarize(visit, referral) {
             if (!patientHistory) return;
@@ -168,14 +192,13 @@
                 const result=await request(base+'?'+query);
                 if(!root.isConnected||revision!==current)return;
                 if(!result.data.length&&targetPage>1)return load(false,targetPage-1);
-                const expanded=compactRows && page===targetPage ? new Set([...list.querySelectorAll('details[open]')].map(row=>row.dataset.visitId)) : new Set();
-                const focusedVisit=compactRows ? document.activeElement?.closest('.bhw-visit-row')?.dataset.visitId : null;
+                const focusedVisit=visitDialog ? document.activeElement?.closest('.bhw-visit-row')?.dataset.visitId : null;
                 page=targetPage;
                 list.replaceChildren();pages.replaceChildren();
                 status.textContent=result.data.length?'':emptyMessage();
                 if(targetPage===1)summarize(result.data.length?formatDay(result.data[0].visit_date):null,result.current_referral || 'No referral recorded');
-                for(const row of result.data)render(row,expanded);
-                if(focusedVisit)list.querySelector('details[data-visit-id="'+focusedVisit+'"] > summary')?.focus({preventScroll:true});
+                result.data.forEach(render);
+                if(focusedVisit)(list.querySelector('button[data-visit-id="'+focusedVisit+'"]')||refresh).focus({preventScroll:true});
                 if(page>1)action(pages,'Previous',()=>load(false,page-1));
                 if(result.has_more)action(pages,'Next',()=>load(false,page+1));
                 return result.data.length;
@@ -217,8 +240,10 @@
         const root=document.getElementById('bhw-visit-history');
         if(!root)return;
         const workspace=document.getElementById('view-patients');
+        const visitDialog=document.getElementById('bhw-visit-detail-modal');
+        visitDialog?.querySelector('[data-visit-close]').addEventListener('click',()=>HealthIntelModal.close(visitDialog));
         const queue=mountQueue(root,{
-            role:'bhw',compactRows:true,emptyMessage:()=> 'No visits or referrals recorded for your barangay yet.'
+            role:'bhw',visitDialog,emptyMessage:()=> 'No visits or referrals recorded for your barangay yet.'
         });
         document.querySelector('[data-target="view-patients"]').addEventListener('click',()=>queue.load(true));
         window.addEventListener('health-intel:referrals-changed',event=>{
