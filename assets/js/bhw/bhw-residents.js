@@ -106,7 +106,7 @@
                 <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${escapeText(res.purok)} | ${res.is_deceased?'Historical profile':escapeText(residentAge ?? 'N/A')+' yrs'}</p>
 
                 <button type="button" onclick="viewPatientProfile('${Number(res.id)}')" class="bhw-dossier-link w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors">
-                  View Medical Dossier
+                  View resident record
                   <small>(${caseCount} ${caseCount===1?'Record':'Records'})</small>
                 </button>
               </div>
@@ -213,7 +213,7 @@
                         <p class="bhw-previous-case-meta"><span>${escapeText(record.status === "Deceased" ? "Historical outcome" : record.status || "Status not recorded")}</span>${record.remarks ? " · "+escapeText(record.remarks) : ""}</p>
                       </div>
                       <button type="button" class="hi-vital-button" onclick="HealthIntelVisits.show(${Number(record.id)})" aria-label="View visits for case REC-${Number(record.id)}">View visits</button>
-                    </li>`).join("") : '<li class="bhw-previous-case-empty">No previous cases are linked to this patient.</li>';
+                    </li>`).join("") : '<li class="bhw-previous-case-empty">No cases are linked to this patient.</li>';
                   HealthIntelCaseDownload.mount(document.getElementById("bhw-case-download"), history, selectedCase);
                   document.getElementById("bhw-profile-case-count").textContent = String(history.length);
                   bhwProfileTabTouched = false;
