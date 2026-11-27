@@ -558,7 +558,7 @@ body :is(.nav-menu, .swal2-html-container, .swal2-popup, .heatmap-info-panel)::-
 .hi-bhw-entry-dialog .hi-bhw-entry-note { margin: 0 auto 0 0; flex: 1 1 240px; text-align: start; font-size: 14px; color: var(--hi-form-text); }
 .hi-bhw-entry-dialog.swal2-popup .swal2-validation-message { order: 1; margin: 0; padding: 10px var(--bhw-entry-padding); text-align: start; color: var(--bhw-entry-error); background: color-mix(in srgb, var(--bhw-entry-error) 7%, var(--hi-form-bg)); }
 @media (min-width: 900px) {
-  .hi-bhw-entry-dialog .hi-bhw-patient-step > .hi-encode-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .hi-bhw-entry-dialog .hi-bhw-patient-step > .hi-encode-grid { grid-template-columns: minmax(12.75rem, 1fr) repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
   .hi-bhw-entry-dialog.hi-encode-dialog.swal2-popup { --bhw-entry-padding: 16px; }
