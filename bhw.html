@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-referral-summary" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-referral-card-click" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -152,15 +152,16 @@
               <p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Historical dataset · All years</p>
             </section>
             <section aria-labelledby="bhw-referral-summary-title" class="bhw-referral-summary rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 p-4 shadow-sm min-w-0">
-              <h2 id="bhw-referral-summary-title" class="text-sm font-semibold text-teal-900 dark:text-teal-100">Visits and referrals</h2>
-              <dl class="bhw-referral-counts" aria-live="polite">
+              <h2 id="bhw-referral-summary-title" class="text-sm font-semibold text-teal-900 dark:text-teal-100">
+                <button type="button" class="bhw-referral-summary-link" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog" aria-describedby="bhw-referral-counts">
+                  <span>Visits and referrals</span><i data-lucide="chevron-right" class="w-4 h-4 shrink-0" aria-hidden="true"></i>
+                </button>
+              </h2>
+              <dl id="bhw-referral-counts" class="bhw-referral-counts" aria-live="polite">
                 <div><dt>Open referrals</dt><dd id="bhw-open-referrals">—</dd></div>
                 <div><dt>Assigned follow-ups</dt><dd id="bhw-assigned-followups">—</dd></div>
               </dl>
               <p id="bhw-referral-summary-status" class="hi-field-help" role="status" hidden>Counts unavailable.</p>
-              <button type="button" class="hi-referral-trigger bhw-referral-summary-link" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog">
-                <i data-lucide="clipboard-list" class="w-4 h-4" aria-hidden="true"></i><span>View visits and referrals</span>
-              </button>
             </section>
             <section role="button" tabindex="0" onclick="openFilteredPatientRecords('Cleared','')" onkeydown="if(event.key==='Enter' || event.key===' '){event.preventDefault();this.click()}" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm min-w-0">
               <h2 class="text-sm font-medium text-slate-700 dark:text-slate-300">Cleared cases</h2>

@@ -746,12 +746,14 @@ body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-
   body.hi-portal .bhw-page-scroll::-webkit-scrollbar { display: initial; }
 }
 
-.bhw-referral-summary { display: flex; flex-direction: column; gap: .75rem; }
+.bhw-referral-summary { position: relative; display: flex; flex-direction: column; gap: .75rem; }
+.bhw-referral-summary:hover { box-shadow: inset 0 0 0 1px #0d9488; }
 .bhw-referral-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 6.5rem), 1fr)); gap: .5rem; }
 .bhw-referral-counts > div { display: flex; flex-direction: column; gap: .15rem; }
 .bhw-referral-counts dt { font-size: .75rem; }
 .bhw-referral-counts dd { order: -1; margin: 0; font-size: 1.5rem; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; }
-.bhw-referral-summary .bhw-referral-summary-link { align-self: flex-start; max-width: 100%; margin-top: auto; padding-inline: .6rem; text-align: left; }
-.bhw-referral-summary-link svg { flex: none; }
-.bhw-referral-summary-link:focus-visible { outline: 2px solid #0d9488; outline-offset: 3px; }
+.bhw-referral-summary-link { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; text-align: left; }
+.bhw-referral-summary-link::after { content: ""; position: absolute; inset: 0; cursor: pointer; border-radius: 1rem; }
+.bhw-referral-summary-link:focus-visible { outline: none; }
+.bhw-referral-summary-link:focus-visible::after { outline: 2px solid #0d9488; outline-offset: 3px; }
 .bhw-followup-summary-status:empty { display: none; }
