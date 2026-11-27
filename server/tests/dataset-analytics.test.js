@@ -109,7 +109,8 @@ test('portal markup keeps existing operational widgets within their view and pre
    if(!['input','img','br','hr','meta','link','source','area','base','wbr'].includes(match[1]))stack.push({tag:match[1],id});
   }
   const dashboard = role==='bhw'?'bhw-dashboard-content':'operational-analytics';
-  assert(parents.get('stat-total').includes(dashboard));
+  assert(parents.get('stat-total').includes(role==='bhw'?'view-reports':dashboard));
+  if(role==='bhw')assert(parents.get('bhwChart').includes('view-reports'));
   assert(!parents.get('view-predictive').includes(dashboard));
   assert(!parents.get('view-predictive').includes(role==='bhw'?'view-dashboard':'view-analytics'));
  }

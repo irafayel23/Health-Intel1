@@ -14,7 +14,7 @@
     <script src="assets/js/shared/case-corrections.js?v=20261116-placeholder"></script>
     <script src="assets/js/shared/date-format.js"></script>
     <script src="assets/js/shared/daily-report-controls.js"></script>
-    <script defer src="assets/js/shared/daily-submissions.js?v=20261127-withdraw"></script>
+    <script defer src="assets/js/shared/daily-submissions.js?v=20261127-daily-workspace"></script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="assets/img/Health-Intel-Symbol.png?v=20261003" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-referral-card-click" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-daily-workspace" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -137,7 +137,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="min-w-0">
               <h1 id="bhw-dashboard-welcome" class="text-3xl font-bold tracking-tight text-emerald-800 dark:text-emerald-300">Welcome back</h1>
-              <p id="dynamic-dashboard-subtitle" class="text-sm text-slate-700 dark:text-slate-300 mt-2">Your recorded cases, trends and everyday tools.</p>
+              <p id="dynamic-dashboard-subtitle" class="text-sm text-slate-700 dark:text-slate-300 mt-2">Manage visits, follow-ups and reports for your barangay.</p>
             </div>
             <button id="bhw-dashboard-add" type="button" onclick="openAddPatientModal()" class="self-start sm:self-center inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 shrink-0">
               <i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i>Record patient visit
@@ -145,13 +145,8 @@
           </div>
 
           <div id="bhw-dashboard-content" class="space-y-5">
-          <div class="grid grid-cols-2 xl:grid-cols-4 gap-3" aria-label="Barangay case totals">
-            <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm min-w-0">
-              <h2 class="text-sm font-medium text-slate-700 dark:text-slate-300">Recorded cases</h2>
-              <div id="stat-total" class="text-3xl font-bold tracking-tight tabular-nums text-slate-950 dark:text-slate-50 mt-2">—</div>
-              <p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Historical dataset · All years</p>
-            </section>
-            <section aria-labelledby="bhw-referral-summary-title" class="bhw-referral-summary rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 p-4 shadow-sm min-w-0">
+            <div class="bhw-task-grid" aria-label="Barangay work today">
+            <section aria-labelledby="bhw-referral-summary-title" class="bhw-task-card bhw-referral-summary rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 p-4 sm:p-5 shadow-sm min-w-0">
               <h2 id="bhw-referral-summary-title" class="text-sm font-semibold text-teal-900 dark:text-teal-100">
                 <button type="button" class="bhw-referral-summary-link" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog" aria-describedby="bhw-referral-counts">
                   <span>Visits and referrals</span><i data-lucide="chevron-right" class="w-4 h-4 shrink-0" aria-hidden="true"></i>
@@ -163,60 +158,34 @@
               </dl>
               <p id="bhw-referral-summary-status" class="hi-field-help" role="status" hidden>Counts unavailable.</p>
             </section>
-            <section role="button" tabindex="0" onclick="openFilteredPatientRecords('Cleared','')" onkeydown="if(event.key==='Enter' || event.key===' '){event.preventDefault();this.click()}" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm min-w-0">
-              <h2 class="text-sm font-medium text-slate-700 dark:text-slate-300">Cleared cases</h2>
-              <div id="stat-cleared" class="text-3xl font-bold tracking-tight tabular-nums text-slate-950 dark:text-slate-50 mt-2">—</div>
-              <p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Live records · Marked cleared</p>
-            </section>
-            <section role="button" tabindex="0" onclick="openFilteredPatientRecords('Active','High Risk')" onkeydown="if(event.key==='Enter' || event.key===' '){event.preventDefault();this.click()}" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm min-w-0">
-              <h2 class="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between gap-1">High risk<i data-lucide="shield-alert" class="w-4 h-4 text-rose-700 dark:text-rose-300" aria-hidden="true"></i></h2>
-              <div id="stat-high-risk" class="text-3xl font-bold tracking-tight tabular-nums text-slate-950 dark:text-slate-50 mt-2">—</div>
-              <p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Live records · Active severity</p>
-            </section>
-          </div>
-          <p id="bhw-dashboard-status" role="status" aria-live="polite" class="text-xs text-slate-700 dark:text-slate-300">Loading your assigned-barangay totals…</p>
-          <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 shadow-sm flex flex-wrap items-center gap-x-4 gap-y-2" aria-labelledby="bhw-dashboard-followup-title">
-            <h2 id="bhw-dashboard-followup-title" class="text-sm font-semibold text-slate-950 dark:text-slate-50">Scheduled follow-ups</h2>
-            <div class="flex flex-wrap gap-2" aria-live="polite">
-              <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="today"><strong id="bhw-dashboard-followup-today">—</strong> Due today</button>
-              <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="past"><strong id="bhw-dashboard-followup-past">—</strong> Past due</button>
-            </div>
-            <p id="bhw-dashboard-followup-status" class="hi-field-help bhw-followup-summary-status" role="status"></p>
-          </section>
-
-          <div class="grid grid-cols-1 xl:grid-cols-[minmax(0,1.8fr)_minmax(250px,1fr)] gap-5 items-start">
-            <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm min-w-0" aria-labelledby="bhw-trend-heading">
-              <div class="flex items-start justify-between gap-3 mb-4">
-                <div><h2 id="bhw-trend-heading" class="text-base font-semibold text-slate-950 dark:text-slate-50">Disease trend</h2><p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Historical dataset counts in your barangay</p></div>
-                <span id="bhw-trend-period" class="rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 shrink-0">Latest dataset year</span>
+            <section class="bhw-task-card rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm min-w-0" aria-labelledby="bhw-dashboard-followup-title">
+              <h2 id="bhw-dashboard-followup-title" class="text-sm font-semibold">Scheduled follow-ups</h2>
+              <div class="bhw-followup-actions" aria-live="polite">
+                <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="today"><strong id="bhw-dashboard-followup-today">—</strong> Due today</button>
+                <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="past"><strong id="bhw-dashboard-followup-past">—</strong> Past due</button>
               </div>
-              <div class="relative h-[250px] sm:h-[280px] w-full"><canvas id="bhwChart" role="img" aria-label="Historical monthly disease cases. Loading chart."></canvas></div>
-              <p id="bhw-trend-status" role="status" class="text-xs text-slate-700 dark:text-slate-300 mt-3">Loading historical monthly counts…</p>
+              <p id="bhw-dashboard-followup-status" class="hi-field-help bhw-followup-summary-status" role="status"></p>
             </section>
-
-            <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm min-w-0" aria-labelledby="bhw-severity-heading">
-              <h2 id="bhw-severity-heading" class="text-base font-semibold text-slate-950 dark:text-slate-50">Recorded severity · Live</h2>
-              <div class="flex items-baseline gap-2 mt-3"><strong id="bd-active" class="text-3xl font-bold tracking-tight tabular-nums text-slate-950 dark:text-slate-50">—</strong><span class="text-sm text-slate-700 dark:text-slate-300">active cases</span></div>
-              <div id="bhw-severity-bar" class="flex h-2.5 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 mt-4" role="img" aria-label="Recorded severity distribution loading">
-                <span id="bhw-mild-bar" class="bg-teal-600 dark:bg-teal-400"></span><span id="bhw-monitored-bar" class="bg-blue-600 dark:bg-blue-400"></span><span id="bhw-high-bar" class="bg-rose-700 dark:bg-rose-400"></span><span id="bhw-unknown-bar" class="bg-slate-400"></span>
+            <section class="bhw-task-card rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm min-w-0" aria-labelledby="bhw-dashboard-report-title">
+              <h2 id="bhw-dashboard-report-title" class="text-sm font-semibold">
+                <button type="button" class="bhw-task-link" onclick="openBhwTodayReport()" aria-describedby="bhw-dashboard-report-status">
+                  <span>Daily barangay report</span><i data-lucide="chevron-right" class="w-4 h-4 shrink-0" aria-hidden="true"></i>
+                </button>
+              </h2>
+              <div>
+                <p id="bhw-dashboard-report-status" class="bhw-report-summary-status" role="status" data-state="loading">Checking status…</p>
+                <p id="bhw-dashboard-report-date" class="text-xs text-[hsl(var(--muted-foreground))] mt-2"></p>
               </div>
-              <dl class="space-y-4 mt-5 text-sm text-slate-800 dark:text-slate-200">
-                <div class="flex justify-between gap-4"><dt class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-teal-600 dark:bg-teal-400" aria-hidden="true"></span>Mild</dt><dd id="bd-mild" class="font-semibold tabular-nums">—</dd></div>
-                <div class="flex justify-between gap-4"><dt class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400" aria-hidden="true"></span>Monitored</dt><dd id="bd-monitored" class="font-semibold tabular-nums">—</dd></div>
-                <div class="flex justify-between gap-4"><dt class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-700 dark:bg-rose-400" aria-hidden="true"></span>High risk</dt><dd id="bd-high" class="font-semibold tabular-nums">—</dd></div>
-                <div id="bhw-unknown-severity" class="hidden flex justify-between gap-4" hidden><dt>Not classified</dt><dd id="bd-unknown" class="font-semibold tabular-nums">—</dd></div>
-              </dl>
-              <p class="text-xs text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-slate-700 pt-4 mt-5 leading-relaxed">Severity describes active cases; it is separate from case status. <span id="bd-cleared" class="font-semibold tabular-nums">—</span> cases are marked cleared.</p>
             </section>
-          </div>
-
-          <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm" aria-labelledby="bhw-quick-heading">
-            <h2 id="bhw-quick-heading" class="text-base font-semibold text-slate-950 dark:text-slate-50 mb-4">Quick access</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button type="button" onclick="openBhwDashboardView('view-patients')" class="text-left flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:bg-teal-50 dark:hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"><i data-lucide="users" class="w-5 h-5 shrink-0 text-teal-800 dark:text-teal-300" aria-hidden="true"></i><span><span class="block text-sm font-semibold text-slate-950 dark:text-slate-50">Patient records</span><span class="block text-xs text-slate-700 dark:text-slate-300 mt-1">Search and open case histories</span></span></button>
-              <button type="button" onclick="openBhwDashboardView('view-reports')" class="text-left flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:bg-teal-50 dark:hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"><i data-lucide="file-text" class="w-5 h-5 shrink-0 text-teal-800 dark:text-teal-300" aria-hidden="true"></i><span><span class="block text-sm font-semibold text-slate-950 dark:text-slate-50">Barangay reports</span><span class="block text-xs text-slate-700 dark:text-slate-300 mt-1">Open monthly reporting tools</span></span></button>
             </div>
-          </section>
+
+            <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm" aria-labelledby="bhw-quick-heading">
+              <h2 id="bhw-quick-heading" class="text-base font-semibold mb-3">Quick access</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button type="button" onclick="openBhwDashboardView('view-patients')" class="bhw-quick-link"><i data-lucide="clipboard-list" class="w-5 h-5 shrink-0 text-teal-800 dark:text-teal-300" aria-hidden="true"></i><span><strong>Patient records</strong><small>Find cases and consultation history</small></span><i data-lucide="chevron-right" class="w-4 h-4 shrink-0" aria-hidden="true"></i></button>
+              <button type="button" onclick="openBhwDashboardView('view-resident-profiles')" class="bhw-quick-link"><i data-lucide="users" class="w-5 h-5 shrink-0 text-teal-800 dark:text-teal-300" aria-hidden="true"></i><span><strong>Resident profiles</strong><small>Find residents in your barangay</small></span><i data-lucide="chevron-right" class="w-4 h-4 shrink-0" aria-hidden="true"></i></button>
+              </div>
+            </section>
           </div>
         </div>
 
@@ -416,6 +385,15 @@
             </div>
 
           </div>
+            <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm mt-6 min-w-0" aria-labelledby="bhw-trend-heading">
+              <div class="bhw-history-heading">
+                <div><h2 id="bhw-trend-heading" class="text-base font-semibold text-slate-950 dark:text-slate-50">Historical case trend</h2><p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Monthly case counts in the demonstration dataset</p></div>
+                <div class="bhw-history-total"><strong id="stat-total">—</strong><span>Historical cases · All years</span></div>
+                <span id="bhw-trend-period" class="rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 shrink-0">Latest dataset year</span>
+              </div>
+              <div class="relative h-[250px] sm:h-[280px] w-full"><canvas id="bhwChart" role="img" aria-label="Historical monthly disease cases. Loading chart."></canvas></div>
+              <p id="bhw-trend-status" role="status" class="text-xs text-slate-700 dark:text-slate-300 mt-3">Loading historical monthly counts…</p>
+            </section>
         </div>
         
       </div>
@@ -499,11 +477,11 @@
     <!-- UI Interaction Scripts -->
     <script src="assets/js/bhw/bhw-shell.js?v=20261108-bhw-icons"></script>
 
-    <script src="assets/js/bhw/bhw-records.js?v=20261126-intakes"></script>
+    <script src="assets/js/bhw/bhw-records.js?v=20261127-daily-workspace"></script>
     <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
     <script src="assets/js/bhw/bhw-residents.js?v=20261119-mobile-invite"></script>
-    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-referral-summary"></script>
-    <script src="assets/js/bhw/bhw-startup.js?v=20261125-polish"></script>
+    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-daily-workspace"></script>
+    <script src="assets/js/bhw/bhw-startup.js?v=20261127-daily-workspace"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>

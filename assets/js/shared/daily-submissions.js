@@ -20,6 +20,28 @@
         const withdraw=byId('daily-submission-withdraw');
         const message=byId('daily-submission-status');
         const endpoint='/api/bhw/reports/daily-submission';
+        const dashboard=byId('view-dashboard');
+        const dashboardStatus=byId('bhw-dashboard-report-status');
+        const dashboardDate=byId('bhw-dashboard-report-date');
+        const reportFor=date=>json(endpoint+'?'+new URLSearchParams({date}));
+        let dashboardRequest=0;
+        async function refreshDashboard() {
+            if(!dashboardStatus||dashboard.classList.contains('hidden'))return;
+            const request=++dashboardRequest, date=today();
+            dashboardDate.textContent=HealthIntelDate.formatCaseDate(date);
+            try {
+                const data=await reportFor(date);
+                if(request!==dashboardRequest)return;
+                const saved=activeSubmission(data);
+                const changed=totalsChanged(data,saved);
+                dashboardStatus.dataset.state=changed?'changed':saved?'submitted':data.submission?.withdrawn_at?'withdrawn':'pending';
+                dashboardStatus.textContent=changed?'Update ready to submit':saved?'Submitted':data.submission?.withdrawn_at?'Withdrawn':'Awaiting submission';
+            } catch {
+                if(request!==dashboardRequest)return;
+                dashboardStatus.dataset.state='unavailable';
+                dashboardStatus.textContent='Status unavailable';
+            }
+        }
         let pending=0, preview, saving=false;
         function activeSubmission(data) {
             return data?.submission?.withdrawn_at ? null : data?.submission;
@@ -44,7 +66,7 @@
             if(!bhwDate.value){message.textContent='Choose a report date.';return;}
             message.textContent='Loading reported totals…';
             try {
-                const data=await json(endpoint+'?'+new URLSearchParams({date:bhwDate.value}));
+                const data=await reportFor(bhwDate.value);
                 if(request!==pending)return;
                 preview=data;
                 const totals=data.case_count+' cases · '+data.consultation_count+' consultations';
@@ -93,7 +115,13 @@
         document.querySelector('[data-daily-today="bhw"]').addEventListener('click',()=>queueMicrotask(refresh));
         document.querySelector('[data-target="view-reports"]').addEventListener('click',refresh);
         window.addEventListener('hashchange',()=>{if(location.hash==='#view-reports')refresh();});
-        window.addEventListener('DOMContentLoaded',()=>{if(location.hash==='#view-reports')refresh();});
+        document.querySelector('[data-target="view-dashboard"]')?.addEventListener('click',refreshDashboard);
+        window.addEventListener('focus',refreshDashboard);
+        window.addEventListener('health-intel:cases-changed',refreshDashboard);
+        window.addEventListener('DOMContentLoaded',()=>{
+            if(location.hash==='#view-reports')refresh();
+            else if(!location.hash||location.hash==='#view-dashboard')refreshDashboard();
+        });
     }
 
     const adminDate=byId('admin-report-date');

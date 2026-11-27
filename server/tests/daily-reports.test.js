@@ -82,3 +82,29 @@ test('failed daily reports return an honest error and audit failure without data
         assert.equal(audits[0][2],'Report Export Failed');
     }finally{await new Promise(r=>server.close(r));}
 });
+
+test('BHW dashboard previews the current Philippine date and reflects report status',async()=>{
+    const vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+    const controls=new Map(), events={}, calls=[];
+    const element=()=>({value:'',dataset:{},classList:{contains:()=>false},addEventListener(){}});
+    const ids=['view-dashboard','bhw-report-date','daily-submission-send','daily-submission-status','bhw-dashboard-report-status','bhw-dashboard-report-date'];
+    ids.forEach(id=>controls.set(id,element()));
+    controls.get('bhw-report-date').value='2026-11-25';
+    const date='2026-11-27', current={case_count:2,consultation_count:3},saved={...current,submitted_at:'2026-11-27T04:19:00Z'};
+    let submission=null,responseOk=true;
+    const sandbox={URLSearchParams,Intl,Date,location:{hash:'#view-dashboard'},
+        document:{getElementById:id=>controls.get(id),querySelector:element},
+        window:{addEventListener:(name,fn)=>events[name]=fn},
+        HealthIntelDate:{todayInManila:()=>date,formatCaseDate:value=>value},
+        fetch:async(url)=>{calls.push(url);return {ok:responseOk,json:async()=>({...current,submission})};}
+    };
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared/daily-submissions.js'),'utf8'),sandbox);
+    const status=controls.get('bhw-dashboard-report-status');
+    for(const [version,expected] of [[null,'Awaiting submission'],[saved,'Submitted'],[{...saved,case_count:1},'Update ready to submit'],[{...saved,withdrawn_at:saved.submitted_at},'Withdrawn']]){
+        submission=version;await events.focus();assert.equal(status.textContent,expected);
+    }
+    assert.ok(calls.every(url=>url.endsWith('?date='+date)));
+    assert.equal(controls.get('bhw-dashboard-report-date').textContent,date);
+    assert.equal(controls.get('bhw-report-date').value,'2026-11-25');
+    responseOk=false;await events.focus();assert.equal(status.textContent,'Status unavailable');
+});

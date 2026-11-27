@@ -27,6 +27,7 @@
               view.classList.remove("hidden"); if(view.classList.contains("flex-col")){ view.classList.add("flex"); } else { view.classList.add("block"); }
 
           }
+          if (targetId === 'view-reports') loadTrendChart();
         });
       });
 
@@ -74,7 +75,7 @@
 
       window.addEventListener('health-intel:case-corrected', () => {
           // The correction dialog also emits cases-changed for supporting views.
-          loadPatients(); loadDashboardStats(); loadTrendChart();
+          loadPatients();
       });
       window.addEventListener('health-intel:cases-changed', refreshBHWSupportingViews);
 
@@ -99,7 +100,5 @@
           } catch(e) { console.error("Error fetching context:", e); }
         }
 
-        loadDashboardStats();
-        loadTrendChart();
         // Hidden record and resident views load when opened.
       });

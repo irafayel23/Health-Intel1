@@ -746,14 +746,38 @@ body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-
   body.hi-portal .bhw-page-scroll::-webkit-scrollbar { display: initial; }
 }
 
-.bhw-referral-summary { position: relative; display: flex; flex-direction: column; gap: .75rem; }
-.bhw-referral-summary:hover { box-shadow: inset 0 0 0 1px #0d9488; }
+.bhw-task-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1rem; }
+.bhw-task-card { position: relative; display: flex; flex-direction: column; gap: .85rem; color: hsl(var(--foreground)); }
+.bhw-referral-summary:hover, .bhw-task-card:has(.bhw-task-link:hover) { box-shadow: inset 0 0 0 1px #0d9488; }
+.bhw-followup-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.bhw-followup-actions button { min-height: 44px; }
+.bhw-report-summary-status { display: inline-block; padding: .3rem .65rem; background: hsl(var(--muted)); border-radius: .5rem; font-size: .8rem; font-weight: 600; }
+.bhw-report-summary-status[data-state="submitted"] { background: #ccfbf1; color: #115e59; }
+.bhw-report-summary-status:is([data-state="pending"], [data-state="withdrawn"], [data-state="changed"]) { background: #fef3c7; color: #78350f; }
+.dark .bhw-report-summary-status[data-state="submitted"] { background: #134e4a; color: #ccfbf1; }
+.dark .bhw-report-summary-status:is([data-state="pending"], [data-state="withdrawn"], [data-state="changed"]) { background: #451a03; color: #fde68a; }
+.bhw-quick-link { display: flex; align-items: center; gap: .75rem; padding: .85rem 1rem; border: 1px solid hsl(var(--border)); border-radius: .75rem; text-align: left; }
+.bhw-quick-link:hover { background: hsl(var(--muted)); }
+.bhw-quick-link > span { flex: 1; }
+.bhw-quick-link strong, .bhw-quick-link small { display: block; }
+.bhw-quick-link strong { font-size: .875rem; }
+.bhw-quick-link small { margin-top: .15rem; color: hsl(var(--muted-foreground)); font-size: .75rem; }
+.bhw-quick-link:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; }
+.bhw-history-heading { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1.25rem; margin-bottom: 1rem; }
+.bhw-history-heading > div:first-child { flex: 1 1 14rem; }
+.bhw-history-total { display: grid; gap: .15rem; }
+.bhw-history-total strong { font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.bhw-history-total span { color: hsl(var(--muted-foreground)); font-size: .75rem; }
+
+.hi-dialog.hi-referral-queue .swal2-close { position: absolute; inset: .5rem .65rem auto auto; z-index: 1; width: 44px; height: 44px; margin: 0; border-radius: .65rem; background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.hi-dialog.hi-referral-queue .swal2-close:focus-visible { outline: 2px solid #0d9488; outline-offset: 2px; }
+.hi-dialog.hi-referral-queue .swal2-title { min-height: 60px; padding-inline-end: 4rem; }
 .bhw-referral-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 6.5rem), 1fr)); gap: .5rem; }
 .bhw-referral-counts > div { display: flex; flex-direction: column; gap: .15rem; }
 .bhw-referral-counts dt { font-size: .75rem; }
 .bhw-referral-counts dd { order: -1; margin: 0; font-size: 1.5rem; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; }
-.bhw-referral-summary-link { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; text-align: left; }
-.bhw-referral-summary-link::after { content: ""; position: absolute; inset: 0; cursor: pointer; border-radius: 1rem; }
-.bhw-referral-summary-link:focus-visible { outline: none; }
-.bhw-referral-summary-link:focus-visible::after { outline: 2px solid #0d9488; outline-offset: 3px; }
+:is(.bhw-referral-summary-link, .bhw-task-link) { display: flex; align-items: center; justify-content: space-between; gap: .5rem; width: 100%; text-align: left; }
+:is(.bhw-referral-summary-link, .bhw-task-link)::after { content: ""; position: absolute; inset: 0; cursor: pointer; border-radius: 1rem; }
+:is(.bhw-referral-summary-link, .bhw-task-link):focus-visible { outline: none; }
+:is(.bhw-referral-summary-link, .bhw-task-link):focus-visible::after { outline: 2px solid #0d9488; outline-offset: 3px; }
 .bhw-followup-summary-status:empty { display: none; }

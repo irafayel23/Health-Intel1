@@ -387,7 +387,7 @@
           showCancelButton:true,confirmButtonText:'Save update',showLoaderOnConfirm:true,allowOutsideClick:()=>!Swal.isLoading(),
           preConfirm:async()=>{try{const response=await fetch(`http://localhost:3000/api/patients/${id}/status`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({new_status:document.getElementById('swal-input1').value,remarks:document.getElementById('swal-input2').value})});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.error||'The update could not be saved.');return data;}catch(error){Swal.showValidationMessage(error.message || 'The update could not be saved.');return false;}}
         });
-        if(result.isConfirmed){Swal.fire('Updated!','The status and entered follow-up notes were saved.','success');loadPatients();loadDashboardStats();loadTrendChart();window.dispatchEvent(new Event('health-intel:cases-changed'));}
+        if(result.isConfirmed){Swal.fire('Updated!','The status and entered follow-up notes were saved.','success');loadPatients();window.dispatchEvent(new Event('health-intel:cases-changed'));}
       }
 
       async function toggleArchiveStatus(id, restoring = isViewingArchive) {
@@ -419,7 +419,5 @@
           Swal.fire(restoring ? "Restored!" : "Archived!", "", "success");
           if (restoring) loadArchivedPatients();
           else loadPatients();
-          loadDashboardStats();
-          loadTrendChart();
           window.dispatchEvent(new Event('health-intel:cases-changed'));
       }
