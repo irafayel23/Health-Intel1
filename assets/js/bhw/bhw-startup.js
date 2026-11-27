@@ -11,9 +11,6 @@
       recordedCases.addEventListener('toggle', () => {
         if (recordedCases.open) loadPatients({ coalesce: true });
       });
-      function focusBhwVisitHistory() {
-        document.getElementById('bhw-visit-history-title').focus();
-      }
 
       navButtons.forEach((button) => {
         if (button.classList.contains("sign-out")) return;
@@ -24,7 +21,7 @@
 
           const targetId = button.getAttribute("data-target");
           if (targetId === 'view-resident-profiles') loadResidentDirectory();
-          if (targetId === 'view-patients' && recordedCases.open) loadPatients({ coalesce: true });
+          if (targetId === 'view-resident-profiles' && recordedCases.open) loadPatients({ coalesce: true });
           if (targetId === 'view-reports') loadPurokChoices();
           viewSections.forEach((view) => {
             view.classList.add("hidden"); view.classList.remove("block"); view.classList.remove("flex");

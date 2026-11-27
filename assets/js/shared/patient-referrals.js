@@ -48,7 +48,7 @@
     function stateLabel(row) {
         return row.state==='arrived' && row.assessed_at ? 'Awaiting outcome' : labels[row.state];
     }
-    function mountQueue(root,{role,firstPage=1,filters=()=>({}),emptyMessage=()=>'No records on this page.',patientHistory=false}) {
+    function mountQueue(root,{role,firstPage=1,filters=()=>({}),emptyMessage=()=>'No records on this page.',patientHistory=false,compactRows=false}) {
         const mho=role==='mho',base=mho?'/api/mho/referrals':'/api/bhw/intakes';
         const find=selector=>root.querySelector(selector);
         const status=find('[data-referral-status]');
@@ -89,14 +89,26 @@
                 if(result.isConfirmed)load(patientHistory);
             });
         }
-        function render(row) {
-            const card=add(list,'article','','hi-referral-card');
-            const header=add(card,'div','','hi-referral-card-header');
-            const identity=add(header,'div','');
-            add(identity,'h3',patientHistory?formatDay(row.visit_date):row.patient_name);
-            add(identity,'p',patientHistory?'#INT-'+row.id:'#INT-'+row.id+' · '+row.barangay_name+' · '+formatDay(row.visit_date),'hi-referral-meta');
-            const badge=add(header,'span',stateLabel(row),'hi-referral-badge');
-            badge.dataset.state=row.state;
+        function render(row, expanded) {
+            const item=add(list,compactRows?'details':'article','',compactRows?'bhw-visit-row':'hi-referral-card');
+            let card=item;
+            if(compactRows){
+                item.dataset.visitId=String(row.id);
+                item.open=expanded.has(item.dataset.visitId);
+                const summary=add(item,'summary','');
+                const identity=add(summary,'span',row.patient_name,'bhw-visit-row-name');
+                add(identity,'small','#INT-'+row.id);
+                add(summary,'span',formatDay(row.visit_date),'bhw-visit-row-date');
+                add(summary,'span',stateLabel(row),'hi-referral-badge').dataset.state=row.state;
+                add(summary,'span','','bhw-visit-row-chevron').setAttribute('aria-hidden','true');
+                card=add(item,'div','','bhw-visit-row-detail');
+            }else{
+                const header=add(card,'div','','hi-referral-card-header');
+                const identity=add(header,'div','');
+                add(identity,'h3',patientHistory?formatDay(row.visit_date):row.patient_name);
+                add(identity,'p',patientHistory?'#INT-'+row.id:'#INT-'+row.id+' · '+row.barangay_name+' · '+formatDay(row.visit_date),'hi-referral-meta');
+                add(header,'span',stateLabel(row),'hi-referral-badge').dataset.state=row.state;
+            }
             const concern=add(card,'div','','hi-referral-concern');
             add(concern,'strong','Reason for visit');
             add(concern,'p',row.concern);
@@ -156,11 +168,14 @@
                 const result=await request(base+'?'+query);
                 if(!root.isConnected||revision!==current)return;
                 if(!result.data.length&&targetPage>1)return load(false,targetPage-1);
+                const expanded=compactRows && page===targetPage ? new Set([...list.querySelectorAll('details[open]')].map(row=>row.dataset.visitId)) : new Set();
+                const focusedVisit=compactRows ? document.activeElement?.closest('.bhw-visit-row')?.dataset.visitId : null;
                 page=targetPage;
                 list.replaceChildren();pages.replaceChildren();
                 status.textContent=result.data.length?'':emptyMessage();
                 if(targetPage===1)summarize(result.data.length?formatDay(result.data[0].visit_date):null,result.current_referral || 'No referral recorded');
-                result.data.forEach(render);
+                for(const row of result.data)render(row,expanded);
+                if(focusedVisit)list.querySelector('details[data-visit-id="'+focusedVisit+'"] > summary')?.focus({preventScroll:true});
                 if(page>1)action(pages,'Previous',()=>load(false,page-1));
                 if(result.has_more)action(pages,'Next',()=>load(false,page+1));
                 return result.data.length;
@@ -203,7 +218,7 @@
         if(!root)return;
         const workspace=document.getElementById('view-patients');
         const queue=mountQueue(root,{
-            role:'bhw',emptyMessage:()=> 'No visits or referrals recorded for your barangay yet.'
+            role:'bhw',compactRows:true,emptyMessage:()=> 'No visits or referrals recorded for your barangay yet.'
         });
         document.querySelector('[data-target="view-patients"]').addEventListener('click',()=>queue.load(true));
         window.addEventListener('health-intel:referrals-changed',event=>{

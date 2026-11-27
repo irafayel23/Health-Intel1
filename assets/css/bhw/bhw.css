@@ -865,3 +865,35 @@ body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-
 .bhw-recorded-cases { margin-top: 1rem; }
 .bhw-recorded-cases > summary { cursor: pointer; font-weight: 650; }
 .bhw-recorded-cases-body { margin-top: 1rem; }
+
+.bhw-visit-table { display: none; border: 1px solid hsl(var(--border)); border-radius: .75rem; overflow: hidden; }
+.bhw-visit-table:has(.bhw-visit-row) { display: block; }
+.bhw-visit-table .hi-referral-list { gap: 0; }
+.bhw-visit-columns, .bhw-visit-row > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(8rem, 1fr) minmax(10rem, 1fr) 1rem;
+  align-items: center;
+  column-gap: .875rem;
+  padding: .75rem 1rem;
+}
+.bhw-visit-columns { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: .8125rem; font-weight: 650; }
+.bhw-visit-row { border-top: 1px solid hsl(var(--border)); }
+.bhw-visit-row > summary { min-height: 3.5rem; cursor: pointer; list-style: none; transition: background-color .15s ease; }
+.bhw-visit-row > summary::-webkit-details-marker { display: none; }
+.bhw-visit-row > summary:hover, .bhw-visit-row[open] > summary { background: hsl(var(--muted)); }
+.bhw-visit-row > summary:focus-visible { outline: 2px solid #2563eb; outline-offset: -3px; }
+.bhw-visit-row-name { color: #1d4ed8; font-weight: 700; overflow-wrap: anywhere; }
+.dark .bhw-visit-row-name { color: #93c5fd; }
+.bhw-visit-row-name small { display: block; margin-top: .125rem; color: hsl(var(--muted-foreground)); font-size: .75rem; font-weight: 400; }
+.bhw-visit-row-date { font-size: .875rem; }
+.bhw-visit-row .hi-referral-badge { justify-self: start; }
+.bhw-visit-row-chevron { width: .5rem; height: .5rem; justify-self: center; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.bhw-visit-row[open] .bhw-visit-row-chevron { transform: rotate(225deg); }
+.bhw-visit-row-detail { padding: .25rem 1rem 1rem; border-top: 1px solid hsl(var(--border)); }
+@media (max-width: 600px) {
+  .bhw-visit-columns { display: none; }
+  .bhw-visit-row:first-child { border-top: 0; }
+  .bhw-visit-row > summary { grid-template-columns: minmax(0, 1fr) auto 1rem; gap: .25rem .625rem; padding: .75rem; }
+  .bhw-visit-row-date { grid-row: 2; grid-column: 1 / -1; color: hsl(var(--muted-foreground)); }
+  .bhw-visit-row-detail { padding-inline: .75rem; }
+}

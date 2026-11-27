@@ -45,9 +45,9 @@ test('HTTPS pages use their own origin by default while local HTTP keeps the exi
 function page(file) {
     const html = fs.readFileSync(path.join(root, file), 'utf8');
     const elements = {}, events = {}, requests = [], errors = [], downloads = [];
-    function element(id = '') {
+    function element(id = '', tagName = '') {
         const classes = new Set(), listeners = {}, attributes = {};
-        const e = {id, value:'', type:'password', checked:false, disabled:false, hidden:false, innerHTML:'', textContent:'', style:{}, dataset:{}, children:[], parentElement:{scrollTop:0},
+        const e = {id, tagName, value:'', type:'password', checked:false, disabled:false, hidden:false, innerHTML:'', textContent:'', style:{}, dataset:{}, children:[], parentElement:{scrollTop:0},
             classList:{add:(...values)=>values.forEach(v=>classes.add(v)),remove:(...values)=>values.forEach(v=>classes.delete(v)),contains:v=>classes.has(v),
                 replace(a,b){classes.delete(a);classes.add(b);},toggle(v,force){const on=force ?? !classes.has(v);on?classes.add(v):classes.delete(v);return on;}},
             addEventListener(name,fn){(listeners[name] ||= []).push(fn);},
@@ -81,7 +81,7 @@ function page(file) {
     const authInstance={currentUser:authUser,signInWithPopup:async()=>({user:authUser})};
     const auth=()=>authInstance;auth.GoogleAuthProvider=function(){this.setCustomParameters=()=>{};};
     const s = {Option:function(label,value){this.textContent=label;this.value=value;},URLSearchParams,Intl,Date,TextEncoder,Event,AbortController,console:{error:(...args)=>errors.push(args)},
-        document:{readyState:'loading',body:element(),getElementById:id=>elements[id] || null,createElement:()=>element(),addEventListener:on,documentElement:element(),
+        document:{readyState:'loading',body:element(),getElementById:id=>elements[id] || null,createElement:tag=>element('',tag),addEventListener:on,documentElement:element(),
             querySelectorAll:selector=>selector.includes('nav-item')?navigation:selector==='.view-section'?Object.values(elements).filter(e=>e.classList.contains('view-section')):[],querySelector:selector=>selector==='#sidebar, #main-sidebar, #superadmin-sidebar'?(elements.sidebar || elements['main-sidebar'] || elements['superadmin-sidebar']):selector==='[data-portal-menu]'?elements['sidebar-toggle']:selector.includes('data-target')?navigation.find(n=>selector.includes(n.getAttribute('data-target'))):element()},
         sessionStorage:{getItem:k=>storage.get(k) || null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},
         lucide:{createIcons(){}},firebase:{initializeApp(){},auth},location:{href:'',replace(value){this.href=value;}},
@@ -202,10 +202,11 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     for(const endpoint of ['patients','residents','bhw/puroks','bhw-trend'])assert.ok(!p.requests.some(r=>r.url.includes('/api/'+endpoint)),`${endpoint} must wait for its view`);
     await p.navigation.find(n=>n.getAttribute('data-target')==='view-patients').emit('click');await settle();
     assert.ok(!p.requests.some(r=>r.url.includes('/api/patients')),'entering Visits and referrals does not load the case directory');
+    assert.ok(!p.requests.some(r=>r.url.includes('/api/bhw/puroks')),'patient navigation must not fetch hidden report options');
+    await p.navigation.find(n=>n.getAttribute('data-target')==='view-resident-profiles').emit('click');await settle();
     p.elements['bhw-recorded-cases'].open=true;
     await p.elements['bhw-recorded-cases'].emit('toggle');await settle();
     assert.ok(p.requests.some(r=>r.url.includes('/api/patients')));
-    assert.ok(!p.requests.some(r=>r.url.includes('/api/bhw/puroks')),'patient navigation must not fetch hidden report options');
     const reportNav=p.navigation.find(n=>n.getAttribute('data-target')==='view-reports');
     reportNav.click=()=>reportNav.emit('click');
     p.elements['bhw-report-date'].value='2026-10-01';
@@ -228,9 +229,10 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.ok(p.requests.filter(r=>r.url.includes('/api/residents')).length>=2);
     await p.s.toggleArchiveView();await settle();
     assert.ok(p.requests.some(r=>r.url.includes('/api/patients/archived')));
-    const before=p.requests.length;
     await p.navigation.find(n=>n.getAttribute('data-target')==='view-patients').emit('click');await settle();
-    assert.ok(p.requests.slice(before).some(r=>r.url.includes('/api/patients/archived')),'returning to the archive keeps its data source');
+    const before=p.requests.length;
+    await p.navigation.find(n=>n.getAttribute('data-target')==='view-resident-profiles').emit('click');await settle();
+    assert.ok(p.requests.slice(before).some(r=>r.url.includes('/api/patients/archived')),'returning to Resident Profiles keeps the open archive');
 });
 
 test('BHW sidebar renders saved visits and referrals inline and refreshes after saving',async()=>{
@@ -254,11 +256,18 @@ test('BHW sidebar renders saved visits and referrals inline and refreshes after 
     const textOf=node=>[node.textContent,...node.children.flatMap(textOf)];
     assert.ok(textOf(fields.list).includes('Fixture visit'));
     assert.ok(textOf(fields.list).includes('Request referral'));
-    const heading=p.elements['bhw-visit-history-title'];
-    let focused=false;
-    heading.focus=()=>{focused=true;};
-    p.s.focusBhwVisitHistory();
-    assert.ok(focused);
+    const [row]=fields.list.children;
+    assert.equal(row.tagName,'details');
+    assert.equal(row.children[0].tagName,'summary');
+    assert.equal(row.open,false);
+    assert.ok(textOf(row.children[0]).includes('Visit saved'));
+    assert.ok(!textOf(row.children[0]).includes('Fixture concern'));
+    row.open=true;
+    fields.list.querySelectorAll=()=>fields.list.children.filter(item=>item.open);
+    await fields.tools.children[0].onclick();
+    assert.equal(fields.list.children[0].open,true,'refresh preserves expanded rows on the current page');
+    const workspace=p.html.slice(p.html.indexOf('id="view-patients"'),p.html.indexOf('id="view-resident-profiles"'));
+    assert.doesNotMatch(workspace,/Search recorded cases|View visits and referrals/);
 });
 
 test('BHW case changes refresh visible supporting views and defer hidden directories until opened',async()=>{
