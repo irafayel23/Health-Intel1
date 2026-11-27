@@ -6,6 +6,7 @@ const { caseAuditDetails } = require('./case-audit');
 const { validateVisit, saveVisit, saveExistingVisit } = require('./case-visits');
 const {selectedResident,reviewNewResident}=require('./encoding-residents');
 const {guardResidentIdentity,guardResidentVisit}=require('./resident-vital');
+const {lockReferralAssessment,linkReferralAssessment}=require('./patient-intakes');
 
 function createCaseEncoding(db) {
     return {
@@ -19,9 +20,15 @@ function createCaseEncoding(db) {
                 if (!selectedBarangays.length) {
                     throw invalid('Select an existing barangay.');
                 }
+                const intakeId = await lockReferralAssessment(connection,input,brgy_id,actorRole);
+                if (intakeId && visit?.transaction_mode !== 'Referral') throw invalid('Use Referral as the transaction mode.');
                 const chosen=await selectedResident(connection,input,patient,brgy_id);
                 if(chosen)patient.selected_resident_id=chosen.id;
-                if (visit && visit.nature_of_visit !== 'New consultation/case') return saveExistingVisit(connection, patient, visit, brgy_id, systemId, actorRole);
+                if (visit && visit.nature_of_visit !== 'New consultation/case') {
+                    const result = await saveExistingVisit(connection, patient, visit, brgy_id, systemId, actorRole);
+                    await linkReferralAssessment(connection,intakeId,result.id,systemId);
+                    return result;
+                }
                 const reviewedNewResident = await reviewNewResident(connection, input, patient, brgy_id, actorRole);
                 if (chosen) await guardResidentVisit(connection, chosen.id, patient.date_recorded);
                 else if (input.patient_mode !== 'new') await guardResidentIdentity(connection,patient,brgy_id);
@@ -102,6 +109,7 @@ function createCaseEncoding(db) {
                     ]
                 );
                 const visitId = visit ? await saveVisit(connection, result.insertId, patient, visit, systemId) : null;
+                await linkReferralAssessment(connection,intakeId,result.insertId,systemId);
                 await connection.execute(
                     'INSERT INTO system_audit_logs (user_id,role,action,details) VALUES (?,?,?,?)',
                     [

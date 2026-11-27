@@ -47,3 +47,150 @@
 .hi-correction-comparison dt { font-size: .875rem; font-weight: 600; }
 .hi-correction-comparison dd { min-height: 42px; margin: 7px 0 0; padding-block: .55rem; overflow-wrap: anywhere; }
 @media (max-width: 520px) { .hi-correction-comparison { grid-template-columns: 1fr; } }
+
+/* Patient visit and referral actions share the BHW portal's teal accent. */
+.hi-referral-trigger,
+.hi-referral-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 42px;
+  padding: .55rem .85rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: .625rem;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: .875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.hi-referral-action:hover { background: hsl(var(--muted)); }
+.hi-referral-trigger, .hi-referral-primary {
+  background: #e7f6f3;
+  border-color: #9bd6cc;
+  color: #115e59;
+}
+.hi-referral-trigger:hover, .hi-referral-primary:hover { background: #cceee7; }
+.dark :is(.hi-referral-trigger, .hi-referral-primary) {
+  background: #173c3e;
+  border-color: #367470;
+  color: #99f6e4;
+}
+.dark :is(.hi-referral-trigger, .hi-referral-primary):hover { background: #224f50; }
+.hi-referral-action:disabled { opacity: .6; cursor: wait; }
+.hi-referral-icon-action { width: 42px; padding: 0; }
+.hi-referral-icon-action svg { width: 18px; height: 18px; }
+
+.hi-bhw-entry-dialog.hi-encode-dialog.hi-patient-visit-dialog.swal2-popup {
+  width: min(780px, calc(100vw - 24px)) !important;
+  height: auto;
+  max-height: calc(100dvh - 24px) !important;
+}
+.hi-intake-visit-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem 1rem;
+  margin-bottom: 1.1rem;
+  padding: .8rem 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: .75rem;
+  background: hsl(var(--muted));
+  overflow-wrap: anywhere;
+}
+.hi-intake-step-label { margin: 0 0 .2rem; color: hsl(var(--muted-foreground)); font-size: .8rem; font-weight: 600; }
+.hi-patient-visit-dialog .hi-bhw-patient-step > .hi-intake-step-label { margin-bottom: .55rem; }
+.hi-intake-visit-header h3 { margin: 0; }
+.hi-patient-visit-dialog .hi-intake-visit-header .hi-visit-back {
+  margin: 0;
+  min-height: 40px;
+  padding: .45rem .7rem;
+  font-size: .85rem;
+  white-space: nowrap;
+}
+
+.hi-dialog.hi-referral-queue.swal2-popup {
+  display: flex !important;
+  flex-direction: column;
+  width: min(760px, calc(100vw - 24px)) !important;
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  overflow: hidden;
+}
+.hi-referral-queue .swal2-title {
+  flex-shrink: 0;
+  padding: 1rem 3.5rem 1rem 1.25rem;
+  border-bottom: 1px solid hsl(var(--border));
+  text-align: start;
+}
+.hi-referral-queue .swal2-html-container {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  min-height: 0;
+  overflow-y: auto;
+  text-align: start;
+}
+.hi-referral-queue .swal2-actions {
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin: 0;
+  padding: .7rem 1.25rem;
+  border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+}
+.hi-referral-queue .swal2-confirm {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card)) !important;
+  color: hsl(var(--foreground)) !important;
+  font-size: .875rem;
+}
+.hi-referral-toolbar, .hi-referral-card-header, .hi-referral-actions, .hi-referral-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+}
+.hi-referral-toolbar, .hi-referral-card-header { justify-content: space-between; }
+.hi-referral-toolbar { margin-bottom: .8rem; }
+.hi-referral-toolbar p { flex: 1 1 240px; color: hsl(var(--muted-foreground)); }
+.hi-referral-list { display: grid; gap: .65rem; }
+.hi-referral-card {
+  padding: .9rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: .8rem;
+  overflow-wrap: anywhere;
+}
+.hi-referral-card h3 { margin: 0; font-weight: 700; }
+.hi-referral-meta { margin: .2rem 0 0; color: hsl(var(--muted-foreground)); font-size: .8rem; }
+.hi-referral-badge {
+  padding: .22rem .55rem;
+  border-radius: .5rem;
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  font-size: .75rem;
+  font-weight: 600;
+}
+.hi-referral-badge[data-state="requested"] { background: #fef3c7; color: #78350f; }
+.hi-referral-badge:is([data-state="sent"],[data-state="acknowledged"],[data-state="arrived"],[data-state="follow_up"]) { background: #dbeafe; color: #1e3a8a; }
+.hi-referral-badge[data-state="closed"] { background: #d1fae5; color: #065f46; }
+.dark .hi-referral-badge[data-state="requested"] { background: #492f13; color: #fde68a; }
+.dark .hi-referral-badge:is([data-state="sent"],[data-state="acknowledged"],[data-state="arrived"],[data-state="follow_up"]) { background: #203657; color: #bfdbfe; }
+.dark .hi-referral-badge[data-state="closed"] { background: #164536; color: #a7f3d0; }
+.hi-referral-concern {
+  margin: .7rem 0;
+  padding: .55rem .75rem;
+  border-radius: .5rem;
+  background: hsl(var(--muted));
+}
+.hi-referral-concern strong { font-size: .75rem; }
+.hi-referral-concern p { margin: .15rem 0 0; white-space: pre-wrap; }
+.hi-referral-history { margin-top: .65rem; }
+.hi-referral-history summary { cursor: pointer; font-size: .875rem; font-weight: 600; }
+.hi-referral-history[open] summary { margin-bottom: .35rem; }
+.hi-referral-actions:not(:empty), .hi-referral-pages:not(:empty) { margin-top: .65rem; }
+@media (max-width: 520px) {
+  .hi-referral-queue .swal2-title, .hi-referral-queue .swal2-html-container, .hi-referral-queue .swal2-actions { padding-inline: .85rem; }
+  .hi-referral-queue .swal2-title { padding-inline-end: 3rem; }
+}

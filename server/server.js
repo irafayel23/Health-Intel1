@@ -42,6 +42,7 @@ app.get('/api/session', (req, res) => res.json({ success: true, user: req.user }
 registerAuthRoutes(app, db, JWT_SECRET, { publicOrigin: deployment.publicOrigin || 'http://localhost:' + deployment.port });
 registerIdentityRoutes(app, db, dbConfig);
 registerCaseRoutes(app, db, corrections);
+require('./routes/patient-intake-routes').registerPatientIntakeRoutes(app,db);
 registerDiseaseReviewRoutes(app, db);
 registerAnalyticsRoutes(app, db);
 registerBalancedSarimaRoutes(app);

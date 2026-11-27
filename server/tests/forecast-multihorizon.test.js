@@ -121,8 +121,9 @@ test('automatic viewer selection replays the demo only with an opt-in and no pub
     const code = 'OPERATIONAL_PREDICTIONS_UNPUBLISHED';
     const unavailable = Object.assign(new Error('Unpublished'), { status: 409, code });
     const broken = Object.assign(new Error('Integrity check failed'), { status: 409 });
-    const published = { status: 'published' };
-    const saved = { NODE_ENV: process.env.NODE_ENV, ENABLE_SARIMA_DEMO: process.env.ENABLE_SARIMA_DEMO };
+    const { windowFrom } = require('../services/forecast-horizons');
+    const published = { status: 'published', cutoff: '2026-10', targets: windowFrom('2026-10','2026-11') };
+    const saved = Object.fromEntries(['NODE_ENV','HOST','ENABLE_SARIMA_DEMO','ENABLE_LOCAL_FORECAST_REPLAY'].map(key => [key,process.env[key]]));
     let result = unavailable;
     const service = { overview: async () => {
         if (result instanceof Error) throw result;
@@ -152,6 +153,23 @@ test('automatic viewer selection replays the demo only with an opt-in and no pub
         assert.equal((await load('mho')).success, false);
         result = unavailable;
         process.env.ENABLE_SARIMA_DEMO = 'false';
+        assert.equal((await load('mho')).code, code);
+
+        process.env.NODE_ENV = 'development';
+        process.env.HOST = '127.0.0.1';
+        process.env.ENABLE_LOCAL_FORECAST_REPLAY = 'true';
+        const original = await load('mho');
+        assert.deepEqual(original.data.targets.map(row => row.target), ['2026-10','2026-11','2026-12']);
+
+        result = published;
+        for (const role of ['mho','bhw']) {
+            assert.equal((await load(role)).data.status, 'published');
+            assert.deepEqual((await load(role)).data.targets.map(row => row.target), ['2026-11','2026-12','2027-01']);
+        }
+        result = broken;
+        assert.equal((await load('mho')).success, false);
+        result = unavailable;
+        process.env.ENABLE_LOCAL_FORECAST_REPLAY = 'false';
         assert.equal((await load('mho')).code, code);
     } finally {
         for (const [key, value] of Object.entries(saved)) {

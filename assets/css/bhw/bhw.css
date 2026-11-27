@@ -464,6 +464,68 @@ body :is(.nav-menu, .swal2-html-container, .swal2-popup, .heatmap-info-panel)::-
   margin: 0;
 }
 .hi-bhw-entry-dialog .hi-bhw-patient-step > .hi-encode-grid { margin-top: 0; row-gap: 14px; }
+
+.hi-today-report.bhw-daily-report {
+  display: grid;
+  gap: .9rem;
+  align-items: stretch;
+  justify-content: stretch;
+}
+.bhw-daily-report-controls,
+.bhw-daily-date-group,
+.bhw-daily-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+}
+.bhw-daily-report-controls { align-items: end; justify-content: space-between; }
+.bhw-daily-date-group { align-items: end; }
+.bhw-daily-date-group label {
+  display: grid;
+  gap: .35rem;
+  font-size: .875rem;
+  font-weight: 600;
+}
+.bhw-daily-date-group input,
+.bhw-daily-button {
+  box-sizing: border-box;
+  min-height: 44px;
+  max-width: 100%;
+  padding: .55rem .8rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: .625rem;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font-size: .875rem;
+}
+.dark .bhw-daily-date-group input { color-scheme: dark; }
+.bhw-daily-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.bhw-daily-button svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+.bhw-daily-submit { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.bhw-daily-button:not(.bhw-daily-submit):hover { background: hsl(var(--muted)); }
+.bhw-daily-submit:not(:disabled):hover { background: #1e40af; }
+.bhw-daily-submit:disabled { opacity: .55; }
+.bhw-daily-button:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.hi-today-report.bhw-daily-report #daily-submission-status {
+  padding: .65rem .8rem;
+  border-radius: .5rem;
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+.bhw-daily-report #daily-submission-status:empty { display: none; }
+.hi-today-report.bhw-daily-report small { margin: 0; }
+@media (max-width: 480px) {
+  .bhw-daily-report-actions { width: 100%; }
+  .bhw-daily-report-actions .bhw-daily-button { flex: 1 1 auto; }
+}
+
 .hi-bhw-entry-dialog .hi-bhw-patient-step input:not([type=date]) { border-color: var(--hi-form-border); }
 .hi-bhw-entry-dialog .hi-bhw-patient-step input[readonly] {
   background: var(--hi-form-hover);

@@ -11,7 +11,7 @@ function registerMonthlyPredictionRoutes(app,db,service){
  const admin='/api/admin/operational-predictions';
  // BHW gets only its own selection and shared dates, without municipal totals.
  const scoped=({overall,context,...data})=>({...data,context:{cutoff:context.cutoff,main_target:context.main_target}});
- const bhw=work=>async(req,res)=>{res.set('Cache-Control','no-store');if(req.user?.role!=='bhw'||!req.user.barangay_id)return res.status(403).json({success:false,error:'Assigned BHW account required.'});try{const [[b]]=await db.execute('SELECT name FROM barangays WHERE id=?',[req.user.barangay_id]);if(!D.BARANGAYS.includes(b?.name))throw Object.assign(Error('Assigned barangay unavailable.'),{status:403});const s=get();res.json({success:true,data:await work(s,req,b.name)});}catch(e){res.status(e.status||503).json({success:false,error:e.status?e.message:'Published operational predictions are unavailable.'});}};
+ const bhw=work=>async(req,res)=>{res.set('Cache-Control','no-store');if(req.user?.role!=='bhw'||!req.user.barangay_id)return res.status(403).json({success:false,error:'Assigned BHW account required.'});try{const [[b]]=await db.execute('SELECT name FROM barangays WHERE id=?',[req.user.barangay_id]);if(!D.BARANGAYS.includes(b?.name))throw Object.assign(Error('Assigned barangay unavailable.'),{status:403});const s=get();res.json({success:true,data:await work(s,req,b.name)});}catch(e){res.status(e.status||503).json({success:false,error:e.status?e.message:'Published operational predictions are unavailable.',code:e.code});}};
  const demo=createForecastDemo();
  const overview=async(s,r,b,allowVersions=false)=>{
   if(Object.keys(r.query).some(key=>!['source','reference',...(b?['barangay_id']:[]),...(allowVersions?['version']:[])].includes(key)))throw D.fail('Unsupported prediction filters.');
@@ -20,10 +20,9 @@ function registerMonthlyPredictionRoutes(app,db,service){
   if(!['published','demo','delayed',...(allowVersions?[]:['auto'])].includes(source)||(['published','auto'].includes(source)&&reference!==undefined)||(source!=='published'&&version!==undefined))throw D.fail('Choose a valid prediction source.');
   if(source==='auto'){
    const localReplay=process.env.NODE_ENV!=='production'&&['127.0.0.1','::1','localhost'].includes(process.env.HOST)&&process.env.ENABLE_LOCAL_FORECAST_REPLAY!=='false';
-   if(localReplay)return demo('demo',b);
    try{return await s.overview(b);}
    catch(error){
-    if(error.code!=='OPERATIONAL_PREDICTIONS_UNPUBLISHED'||process.env.ENABLE_SARIMA_DEMO!=='true')throw error;
+    if(error.code!=='OPERATIONAL_PREDICTIONS_UNPUBLISHED'||(!localReplay&&process.env.ENABLE_SARIMA_DEMO!=='true'))throw error;
     return demo('demo',b);
    }
   }

@@ -74,14 +74,14 @@
     function renderDatasets(data) {
         const d = data.bundled;
         const history = data.historicalCoverage ?? d;
-        $('dataset-summary').replaceChildren(...[['Historical coverage', monthSpan(history.first, history.last)], ['Latest observed', readableMonth(history.last)], ['Cases / records', fmt(history.cases)+' / '+fmt(history.rows)], ['Forecast coverage', data.diseases.length+' diseases · '+data.barangays.length+' barangays']].map(([label,value]) => {
+        $('dataset-summary').replaceChildren(...[['Historical coverage', monthSpan(history.first, history.last)], ['Latest observed', readableMonth(history.last)], ['Cases', fmt(history.cases)], ['Forecast coverage', data.diseases.length+' diseases · '+data.barangays.length+' barangays']].map(([label,value]) => {
             const group = node('div'); group.append(node('dt',label),node('dd',value)); return group;
         }));
         const confirmed = d.reportingUnavailable ? 'Confirmation history is unavailable.' :
             d.latestConfirmed ? 'Operational reports · ' + readableMonth(d.latestConfirmed, 'long') + (data.operationalConfirmation ? ' · ' + data.operationalConfirmation.confirmedBarangays + '/7 barangays confirmed' : '') : 'No confirmed operational reports yet.';
         const complete = d.latestComplete ? 'Latest fully confirmed month: ' + readableMonth(d.latestComplete, 'long') :
             d.latestConfirmed && 'No month has all seven barangays confirmed.';
-        const coverage = [confirmed, complete, coverageLine(d), 'Historical export · ' + d.sources.join(' and ') + ' · ' + fmt(d.rows) + ' rows'].filter(Boolean);
+        const coverage = [confirmed, complete, coverageLine(d)].filter(Boolean);
         $('coverage').replaceChildren(...coverage.map(line => node('span', line)));
         rows($('versions'), data.versions.map(v => [v.label, monthSpan(v.first, v.last), fmt(v.cases), v.trainingRange ? v.trainingRange.months + ' complete months' : 'Needs 45 complete months in a row', new Date(v.created_at).toLocaleString('en-PH', {timeZone:'Asia/Manila'})]));
         $('versions-table').hidden = !data.versions.length;
@@ -226,7 +226,13 @@
         if ($('upload-file').files[0] !== file) return;
         upload = text;
         preview = result;
-        $('upload-sample').replaceChildren(table(['Month','Barangay','Disease','Cases'], result.sample.map(r=>[r.Date,r.Barangay,r.Disease,fmt(r.Cases)])));
+        const sampleTable = table(['Month','Barangay','Disease','Cases'], result.sample.map(r=>[r.Date,r.Barangay,r.Disease,fmt(r.Cases)]));
+        const sampleNote = result.sample.length < result.rows ?
+            'Showing the first ' + fmt(result.sample.length) + ' rows. The whole file was checked.' :
+            'Showing all ' + fmt(result.rows) + ' rows.';
+        const note = node('p', sampleNote);
+        note.className = 'aa-status aa-training-note';
+        $('upload-sample').replaceChildren(note, sampleTable);
         $('upload-sample').hidden = false;
         $('save').disabled = false;
         status('upload-status', 'Valid CSV · ' + fmt(result.rows) + ' rows · ' + fmt(result.cases) + ' cases. ' + [coverageLine(result),

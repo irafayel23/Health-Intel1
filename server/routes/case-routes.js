@@ -106,7 +106,6 @@ function registerCaseRoutes(app, db, corrections) {
             });
         }
     }
-    app.post('/api/patients', (req, res) => savePatientCase(req, res, Number(req.user.barangay_id), 'BHW'));
     app.get('/api/patients/:id/visits', async (req,res) => {
         try { res.json({success:true,data:await caseVisits(db, Number(req.params.id), req.user)}); }
         catch(error) { respond(res,error,'Visit history could not be loaded.'); }

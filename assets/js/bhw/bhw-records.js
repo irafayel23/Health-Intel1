@@ -347,7 +347,6 @@
           if (!archived) {
               if (record.status !== 'Deceased') addAction('Update status', updatePatientStatus, 'bhw-case-status');
               if (record.disease_review_status === 'Clarification') addAction('Clarify', supplyConditionClarification);
-              addAction('Correct', caseId => HealthIntelCorrections.open(caseId), 'bhw-case-correct');
           }
           addAction(archived ? 'Restore' : 'Archive', caseId => toggleArchiveStatus(caseId, archived), archived ? 'bhw-case-restore' : 'bhw-case-archive');
       }

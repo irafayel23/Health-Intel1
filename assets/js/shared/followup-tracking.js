@@ -1,19 +1,19 @@
-// Follow-up tracking stays inside the existing directories; visits remain the source of truth.
+// Clinical follow-ups come from saved consultation plans.
 (() => {
     const safe=value=>HealthIntelEncoding.escape(value),date=value=>HealthIntelDate.formatCaseDate(value);
     function latestVisit(visits,caseId){return visits.filter(v=>Number(v.case_id)===Number(caseId)).sort((a,b)=>String(b.consultation_date).localeCompare(String(a.consultation_date))||Number(b.id)-Number(a.id))[0];}
     function init(role){
-        const field=suffix=>document.getElementById(role+'-'+suffix),mount=field('followup-tabs'),panel=field('followup-panel'),directory=field('directory-panel');
-        if(!panel||(role==='mho'&&(!mount||!directory)))return;
-        if(mount)mount.innerHTML=`<div class="hi-directory-tabs" role="tablist" aria-label="Directory views"><button id="${role}-directory-tab" type="button" role="tab" aria-selected="true" aria-controls="${role}-directory-panel">All patients</button><button id="${role}-followup-tab" type="button" role="tab" aria-selected="false" aria-controls="${role}-followup-panel" tabindex="-1">Follow-up tracking</button></div>`;
-        panel.innerHTML=`<div class="hi-followup-heading"><div><${mount?'h2':'h1'} id="${role}-followup-heading" class="${mount?'':'text-3xl font-bold tracking-tight'}">Follow-up tracking</${mount?'h2':'h1'}><p>Return dates from the latest recorded consultation for each disease case.</p></div><button type="button" class="hi-vital-button" id="${role}-followup-refresh">Refresh follow-ups</button></div>
+        const field=suffix=>document.getElementById(role+'-'+suffix),panel=field('followup-panel');
+        if(!panel)return;
+        const mho=role==='mho',heading=mho?'h2':'h1';
+        panel.innerHTML=`<div class="hi-followup-heading"><div><${heading} id="${role}-followup-heading" class="${mho?'':'text-3xl font-bold tracking-tight'}">${mho?'Return consultations':'Follow-up tracking'}</${heading}><p>Return dates from the latest recorded consultation for each disease case.</p></div><button type="button" class="hi-vital-button" id="${role}-followup-refresh">Refresh follow-ups</button></div>
         <p class="hi-field-help">A later consultation replaces the earlier plan. Archived and historical view-only records are excluded. Past due means no later consultation is recorded; it does not confirm a missed appointment.</p>
         <form id="${role}-followup-search-form" class="hi-followup-search"><label for="${role}-followup-search">Patient name or record ID<input id="${role}-followup-search" type="search" maxlength="100" placeholder="Search name, RES-12 or REC-34"></label>${role==='mho'?`<label for="${role}-followup-barangay">Barangay<select id="${role}-followup-barangay"><option value="all">All barangays</option></select></label>`:''}<button type="submit" class="hi-vital-button">Search follow-ups</button><button type="button" class="hi-vital-button" id="${role}-followup-reset">Reset follow-up filters</button></form>
         <div class="hi-followup-filters" role="group" aria-label="Follow-up due dates">${[['today','Due today'],['upcoming','Upcoming'],['past','Past due']].map(([key,text])=>`<button type="button" data-followup-bucket="${key}" aria-pressed="${key==='today'}">${text} <span data-followup-count="${key}">—</span></button>`).join('')}</div>
         <p id="${role}-followup-status" class="hi-vital-note" role="status" aria-live="polite"></p><button type="button" class="hi-vital-button" id="${role}-followup-retry" hidden>Retry follow-ups</button><div id="${role}-followup-list" class="hi-followup-list" aria-busy="false"></div>
         <div class="hi-vital-pagination"><button type="button" class="hi-vital-button" id="${role}-followup-prev" aria-label="Previous follow-up page" disabled>Previous</button><span id="${role}-followup-page" role="status"></span><button type="button" class="hi-vital-button" id="${role}-followup-next" aria-label="Next follow-up page" disabled>Next</button></div>`;
         let bucket='today',page=1,pages=1,rows=[],version=0,requestController,choicesLoaded=role!=='mho',opening=false,lastToday='';
-        const list=field('followup-list'),tabs=mount?[field('directory-tab'),field('followup-tab')]:[];
+        const list=field('followup-list');
         const visible=()=>!panel.hidden&&!panel.closest('.view-section').classList.contains('hidden');
         async function request(path,signal){const response=await fetch('http://localhost:3000/api'+path,{signal}),result=await response.json();if(!response.ok||!result.success)throw Error(result.error||'Follow-ups could not be loaded.');return result;}
         function updateButtons(){for(const button of panel.querySelectorAll('[data-followup-bucket]'))button.setAttribute('aria-pressed',String(button.dataset.followupBucket===bucket));}
@@ -51,8 +51,6 @@
                 field('followup-status').textContent=error.name==='AbortError'?'Loading timed out. Retry to refresh follow-ups.':error.message;list.innerHTML='';field('followup-page').textContent='';field('followup-retry').hidden=false;for(const element of panel.querySelectorAll('[data-followup-count]'))element.textContent='—';}
             finally{clearTimeout(timer);if(current===version)list.setAttribute('aria-busy','false');}
         }
-        function select(index){tabs.forEach((tab,i)=>{tab.setAttribute('aria-selected',String(index===i));tab.tabIndex=index===i?0:-1;});directory.hidden=index!==0;panel.hidden=index!==1;if(index===1)refresh();else{requestController?.abort();++version;}}
-        tabs.forEach((tab,i)=>{tab.addEventListener('click',()=>select(i));tab.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?1:1-i;select(next);tabs[next].focus();}});});
         for(const button of panel.querySelectorAll('[data-followup-bucket]'))button.addEventListener('click',()=>{bucket=button.dataset.followupBucket;updateButtons();refresh(true);});
         field('followup-search-form').addEventListener('submit',event=>{event.preventDefault();refresh(true);});
         field('followup-barangay')?.addEventListener('change',()=>refresh(true));
@@ -71,8 +69,9 @@
             }catch(error){await Swal.fire({icon:'info',titleText:'Refresh the follow-up plan',text:error.name==='AbortError'?'Loading timed out. Try again.':error.message,customClass:{popup:'hi-dialog'}});}
             finally{clearTimeout(timer);opening=false;button.disabled=!row.can_record;if(visible())refresh();}
         });
-        const nav = document.querySelector(`[data-target="${role==='bhw'?'view-followups':'view-patient-directory'}"]`);
-        nav?.addEventListener('click',()=>{if(!panel.hidden)refresh();});
+        const nav = document.querySelector('[data-target="view-followups"]');
+        if(mho)window.addEventListener('health-intel:return-consultations-opened',()=>refresh());
+        else nav?.addEventListener('click',()=>refresh());
         if(role==='bhw')bindBhwDashboard(nav,request,selected=>{
             field('followup-search-form').reset();
             bucket=selected;

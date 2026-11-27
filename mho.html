@@ -29,7 +29,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/shared/chart-theme.js?v=20261101-summary-cards"></script>
-    <link rel="stylesheet" href="assets/css/mho/mho-page.css?v=20261124-read-only" />
+    <link rel="stylesheet" href="assets/css/mho/mho-page.css?v=20261126-referral-workspace" />
   
     <!-- Built with npm --prefix tools/styles run build:mho. -->
     <link rel="stylesheet" href="assets/css/mho/mho-utilities.css?v=20261113-dataset" />
@@ -39,7 +39,7 @@
     <script src="assets/js/shared/patient-picker.js?v=20261113-resident-review"></script>
     <script src="assets/js/shared/encoding-controls.js?v=20261115-purok-options"></script>
     <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
-    <link rel="stylesheet" href="assets/css/shared/health-dialogs.css">
+    <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace">
     <link rel="stylesheet" href="assets/css/shared/resident-vital.css">
     <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261120-loading">
   <link rel="stylesheet" href="assets/css/shared/account-settings.css?v=20261107-password-renewal">
@@ -69,11 +69,12 @@
           <span class="sidebar-label whitespace-nowrap">Walk-in Patients</span>
         </button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-patient-directory" aria-label="View Patient Directory"><i data-lucide="users" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Patient Directory</span></button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-referrals"><i data-lucide="clipboard-list" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Referrals</span></button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-predictive" aria-label="View Predictive Models">
           <i data-lucide="brain-circuit" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Predictions</span>
         </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-review-center" aria-label="Open Disease Review"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Disease Review</span></button>
+        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-400 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-review-center" aria-label="Open Condition Classification"><i data-lucide="clipboard-check" class="w-5 h-5"></i><span class="sidebar-label whitespace-nowrap">Condition Classification</span></button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-emerald-50 hover:translate-x-1 hover:text-emerald-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-emerald-500/10 [&.active]:text-emerald-800 dark:[&.active]:bg-slate-800 dark:[&.active]:text-emerald-400" data-target="view-heatmap" aria-label="View Heatmap">
           <i data-lucide="map" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Heatmap Cases</span>
@@ -170,7 +171,7 @@
               </select></div></label></div><p id="analytics-kpi-context" class="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed mt-3" aria-live="polite">Loading totals…</p></section>
 <div class="mho-analytics-metrics">
 <div class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0"><p class="text-sm font-medium text-[hsl(var(--muted-foreground))]">Recorded cases</p><p id="stat-total" class="text-3xl font-bold tracking-tight my-2 text-blue-700 dark:text-blue-400">…</p><p class="text-xs text-[hsl(var(--muted-foreground))]" id="stat-total-period">All years</p></div>
-<button type="button" id="daily-bhw-open" aria-haspopup="dialog" data-case-mode="daily" data-mho-hint="View today’s BHW activity" class="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0 mho-case-card text-left"><span class="block text-sm font-medium text-muted-foreground">Today’s BHW Activity</span><span id="daily-bhw-total" class="block text-3xl font-bold tracking-tight my-2 text-blue-700 dark:text-blue-300">…</span><span id="daily-bhw-summary" class="block text-xs text-muted-foreground">Loading today’s entries across all seven barangays…</span></button>
+<button type="button" onclick="HealthIntelReferrals.open('mho')" class="rounded-2xl border border-border bg-card p-5 md:p-6 shadow-sm min-w-0 mho-case-card text-left"><span class="block text-sm font-medium text-muted-foreground">Referrals needing action</span><span id="mho-referrals-action-total" class="block text-3xl font-bold tracking-tight my-2 text-blue-700 dark:text-blue-300">—</span><span id="mho-referrals-action-summary" class="block text-xs text-muted-foreground" aria-live="polite">Loading referrals…</span></button>
 <button type="button" aria-haspopup="dialog" data-case-mode="active" data-mho-hint="View active cases" class="mho-case-card text-left rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0"><span class="block text-sm font-medium text-[hsl(var(--muted-foreground))]">Active cases</span><span id="stat-active" class="block text-3xl font-bold tracking-tight my-2 text-amber-700 dark:text-amber-400">…</span><span class="block text-xs text-[hsl(var(--muted-foreground))]">Current patient records · Active</span></button>
 <button type="button" aria-haspopup="dialog" data-case-mode="recovered" data-mho-hint="View cleared or recovered cases" class="mho-case-card text-left rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0"><span class="block text-sm font-medium text-[hsl(var(--muted-foreground))]">Cleared / recovered</span><span id="stat-recovered" class="block text-3xl font-bold tracking-tight my-2 text-emerald-700 dark:text-emerald-400">…</span><span class="block text-xs text-[hsl(var(--muted-foreground))]">Current patient records · Cleared / recovered</span></button>
 <button type="button" aria-haspopup="dialog" data-case-mode="highRisk" data-mho-hint="View active high risk cases" class="mho-case-card text-left rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-5 md:p-6 shadow-sm min-w-0"><span class="block text-sm font-medium text-[hsl(var(--muted-foreground))]">Active high risk</span><span id="stat-risk" class="block text-3xl font-bold tracking-tight my-2 text-rose-700 dark:text-rose-400">…</span><span class="block text-xs text-[hsl(var(--muted-foreground))]">Current patient records · Active High Risk</span></button>
@@ -317,6 +318,10 @@
           <p class="text-[hsl(var(--muted-foreground))] mt-1">
             Download municipal summaries and monthly reports for individual barangays.
           </p>
+          <section class="walkin-card mho-legacy-activity" aria-label="BHW case entry activity">
+            <div><h2>Today’s BHW case entries</h2><p id="daily-bhw-summary" class="hi-field-help">Loading case entries…</p></div>
+            <button type="button" id="daily-bhw-open" data-case-mode="daily" class="hi-vital-button mho-case-card" aria-haspopup="dialog">View entries <span id="daily-bhw-total" hidden>—</span></button>
+          </section>
           <section class="hi-today-report" aria-labelledby="mho-today-title">
             <div><span class="hi-today-report-badge">Daily report · Philippines date</span><h2 id="mho-today-title">Daily municipal report</h2>
               <p>Disease cases and consultations for the date you choose, grouped by barangay and condition. Admissions and follow-ups appear separately from new disease cases. Covers all barangays.</p>
@@ -412,8 +417,7 @@
         </div>
         <section id="view-patient-directory" class="view-section hidden">
           <div class="walkin-page-heading"><div><span class="walkin-eyebrow">Municipal patient records</span><h1>Patient Directory</h1><p>Find patients across all barangays and view their disease cases, admissions and follow-up visits.</p></div></div>
-          <div id="mho-followup-tabs"></div>
-          <div id="mho-directory-panel" role="tabpanel" aria-labelledby="mho-directory-tab">
+          <div id="mho-directory-panel">
           <form id="mho-patient-filters" class="walkin-card p-5 mb-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
             <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-search">Patient name or record ID<input id="mho-patient-search" type="search" maxlength="100" placeholder="Search name, RES-12 or REC-34" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"></label>
             <label class="grid gap-2 text-sm font-semibold text-foreground" for="mho-patient-barangay">Barangay<select id="mho-patient-barangay" class="w-full min-h-[48px] px-3 py-2 rounded-lg border border-border bg-background text-foreground font-normal"><option value="all">All barangays</option></select></label>
@@ -424,12 +428,33 @@
           <div class="walkin-card mho-directory-card"><div class="mho-directory-table" role="region" aria-label="Patient directory records" tabindex="0"><table class="walkin-table"><thead><tr><th>Patient / record</th><th>Barangay / purok</th><th>Cases</th><th>Last consultation</th><th>Profile type</th></tr></thead><tbody id="mho-patient-body"><tr><td colspan="5">Open the directory to load records.</td></tr></tbody></table></div></div>
           <div id="mho-patient-pager" class="mho-numbered-pages"></div>
           </div>
-          <section id="mho-followup-panel" role="tabpanel" aria-labelledby="mho-followup-tab" hidden></section>
+        </section>
+        <section id="view-referrals" class="view-section hidden" aria-labelledby="mho-referrals-title">
+          <div class="walkin-page-heading"><div><h1 id="mho-referrals-title">Referrals</h1><p>Review incoming requests, track patient arrivals, and manage follow-ups.</p></div></div>
+          <div class="hi-directory-tabs" role="group" aria-label="Referral views">
+            <button type="button" data-referral-view="incoming" aria-pressed="true">Incoming</button>
+            <button type="button" data-referral-view="followups" aria-pressed="false">Follow-ups</button>
+            <button type="button" data-referral-view="completed" aria-pressed="false">Completed</button>
+          </div>
+          <section class="walkin-card mho-referral-section" id="mho-referral-queue" aria-labelledby="mho-referral-list-title">
+            <div class="mho-referral-heading">
+              <div><h2 id="mho-referral-list-title">Incoming referrals</h2><p class="hi-field-help" id="mho-referral-list-help">Requests, arrivals, and assessments in progress.</p></div>
+              <div class="mho-referral-filters">
+                <label for="mho-referral-barangay">Barangay<select id="mho-referral-barangay"><option value="all">All barangays</option></select></label>
+                <div data-referral-tools></div>
+              </div>
+            </div>
+            <p data-referral-status role="status"></p>
+            <div data-referral-list class="hi-referral-list"></div>
+            <div data-referral-pages class="hi-referral-pages"></div>
+          </section>
+          <section id="mho-followup-panel" class="walkin-card mho-referral-section" aria-labelledby="mho-followup-heading" hidden></section>
         </section>
         <section id="view-review-center" class="view-section hidden">
-          <div class="walkin-page-heading"><div><span class="walkin-eyebrow">MHO review workspace</span><h1>Disease Review</h1><p>Review the reported conditions that need a classification.</p></div></div>
+          <div class="walkin-page-heading"><div><h1>Condition Classification <span id="disease-review-count" class="hi-review-count" hidden>0</span></h1><p>Match recorded conditions to the disease catalog or request clarification.</p></div>
+            <button id="disease-review-refresh" class="hi-referral-action hi-referral-icon-action" type="button" aria-label="Refresh classification queue" data-mho-hint="Refresh list"><i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i></button>
+          </div>
         <section id="view-disease-review">
-          <div class="mho-review-heading mb-6 grid grid-cols-[44px_minmax(0,1fr)] items-start gap-4 rounded-2xl border border-border bg-card p-5 sm:grid-cols-[44px_minmax(0,1fr)_auto] sm:p-6"><span class="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"><i data-lucide="clipboard-check" class="h-6 w-6" aria-hidden="true"></i></span><div class="min-w-0"><h2 class="text-xl font-bold tracking-tight text-foreground sm:text-2xl">Disease Review <span id="disease-review-count" class="hi-review-count" hidden>0</span></h2><p class="mt-2 text-sm leading-relaxed text-muted-foreground">Review conditions missing from the catalog. Match an existing disease name, add a reviewed name or request clarification.</p></div><button id="disease-review-refresh" class="hi-review-actions mho-review-refresh col-start-2 justify-self-start sm:col-start-3 sm:row-start-1" type="button" aria-label="Refresh disease review list" data-mho-hint="Refresh list"><i data-lucide="refresh-cw" class="h-5 w-5" aria-hidden="true"></i></button></div>
           <div class="walkin-card mho-review-queue"><p class="hi-field-help">Catalog review standardizes the recorded condition. It does not establish or confirm a clinical diagnosis. Use established MHO channels for urgent reporting.</p><p id="disease-review-status" role="status" class="hi-review-message"></p><div class="mho-directory-table" role="region" aria-label="Disease review queue" tabindex="0"><table class="walkin-table"><thead class="[&_th]:!text-slate-700 dark:[&_th]:!text-slate-300"><tr><th>Case / patient</th><th>Barangay / date</th><th>Reported condition / source</th><th>Review status</th></tr></thead><tbody id="disease-review-body"></tbody></table></div></div>
         </section>
         </section>
@@ -441,6 +466,7 @@
         <header class="walkin-entry-heading"><div><h2 id="walkin-dialog-title">Add walk-in patient</h2></div><button id="walkin-dialog-close" type="button" aria-label="Close patient entry">×</button></header>
           <form id="mho-walkin-form" class="walkin-card walkin-form" novalidate>
             <div class="walkin-form-intro"><p>Complete the four steps. Fields marked * are required; closing keeps your unfinished entries.</p><button id="walkin-retry-options" type="button" class="walkin-retry" hidden>Retry loading choices</button></div>
+            <p id="walkin-linked-intake" class="walkin-help" hidden></p>
             <div id="walkin-progress" class="walkin-progress"><p id="walkin-step-status" role="status">Step 1 of 4 · Patient</p><ol><li><span>1</span>Patient</li><li><span>2</span><span class="hi-picker-stage-label" data-short="Visit">Consultation</span></li><li><span>3</span><span class="hi-picker-stage-label" data-short="Vitals">Measurements</span></li><li><span>4</span><span class="hi-picker-stage-label" data-short="Notes">Disease &amp; notes</span></li></ol></div>
             <div id="walkin-patient-step" class="walkin-section">
               <div class="walkin-section-heading"><span class="walkin-step">1</span><div><h2>Resident details</h2><p>Use the patient’s recorded identity and home barangay.</p></div></div>
@@ -496,19 +522,20 @@
     <script src="assets/js/shared/app.js"></script>
     <script src="assets/js/shared/lazy-heatmap.js?v=20261123-map-header"></script>
     <script src="assets/js/mho/mho-insights.js?v=20261118-month-any-year"></script>
-    <script src="assets/js/mho/mho-walkins.js?v=20261117-archive-icon"></script>
+    <script src="assets/js/shared/patient-referrals.js?v=20261126-referral-workspace"></script>
+    <script src="assets/js/mho/mho-walkins.js?v=20261126-intakes"></script>
     <div id="mho-cursor-tooltip" aria-hidden="true"></div>
     <script src="assets/js/mho/mho-disease-review.js?v=20261115-review-refresh"></script>
     <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
     <script src="assets/js/mho/mho-patients.js?v=20261117-archive-view"></script>
-    <script src="assets/js/shared/followup-tracking.js?v=20261115-bhw-navigation"></script>
+    <script src="assets/js/shared/followup-tracking.js?v=20261126-referral-workspace"></script>
     <script>
       lucide.createIcons();
     </script>
     <script src="assets/js/mho/mho-shell.js?v=20261111-pager"></script>
     <script src="assets/js/mho/municipal-dataset.js?v=20261118-chart-month"></script>
     <script src="assets/js/mho/mho-analytics.js?v=20261118-month-any-year"></script>
-    <script src="assets/js/mho/mho-daily-bhw.js?v=20261120-activity-summary"></script>
+    <script src="assets/js/mho/mho-daily-bhw.js?v=20261126-referral-workspace"></script>
     <script src="assets/js/mho/mho-reports.js?v=20261123-report-alerts"></script>
     <script src="assets/js/shared/historical-reports.js?v=20261123-report-periods"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
@@ -517,7 +544,7 @@
     <script src="assets/js/shared/portal-history.js?v=20261108-history"></script>
     <script src="assets/js/shared/dataset-analytics.js?v=20261113-dataset"></script>
     <script src="assets/js/mho/mho-action-guidance.js?v=20261125-details"></script>
-    <script src="assets/js/shared/forecast-board.js?v=20261125-centered-details"></script>
+    <script src="assets/js/shared/forecast-board.js?v=20261127-rolling"></script>
   </body>
 </html>
 

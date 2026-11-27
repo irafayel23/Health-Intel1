@@ -229,6 +229,18 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
    v={...verified(row),row};
   }else v=await published();
   const targets=H.windowFrom(v.input.cutoff,v.input.target);
+  const currentMonth=D.currentMonth(now()),closedMonth=H.shift(currentMonth,-1);
+  let nextUpdate=null;
+  if(!version&&closedMonth>v.input.cutoff){
+   let status='pending';
+   try{
+    const monthReports=await reports(closedMonth);
+    status=monthReports.every(row=>row.confirmed&&!row.pending)?'awaiting_publication':'awaiting_confirmation';
+   }catch{
+    // A reporting status failure must not hide an already-issued prediction.
+   }
+   nextUpdate={reporting_month:closedMonth,status};
+  }
   const issued=v.row.first_published_epoch?new Date(Number(v.row.first_published_epoch)*1000).toISOString():null;
   const probabilities=new Map();
   if(v.input.mode==='operational'){
@@ -242,7 +254,7 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
   const views=Object.values(v.result.views).filter(view=>!barangay||view.barangay===barangay);
   return {source:v.input.mode==='operational'?'operational':v.input.uploaded_dataset_sha256?'uploaded preview':'dataset-backed preview',
    status:v.row.status==='published'?'published':'draft',cutoff:v.input.cutoff,reference:v.input.target,targets,issued,
-   expired:targets.at(-1).target<D.currentMonth(now()),dataset_version:v.input.uploaded_dataset_sha256||v.row.input_hash,model_version:v.row.id,
+   expired:targets.at(-1).target<currentMonth,next_update:nextUpdate,dataset_version:v.input.uploaded_dataset_sha256||v.row.input_hash,model_version:v.row.id,
    barangay:barangay??null,rows:displayRows(views,targets,(view,h)=>probabilityOf(probabilities.get(H.keyFor(view.disease,view.barangay)+'\0'+h)))};
  }
  async function publicationVersions(){

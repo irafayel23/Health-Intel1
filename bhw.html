@@ -22,8 +22,8 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261119-mobile-invite" />
-    <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261115-comparison" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261126-daily-layout" />
+    <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -34,7 +34,7 @@
     <script src="assets/js/shared/chart-theme.js"></script>
       <link rel="stylesheet" href="assets/css/shared/encoding-controls.css?v=20261112-purok-menu">
     <link rel="stylesheet" href="assets/css/shared/patient-picker.css?v=20261113-resident-review">
-    <script src="assets/js/shared/patient-picker.js?v=20261113-resident-review"></script>
+    <script src="assets/js/shared/patient-picker.js?v=20261126-intakes"></script>
     <script src="assets/js/shared/encoding-controls.js?v=20261115-purok-options"></script>
     <link rel="stylesheet" href="assets/css/shared/resident-vital.css">
     <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261120-loading">
@@ -140,11 +140,15 @@
               <p id="dynamic-dashboard-subtitle" class="text-sm text-slate-700 dark:text-slate-300 mt-2">Your recorded cases, trends and everyday tools.</p>
             </div>
             <button id="bhw-dashboard-add" type="button" onclick="openAddPatientModal()" class="self-start sm:self-center inline-flex items-center justify-center gap-2 rounded-xl bg-teal-700 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700 shrink-0">
-              <i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i>Add case / visit
+              <i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i>Record patient visit
             </button>
           </div>
 
           <div id="bhw-dashboard-content" class="space-y-5">
+          <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm">
+            <button type="button" class="hi-referral-trigger" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog"><i data-lucide="clipboard-list" class="w-4 h-4" aria-hidden="true"></i>Visits and referrals</button>
+            <p class="mt-1 text-sm text-[hsl(var(--muted-foreground))]">Track referral requests, arrivals and barangay follow-ups.</p>
+          </section>
           <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm" aria-labelledby="bhw-dashboard-followup-title">
             <h2 id="bhw-dashboard-followup-title" class="mb-3 text-base font-semibold text-slate-950 dark:text-slate-50">Follow-up tracking</h2>
             <div class="flex flex-wrap gap-3" aria-live="polite">
@@ -223,8 +227,9 @@
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div class="hi-wrap-actions flex gap-3">
               <button onclick="openAddPatientModal()" class="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2">
-                <i data-lucide="plus" class="w-4 h-4"></i> New Record
+                <i data-lucide="plus" class="w-4 h-4"></i> Record visit
               </button>
+              <button type="button" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog" class="hi-referral-trigger"><i data-lucide="clipboard-list" class="w-4 h-4" aria-hidden="true"></i>Visits and referrals</button>
               <button id="toggle-archive-btn" onclick="toggleArchiveView()" class="px-5 py-2.5 border border-[hsl(var(--border))] text-[hsl(var(--foreground))] bg-[hsl(var(--card))] font-medium rounded-lg shadow-sm hover:bg-[hsl(var(--muted))] hover:shadow-md transition-all text-sm flex items-center gap-2">
                 <i data-lucide="archive" class="w-4 h-4"></i> View Archived
               </button>
@@ -331,16 +336,22 @@
             <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Report Generation</h1>
             <p class="text-[hsl(var(--muted-foreground))] mt-1">Download case lists and daily consultation summaries for your assigned barangay.</p>
           </div>
-          <section class="hi-today-report" aria-labelledby="bhw-today-title">
-            <div><span class="hi-today-report-badge">Daily report · Philippines date</span><h2 id="bhw-today-title">Daily barangay report</h2>
-              <p>Disease cases and consultations for the date you choose. Admissions and follow-ups appear separately from new disease cases. Your assigned barangay only.</p>
-              <div class="mt-4 flex flex-wrap items-end gap-3"><label for="bhw-report-date" class="flex flex-col gap-2 text-sm font-semibold">Report date<input id="bhw-report-date" type="date" required min="1900-01-01" aria-describedby="bhw-daily-help" class="min-h-12 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:[color-scheme:dark]"></label><button type="button" data-daily-today="bhw" class="min-h-12 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold dark:border-slate-600">Today</button></div>
-              <small id="bhw-daily-help">Defaults to today. Choose an earlier date to recover a missed report. Late entries and corrections are included when you download again.</small></div>
-            <div class="flex flex-col items-stretch gap-3">
-              <button id="daily-submission-send" type="button" class="rounded-lg bg-blue-700 px-4 py-3 font-semibold text-white disabled:opacity-50" disabled>Submit Report</button>
-              <button id="bhw-daily-download" type="button" onclick="generateBHWTodayReport()"><i data-lucide="download" aria-hidden="true"></i> Download daily PDF</button>
+          <section class="hi-today-report bhw-daily-report" aria-labelledby="bhw-today-title">
+            <header><h2 id="bhw-today-title">Daily barangay report</h2>
+              <p>Review and submit the cases and consultations recorded in your barangay for the selected date.</p>
+            </header>
+            <div class="bhw-daily-report-controls">
+              <div class="bhw-daily-date-group">
+                <label for="bhw-report-date">Report date<input id="bhw-report-date" type="date" required min="1900-01-01" aria-describedby="bhw-daily-help"></label>
+                <button type="button" data-daily-today="bhw" class="bhw-daily-button">Today</button>
+              </div>
+              <div class="bhw-daily-report-actions">
+                <button id="daily-submission-send" type="button" class="bhw-daily-button bhw-daily-submit" disabled>Submit Report</button>
+                <button id="bhw-daily-download" type="button" class="bhw-daily-button" onclick="generateBHWTodayReport()"><i data-lucide="download" aria-hidden="true"></i> Download daily PDF</button>
+              </div>
             </div>
-            <p id="daily-submission-status" class="text-sm font-medium" role="status"></p>
+            <p id="daily-submission-status" role="status"></p>
+            <small id="bhw-daily-help">Dates use Philippine time. Choose an earlier date to recover a missed report.</small>
           </section>
           
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -482,7 +493,7 @@
     <!-- UI Interaction Scripts -->
     <script src="assets/js/bhw/bhw-shell.js?v=20261108-bhw-icons"></script>
 
-    <script src="assets/js/bhw/bhw-records.js?v=20261119-mobile-paging"></script>
+    <script src="assets/js/bhw/bhw-records.js?v=20261126-intakes"></script>
     <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
     <script src="assets/js/bhw/bhw-residents.js?v=20261119-mobile-invite"></script>
     <script src="assets/js/bhw/bhw-dashboard.js?v=20261115-no-heatmap"></script>
@@ -490,12 +501,13 @@
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
-  <script src="assets/js/bhw/bhw-dialogs.js?v=20261123-report-periods"></script>
+  <script src="assets/js/shared/patient-referrals.js?v=20261126-referral-workspace"></script>
+  <script src="assets/js/bhw/bhw-dialogs.js?v=20261126-patient-fields"></script>
     <script src="assets/js/shared/historical-reports.js?v=20261123-report-periods"></script>
-  <script src="assets/js/shared/followup-tracking.js?v=20261119-mobile-paging"></script>
+    <script src="assets/js/shared/followup-tracking.js?v=20261126-referral-workspace"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261120-loading"></script>
     <script src="assets/js/shared/portal-history.js?v=20261108-history"></script>
     <script src="assets/js/mho/mho-action-guidance.js?v=20261125-details"></script>
-    <script src="assets/js/shared/forecast-board.js?v=20261125-centered-details"></script>
+    <script src="assets/js/shared/forecast-board.js?v=20261127-rolling"></script>
   </body>
 </html>

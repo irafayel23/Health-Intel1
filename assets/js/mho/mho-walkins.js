@@ -4,7 +4,7 @@
     let categories=[],matches=[],optionsReady=false,isSaving=false,matchTimer,matchRequest,matchVersion=0,recentVersion=0,returnCase=null,openVersion=0;
     let recentRows=[],viewingArchive=false;
     const returning=()=>returnCase!==null||['New admission','Follow-up visit'].includes(value('walkin-nature'));
-    let step=0,patientPicker;
+    let step=0,patientPicker,activeReferral=null;
     const stepLabels=['Patient','Consultation','Measurements','Disease & notes'];
     function showStep(index,focus=false){
         step=index;
@@ -105,6 +105,10 @@
     }
     function visitFields() {
         const referral=value('walkin-transaction')==='Referral';
+        const linked=field('walkin-linked-intake');
+        linked.hidden=!activeReferral;
+        linked.textContent=activeReferral?'Referral #INT-'+activeReferral.id+' · Patient reports: '+activeReferral.concern:'';
+        field('walkin-dialog-title').textContent=activeReferral?'Record referral assessment':'Add walk-in patient';
         field('walkin-referral-fields').hidden=!referral;field('walkin-referral-reason').required=referral;
         field('walkin-existing-case-fields').hidden=!returning();field('walkin-condition-fields').hidden=returning();
         field('walkin-save').textContent=returning()?'Save consultation':'Save disease case';updateSummary();
@@ -283,6 +287,44 @@
         field('walkin-dialog-close').addEventListener('click',closeEntry);
         field('walkin-cancel').addEventListener('click',closeEntry);
     }
+    async function openReferral(referral) {
+        if (isSaving || !referral || referral.state!=='arrived') return;
+        const form=field('mho-walkin-form');
+        const hasDraft=activeReferral || ['walkin-first','walkin-last','walkin-purok','walkin-remarks','walkin-bp'].some(id=>value(id));
+        if (hasDraft) {
+            const choice=await Swal.fire({titleText:'Replace unfinished consultation?',showCancelButton:true,
+                confirmButtonText:'Open referral',cancelButtonText:'Keep draft',customClass:{popup:'hi-dialog'}});
+            if (!choice.isConfirmed) return;
+        }
+        const current=++openVersion;
+        try {
+            if(!optionsReady)await loadOptions();
+            if(current!==openVersion||isSaving)return;
+            activeReferral=null;returnCase=null;
+            form.reset();patientPicker.reset();
+            field('walkin-date').value=todayInManila();
+            field('walkin-barangay').value=String(referral.barangay_id);
+            await patientPicker.useExisting(Number(referral.resident_id));
+            if(Number(patientPicker.selected?.id)!==Number(referral.resident_id))throw Error('The referral patient could not be loaded.');
+            activeReferral=referral;
+            field('walkin-transaction').value='Referral';
+            field('walkin-referred-by').value=referral.barangay_name;
+            field('walkin-referral-reason').value=referral.referral_reason;
+            field('walkin-remarks').value='';
+            if(referral.source_case_id){
+                returnCase=Number(referral.source_case_id);
+                field('walkin-nature').value='Follow-up visit';
+            }
+            for(const id of ['walkin-barangay','walkin-transaction','walkin-nature'])field(id)._hiSelect?.refresh();
+            updateAge();visitFields();scheduleMatches();
+            document.querySelector('[data-target="view-history"]')?.click();
+            window.HealthIntelModal.open(field('walkin-record-panel'));
+            showStep(1,true);
+            showStatus('');
+        }catch(error){
+            Swal.fire({icon:'error',titleText:'Could not open referral',text:error.message,customClass:{popup:'hi-dialog'}});
+        }
+    }
     async function openReturnVisit(detail){
         const current=++openVersion,person=detail?.person,caseId=detail?.caseId;
         if(isSaving||!person||person.is_deceased||!Number.isSafeInteger(caseId)||caseId<1)return;
@@ -297,7 +339,7 @@
         if(!optionsReady){try{await loadOptions();}catch(error){optionsFailed(error);return;}}
         if(current!==openVersion||isSaving)return;
         clearTimeout(matchTimer);matchRequest?.abort();++matchVersion;clearFieldErrors();
-        patientPicker?.reset();field('mho-walkin-form').reset();returnCase=caseId;field('walkin-unlisted').hidden=true;
+        activeReferral=null;patientPicker?.reset();field('mho-walkin-form').reset();returnCase=caseId;field('walkin-unlisted').hidden=true;
         for(const [id,entry] of [['walkin-first',person.first_name],['walkin-last',person.last_name],['walkin-suffix',person.suffix||''],['walkin-purok',person.purok||'']])field(id).value=entry||'';
         const birth=String(person.birthdate||'').slice(0,10).split('-');field('walkin-birthdate').value=birth.length===3?`${birth[1]}/${birth[2]}/${birth[0]}`:'';
         field('walkin-date').max=todayInManila();field('walkin-date').value=field('walkin-date').max;field('walkin-age').value='';
@@ -339,6 +381,7 @@
         for(const id of ['walkin-first','walkin-last','walkin-birthdate'])field(id).addEventListener('input',identityChanged);
         for(const id of ['walkin-suffix','walkin-barangay'])field(id).addEventListener('change',identityChanged);
         window.addEventListener('health-intel:record-return-visit',event=>openReturnVisit(event.detail));
+        window.addEventListener('health-intel:assess-referral',event=>openReferral(event.detail));
         field('walkin-existing-case').addEventListener('change',updateSummary);
         for(const id of ['walkin-time-hour','walkin-time-minute','walkin-bp','walkin-temperature','walkin-height','walkin-weight']){
             const allowed=id==='walkin-bp'?/[^\d/]/:id.startsWith('walkin-time-')?/[^\d]/:/[^\d.]/;
@@ -363,7 +406,8 @@
                 const details=consultation();
                 payload={...patientPicker?.payload(),first_name:value('walkin-first'),last_name:value('walkin-last'),suffix:value('walkin-suffix'),birthdate,
                     date_recorded:value('walkin-date'),barangay_id:Number(value('walkin-barangay')),purok:value('walkin-purok'),
-                    ...details.condition,visit:details.visit,severity:value('walkin-severity'),remarks:value('walkin-remarks'),status:'Active'};
+                    ...details.condition,visit:details.visit,severity:value('walkin-severity'),remarks:value('walkin-remarks'),status:'Active',
+                    ...(activeReferral?{intake_id:activeReferral.id}:{})};
             }catch(error){showStatus(error.message,'error');if(error.field)fieldError(error.field,error.message);return;}
             isSaving=true;save.disabled=true;showStatus('Saving case / consultation…');
             try {
@@ -372,7 +416,7 @@
                     showStep(0);showStatus('');patientPicker.showReview(result);return;
                 }
                 if(!response.ok||!result.success)throw Error(result.error||'The consultation could not be saved.');
-                returnCase=null;++openVersion;form.reset();patientPicker?.reset();field('walkin-nature').querySelector('option[value=""]')?.remove();field('walkin-unlisted').hidden=true;date.value=todayInManila();
+                activeReferral=null;returnCase=null;++openVersion;form.reset();patientPicker?.reset();field('walkin-nature').querySelector('option[value=""]')?.remove();field('walkin-unlisted').hidden=true;date.value=todayInManila();
                 for(const id of ['walkin-disease','walkin-severity','walkin-barangay','walkin-suffix','walkin-nature','walkin-transaction','walkin-time-period'])field(id).dispatchEvent(new Event('change',{bubbles:true}));
                 updateAge();renderCategories();visitFields();scheduleMatches();
                 showStatus(result.new_case===false?`Consultation saved under #REC-${result.id}. Disease case totals are unchanged.`:`Case #REC-${result.id} and its consultation saved.${result.review_status==='Pending'?' The condition needs MHO review.':' Assigned to the selected barangay.'}`,'success');

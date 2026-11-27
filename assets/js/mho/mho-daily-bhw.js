@@ -1,6 +1,6 @@
 (() => {
     const cards = [...document.querySelectorAll('.mho-case-card[data-case-mode]')];
-    const titles = { daily: 'Today’s BHW Activity', active: 'Active cases', recovered: 'Cleared / recovered', highRisk: 'Active high risk' };
+    const titles = { daily: 'Today’s BHW case entries', active: 'Active cases', recovered: 'Cleared / recovered', highRisk: 'Active high risk' };
     const template = document.getElementById('daily-bhw-template');
     const field = id => document.getElementById('daily-bhw-' + id);
     const safe = value => HealthIntelEncoding.escape(String(value ?? ''));
@@ -16,8 +16,8 @@
         total.classList.toggle('text-3xl', count !== null);
         total.classList.toggle('text-base', count === null);
         summary.textContent = count === null ? 'Could not load today’s total. Open to retry.'
-            : count === 0 ? 'No BHW entries today across all seven barangays'
-            : (count === 1 ? 'BHW entry' : 'BHW entries') + ' today across all seven barangays';
+            : count === 0 ? 'No BHW case or consultation entries today'
+            : count+' BHW '+(count === 1 ? 'entry' : 'entries')+' across all seven barangays';
     }
     const calendarDate = new Intl.DateTimeFormat('en-PH', {
         timeZone: 'Asia/Manila', month: 'long', day: 'numeric', year: 'numeric'

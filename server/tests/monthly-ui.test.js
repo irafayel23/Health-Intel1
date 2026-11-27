@@ -13,7 +13,7 @@ class Element{
  async fire(k,e={}){for(const f of this.listeners[k]||[])await f({preventDefault(){},...e});} get lastElementChild(){return this.children.at(-1);} querySelector(t){return this.children.find(e=>e.tagName===t);} contains(e){return e===this;} focus(){} getBoundingClientRect(){return {left:0,width:700};}
 }
 const settle=async()=>{await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));};
-function app(handler, role='mho', includeProbability=false){
+function app(handler, role='mho', includeProbability=false, Clock=Date){
  const html=role==='admin'?fs.readFileSync(path.join(root,role+'.html'),'utf8'):require('./helpers/legacy-forecast-markup')(role),els=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));if(role==='admin')els['monthly-history-source'].value='operational';else if(els['prediction-source'])els['prediction-source'].value='demonstration';else els['view-predictive'].dataset.assignedBarangay='true';if(role!=='admin'){els['sarima-window'].value='24';els['sarima-score-info'].append(new Element('summary'));}
  if(includeProbability){
   const dash=els['sarima-dashboard'],history=new Element('aside'),summary=els['sarima-summary'];
@@ -29,13 +29,20 @@ function app(handler, role='mho', includeProbability=false){
   return els['sarima-dashboard']?find(els['sarima-dashboard'].parentElement||els['sarima-dashboard']):undefined;
  },createElement:t=>new Element(t),createElementNS:(_n,t)=>new Element(t),addEventListener(){},querySelector:()=>new Element('button')};
  const events={};
- const context={document,window:{HealthIntelSarimaPresentation:P,HealthIntel:{apiOrigin:'http://localhost:3000'},confirm:()=>true,addEventListener:(name,handler)=>{events[name]=handler;}},fetch:async(url,options)=>{calls.push({url,options});return handler(url,options);},URLSearchParams,AbortController,Intl,Date,setTimeout,clearTimeout,setInterval,clearInterval,requestAnimationFrame:f=>f(),console};
+ const context={document,window:{HealthIntelSarimaPresentation:P,HealthIntel:{apiOrigin:'http://localhost:3000'},confirm:()=>true,addEventListener:(name,handler)=>{events[name]=handler;}},fetch:async(url,options)=>{calls.push({url,options});return handler(url,options);},URLSearchParams,AbortController,Intl,Date:Clock,setTimeout,clearTimeout,setInterval,clearInterval,requestAnimationFrame:f=>f(),console};
  context.window.document=document;
  const scripts=role==='admin'?['admin/operational-monthly.js']:[...(includeProbability?['mho/cmp-presentation.js']:[]),'mho/mho-forecast.js'];
  for(const file of scripts)vm.runInNewContext(fs.readFileSync(path.join(root,'assets/js',file),'utf8'),context);
  return {els,calls,context,events};
 }
-const trainingApp=handler=>app(handler,'admin');
+function trainingApp(handler, instant){
+ if(!instant)return app(handler,'admin');
+ class FixedDate extends Date {
+  constructor(...args){super(...(args.length?args:[instant]));}
+  static now(){return Date.parse(instant);}
+ }
+ return app(handler,'admin',false,FixedDate);
+}
 const ok=data=>({ok:true,json:async()=>({success:true,data})}),error=message=>({ok:false,json:async()=>({success:false,error:message})});
 const options={diseases:['Cough'],barangays:['Salvacion'],context:{cutoff:'2026-09'},provenance:{version:'fixture-version'}};
 test('a published operational version is selected on startup, never assigned the demonstration score',async()=>{
@@ -46,11 +53,51 @@ test('an explicit source choice wins over delayed startup status; a source failu
  a.els['prediction-source'].value='demonstration';await a.els['prediction-source'].fire('change');release(ok({publication:{run_id:'fixture-version'}}));await settle();assert.equal(a.els['prediction-source'].value,'demonstration');assert(a.els['sarima-provenance'].textContent.includes('generated monthly'));
  a.els['prediction-source'].value='operational';await a.els['prediction-source'].fire('change');await settle();assert(a.els['sarima-state'].textContent.includes('No operational version'));assert(a.els['sarima-provenance'].textContent.includes('No demonstration records have been substituted'));assert.equal(a.els['forecast-months'].hidden,true);assert.equal(a.els['predictive-disease-select'].disabled,true);assert.equal(a.els['run-forecast-button'].textContent,'Retry loading');
 });
-test('Admin opening training is read-only and publishing requires approval',async()=>{
- const state={publication:null,runs:[{id:'fixture-version',cutoff:'2026-09',status:'ready'}],minimum_months:45,python_configured:true,worker_platform:'Windows bounded worker'};
- const review={run:{status:'ready'},overall:{'80_20':{'1':{within_tolerance_hits:7,available:9,attempted:9,MAE:1,RMSE:2,MAPE_positive_pct:3,within_tolerance_pct:100*7/9}},'70_30':{'1':{within_tolerance_hits:9,available:14,attempted:14}}},context:{main_target:'2026-10',cutoff:'2026-09'},available:1,current_data_matches:true,scopes:[]};
- const a=trainingApp(async(url,opts)=>(url.endsWith('/status')||url.endsWith('/publication'))?ok(state):url.includes('/runs/')?ok(review):url.endsWith('/publish')?(state.publication={run_id:'fixture-version'},ok(state.publication)):ok(options));await settle();assert.equal(a.calls.length,0);await a.context.window.HealthIntelMonthlyUpdates.setActive(true);assert.equal(a.calls.filter(c=>c.options?.method==='POST').length,0);
- await a.els['monthly-runs'].children[0].children[1].fire('click');let approve=false;a.context.window.confirm=()=>approve;const publish=a.els['monthly-review'].children.find(e=>e.textContent==='Review and publish this version');await publish.fire('click');assert.equal(a.calls.filter(c=>c.url.endsWith('/publish')).length,0);approve=true;await publish.fire('click');assert.equal(a.calls.filter(c=>c.url.endsWith('/publish')).length,1);assert.match(a.els['monthly-message'].textContent,/published/);
+test('Admin training is read-only until an eligible prediction is approved',async()=>{
+ const expired={id:'expired-version',cutoff:'2026-09',status:'ready'};
+ const current={id:'current-version',cutoff:'2026-10',status:'ready'};
+ const state={publication:null,runs:[expired,current],minimum_months:45,python_configured:true};
+ const overall={'80_20':{'1':{within_tolerance_hits:7,available:9,attempted:9,MAE:1,RMSE:2,MAPE_positive_pct:3,within_tolerance_pct:100*7/9}}};
+ const a=trainingApp(async url=>{
+  if(url.endsWith('/status')||url.endsWith('/publication'))return ok(state);
+  if(url.endsWith('/publish')){
+   state.publication={run_id:current.id};
+   return ok(state.publication);
+  }
+  const run=state.runs.find(item=>url.endsWith('/runs/'+item.id));
+  if(run){
+   const main_target=run===expired?'2026-10':'2026-11';
+   return ok({run,overall,context:{main_target,cutoff:run.cutoff},available:1,current_data_matches:true,scopes:[]});
+  }
+  return ok(options);
+ },'2026-11-27T03:00:00Z');
+ await settle();
+ assert.equal(a.calls.length,0);
+ await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
+ const posts=()=>a.calls.filter(call=>call.options?.method==='POST');
+ assert.equal(posts().length,0);
+
+ const review=a.els['monthly-review'];
+ const publishButton=()=>review.children.find(e=>e.textContent==='Review and publish this version');
+ const runRows=a.els['monthly-runs'].children;
+ await runRows.find(row=>row.textContent.includes('October 2026 forecast')).children[1].fire('click');
+ assert.match(review.textContent,/first prediction month has ended/);
+ assert.equal(publishButton(),undefined);
+ assert.equal(posts().length,0);
+
+ await runRows.find(row=>row.textContent.includes('November 2026 forecast')).children[1].fire('click');
+ let approve=false;
+ a.context.window.confirm=()=>approve;
+ const publish=publishButton();
+ assert.ok(publish);
+ await publish.fire('click');
+ assert.equal(posts().length,0);
+ approve=true;
+ await publish.fire('click');
+ assert.equal(posts().length,1);
+ assert.match(posts()[0].url,/\/publish$/);
+ assert.deepEqual(JSON.parse(posts()[0].options.body),{run_id:current.id,acknowledged:true,probability_sha256:null});
+ assert.match(a.els['monthly-message'].textContent,/published/);
 });
 test('actual operational routes deny other roles and sanitize unexpected errors without leaking internals',async()=>{
  const express=require('express'),{registerMonthlyPredictionRoutes}=require('../routes/monthly-prediction-routes');const app=express();app.use(express.json());app.use((req,res,next)=>{req.user={role:req.headers['x-fixture-role']};next();});let calls=0;registerMonthlyPredictionRoutes(app,null,{list:async()=>{calls++;throw Error('private diagnostic detail');}});const server=app.listen(0,'127.0.0.1');await new Promise(r=>server.on('listening',r));try{const url='http://127.0.0.1:'+server.address().port+'/api/admin/operational-predictions/status';for(const role of ['bhw','mho','superadmin']){const r=await fetch(url,{headers:{'x-fixture-role':role}});assert.equal(r.status,403);}assert.equal(calls,0);const r=await fetch(url,{headers:{'x-fixture-role':'admin'}});assert.equal(r.status,503);assert.equal(r.headers.get('cache-control'),'no-store');assert(!(await r.text()).includes('private diagnostic detail'));}finally{await new Promise(r=>server.close(r));}
@@ -182,10 +229,10 @@ test('monthly dates show the inclusive 45-month range and the next forecast mont
  await a.els['monthly-use-range'].fire('click');
  assert.equal(start.value,'2022-02');
  assert.match(a.els['monthly-range-help'].textContent,/45 months selected/);
- assert.equal(a.els['monthly-forecast-month'].textContent,'November 2025 – January 2026');
+ assert.equal(a.els['monthly-forecast-month'].textContent,'Prediction period · November 2025 – January 2026');
  cutoff.value='2025-11';await cutoff.fire('input');
  assert.match(a.els['monthly-range-help'].textContent,/46 months selected.*March 2022/);
- assert.equal(a.els['monthly-forecast-month'].textContent,'December 2025 – February 2026');
+ assert.equal(a.els['monthly-forecast-month'].textContent,'Prediction period · December 2025 – February 2026');
 });
 
 test('disease review reloads an open monthly report without stale classifications',async()=>{
@@ -273,30 +320,33 @@ test('training status shows a plain-language blocker and a technical disclosure,
 });
 
 
-test('dataset mode shows the saved start, limits report months and submits the mixed source',async()=>{
+test('dataset mode submits an updated preview after the latest month closes and reports are confirmed',async()=>{
+ const barangays=['Alegria','Blumentritt','Caliban','Cansilayan','Minoyan','Salvacion','Sta. Rosa'];
+ const reports=barangays.map(barangay=>({barangay,total:0,pending:0,other:0,confirmed:true,stale:false}));
  const a=trainingApp(async url=>{
   if(url.endsWith('/status')||url.endsWith('/publication'))return ok({runs:[],publication:null,worker_ready:true,python_configured:true});
+  if(url.endsWith('/reports?month=2026-11'))return ok(reports);
   if(url.endsWith('/runs'))return ok({status:'ready'});
   return ok(options);
- });
- await settle();
+ },'2026-11-30T16:00:00Z');
  const source=a.els['monthly-history-source'];
  source.value='dataset_plus_reports';
  await source.fire('change');
  await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
+ await settle();
  assert.equal(a.els['monthly-start'].readOnly,true);
  assert.equal(a.els['monthly-start'].value,'2023-01');
  assert.equal(a.els['monthly-report-month'].min,'2026-10');
  assert.equal(a.els['monthly-use-range'].hidden,true);
- const cutoff=a.els['monthly-cutoff'];
- if(cutoff.max>='2026-10'){
-  cutoff.value='2026-10';await cutoff.fire('input');
-  assert.equal(a.els['monthly-forecast-month'].textContent,'November 2026 – January 2027');
-  await a.els['monthly-create'].fire('click');
-  assert.deepEqual(JSON.parse(a.calls.find(call=>call.options?.method==='POST').options.body),{start:'2023-01',cutoff:'2026-10',mode:'dataset_plus_reports'});
- }
+ assert.equal(a.els['monthly-cutoff'].max,'2026-11');
+ assert.equal(a.els['monthly-cutoff'].value,'2026-11');
+ assert.match(a.els['monthly-report-summary'].textContent,/7 of 7 barangays confirmed/);
+ assert.equal(a.els['monthly-forecast-month'].textContent,'Prediction period · December 2026 – February 2027');
+ await a.els['monthly-create'].fire('click');
+ const posted=a.calls.find(call=>call.url.endsWith('/runs')&&call.options?.method==='POST');
+ assert.ok(posted,a.els['monthly-prepare-message'].textContent);
+ assert.deepEqual(JSON.parse(posted.options.body),{start:'2023-01',cutoff:'2026-11',mode:'dataset_plus_reports'});
 });
-
 
 test('Admin selects an eligible saved CSV and submits its immutable version for preview training',async()=>{
  const id='a'.repeat(64);

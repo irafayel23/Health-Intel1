@@ -4,6 +4,7 @@
  const node=(tag,cls,text)=>{const e=document.createElement(tag);e.className=cls||'';if(text!==undefined)e.textContent=text;return e;};
  let confirmedCount=null,lastRuns=[],pastRunsKey;
  const fmt=x=>typeof x==='number'&&Number.isFinite(x)?x.toFixed(2):'Unavailable';
+ const lowMemory=text=>text?.startsWith('Insufficient available memory');
  const base=()=>window.HealthIntel?.apiOrigin||'http://localhost:3000';
  async function request(route,body){const response=await fetch(base()+api+route,body===undefined?{cache:'no-store'}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const value=await response.json().catch(()=>({}));if(!response.ok||!value.success)throw Error(value.error||'The monthly update service could not complete this request.');return value.data;}
  const message=(text,id='monthly-message')=>{const e=$(id);if(e)e.textContent=text;};
@@ -137,7 +138,7 @@
     }
     const count=start.value?monthIndex(cutoff)-monthIndex(start.value)+1:null;
     const picked=count===null?'':count<1?'The first month must come before the last month. ':count+' months selected. ';
-    message(monthLabel(shiftMonth(cutoff,1))+' – '+monthLabel(shiftMonth(cutoff,3)),'monthly-forecast-month');
+    message('Prediction period · '+monthLabel(shiftMonth(cutoff,1))+' – '+monthLabel(shiftMonth(cutoff,3)),'monthly-forecast-month');
     if(mixed&&!upload)message(cutoff===firstReport?monthLabel(firstReport):monthLabel(firstReport)+' – '+monthLabel(cutoff),'monthly-new-reports');
     message(upload?picked+'Training uses all seven barangays and ten disease categories.':mixed?picked+'Includes '+(monthIndex(cutoff)-monthIndex(firstReport)+1)+' new report month(s). Review the results in Model Training.':
         picked+'A 45-month range ending '+monthLabel(cutoff)+' starts in '+monthLabel(start.max)+'.','monthly-range-help');
@@ -206,7 +207,22 @@
  }
  host.append(technical);
 
- if(!mixed&&data.current_data_matches&&data.available>0&&(data.run.status==='published'||!['invalid','calculating'].includes(probability?.status)))host.append(button(data.run.status==='published'?'Select this published version (rollback)':'Review and publish this version',async()=>{if(!await approval('Publish this operational version?',`${data.context.main_target}: ${data.available}/70 predictions available. Unavailable results stay unavailable. Experimental probability estimates, if prepared, publish with this version. Historical percentages measure past test performance.`))return;await request('/publish',{run_id:run,acknowledged:true,probability_sha256:probability?.sha256||null});message('Operational version published.');await loadStatus();await review(run);},true));
+ const target=data.context.main_target;
+ const isPublished=data.run.status==='published';
+ const targetEnded=target<shiftMonth(latestCompletedMonth,1);
+ if(!mixed&&!isPublished&&targetEnded)host.append(node('p','text-sm','The first prediction month has ended. Prepare a version using newer confirmed reports.'));
+ if(!mixed&&data.current_data_matches&&data.available>0&&(isPublished||(!targetEnded&&!['invalid','calculating'].includes(probability?.status)))){
+    const counts=data.context.availability||{1:data.available};
+    const coverage=[0,1,2].map(offset=>monthLabel(shiftMonth(target,offset))+' · '+(counts[offset+1]??0)+'/70 estimates').join(', ');
+    host.append(button(isPublished?'Select this published version (rollback)':'Review and publish this version',async()=>{
+        const description=coverage+'. MHO and BHW will see this version after you confirm. Available experimental probabilities publish with the estimates.';
+        if(!await approval(isPublished?'Select this published version?':'Publish this operational version?',description))return;
+        await request('/publish',{run_id:run,acknowledged:true,probability_sha256:probability?.sha256||null});
+        message('Operational version published.');
+        await loadStatus();
+        await review(run);
+    },true));
+ }
  if(data.run.status==='published')host.append(button('Assess actual outcomes',async()=>{const outcome=await request('/outcomes/'+run);const m=outcome.metrics;message(`${outcome.target} observed outcomes (${outcome.evaluation_type.replaceAll('_',' ')}): ${m.available}/${m.attempted} predictions available; MAE ${fmt(m.MAE)}, RMSE ${fmt(m.RMSE)}, within proposed limit ${m.within_tolerance_hits}/${m.available}.`);}));
  }
 
@@ -223,7 +239,7 @@
     message(diagnostic,'monthly-worker-diagnostic');
     $('monthly-worker-details').hidden=!diagnostic;
     if(!diagnostic)$('monthly-worker-details').open=false;
-    $('monthly-check-worker').hidden=state!=='attention';
+    $('monthly-check-worker').hidden=state!=='attention'&&state!=='paused';
  }
  const isUpdating=run=>['queued','running'].includes(run.status);
  function renderSteps(){
@@ -299,6 +315,7 @@
         $('monthly-create').disabled=!canPrepare||preparing;
         if(updating)showWorkerStatus('running','Update in progress','');
         else if(canPrepare)showWorkerStatus('ready','Training worker ready','');
+        else if(lowMemory(state.worker_message))showWorkerStatus('paused','Training temporarily unavailable','You can still review saved predictions.');
         else showWorkerStatus('attention','Training unavailable','You can still confirm monthly reports.',state.worker_message||state.worker_platform||'The server did not report a ready training worker.');
         const clocks=[],activeRuns=lastRuns.filter(isUpdating);
         const verified=lastRuns.filter(run=>!isUpdating(run)&&run.status!=='failed');
@@ -329,7 +346,7 @@
     if(active===next)return;
     active=next;
     if(active){
-        if(loadedReportMonth)loadReports().catch(e=>message(e.message));
+        if(!uploadId())loadReports().catch(e=>message(e.message));
         if(reviewedRun)review(reviewedRun).catch(e=>message(e.message));
         return loadStatus();
     }
@@ -393,8 +410,12 @@
             const run=await request('/runs',{start,cutoff,mode,...(dataset_id?{dataset_id}:{})});
             tell(['ready','published'].includes(run.status)?'A verified version already exists for this input. Review it below.':'Update requested. Follow its progress in Training progress and results.');
             await loadStatus();
-        }catch(e){tell(e.message);}
-        finally{preparing=false;b.disabled=!canPrepare;}
+        }catch(e){
+            if(lowMemory(e.message)){
+                tell('Training is temporarily unavailable. You can still review saved predictions.');
+                await loadStatus();
+            }else tell(e.message);
+        }finally{preparing=false;b.disabled=!canPrepare;}
     });
     window.HealthIntelMonthlyUpdates={setActive,setDatasets,openReports};
  }

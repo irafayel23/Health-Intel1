@@ -72,7 +72,7 @@
         const base = window.HealthIntel?.apiOrigin || 'http://localhost:3000';
         const response = await fetch(base + endpoint + route, { cache: 'no-store', signal: AbortSignal.timeout(30000) });
         const result = await response.json();
-        if (!response.ok || !result.success) throw Object.assign(Error(result.error || 'Could not load predictions.'), { status: response.status });
+        if (!response.ok || !result.success) throw Object.assign(Error(result.error || 'Could not load predictions.'), { status: response.status, code: result.code });
         return result.data;
     }
 
@@ -910,13 +910,21 @@
             ];
             if (data.cutoff !== coverageEnd) items.push(entry('Last observed', formatMonth(data.cutoff)));
             if (data.missing) items.push(element('p', formatMonth(data.missing) + ' actual report unavailable in this demonstration. Predictions use available historical patterns.', 'forecast-report-note'));
+            if (data.next_update) {
+                const { reporting_month, status } = data.next_update;
+                const period = formatMonth(reporting_month);
+                const statusText = status === 'awaiting_confirmation' ? 'Awaiting confirmed reports for ' + period + '.' :
+                    status === 'awaiting_publication' ? period + ' reports are confirmed. The next version is awaiting publication.' :
+                        'The next update uses ' + period + ' reports.';
+                items.push(element('p', statusText + ' Showing the last published version.', 'forecast-report-note'));
+            }
             if (data.expired) items.push(element('p', 'The prediction window has passed. This issued version remains available for review.', 'forecast-report-note'));
             meta.replaceChildren(...items);
 
             render(data);
         } catch (error) {
             if (token !== sequence) return;
-            if (error.status === 409) {
+            if (error.code === 'OPERATIONAL_PREDICTIONS_UNPUBLISHED') {
                 meta.textContent = 'No operational predictions are published yet.';
                 if (role === 'admin') forecastBody.append(element('p', 'Select a saved draft or the historical demonstration to review predictions.', 'forecast-info'));
             } else {
