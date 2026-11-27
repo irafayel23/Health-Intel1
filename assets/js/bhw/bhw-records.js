@@ -246,13 +246,13 @@
               btn.innerHTML = "<i data-lucide='arrow-left' class='w-4 h-4'></i> Back to Active Records";
               btn.classList.remove("bg-[hsl(var(--card))]", "text-[hsl(var(--foreground))]");
               btn.classList.add("bg-blue-700", "text-white", "border-blue-700", "hover:bg-blue-800");
-              title.innerText = "Archived Patient Records";
+              title.innerText = "Archived cases";
               loadArchivedPatients();
           } else {
               btn.innerHTML = "<i data-lucide='archive' class='w-4 h-4'></i> View Archived";
               btn.classList.add("bg-[hsl(var(--card))]", "text-[hsl(var(--foreground))]");
               btn.classList.remove("bg-blue-700", "text-white", "border-blue-700", "hover:bg-blue-800");
-              title.innerText = "Patient Records Profiling";
+              title.innerText = "Recorded cases";
               loadPatients();
           }
           lucide.createIcons();

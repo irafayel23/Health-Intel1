@@ -48,7 +48,7 @@
     function stateLabel(row) {
         return row.state==='arrived' && row.assessed_at ? 'Awaiting outcome' : labels[row.state];
     }
-    function mountQueue(root,{role,firstPage=1,filters=()=>({}),emptyMessage=()=>'No records on this page.',reopen,patientHistory=false}) {
+    function mountQueue(root,{role,firstPage=1,filters=()=>({}),emptyMessage=()=>'No records on this page.',patientHistory=false}) {
         const mho=role==='mho',base=mho?'/api/mho/referrals':'/api/bhw/intakes';
         const find=selector=>root.querySelector(selector);
         const status=find('[data-referral-status]');
@@ -68,7 +68,7 @@
         }
         async function save(row,action,extra={}) {
             await request(base+'/'+row.id,'PUT',{action,...extra});
-            window.dispatchEvent(new Event('health-intel:referrals-changed'));
+            window.dispatchEvent(new CustomEvent('health-intel:referrals-changed',{detail:root}));
         }
         function note(row,key,title,caption,date=false) {
             Swal.fire({
@@ -86,8 +86,7 @@
                     }catch(error){Swal.showValidationMessage(error.message);return false;}
                 }
             }).then(result=>{
-                if(reopen)reopen(page);
-                else if(result.isConfirmed)load(patientHistory);
+                if(result.isConfirmed)load(patientHistory);
             });
         }
         function render(row) {
@@ -191,20 +190,24 @@
             emptyMessage:()=> 'No visits or referrals recorded yet.'
         });
     }
-    function open(role,firstPage=1) {
-        if(role==='mho'){
-            document.querySelector('[data-target="view-referrals"]')?.click();
-            document.querySelector('[data-referral-view="incoming"]')?.click();
+    function open(role) {
+        if(role==='bhw'){
+            openBhwDashboardView('view-patients');
             return;
         }
-        Swal.fire({
-            titleText:'Visits and referrals',width:760,customClass:{popup:'hi-dialog hi-referral-queue'},
-            html:'<div class="hi-referral-body"><div class="hi-referral-toolbar"><p>Review saved visits and follow the referrals sent from your barangay.</p>'+
-                '<div data-referral-tools></div></div><p data-referral-status role="status"></p><div data-referral-list class="hi-referral-list"></div><div data-referral-pages class="hi-referral-pages"></div></div>',
-            confirmButtonText:'Close',showCloseButton:true,
-            didOpen:()=>{
-                mountQueue(Swal.getPopup(),{role,firstPage,reopen:page=>open(role,page)}).load();
-            }
+        document.querySelector('[data-target="view-referrals"]')?.click();
+        document.querySelector('[data-referral-view="incoming"]')?.click();
+    }
+    function initializeBhwVisitHistory() {
+        const root=document.getElementById('bhw-visit-history');
+        if(!root)return;
+        const workspace=document.getElementById('view-patients');
+        const queue=mountQueue(root,{
+            role:'bhw',emptyMessage:()=> 'No visits or referrals recorded for your barangay yet.'
+        });
+        document.querySelector('[data-target="view-patients"]').addEventListener('click',()=>queue.load(true));
+        window.addEventListener('health-intel:referrals-changed',event=>{
+            if(event.detail!==root&&!workspace.classList.contains('hidden'))queue.load(true);
         });
     }
     function initializeMunicipalReferrals() {
@@ -308,6 +311,7 @@
         refresh();
     }
     document.addEventListener('DOMContentLoaded',()=>{
+        initializeBhwVisitHistory();
         initializeBhwReferralSummary();
         initializeMunicipalReferrals();
     });

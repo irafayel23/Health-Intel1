@@ -201,6 +201,9 @@ test('BHW feature scripts initialize context, records, residents and charts in H
 
     for(const endpoint of ['patients','residents','bhw/puroks','bhw-trend'])assert.ok(!p.requests.some(r=>r.url.includes('/api/'+endpoint)),`${endpoint} must wait for its view`);
     await p.navigation.find(n=>n.getAttribute('data-target')==='view-patients').emit('click');await settle();
+    assert.ok(!p.requests.some(r=>r.url.includes('/api/patients')),'entering Visits and referrals does not load the case directory');
+    p.elements['bhw-recorded-cases'].open=true;
+    await p.elements['bhw-recorded-cases'].emit('toggle');await settle();
     assert.ok(p.requests.some(r=>r.url.includes('/api/patients')));
     assert.ok(!p.requests.some(r=>r.url.includes('/api/bhw/puroks')),'patient navigation must not fetch hidden report options');
     const reportNav=p.navigation.find(n=>n.getAttribute('data-target')==='view-reports');
@@ -228,6 +231,34 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     const before=p.requests.length;
     await p.navigation.find(n=>n.getAttribute('data-target')==='view-patients').emit('click');await settle();
     assert.ok(p.requests.slice(before).some(r=>r.url.includes('/api/patients/archived')),'returning to the archive keeps its data source');
+});
+
+test('BHW sidebar renders saved visits and referrals inline and refreshes after saving',async()=>{
+    const p=page('bhw.html'), base=p.s.response;
+    p.load();
+    const root=p.elements['bhw-visit-history'];
+    const fields=Object.fromEntries(['status','list','pages','tools'].map(key=>[key,p.s.document.createElement('div')]));
+    root.querySelector=selector=>fields[selector.slice(15,-1)];
+    vm.runInNewContext(fs.readFileSync(scriptPath('patient-referrals.js'),'utf8'),p.s);
+    let visits=[];
+    p.s.response=url=>url.startsWith('/api/bhw/intakes?')?{success:true,data:visits}:base(url);
+    await p.start();
+    assert.ok(!p.requests.some(r=>r.url.startsWith('/api/bhw/intakes?')));
+    const nav=p.navigation.find(n=>n.getAttribute('data-target')==='view-patients');
+    nav.click=()=>nav.emit('click');
+    await nav.emit('click');await settle();
+    assert.match(fields.status.textContent,/No visits or referrals recorded/);
+    assert.ok(!p.requests.some(r=>r.url.includes('/api/patients')));
+    visits=[{id:7,patient_name:'Fixture visit',barangay_name:'Fixture barangay',visit_date:'2026-11-27',state:'saved',concern:'Fixture concern'}];
+    p.s.dispatchEvent(new Event('health-intel:referrals-changed'));await settle();
+    const textOf=node=>[node.textContent,...node.children.flatMap(textOf)];
+    assert.ok(textOf(fields.list).includes('Fixture visit'));
+    assert.ok(textOf(fields.list).includes('Request referral'));
+    const heading=p.elements['bhw-visit-history-title'];
+    let focused=false;
+    heading.focus=()=>{focused=true;};
+    p.s.focusBhwVisitHistory();
+    assert.ok(focused);
 });
 
 test('BHW case changes refresh visible supporting views and defer hidden directories until opened',async()=>{

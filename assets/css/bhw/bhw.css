@@ -844,3 +844,24 @@ body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-
   .bhw-profile-content { padding: .75rem .875rem 1rem; }
   .bhw-previous-case { flex-wrap: wrap; gap: .625rem; }
 }
+
+/* Visits and referrals */
+.bhw-visit-workspace { max-width: 74rem; }
+.bhw-visit-page-header { margin-bottom: 1.25rem; }
+.bhw-visit-page-header p { margin-top: .375rem; color: hsl(var(--muted-foreground)); }
+.bhw-visit-page-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
+.bhw-visit-page-actions .bhw-record-visit { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-color: #1d4ed8; background: #1d4ed8; color: white; }
+.bhw-visit-page-actions .bhw-record-visit:hover { background: #1e40af; border-color: #1e40af; color: white; }
+.bhw-visit-history, .bhw-recorded-cases {
+  padding: clamp(.875rem, 2vw, 1.375rem);
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  background: hsl(var(--card));
+}
+#bhw-visit-history-title { font-size: 1.125rem; font-weight: 700; scroll-margin-top: 5rem; }
+.bhw-visit-history .hi-referral-toolbar p { margin-top: .2rem; font-size: .875rem; }
+.bhw-visit-history-status { padding: .875rem; border-radius: .625rem; background: hsl(var(--muted)); color: hsl(var(--foreground)); font-size: .875rem; }
+.bhw-visit-history-status:empty { display: none; }
+.bhw-recorded-cases { margin-top: 1rem; }
+.bhw-recorded-cases > summary { cursor: pointer; font-weight: 650; }
+.bhw-recorded-cases-body { margin-top: 1rem; }

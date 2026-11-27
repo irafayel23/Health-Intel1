@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-birthdate-width" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-visit-workspace" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -65,8 +65,8 @@
           <span class="sidebar-label whitespace-nowrap">Dashboard</span>
         </button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-patients">
-          <i data-lucide="users" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
-          <span class="sidebar-label whitespace-nowrap">Patient Records</span>
+          <i data-lucide="clipboard-list" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
+          <span class="sidebar-label">Visits and referrals</span>
         </button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-resident-profiles">
           <i data-lucide="contact" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
@@ -148,7 +148,7 @@
             <div class="bhw-task-grid" aria-label="Barangay work today">
             <section aria-labelledby="bhw-referral-summary-title" class="bhw-task-card bhw-referral-summary rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 p-4 sm:p-5 shadow-sm min-w-0">
               <h2 id="bhw-referral-summary-title" class="text-sm font-semibold text-teal-900 dark:text-teal-100">
-                <button type="button" class="bhw-referral-summary-link" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog" aria-describedby="bhw-referral-counts">
+                <button type="button" class="bhw-referral-summary-link" onclick="HealthIntelReferrals.open('bhw')" aria-describedby="bhw-referral-counts">
                   <span>Visits and referrals</span><i data-lucide="chevron-right" class="w-4 h-4 shrink-0" aria-hidden="true"></i>
                 </button>
               </h2>
@@ -201,73 +201,82 @@
 
             <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm" aria-labelledby="bhw-quick-heading">
               <h2 id="bhw-quick-heading" class="text-base font-semibold mb-3">Quick access</h2>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button type="button" onclick="openBhwDashboardView('view-patients')" class="bhw-quick-link"><i data-lucide="clipboard-list" class="w-5 h-5 shrink-0 text-teal-800 dark:text-teal-300" aria-hidden="true"></i><span><strong>Patient records</strong><small>Find cases and consultation history</small></span><i data-lucide="chevron-right" class="w-4 h-4 shrink-0" aria-hidden="true"></i></button>
+              <div>
               <button type="button" onclick="openBhwDashboardView('view-resident-profiles')" class="bhw-quick-link"><i data-lucide="users" class="w-5 h-5 shrink-0 text-teal-800 dark:text-teal-300" aria-hidden="true"></i><span><strong>Resident profiles</strong><small>Find residents in your barangay</small></span><i data-lucide="chevron-right" class="w-4 h-4 shrink-0" aria-hidden="true"></i></button>
               </div>
             </section>
           </div>
         </div>
 
-        <!-- PATIENT RECORDS VIEW -->
-        <div id="view-patients" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div class="mb-8">
-            <h1 id="patients-page-title" class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Patient Records Profiling</h1>
-            <p class="text-[hsl(var(--muted-foreground))] mt-1">Basic information and health records collection.</p>
-          </div>
-
-          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div class="hi-wrap-actions flex gap-3">
-              <button onclick="openAddPatientModal()" class="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all text-sm flex items-center gap-2">
-                <i data-lucide="plus" class="w-4 h-4"></i> Record visit
-              </button>
-              <button type="button" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog" class="hi-referral-trigger"><i data-lucide="clipboard-list" class="w-4 h-4" aria-hidden="true"></i>Visits and referrals</button>
-              <button id="toggle-archive-btn" onclick="toggleArchiveView()" class="px-5 py-2.5 border border-[hsl(var(--border))] text-[hsl(var(--foreground))] bg-[hsl(var(--card))] font-medium rounded-lg shadow-sm hover:bg-[hsl(var(--muted))] hover:shadow-md transition-all text-sm flex items-center gap-2">
-                <i data-lucide="archive" class="w-4 h-4"></i> View Archived
-              </button>
+        <section id="view-patients" class="view-section bhw-visit-workspace hidden" aria-labelledby="bhw-visit-page-title">
+          <header class="bhw-visit-page-header">
+            <h1 id="bhw-visit-page-title" class="text-3xl font-bold tracking-tight">Visits and referrals</h1>
+            <p>Record patient visits and track referrals from your barangay.</p>
+            <div class="hi-wrap-actions bhw-visit-page-actions">
+              <button type="button" onclick="openAddPatientModal()" class="hi-vital-button bhw-record-visit"><i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i>Record visit</button>
+              <button type="button" onclick="focusBhwVisitHistory()" class="hi-referral-trigger"><i data-lucide="clipboard-list" class="w-4 h-4" aria-hidden="true"></i>View visits and referrals</button>
             </div>
-            
-            <div class="relative w-full md:w-80 group">
-              <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-[hsl(var(--muted-foreground))] group-focus-within:text-blue-500 transition-colors"></i>
-              <input type="text" id="patient-search-input" aria-label="Search patient records" onkeyup="filterTable()" placeholder="Search name or condition..." class="w-full pl-9 pr-4 py-2.5 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
+          </header>
+          <section id="bhw-visit-history" class="bhw-visit-history" aria-labelledby="bhw-visit-history-title">
+            <div class="hi-referral-toolbar">
+              <div><h2 id="bhw-visit-history-title" tabindex="-1">Visit and referral history</h2><p>Open referrals appear first.</p></div>
+              <div data-referral-tools></div>
             </div>
-          </div>
+            <p data-referral-status role="status" class="bhw-visit-history-status"></p>
+            <div data-referral-list class="hi-referral-list"></div>
+            <div data-referral-pages class="hi-referral-pages"></div>
+          </section>
+          <details id="bhw-recorded-cases" class="bhw-recorded-cases">
+            <summary>Search recorded cases</summary>
+            <div class="bhw-recorded-cases-body">
+            <h2 id="patients-page-title" class="text-lg font-semibold mb-3">Recorded cases</h2>
+              <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <button id="toggle-archive-btn" onclick="toggleArchiveView()" class="px-5 py-2.5 border border-[hsl(var(--border))] text-[hsl(var(--foreground))] bg-[hsl(var(--card))] font-medium rounded-lg shadow-sm hover:bg-[hsl(var(--muted))] hover:shadow-md transition-all text-sm flex items-center gap-2">
+                  <i data-lucide="archive" class="w-4 h-4"></i> View Archived
+                </button>
+                <div class="relative w-full md:w-80 group">
+                  <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-[hsl(var(--muted-foreground))] group-focus-within:text-blue-500 transition-colors"></i>
+                  <input type="text" id="patient-search-input" aria-label="Search patient records" onkeyup="filterTable()" placeholder="Search name or condition..." class="w-full pl-9 pr-4 py-2.5 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
+                </div>
+              </div>
 
-          <div class="flex flex-wrap gap-3 mb-5" aria-label="Filter patient records">
-            <label>Status <select id="patient-filter-status" onchange="patientFiltersChanged()"><option value="">All statuses</option><option>Active</option><option>Cleared</option></select></label>
-            <label>Severity <select id="patient-filter-severity" onchange="patientFiltersChanged()"><option value="">All severities</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></label>
-            <label>Year <select id="patient-filter-year" onchange="patientFiltersChanged()"><option value="">All years</option></select></label>
-            <label>Month <select id="patient-filter-month" onchange="patientFiltersChanged()"><option value="">All months</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></label>
-            <label>Purok / zone <select id="patient-filter-purok" onchange="patientFiltersChanged()"><option value="">All puroks / zones</option></select></label>
-            <button type="button" onclick="clearPatientFilters()">Clear filters</button>
-          </div>
-          <div id="patient-load-status" role="status" aria-live="polite" aria-atomic="true" class="hidden flex-wrap items-center gap-3 mb-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3 text-sm">
-            <span id="patient-load-spinner" hidden aria-hidden="true" class="h-4 w-4 shrink-0 rounded-full border-2 border-blue-600 dark:border-blue-400 border-t-transparent dark:border-t-transparent animate-spin motion-reduce:animate-none"></span>
-            <span id="patient-load-message" class="min-w-0 flex-1"></span>
-            <button id="patient-load-retry" hidden type="button" onclick="retryPatientLoad()" class="min-h-11 shrink-0 rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-400">Retry</button>
-          </div>
-          <div class="border border-[hsl(var(--border))] rounded-2xl overflow-hidden bg-[hsl(var(--card))] shadow-sm hover:shadow-md transition-shadow">
-            <div class="overflow-x-auto">
-              <table id="main-patient-table" class="w-full text-sm text-left">
-                <thead class="bg-[hsl(var(--muted))] text-slate-600 dark:text-slate-300">
-                  <tr>
-                    <th class="px-6 py-4 font-semibold">Name</th>
-                    <th class="px-6 py-4 font-semibold">Purok</th>
-                    <th class="px-6 py-4 font-semibold">Condition</th>
-                    <th class="px-6 py-4 font-semibold">Severity</th>
-                    <th class="px-6 py-4 font-semibold">Status</th>
+              <div class="flex flex-wrap gap-3 mb-5" aria-label="Filter patient records">
+                <label>Status <select id="patient-filter-status" onchange="patientFiltersChanged()"><option value="">All statuses</option><option>Active</option><option>Cleared</option></select></label>
+                <label>Severity <select id="patient-filter-severity" onchange="patientFiltersChanged()"><option value="">All severities</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></label>
+                <label>Year <select id="patient-filter-year" onchange="patientFiltersChanged()"><option value="">All years</option></select></label>
+                <label>Month <select id="patient-filter-month" onchange="patientFiltersChanged()"><option value="">All months</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></label>
+                <label>Purok / zone <select id="patient-filter-purok" onchange="patientFiltersChanged()"><option value="">All puroks / zones</option></select></label>
+                <button type="button" onclick="clearPatientFilters()">Clear filters</button>
+              </div>
+              <div id="patient-load-status" role="status" aria-live="polite" aria-atomic="true" class="hidden flex-wrap items-center gap-3 mb-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3 text-sm">
+                <span id="patient-load-spinner" hidden aria-hidden="true" class="h-4 w-4 shrink-0 rounded-full border-2 border-blue-600 dark:border-blue-400 border-t-transparent dark:border-t-transparent animate-spin motion-reduce:animate-none"></span>
+                <span id="patient-load-message" class="min-w-0 flex-1"></span>
+                <button id="patient-load-retry" hidden type="button" onclick="retryPatientLoad()" class="min-h-11 shrink-0 rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-400">Retry</button>
+              </div>
+              <div class="border border-[hsl(var(--border))] rounded-2xl overflow-hidden bg-[hsl(var(--card))] shadow-sm hover:shadow-md transition-shadow">
+                <div class="overflow-x-auto">
+                  <table id="main-patient-table" class="w-full text-sm text-left">
+                    <thead class="bg-[hsl(var(--muted))] text-slate-600 dark:text-slate-300">
+                      <tr>
+                        <th class="px-6 py-4 font-semibold">Name</th>
+                        <th class="px-6 py-4 font-semibold">Purok</th>
+                        <th class="px-6 py-4 font-semibold">Condition</th>
+                        <th class="px-6 py-4 font-semibold">Severity</th>
+                        <th class="px-6 py-4 font-semibold">Status</th>
 
-                  </tr>
-                </thead>
-                <tbody id="patients-table-body" class="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
-                  <!-- JS Injected -->
-                </tbody>
-              </table>
+                      </tr>
+                    </thead>
+                    <tbody id="patients-table-body" class="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
+                      <!-- JS Injected -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <!-- Pagination injected here -->
+              <div id="patients-pagination" class="mt-4 flex justify-end gap-2"></div>
             </div>
-          </div>
-          <!-- Pagination injected here -->
-          <div id="patients-pagination" class="mt-4 flex justify-end gap-2"></div>
-        </div>
+          </details>
+        </section>
 
         <!-- RESIDENT PROFILES DIRECTORY VIEW -->
         <div id="view-resident-profiles" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -462,15 +471,15 @@
     <!-- UI Interaction Scripts -->
     <script src="assets/js/bhw/bhw-shell.js?v=20261108-bhw-icons"></script>
 
-    <script src="assets/js/bhw/bhw-records.js?v=20261127-daily-workspace"></script>
+    <script src="assets/js/bhw/bhw-records.js?v=20261127-visit-workspace"></script>
     <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
     <script src="assets/js/bhw/bhw-residents.js?v=20261127-record-labels"></script>
     <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-patient-history"></script>
-    <script src="assets/js/bhw/bhw-startup.js?v=20261127-activity-charts"></script>
+    <script src="assets/js/bhw/bhw-startup.js?v=20261127-visit-workspace"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
-  <script src="assets/js/shared/patient-referrals.js?v=20261127-profile-polish"></script>
+  <script src="assets/js/shared/patient-referrals.js?v=20261127-visit-workspace"></script>
   <script src="assets/js/bhw/bhw-dialogs.js?v=20261127-birthdate-limit"></script>
     <script src="assets/js/shared/historical-reports.js?v=20261123-report-periods"></script>
     <script src="assets/js/shared/followup-tracking.js?v=20261126-referral-workspace"></script>
