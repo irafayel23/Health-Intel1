@@ -33,7 +33,7 @@
           <div class="hi-encode-wide hi-patient-name-grid"><div><label for="swal-lname">Family name *</label><input id="swal-lname" maxlength="100" autocomplete="family-name" placeholder="Family name"></div>
           <div><label for="swal-fname">First name *</label><input id="swal-fname" maxlength="100" autocomplete="given-name" placeholder="First name"></div>
           <div class="hi-suffix-field"><label for="swal-suffix">Suffix</label><select id="swal-suffix"><option value="">None</option><option>Jr.</option><option>Sr.</option><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option><option>IX</option><option>X</option></select></div></div>
-          <div><label for="swal-birthdate">Birthdate *</label><div class="hi-bhw-birthdate"><input id="swal-birthdate" type="text" inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" aria-describedby="swal-birthdate-help"><input id="swal-birthdate-picker" type="date" min="1900-01-01" tabindex="-1" aria-hidden="true" hidden><button id="swal-birthdate-calendar" type="button" aria-label="Choose birthdate from calendar" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></button></div><p id="swal-birthdate-help" class="hi-field-help">MM/DD/YYYY · Auto-format</p></div>
+          <div><label for="swal-birthdate">Birthdate *</label><div class="hi-bhw-birthdate"><input id="swal-birthdate" type="text" inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" aria-describedby="swal-birthdate-help"><input id="swal-birthdate-picker" type="date" min="1900-01-01" tabindex="-1" aria-hidden="true" hidden><button id="swal-birthdate-calendar" type="button" aria-label="Choose birthdate from calendar" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></button></div><p id="swal-birthdate-help" class="hi-field-help">MM/DD/YYYY · 1900 or later</p></div>
           <div><label for="swal-age">Age on visit date</label><input id="swal-age" readonly placeholder="From birthdate"></div>
           <div><label for="swal-assigned-barangay">Assigned barangay</label><input id="swal-assigned-barangay" readonly></div>
           <div><label for="swal-purok">Purok / zone *</label><input id="swal-purok" maxlength="100" placeholder="Type or choose"></div></div></section>
@@ -90,7 +90,10 @@
           preConfirm:async()=>{
             try {
               const identity=patientPicker.payload();
-              const birthdate=HealthIntelDate.parseBirthdate(value('swal-birthdate'));
+              const enteredBirthdate=value('swal-birthdate');
+              const year=/^[0-9]{2}[/][0-9]{2}[/]([0-9]{4})$/.exec(enteredBirthdate)?.[1];
+              if(year && Number(year)<1900)throw Error('Birthdate must be January 1, 1900 or later.');
+              const birthdate=HealthIntelDate.parseBirthdate(enteredBirthdate);
               if(!birthdate)throw Error('Enter a valid birthdate as MM/DD/YYYY.');
               if(!value('swal-fname')||!value('swal-lname')||!value('swal-purok'))
                 throw Error('Complete the patient’s first name, family name and purok before continuing.');
