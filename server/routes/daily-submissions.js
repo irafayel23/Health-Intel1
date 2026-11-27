@@ -1,3 +1,4 @@
+const {createHash}=require('node:crypto');
 const {dailyPeriod}=require('../services/report-periods');
 const {dailyReportData,dailyReportPdf}=require('../services/daily-report');
 
@@ -21,7 +22,12 @@ function registerDailySubmissions(app,db) {
             catch(error) { if(error.code!=='ER_DUP_FIELDNAME')throw error; }
         }
     })().catch(error=>{schema=undefined;throw error;});
+    const fingerprint=`JSON_UNQUOTE(JSON_EXTRACT(s.report_snapshot,'$.fingerprint'))`;
+    const reportFingerprint=data=>createHash('sha256').update(JSON.stringify(data)).digest('hex');
+    const change=`(withdrawn_at IS NOT NULL OR NOT (JSON_UNQUOTE(JSON_EXTRACT(report_snapshot,'$.fingerprint')) <=> JSON_UNQUOTE(JSON_EXTRACT(VALUES(report_snapshot),'$.fingerprint'))))`;
     const readColumns=`s.case_count,s.consultation_count,
+        CAST(JSON_UNQUOTE(JSON_EXTRACT(s.report_snapshot,'$.barangayVisitCount')) AS UNSIGNED) AS bhw_visit_count,
+        ${fingerprint} AS fingerprint,
         DATE_FORMAT(s.first_submitted_at,'%Y-%m-%dT%H:%i:%sZ') AS first_submitted_at,
         DATE_FORMAT(s.submitted_at,'%Y-%m-%dT%H:%i:%sZ') AS submitted_at,
         DATE_FORMAT(s.withdrawn_at,'%Y-%m-%dT%H:%i:%sZ') AS withdrawn_at`;
@@ -43,38 +49,41 @@ function registerDailySubmissions(app,db) {
         const data=await dailyReportData(db,req.user,period);
         await ready();
         res.json({date:period.start,case_count:data.caseCount,consultation_count:data.visitCount,
+            bhw_visit_count:data.barangayVisitCount,fingerprint:reportFingerprint(data),
             submission:await readSaved(period.start,req.user.barangay_id)});
     }));
     app.post(bhw,route(async(req,res)=>{
-        const {date,case_count,consultation_count}=req.body??{};
+        const {date,fingerprint:reviewed}=req.body??{};
         if(typeof date!=='string')return res.status(400).json({error:'Choose a report date.'});
         const period=dailyPeriod(date);
         const data=await dailyReportData(db,req.user,period);
-        if(case_count!==data.caseCount||consultation_count!==data.visitCount)
-            return res.status(409).json({error:'The totals changed. Review the refreshed counts before submitting again.'});
+        const current=reportFingerprint(data);
+        if(reviewed!==current)
+            return res.status(409).json({error:'The report preview changed. Review the refreshed report before submitting again.'});
         await ready();
         // Preserve the initial receipt and avoid moving its timestamp on identical retries.
         await db.execute(`INSERT INTO daily_report_submissions
             (report_date,barangay_id,case_count,consultation_count,first_submitted_at,submitted_at,submitted_by,report_snapshot)
             VALUES (?,?,?,?,UTC_TIMESTAMP(),UTC_TIMESTAMP(),?,?)
             ON DUPLICATE KEY UPDATE
-              submitted_at=IF(withdrawn_at IS NOT NULL OR case_count<>VALUES(case_count) OR consultation_count<>VALUES(consultation_count),UTC_TIMESTAMP(),submitted_at),
-              submitted_by=IF(withdrawn_at IS NOT NULL OR case_count<>VALUES(case_count) OR consultation_count<>VALUES(consultation_count),VALUES(submitted_by),submitted_by),
-              report_snapshot=IF(withdrawn_at IS NOT NULL OR case_count<>VALUES(case_count) OR consultation_count<>VALUES(consultation_count),VALUES(report_snapshot),report_snapshot),
+              submitted_at=IF(${change},UTC_TIMESTAMP(),submitted_at),
+              submitted_by=IF(${change},VALUES(submitted_by),submitted_by),
+              report_snapshot=IF(${change},VALUES(report_snapshot),report_snapshot),
               case_count=VALUES(case_count),consultation_count=VALUES(consultation_count),withdrawn_at=NULL`,
-            [period.start,req.user.barangay_id,data.caseCount,data.visitCount,req.user.system_id,JSON.stringify(data)]);
+            [period.start,req.user.barangay_id,data.caseCount,data.visitCount,req.user.system_id,JSON.stringify({...data,fingerprint:current})]);
         res.json({submission:await readSaved(period.start,req.user.barangay_id)});
     }));
     app.post(bhw+'/withdraw',route(async(req,res)=>{
-        const {date,submitted_at}=req.body??{};
+        const {date,submitted_at,fingerprint:reviewed}=req.body??{};
         if(typeof date!=='string'||typeof submitted_at!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(submitted_at))
             return res.status(400).json({error:'Choose a saved report to withdraw.'});
         const period=dailyPeriod(date);
         await ready();
         const [result]=await db.execute(`UPDATE daily_report_submissions SET withdrawn_at=UTC_TIMESTAMP()
             WHERE report_date=? AND barangay_id=? AND withdrawn_at IS NULL
-              AND DATE_FORMAT(submitted_at,'%Y-%m-%dT%H:%i:%sZ')=?`,
-            [period.start,req.user.barangay_id,submitted_at]);
+              AND DATE_FORMAT(submitted_at,'%Y-%m-%dT%H:%i:%sZ')=?
+              AND JSON_UNQUOTE(JSON_EXTRACT(report_snapshot,'$.fingerprint')) <=> ?`,
+            [period.start,req.user.barangay_id,submitted_at,typeof reviewed==='string'?reviewed:null]);
         if(!result.affectedRows)return res.status(409).json({error:'This report has changed. Review its current status before withdrawing.'});
         res.json({success:true});
     }));

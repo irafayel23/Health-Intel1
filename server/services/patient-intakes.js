@@ -43,9 +43,10 @@ function demographics(body) {
         const suffix = validateSuffix(body.suffix);
         const purok = textField(body.purok, 'Purok / zone', 100).replace(/\s+/gu, ' ');
         const { birthdate, visit_date } = body;
-        if (!validDate(birthdate) || !validDate(visit_date) || visit_date > todayInManila() ||
-            visit_date < '1900-01-01' || birthdate > visit_date || ageOnDate(birthdate, visit_date) > 130)
-            throw Error('Check the birthdate and visit date.');
+        if (!validDate(birthdate) || birthdate<'1900-01-01') throw Error('Enter a valid birthdate on or after January 1, 1900.');
+        if (!validDate(visit_date) || visit_date<'1900-01-01' || visit_date>todayInManila()) throw Error('Enter a visit date from January 1, 1900 through today.');
+        if (birthdate>visit_date) throw Error('The visit date must be on or after the patient’s birthdate.');
+        if (ageOnDate(birthdate,visit_date)>130) throw Error('The patient must be 130 or younger on the visit date. Check both dates.');
         return { first_name, last_name, suffix, purok, birthdate, visit_date,
             patient_name: [first_name,last_name,suffix].filter(Boolean).join(' ') };
     } catch (error) { throw invalid(error.message); }
@@ -115,13 +116,23 @@ async function referralSummary(db) {
     return Object.fromEntries(Object.entries(row).map(([key,value])=>[key,Number(value)]));
 }
 
+const bhwOpenReferral = "i.state IN ('requested','sent','acknowledged','arrived')";
+const bhwAssignedFollowup = "i.state='follow_up'";
+const bhwVisitStatuses = {
+    saved: "i.state='saved'", open:bhwOpenReferral, follow_up:bhwAssignedFollowup, closed:"i.state='closed'",
+    today:bhwAssignedFollowup+' AND i.follow_up_due=?', past:bhwAssignedFollowup+' AND i.follow_up_due<?'
+};
+
 async function bhwReferralSummary(db, user) {
+    const today=todayInManila();
     const barangay=positiveId(user.barangay_id,'assigned barangay');
     const [[row]]=await db.execute(`SELECT
-        COALESCE(SUM(i.state IN ('requested','sent','acknowledged','arrived')),0) AS open_referrals,
-        COALESCE(SUM(i.state='follow_up'),0) AS assigned_followups
-        FROM patient_intakes i WHERE i.barangay_id=?`,[barangay]);
-    return {open_referrals:Number(row.open_referrals),assigned_followups:Number(row.assigned_followups)};
+        COALESCE(SUM(${bhwOpenReferral}),0) AS open_referrals,
+        COALESCE(SUM(${bhwAssignedFollowup}),0) AS assigned_followups,
+        COALESCE(SUM(${bhwVisitStatuses.today}),0) AS due_today,
+        COALESCE(SUM(${bhwVisitStatuses.past}),0) AS past_due
+        FROM patient_intakes i WHERE i.barangay_id=?`,[today,today,barangay]);
+    return Object.fromEntries(Object.entries(row).map(([key,value])=>[key,Number(value)]));
 }
 
 async function bhwVisitActivity(db,user) {
@@ -141,7 +152,7 @@ async function bhwVisitActivity(db,user) {
     });
 }
 
-async function listIntakes(db,user,page,{view,barangay,resident}={}) {
+async function listIntakes(db,user,page,{view,barangay,resident,status,q}={}) {
     const bhw = user.role === 'bhw';
     const conditions = [bhw ? 'i.barangay_id=?' : "i.state<>'saved'"];
     const params = bhw ? [positiveId(user.barangay_id,'assigned barangay')] : [];
@@ -149,6 +160,25 @@ async function listIntakes(db,user,page,{view,barangay,resident}={}) {
     if (patientHistory) {
         conditions.push('i.resident_id=?');
         params.push(positiveId(resident,'resident'));
+    }
+    if (bhw && !patientHistory) {
+        if (status !== undefined && status !== '') {
+            if (typeof status!=='string' || !Object.hasOwn(bhwVisitStatuses,status)) throw invalid('Choose a valid visit status.');
+            conditions.push(bhwVisitStatuses[status]);
+            if (status==='today' || status==='past') params.push(todayInManila());
+        }
+        if (q !== undefined) {
+            if (typeof q!=='string' || q.length>100) throw invalid('Enter a name or visit ID up to 100 characters.');
+            const term=q.trim();
+            const visitId=/^#?INT-(\d+)$/i.exec(term);
+            if (visitId) {
+                conditions.push('i.id=?');
+                params.push(positiveId(visitId[1],'visit'));
+            } else if (term) {
+                conditions.push("r.patient_name LIKE ? ESCAPE '!'");
+                params.push('%'+term.replace(/[!%_]/g,character=>'!'+character)+'%');
+            }
+        }
     }
     if(!bhw && view!==undefined) {
         if(typeof view!=='string'||!Object.hasOwn(referralViews,view))throw invalid('Choose a valid referral list.');
@@ -165,7 +195,8 @@ async function listIntakes(db,user,page,{view,barangay,resident}={}) {
         completed: 'i.closed_at DESC,i.id DESC'
     };
     const order = patientHistory ? "i.visit_date DESC,i.id DESC" :
-        (!bhw && view && orderByView[view]) || "(i.state IN ('saved','closed')),i.id DESC";
+        (bhw && ['follow_up','today','past'].includes(status) ? orderByView.followups : !bhw && view && orderByView[view]) ||
+        "(i.state IN ('saved','closed')),i.visit_date DESC,i.id DESC";
     const [rows] = await db.execute(`SELECT i.id,i.resident_id,i.barangay_id,i.source_case_id,i.state,
         DATE_FORMAT(i.visit_date,'%Y-%m-%d') AS visit_date,i.concern,i.destination,i.referral_reason,
         i.sent_at,i.acknowledged_at,i.arrived_at,i.assessed_at,i.case_id,i.outcome,i.closed_at,

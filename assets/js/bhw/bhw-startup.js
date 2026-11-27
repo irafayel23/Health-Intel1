@@ -7,11 +7,6 @@
       const navButtons = document.querySelectorAll(".nav-menu .nav-item");
       const viewSections = document.querySelectorAll(".view-section");
 
-      const recordedCases = document.getElementById('bhw-recorded-cases');
-      recordedCases.addEventListener('toggle', () => {
-        if (recordedCases.open) loadPatients({ coalesce: true });
-      });
-
       navButtons.forEach((button) => {
         if (button.classList.contains("sign-out")) return;
 
@@ -21,7 +16,6 @@
 
           const targetId = button.getAttribute("data-target");
           if (targetId === 'view-resident-profiles') loadResidentDirectory();
-          if (targetId === 'view-resident-profiles' && recordedCases.open) loadPatients({ coalesce: true });
           if (targetId === 'view-reports') loadPurokChoices();
           viewSections.forEach((view) => {
             view.classList.add("hidden"); view.classList.remove("block"); view.classList.remove("flex");
@@ -46,7 +40,7 @@
         const selected=filter.value || 'All Puroks';
         const choices=new Map(HealthIntelEncoding.purokOptions(window.currentBrgyName)
           .map(({value,label})=>[value,label]));
-        for(const person of [...allPatients,...(window.allResidents || [])]){
+        for(const person of (window.allResidents || [])){
           const value=String(person.purok || '').trim();
           if(value&&!choices.has(value))choices.set(value,value);
         }
@@ -79,10 +73,6 @@
           if (reports && !reports.classList.contains('hidden')) loadPurokChoices();
       }
 
-      window.addEventListener('health-intel:case-corrected', () => {
-          // The correction dialog also emits cases-changed for supporting views.
-          loadPatients();
-      });
       window.addEventListener('health-intel:cases-changed', refreshBHWSupportingViews);
 
       function loadBhwDashboardCharts() {
@@ -116,5 +106,5 @@
         }
 
         if (!location.hash || location.hash === '#view-dashboard') loadBhwDashboardCharts();
-        // Hidden record and resident views load when opened.
+        // Resident profiles load when opened.
       });

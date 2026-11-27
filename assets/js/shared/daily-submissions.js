@@ -7,6 +7,9 @@
     const dateAtSubmission=value=>new Intl.DateTimeFormat('en-CA',{
         timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'
     }).format(new Date(value));
+    const countLabel=(count,label)=>count==null?label+' unavailable':count+' '+label+(count===1?'':'s');
+    const totals=row=>[countLabel(row.bhw_visit_count,'BHW visit'),
+        countLabel(row.consultation_count,'clinical consultation'),countLabel(row.case_count,'disease case')].join(' · ');
     async function json(url,options) {
         const response=await fetch(url,options);
         const data=await response.json();
@@ -33,7 +36,7 @@
                 const data=await reportFor(date);
                 if(request!==dashboardRequest)return;
                 const saved=activeSubmission(data);
-                const changed=totalsChanged(data,saved);
+                const changed=reportChanged(data,saved);
                 dashboardStatus.dataset.state=changed?'changed':saved?'submitted':data.submission?.withdrawn_at?'withdrawn':'pending';
                 dashboardStatus.textContent=changed?'Update ready to submit':saved?'Submitted':data.submission?.withdrawn_at?'Withdrawn':'Awaiting submission';
             } catch {
@@ -46,12 +49,12 @@
         function activeSubmission(data) {
             return data?.submission?.withdrawn_at ? null : data?.submission;
         }
-        function totalsChanged(data,saved) {
-            return saved&&(saved.case_count!==data.case_count||saved.consultation_count!==data.consultation_count);
+        function reportChanged(data,saved) {
+            return Boolean(saved&&saved.fingerprint!==data.fingerprint);
         }
         function updateControls() {
             const saved=activeSubmission(preview);
-            const changed=totalsChanged(preview,saved);
+            const changed=reportChanged(preview,saved);
             send.textContent=changed||preview?.submission?.withdrawn_at?'Resubmit Report':saved?'Report Submitted':'Submit Report';
             send.disabled=saving||!preview||Boolean(saved&&!changed);
             if(withdraw) {
@@ -69,11 +72,11 @@
                 const data=await reportFor(bhwDate.value);
                 if(request!==pending)return;
                 preview=data;
-                const totals=data.case_count+' cases · '+data.consultation_count+' consultations';
+                const counts=totals(data);
                 const saved=activeSubmission(data);
-                if(saved)message.textContent=totals+'. Last submitted '+format(saved.submitted_at)+'.'+(totalsChanged(data,saved)?' Totals have changed.':'');
-                else if(data.submission?.withdrawn_at)message.textContent=totals+'. Submission withdrawn. Review and resubmit when ready.';
-                else message.textContent=totals+'. Awaiting submission.';
+                if(saved)message.textContent=counts+'. Last submitted '+format(saved.submitted_at)+'.'+(reportChanged(data,saved)?' Report details have changed. Review and resubmit.':'');
+                else if(data.submission?.withdrawn_at)message.textContent=counts+'. Submission withdrawn. Review and resubmit when ready.';
+                else message.textContent=counts+'. Awaiting submission.';
                 updateControls();
             } catch(error) {if(request===pending)message.textContent=error.message;}
         }
@@ -83,6 +86,7 @@
             try {
                 await json(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
                 await refresh();
+                refreshDashboard();
             } catch(error) {
                 await refresh();
                 if(bhwDate.value===body.date)message.textContent=error.message;
@@ -95,10 +99,10 @@
             const data=preview;
             if(send.disabled||!data||data.date!==bhwDate.value)return;
             const result=await Swal.fire({title:'Submit daily report?',
-                text:data.date+' · '+data.case_count+' cases · '+data.consultation_count+' consultations. Confirm the totals when reporting is complete.',
+                text:data.date+' · '+totals(data)+'. Confirm the report when reporting is complete.',
                 icon:'question',showCancelButton:true,confirmButtonText:'Submit report'});
             if(!result.isConfirmed||saving||data!==preview||data.date!==bhwDate.value)return;
-            await postReport(endpoint,{date:data.date,case_count:data.case_count,consultation_count:data.consultation_count});
+            await postReport(endpoint,{date:data.date,fingerprint:data.fingerprint});
         });
         withdraw?.addEventListener('click',async()=>{
             const data=preview;
@@ -108,7 +112,7 @@
                 text:'Withdraw the report for '+data.date+' from Admin’s submitted list. You can review and resubmit it later.',
                 icon:'warning',showCancelButton:true,focusCancel:true,confirmButtonText:'Withdraw submission'});
             if(!result.isConfirmed||saving||data!==preview||data.date!==bhwDate.value)return;
-            await postReport(endpoint+'/withdraw',{date:data.date,submitted_at:saved.submitted_at});
+            await postReport(endpoint+'/withdraw',{date:data.date,submitted_at:saved.submitted_at,fingerprint:saved.fingerprint});
             if(preview?.submission?.withdrawn_at&&document.activeElement===document.body)send.focus();
         });
         bhwDate.addEventListener('change',refresh);
@@ -116,8 +120,13 @@
         document.querySelector('[data-target="view-reports"]').addEventListener('click',refresh);
         window.addEventListener('hashchange',()=>{if(location.hash==='#view-reports')refresh();});
         document.querySelector('[data-target="view-dashboard"]')?.addEventListener('click',refreshDashboard);
-        window.addEventListener('focus',refreshDashboard);
-        window.addEventListener('health-intel:cases-changed',refreshDashboard);
+        function refreshVisible() {
+            if(!byId('view-reports')?.classList.contains('hidden')&&location.hash==='#view-reports'&&!saving)refresh();
+            return refreshDashboard();
+        }
+        window.addEventListener('focus',refreshVisible);
+        window.addEventListener('health-intel:cases-changed',refreshVisible);
+        window.addEventListener('health-intel:referrals-changed',refreshVisible);
         window.addEventListener('DOMContentLoaded',()=>{
             if(location.hash==='#view-reports')refresh();
             else if(!location.hash||location.hash==='#view-dashboard')refreshDashboard();
@@ -134,7 +143,7 @@
             const details=[date,status];
             if(row.withdrawn_at)details.push('Withdrawn '+format(row.withdrawn_at)+' Philippine time. The barangay can submit again.');
             else if(row.submitted_at) {
-                details.push(`${row.case_count} cases · ${row.consultation_count} consultations`,
+                details.push(totals(row),
                     `Last submitted ${format(row.submitted_at)} Philippine time.`);
                 if(!row.has_pdf)details.push('This earlier submission saved totals only.');
             } else details.push('The barangay has yet to submit this report.');
@@ -170,7 +179,7 @@
                 const nameCell=tr.insertCell();
                 nameCell.className='p-3';
                 nameCell.append(open);
-                for(const value of [status,submitted?row.case_count:'—',submitted?row.consultation_count:'—',submitted?format(row.submitted_at):'—']) {
+                for(const value of [status,submitted?(row.bhw_visit_count??'—'):'—',submitted?row.consultation_count:'—',submitted?row.case_count:'—',submitted?format(row.submitted_at):'—']) {
                     const cell=tr.insertCell();cell.className='p-3';cell.textContent=value;
                 }
             }

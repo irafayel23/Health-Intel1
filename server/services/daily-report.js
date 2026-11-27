@@ -1,4 +1,5 @@
 const path = require('node:path');
+const {migratePatientIntakes}=require('./patient-intakes');
 const PDFDocument = require('pdfkit');
 const {caseAgeSql,visitAgeSql,ageGroupSql}=require('./age-groups');
 
@@ -25,12 +26,21 @@ async function dailyReportData(db, user, period) {
         GROUP BY b.id,b.name,condition_label,v.nature_of_visit,v.transaction_mode,age_group
         ORDER BY b.name,condition_label,v.nature_of_visit,v.transaction_mode,age_group`, params);
     let scopeLabel = 'All barangays';
+    let barangayVisitCount;
     if (scoped) {
         const [rows] = await db.execute('SELECT name FROM barangays WHERE id=?', [user.barangay_id]);
         scopeLabel = rows[0]?.name || 'Assigned barangay';
+        const countVisits=()=>db.execute('SELECT COUNT(*) AS count FROM patient_intakes WHERE visit_date>=? AND visit_date<? AND barangay_id=?',params);
+        const [[total]]=await countVisits().catch(async error=>{
+            if(error.code!=='ER_NO_SUCH_TABLE')throw error;
+            await migratePatientIntakes(db);
+            return countVisits();
+        });
+        barangayVisitCount=Number(total.count);
     }
     const total = rows => rows.reduce((sum, row) => sum + Number(row.count), 0);
-    return {cases, visits, scopeLabel, caseCount:total(cases), visitCount:total(visits)};
+    return {cases, visits, scopeLabel, caseCount:total(cases), visitCount:total(visits),
+        ...(scoped ? {barangayVisitCount} : {})};
 }
 
 function renderReportHeading(doc, title, subtitle) {
@@ -58,12 +68,14 @@ function renderDailyReport(doc, data, period, role, options={}) {
         `${role.toUpperCase()} ${options.daily?'Daily':'Today'} Report${continued?' (continued)':''}`,
         `${date}  |  ${data.scopeLabel}  |  Philippine time`);
     pageHeading();
-    const cardWidth=(width-12)/2;
-    for(const [index,label,total] of [[0,'Recorded disease cases',data.caseCount],[1,'Consultations',data.visitCount]]){
+    const totals=[['Recorded disease cases',data.caseCount],['Consultations',data.visitCount]];
+    if(role==='bhw')totals.unshift(['BHW visits',data.barangayVisitCount ?? 'Unavailable']);
+    const cardWidth=(width-12*(totals.length-1))/totals.length;
+    for(const [index,[label,total]] of totals.entries()){
         const x=left+index*(cardWidth+12);
         doc.roundedRect(x,145,cardWidth,60,7).fill('#eaf4f2');
         doc.font('Helvetica-Bold').fontSize(10).fillColor(teal).text(label,x+13,157,{width:cardWidth-26});
-        doc.fontSize(23).fillColor(ink).text(String(total),x+13,173,{width:cardWidth-26});
+        doc.fontSize(typeof total==='number'?23:14).fillColor(ink).text(String(total),x+13,173,{width:cardWidth-26});
     }
     doc.y=218;
     function table(title, columns, rows, empty) {
@@ -105,6 +117,7 @@ function renderDailyReport(doc, data, period, role, options={}) {
     doc.font('Helvetica-Bold').fontSize(10).fillColor(ink).text('How counts are calculated',left,doc.y+12,{width});
     doc.font('Helvetica').fontSize(9).fillColor(muted);
     doc.text('Cases use the recorded case date and include archived cases. Consultations use the visit date. Follow-ups and admissions for existing cases count as consultations. Older cases without visit details appear in the case table.',left,doc.y+5,{width});
+    if(role==='bhw')doc.text('BHW visits are counted separately using their saved visit dates. A referral can lead to a separate clinical consultation or disease case, so the three totals describe different records.',left,doc.y+5,{width});
     doc.text('The report uses current classifications and case statuses. Generate it again after saving corrections or late entries.',left,doc.y+5,{width});
     doc.text('Age groups (years) are 0-5, 6-12, 13-17, 18-59 and 60+. Age is based on the case or visit date. Unavailable ages appear as Not recorded.',left,doc.y+5,{width});
 }

@@ -16,7 +16,7 @@ async function residentDirectory(db,user,input={}){
  const where=conditions.length?' WHERE '+conditions.join(' AND '):'';
  const [[count]]=await db.execute('SELECT COUNT(*) AS total FROM residents r'+where,params);
  const meta=pageResult(count.total,paging);
- const [rows]=await db.execute("SELECT r.*,DATE_FORMAT(r.birthdate,'%Y-%m-%d') AS birthdate,(SELECT COUNT(*) FROM health_cases h WHERE h.resident_id=r.id) AS case_count FROM residents r"+where+' ORDER BY r.last_name,r.first_name,r.id LIMIT '+meta.page_size+' OFFSET '+meta.offset,params);
+ const [rows]=await db.execute("SELECT r.*,DATE_FORMAT(r.birthdate,'%Y-%m-%d') AS birthdate,COALESCE(v.is_deceased,0) AS is_deceased,(SELECT COUNT(*) FROM health_cases h WHERE h.resident_id=r.id) AS case_count FROM residents r LEFT JOIN resident_vital_status v ON v.resident_id=r.id"+where+' ORDER BY r.last_name,r.first_name,r.id LIMIT '+meta.page_size+' OFFSET '+meta.offset,params);
  const {offset,...result}=meta;return {...result,data:rows};
 }
 module.exports={residentDirectory};

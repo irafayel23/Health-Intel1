@@ -65,6 +65,11 @@ test('daily PDFs paginate both sections, retain every row and label zero activit
             if(!count){assert.ok(events.some(e=>e.text.startsWith('No disease cases')));assert.ok(events.some(e=>e.text.startsWith('No structured consultations')));}
             else assert.ok(new Set(events.map(e=>e.page)).size>2);
         }
+        events.length=0;
+        const bhw=await dailyReportPdf({cases:[],visits:[],scopeLabel:'Synthetic barangay',caseCount:0,visitCount:0,barangayVisitCount:3},todayPeriod(new Date('2026-10-13T00:00:00Z')),'bhw',{daily:true});
+        assert.equal(bhw.subarray(0,5).toString(),'%PDF-');
+        assert.equal(events[events.findIndex(event=>event.text==='BHW visits')+1].text,'3');
+        assert.ok(events.some(event=>event.text.startsWith('BHW visits are counted separately')));
     }finally{PDFDocument.prototype.text=original;}
 });
 
@@ -90,7 +95,7 @@ test('BHW dashboard previews the current Philippine date and reflects report sta
     const ids=['view-dashboard','bhw-report-date','daily-submission-send','daily-submission-status','bhw-dashboard-report-status','bhw-dashboard-report-date'];
     ids.forEach(id=>controls.set(id,element()));
     controls.get('bhw-report-date').value='2026-11-25';
-    const date='2026-11-27', current={case_count:2,consultation_count:3},saved={...current,submitted_at:'2026-11-27T04:19:00Z'};
+    const date='2026-11-27', current={case_count:2,consultation_count:3,bhw_visit_count:4,fingerprint:'new'},saved={...current,submitted_at:'2026-11-27T04:19:00Z'};
     let submission=null,responseOk=true;
     const sandbox={URLSearchParams,Intl,Date,location:{hash:'#view-dashboard'},
         document:{getElementById:id=>controls.get(id),querySelector:element},
@@ -100,7 +105,7 @@ test('BHW dashboard previews the current Philippine date and reflects report sta
     };
     vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../../assets/js/shared/daily-submissions.js'),'utf8'),sandbox);
     const status=controls.get('bhw-dashboard-report-status');
-    for(const [version,expected] of [[null,'Awaiting submission'],[saved,'Submitted'],[{...saved,case_count:1},'Update ready to submit'],[{...saved,withdrawn_at:saved.submitted_at},'Withdrawn']]){
+    for(const [version,expected] of [[null,'Awaiting submission'],[saved,'Submitted'],[{...saved,fingerprint:'old'},'Update ready to submit'],[{...saved,withdrawn_at:saved.submitted_at},'Withdrawn']]){
         submission=version;await events.focus();assert.equal(status.textContent,expected);
     }
     assert.ok(calls.every(url=>url.endsWith('?date='+date)));

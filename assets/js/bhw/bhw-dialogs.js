@@ -1,9 +1,17 @@
-      function openAddPatientModal(returnVisit = null) {
+      function openAddPatientModal() {
         const controls = [];
         const requestKey = crypto.randomUUID();
         let patientPicker;
         const field = id => document.getElementById(id);
         const value = id => field(id).value.trim();
+        function visitAge(birth, visit) {
+          return Number(visit.slice(0,4))-Number(birth.slice(0,4))-Number(visit.slice(5)<birth.slice(5));
+        }
+        function showFieldError(id, message) {
+          Swal.showValidationMessage(message);
+          field(id).focus();
+          return false;
+        }
         function showVisitStep(showVisit) {
           field('intake-patient-step').hidden=showVisit;
           field('intake-visit-step').hidden=!showVisit;
@@ -23,7 +31,7 @@
           Swal.getHtmlContainer().scrollTop=0;
         }
         return Swal.fire({
-          title: returnVisit ? 'Record barangay follow-up' : 'Record patient visit',
+          title: 'Record patient visit',
           width: 780,
           customClass: { popup:'hi-dialog hi-encode-dialog hi-bhw-entry-dialog hi-patient-visit-dialog' },
           html: `<div class="hi-encode"><p class="hi-encode-intro">Record the patient's information and what they report. The receiving clinician records the assessment.</p>
@@ -43,7 +51,7 @@
             <h3 id="intake-patient-summary"></h3></div>
             <button id="intake-back" type="button" class="hi-visit-back"><span aria-hidden="true">←</span> Back to patient</button>
           </div>
-          <div class="hi-encode-grid"><div><label for="swal-case-date">Visit date *</label><input id="swal-case-date" type="date"></div>
+          <div class="hi-encode-grid"><div><label for="swal-case-date">Visit date *</label><input id="swal-case-date" type="date" min="1900-01-01" required aria-describedby="swal-case-date-help"><p id="swal-case-date-help" class="hi-field-help">On or after birthdate. Age on visit date must be 130 or younger.</p></div>
           <div class="hi-encode-wide"><label for="intake-concern">Reason for visit *</label><textarea id="intake-concern" maxlength="1000" rows="3" placeholder="Enter the patient’s stated concern"></textarea></div>
           <div class="hi-encode-wide"><label for="intake-action">Next step</label><select id="intake-action"><option value="save">Save visit</option><option value="refer">Request referral</option></select></div>
           <div id="intake-referral" class="hi-encode-wide" hidden><p class="hi-field-help">Receiving facility · Murcia Municipal Health Office / RHU</p><label for="intake-reason">Reason for referral *</label><textarea id="intake-reason" maxlength="500" rows="2"></textarea></div>
@@ -62,20 +70,18 @@
               const age=field('swal-age');
               age.value='';
               if(!birth || !visit || birth>visit)return;
-              const years=Number(visit.slice(0,4))-Number(birth.slice(0,4))-Number(visit.slice(5)<birth.slice(5));
+              const years=visitAge(birth,visit);
               if(years<=130)age.value=String(years);
             }
             birthdate.addEventListener('input',updateAge);
             date.addEventListener('change',updateAge);
             controls.push(HealthIntelDate.bindNumericBirthdate(birthdate));
-            if(!returnVisit) {
-              bindBhwBirthdatePicker(birthdate,date,field('swal-birthdate-picker'),field('swal-birthdate-calendar'));
-              controls.push(HealthIntelEncoding.bindPurokSuggestions(field('swal-purok'),()=>window.currentBrgyName));
-            }
+            bindBhwBirthdatePicker(birthdate,date,field('swal-birthdate-picker'),field('swal-birthdate-calendar'));
+            controls.push(HealthIntelEncoding.bindPurokSuggestions(field('swal-purok'),()=>window.currentBrgyName));
             patientPicker=HealthIntelPatientPicker.bind({
               prefix:'swal',section:document.querySelector('.hi-bhw-patient-step'),fields:field('swal-patient-fields'),
               identity:{first_name:'swal-fname',last_name:'swal-lname',suffix:'swal-suffix',birthdate:'swal-birthdate',purok:'swal-purok'},
-              busy:()=>Swal.isLoading(),initialId:returnVisit?Number(returnVisit.person.id):null,locked:Boolean(returnVisit),preferExisting:true,
+              busy:()=>Swal.isLoading(),preferExisting:true,
               onChange:updateAge
             });
             controls.push(patientPicker);
@@ -92,21 +98,25 @@
               const identity=patientPicker.payload();
               const enteredBirthdate=value('swal-birthdate');
               const year=/^[0-9]{2}[/][0-9]{2}[/]([0-9]{4})$/.exec(enteredBirthdate)?.[1];
-              if(year && Number(year)<1900)throw Error('Birthdate must be January 1, 1900 or later.');
+              if(year && Number(year)<1900)return showFieldError('swal-birthdate','Birthdate must be January 1, 1900 or later.');
               const birthdate=HealthIntelDate.parseBirthdate(enteredBirthdate);
-              if(!birthdate)throw Error('Enter a valid birthdate as MM/DD/YYYY.');
+              if(!birthdate)return showFieldError('swal-birthdate','Enter a valid birthdate as MM/DD/YYYY.');
               if(!value('swal-fname')||!value('swal-lname')||!value('swal-purok'))
                 throw Error('Complete the patient’s first name, family name and purok before continuing.');
               if(field('intake-visit-step').hidden){
-                if(birthdate>HealthIntelDate.todayInManila())throw Error('Enter a birthdate on or before today.');
+                const today=HealthIntelDate.todayInManila();
+                if(birthdate>today)return showFieldError('swal-birthdate','Enter a birthdate on or before today.');
                 showVisitStep(true);
                 return false;
               }
+              const date=field('swal-case-date');
+              if(!date.value||!date.validity.valid)return showFieldError(date.id,'Enter a visit date from January 1, 1900 through today.');
+              if(date.value<birthdate)return showFieldError(date.id,'The visit date must be on or after the patient’s birthdate.');
+              if(visitAge(birthdate,date.value)>130)return showFieldError(date.id,'The patient must be 130 or younger on the visit date. Check both dates.');
               const payload={...identity,request_key:requestKey,
                 first_name:value('swal-fname'),last_name:value('swal-lname'),suffix:value('swal-suffix'),purok:value('swal-purok'),
                 birthdate,visit_date:value('swal-case-date'),concern:value('intake-concern'),
-                request_referral:value('intake-action')==='refer',referral_reason:value('intake-reason'),
-                source_case_id:returnVisit?.caseId};
+                request_referral:value('intake-action')==='refer',referral_reason:value('intake-reason')};
               const close=Swal.getCloseButton();
               close.disabled=true;
               try {
@@ -118,13 +128,10 @@
                 }
                 return result;
               } finally { close.disabled=false; }
-            } catch (error) { Swal.showValidationMessage(error.message);return false; }
+            } catch (error) { if(error.field)return showFieldError(error.field,error.message);Swal.showValidationMessage(error.message);return false; }
           }
         }).then(({isConfirmed,value:result})=>{
-          if(!isConfirmed){
-            if(returnVisit&&!returnVisit.fromTracking)viewPatientProfile(returnVisit.person.id);
-            return;
-          }
+          if(!isConfirmed)return;
           window.dispatchEvent(new Event('health-intel:referrals-changed'));
           Swal.fire({icon:'success',titleText:result.state==='requested'?'Referral requested':'Visit saved',
             text:'Reference #INT-'+result.id,confirmButtonColor:'#047857',customClass:{popup:'hi-dialog'}});
@@ -148,26 +155,6 @@
           input.value=year ? [month,day,year].join('/') : '';
           input.dispatchEvent(new Event('input',{bubbles:true}));
         });
-      }
-
-      function bindBhwMeasurementEntry() {
-        const fields = [
-          ['swal-bp-systolic', /^[0-9]{0,3}$/],
-          ['swal-bp-diastolic', /^[0-9]{0,3}$/],
-          ['swal-temperature', /^(?:[0-9]{1,3}(?:[.][0-9]{0,2})?)?$/],
-          ['swal-height', /^(?:[0-9]{1,3}(?:[.][0-9]{0,2})?)?$/],
-          ['swal-weight', /^(?:[0-9]{1,4}(?:[.][0-9]{0,2})?)?$/]
-        ];
-        for(const [id,format] of fields){
-          const input=document.getElementById(id);
-          const fits=text=>format.test(input.value.slice(0,input.selectionStart)+text+input.value.slice(input.selectionEnd));
-          input.addEventListener('beforeinput',event=>{
-            if(event.inputType.startsWith('insert') && event.data && !fits(event.data))event.preventDefault();
-          });
-          input.addEventListener('paste',event=>{
-            if(!fits(event.clipboardData.getData('text')))event.preventDefault();
-          });
-        }
       }
 
       async function generateBHWTodayReport() {
@@ -209,7 +196,7 @@
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
 
-          const brgyName = window.currentBrgyName || 'Blumentritt';
+          const brgyName = window.currentBrgyName || 'Assigned barangay';
 
           doc.setFontSize(16);
           doc.text(`Barangay Health Station - ${brgyName}`, 14, 20);
@@ -284,11 +271,3 @@
             confirmButtonColor: '#2563eb'
         });
       }
-
-async function supplyConditionClarification(id) {
-  const row=allPatients.find(item=>item.id===id);if(!row)return;const safe=HealthIntelEncoding.escape;
-  Swal.fire({title:`Clarify case #REC-${id}`,customClass:{popup:'hi-dialog'},showCancelButton:true,confirmButtonText:'Send clarification',showLoaderOnConfirm:true,
-    html:`<div class="hi-review-dialog"><p class="hi-review-summary">${safe(row.disease_review_note)}</p><label for="clarify-condition">Reported condition</label><input id="clarify-condition" maxlength="255" value="${safe(row.disease_reported)}"><label for="clarify-source">Source / reference</label><input id="clarify-source" maxlength="500" value="${safe(row.condition_source)}"></div>`,
-    preConfirm:async()=>{try{const response=await fetch(`http://localhost:3000/api/patients/${id}/condition-clarification`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({reported_condition:document.getElementById('clarify-condition').value,condition_source:document.getElementById('clarify-source').value})});const result=await response.json();if(!response.ok||!result.success)throw Error(result.error);return result;}catch(error){Swal.showValidationMessage(error.message);return false;}}
-  }).then(result=>{if(result.isConfirmed){loadPatients();window.dispatchEvent(new Event('health-intel:cases-changed'));Swal.fire('Clarification sent','MHO can now review the updated information.','success');}});
-}

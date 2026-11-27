@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const { randomUUID } = require('node:crypto');
 const mysql = require('mysql2/promise');
 const express = require('express');
+const { registerDailyReportRoutes } = require('../routes/daily-reports');
 const { registerCaseRoutes } = require('../routes/case-routes');
 const { registerPatientIntakeRoutes } = require('../routes/patient-intake-routes');
 const { registerFollowupTracking } = require('../routes/followup-tracking');
@@ -51,6 +52,7 @@ async function createFixture() {
         registerCaseRoutes(app,db,{get(){},save(){}});
         registerPatientIntakeRoutes(app,db);
         registerFollowupTracking(app,db);
+        registerDailyReportRoutes(app,db);
         server=await new Promise(resolve=>{const listener=app.listen(0,'127.0.0.1',()=>resolve(listener));});
         return {db,base:'http://127.0.0.1:'+server.address().port,own:1,close};
     }catch(error){await close();throw error;}
@@ -68,7 +70,7 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
             return {status:response.status,...await response.json()};
         }
         const summary=async(role='bhw')=>(await request(role,'/bhw/intakes/summary')).counts;
-        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:0});
+        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:0,due_today:0,past_due:0});
         assert.equal((await request('mho','/bhw/intakes/summary')).status,403);
         const date=todayInManila();
         const activity=async(role='bhw',query='')=>(await request(role,'/bhw/intakes/activity'+query)).days;
@@ -85,9 +87,20 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
         const saved=await request('bhw','/bhw/intakes','POST',input);
         assert.equal(saved.status,201,saved.error);
         assert.equal(saved.state,'requested');
-        assert.deepEqual(await summary(),{open_referrals:1,assigned_followups:0});
-        assert.deepEqual(await summary('other-bhw'),{open_referrals:0,assigned_followups:0});
+        assert.deepEqual(await summary(),{open_referrals:1,assigned_followups:0,due_today:0,past_due:0});
+        assert.deepEqual(await summary('other-bhw'),{open_referrals:0,assigned_followups:0,due_today:0,past_due:0});
         assert.equal((await request('bhw','/bhw/intakes','POST',input)).id,saved.id);
+        const search=async(query,role='bhw')=>(await request(role,'/bhw/intakes?'+query)).data.map(row=>row.id);
+        assert.deepEqual(await search('q=Test+Profile&status=open'),[saved.id]);
+        assert.deepEqual(await search('q=INT-'+saved.id),[saved.id]);
+        assert.deepEqual(await search('q=%25'),[]);
+        assert.deepEqual(await search('q=INT-'+saved.id+'&barangay_id=1','other-bhw'),[]);
+        assert.equal((await request('bhw','/bhw/intakes?status=invalid')).status,400);
+        assert.equal((await request('bhw','/bhw/intakes?q=one&q=two')).status,400);
+        const invalidAge=await request('bhw','/bhw/intakes','POST',{...input,birthdate:'1900-01-01',visit_date:'2031-01-01'});
+        assert.equal(invalidAge.status,400);
+        const reversed=await request('bhw','/bhw/intakes','POST',{...input,visit_date:'1989-12-31'});
+        assert.equal(reversed.status,400);assert.match(reversed.error,/on or after the patient/);
         assert.deepEqual((await activity()).at(-1),{date,visits:1});
         assert.deepEqual(await activity('other-bhw','?barangay_id=1'),empty);
         await f.db.execute('UPDATE patient_intakes SET visit_date=DATE_SUB(?, INTERVAL 14 DAY) WHERE id=?',[date,saved.id]);
@@ -145,12 +158,18 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
         assert.deepEqual((await request('mho','/mho/referrals?view=followups')).data,[]);
         const follow=await request('mho','/mho/referrals/'+saved.id,'PUT',{action:'follow_up',note:'Synthetic follow-up',due_date:date});
         assert.equal(follow.status,200,follow.error);
-        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:1});
+        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:1,due_today:1,past_due:0});
         assert.deepEqual((await request('mho','/mho/referrals?view=incoming')).data,[]);
         assert.equal((await request('mho','/mho/referrals?view=followups')).data[0].id,saved.id);
+        assert.deepEqual(await search('status=today'),[saved.id]);
+        assert.deepEqual(await search('status=past'),[]);
+        await f.db.execute('UPDATE patient_intakes SET follow_up_due=DATE_SUB(?,INTERVAL 1 DAY) WHERE id=?',[date,saved.id]);
+        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:1,due_today:0,past_due:1});
+        assert.deepEqual(await search('status=past'),[saved.id]);
+        assert.deepEqual(await search('status=past','other-bhw'),[]);
         const close=await request('bhw','/bhw/intakes/'+saved.id,'PUT',{action:'follow_up_done',note:'Synthetic follow-up complete'});
         assert.equal(close.status,200,close.error);
-        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:0});
+        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:0,due_today:0,past_due:0});
         const completed=(await request('bhw','/bhw/intakes')).data.find(row=>row.id===saved.id);
         assert.equal(completed.state,'closed');
         assert.equal(completed.case_id,assessed.id);
@@ -171,4 +190,57 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
         assert.deepEqual((await request('mho','/mho/referrals?view=followups')).data,[]);
         assert.equal((await request('mho','/mho/referrals?view=completed')).data[0].id,saved.id);
     } finally { await f.close(); }
+});
+
+test('BHW report counts, same-count revisions and Admin PDF use the saved daily snapshot',async()=>{
+    const f=await createFixture();
+    const date=todayInManila();
+    const report='/bhw/reports/daily-submission';
+    const admin='/admin/reports/daily-submissions';
+    async function request(role,path,body,other=false) {
+        const response=await fetch(f.base+'/api'+path,{method:body?'POST':'GET',headers:{
+            'X-Test-Role':role,'X-Test-Scope':other?'other':'own','Content-Type':'application/json'
+        },body:body?JSON.stringify(body):undefined});
+        return [response.status,response.headers.get('content-type')?.includes('application/pdf')
+            ? Buffer.from(await response.arrayBuffer()) : await response.json()];
+    }
+    try {
+        const visit={patient_mode:'new',first_name:'Synthetic',last_name:'Report Test',birthdate:'1990-06-11',
+            purok:'Purok 1',request_key:randomUUID(),visit_date:date,concern:'Synthetic report fixture'};
+        assert.equal((await request('bhw','/bhw/intakes',visit))[0],201);
+        const [,zero]=await request('bhw',report+'?date='+date,undefined,true);
+        assert.equal(zero.bhw_visit_count,0);
+        await f.db.execute("INSERT INTO health_cases(barangay_id,date_recorded,disease,status,severity) VALUES(?,?,'Synthetic condition','Active','Mild')",[f.own,date]);
+        const saved=async body=>request('bhw',report,body);
+        const [,before]=await request('bhw',report+'?date='+date);
+        assert.deepEqual([before.bhw_visit_count,before.consultation_count,before.case_count],[1,0,1]);
+        const [status,first]=await saved({date,fingerprint:before.fingerprint});
+        assert.equal(status,200,first.error);
+        await f.db.execute("UPDATE daily_report_submissions SET submitted_at='2020-01-01 00:00:00' WHERE report_date=?",[date]);
+        const [,retry]=await saved({date,fingerprint:before.fingerprint});
+        assert.equal(retry.submission.submitted_at,'2020-01-01T00:00:00Z');
+        const [,adminBefore]=await request('admin',admin+'?date='+date);
+        assert.equal(adminBefore.data.find(row=>row.id===f.own).bhw_visit_count,1);
+        const pdfPath=admin+'/pdf?date='+date+'&barangay_id='+f.own;
+        const [pdfStatus,pdf]=await request('admin',pdfPath);
+        assert.equal(pdfStatus,200);assert.equal(pdf.subarray(0,5).toString(),'%PDF-');
+        assert.equal((await request('bhw',pdfPath))[0],403);
+        await f.db.execute("UPDATE health_cases SET severity='Monitored' WHERE barangay_id=? AND date_recorded=?",[f.own,date]);
+        const [,after]=await request('bhw',report+'?date='+date);
+        assert.deepEqual([after.bhw_visit_count,after.consultation_count,after.case_count],[1,0,1]);
+        assert.notEqual(after.fingerprint,before.fingerprint);
+        assert.equal(after.submission.fingerprint,before.fingerprint);
+        assert.equal((await saved({date,fingerprint:before.fingerprint}))[0],409);
+        const [updatedStatus,updated]=await saved({date,fingerprint:after.fingerprint});
+        assert.equal(updatedStatus,200,updated.error);
+        assert.equal(updated.submission.first_submitted_at,first.submission.first_submitted_at);
+        assert.equal(updated.submission.fingerprint,after.fingerprint);
+        const [[row]]=await f.db.execute('SELECT report_snapshot FROM daily_report_submissions WHERE report_date=? AND barangay_id=?',[date,f.own]);
+        const snapshot=typeof row.report_snapshot==='string'?JSON.parse(row.report_snapshot):row.report_snapshot;
+        assert.equal(snapshot.cases[0].severity,'Monitored');
+        assert.equal((await request('bhw',report+'/withdraw',{date,submitted_at:updated.submission.submitted_at,fingerprint:before.fingerprint}))[0],409);
+        assert.equal((await request('bhw',report+'/withdraw',{date,submitted_at:updated.submission.submitted_at,fingerprint:after.fingerprint}))[0],200);
+        assert.equal((await request('admin',pdfPath))[0],404);
+        assert.equal((await saved({date,fingerprint:after.fingerprint}))[0],200);
+    } finally {await f.close();}
 });

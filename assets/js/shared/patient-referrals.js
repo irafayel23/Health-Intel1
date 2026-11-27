@@ -137,8 +137,8 @@
             add(concern,'strong','Reason for visit');
             add(concern,'p',row.concern);
             if(row.referral_reason)add(card,'p','Referral · '+row.destination+' · '+row.referral_reason,'hi-field-help');
-            if(row.case_id)add(card,'p','Linked clinical case · #REC-'+row.case_id,'hi-field-help');
-            if(row.outcome)add(card,'p',(patientHistory&&row.follow_up_due?'Follow-up instructions · ':'')+row.outcome,'mt-2');
+            if(mho&&row.case_id)add(card,'p','Linked clinical case · #REC-'+row.case_id,'hi-field-help');
+            if(row.outcome)add(card,'p',(row.follow_up_due?'Follow-up instructions · ':'Referral outcome · ')+row.outcome,'mt-2');
             if(row.follow_up_due)add(card,'p','Follow-up due · '+formatDay(row.follow_up_due),'hi-field-help');
             if(row.follow_up_result)add(card,'p',(patientHistory?'Follow-up outcome':'Follow-up note')+' · '+row.follow_up_result,'hi-field-help');
             const milestones=[['sent_at','Sent'],['acknowledged_at','Acknowledged'],['arrived_at','Arrived'],['assessed_at','Assessed'],['closed_at','Completed']];
@@ -166,7 +166,7 @@
                 if(row.state==='saved')primary('Request referral',()=>note(row,'request','Request referral to Murcia MHO / RHU','Reason for referral'));
                 if(row.state==='follow_up') {
                     action(buttons,'Record follow-up note',()=>note(row,'follow_up_note','Record follow-up note','Contact attempted or needs review'));
-                    primary('Complete follow-up',()=>note(row,'follow_up_done','Complete follow-up','Follow-up result'));
+                    primary('Record follow-up outcome',()=>note(row,'follow_up_done','Complete follow-up','Outcome of the assigned follow-up'));
                 }
             }
             if(row.sent_at)action(buttons,'Print referral slip',()=>printSlip(row),errorStatus);
@@ -242,10 +242,26 @@
         const workspace=document.getElementById('view-patients');
         const visitDialog=document.getElementById('bhw-visit-detail-modal');
         visitDialog?.querySelector('[data-visit-close]').addEventListener('click',()=>HealthIntelModal.close(visitDialog));
+        const form=document.getElementById('bhw-visit-filters');
+        const search=document.getElementById('bhw-visit-search');
+        const status=document.getElementById('bhw-visit-status');
         const queue=mountQueue(root,{
-            role:'bhw',visitDialog,emptyMessage:()=> 'No visits or referrals recorded for your barangay yet.'
+            role:'bhw',visitDialog,filters:()=>({q:search.value.trim(),status:status.value}),
+            emptyMessage:()=>search.value.trim()||status.value?'No visits match these filters.':'No visits or referrals recorded for your barangay yet.'
         });
+        form.addEventListener('submit',event=>{event.preventDefault();queue.load(true);});
+        form.addEventListener('reset',()=>queueMicrotask(()=>queue.load(true)));
+        status.addEventListener('change',()=>queue.load(true));
+        search.addEventListener('search',()=>queue.load(true));
         document.querySelector('[data-target="view-patients"]').addEventListener('click',()=>queue.load(true));
+        for(const shortcut of document.querySelectorAll('[data-bhw-followup-shortcut]')) {
+            shortcut.addEventListener('click',()=>{
+                search.value='';
+                status.value=shortcut.dataset.bhwFollowupShortcut;
+                openBhwDashboardView('view-patients');
+                status.focus();
+            });
+        }
         window.addEventListener('health-intel:referrals-changed',event=>{
             if(event.detail!==root&&!workspace.classList.contains('hidden'))queue.load(true);
         });
@@ -329,20 +345,25 @@
         if(!open)return;
         const followups=document.getElementById('bhw-assigned-followups');
         const status=document.getElementById('bhw-referral-summary-status');
+        const due=document.getElementById('bhw-dashboard-followup-today');
+        const past=document.getElementById('bhw-dashboard-followup-past');
+        const followupStatus=document.getElementById('bhw-dashboard-followup-status');
         let version=0;
         async function refresh() {
             const current=++version;
             try {
                 const {counts}=await request('/api/bhw/intakes/summary');
                 if(current!==version)return;
-                const values=[counts?.open_referrals,counts?.assigned_followups];
+                const values=[counts?.open_referrals,counts?.assigned_followups,counts?.due_today,counts?.past_due];
                 if(values.some(value=>!Number.isSafeInteger(value)||value<0))throw Error('Referral counts unavailable.');
-                [open.textContent,followups.textContent]=values.map(value=>value.toLocaleString('en-PH'));
+                [open.textContent,followups.textContent,due.textContent,past.textContent]=values.map(value=>value.toLocaleString('en-PH'));
                 status.hidden=true;
+                followupStatus.textContent='';
             } catch {
                 if(current!==version)return;
-                open.textContent=followups.textContent='—';
+                open.textContent=followups.textContent=due.textContent=past.textContent='—';
                 status.hidden=false;
+                followupStatus.textContent='Follow-up counts unavailable.';
             }
         }
         document.querySelector('[data-target="view-dashboard"]')?.addEventListener('click',refresh);

@@ -1,32 +1,5 @@
-// BHW resident directory and linked medical dossiers.
+// BHW resident directory and linked visit and referral history.
 // Classic script: load through bhw.html; cross-feature functions share its page scope.
-      function bhwReturnVisitReason(person,record) {
-          if(record.is_archived)return 'Archived case · view only.';
-          if(person.is_deceased || record.status === 'Deceased')return 'Historical record. Consultations are view only.';
-          const same=(a,b)=>String(a||'').trim().toLocaleLowerCase('en')===String(b||'').trim().toLocaleLowerCase('en');
-          if(!Number.isSafeInteger(Number(record.id))||Number(record.id)<1||!person.first_name||!person.last_name||!person.purok||!person.barangay_id||!/^\d{4}-\d{2}-\d{2}$/.test(person.birthdate||'')||
-              Number(record.resident_id)!==Number(person.id)||Number(record.barangay_id)!==Number(person.barangay_id)||record.birthdate!==person.birthdate||
-              !['first_name','last_name','suffix'].every(key=>same(record[key],person[key])))return 'Review the patient identity before recording a return visit.';
-          if(!/^\d{4}-\d{2}-\d{2}$/.test(record.date_recorded||'')||record.date_recorded>HealthIntelDate.todayInManila())return 'Review the original case date before recording a return visit.';
-          return '';
-      }
-      let bhwReturnVisitOpening=false;
-      async function recordBhwReturnVisit(residentId,caseId,nature=null) {
-          if(bhwReturnVisitOpening)return;
-          if(![residentId,caseId].every(id=>Number.isSafeInteger(id)&&id>0))return;
-          bhwReturnVisitOpening=true;
-          closeProfileModal();
-          Swal.fire({title:'Loading original case…',allowOutsideClick:false,allowEscapeKey:false,didOpen:()=>Swal.showLoading()});
-          try {
-              const response=await fetch(`http://localhost:3000/api/residents/${residentId}/dossier`),result=await response.json();
-              if(!response.ok||!result.success)throw Error(result.error||'The patient history could not be loaded. Reopen the profile and try again.');
-              const record=result.history.find(row=>Number(row.id)===caseId);
-              if(!record||Number(result.resident.id)!==residentId)throw Error('The original case is no longer linked to this resident. Reopen the profile.');
-              const reason=bhwReturnVisitReason(result.resident,record);if(reason)throw Error(reason);
-              await openAddPatientModal({person:result.resident,caseId,nature,fromTracking:nature==='Follow-up visit'});
-          }catch(error){await Swal.fire({icon:'error',title:'Return visit unavailable',text:error.message,customClass:{popup:'hi-dialog'}});}
-          finally{bhwReturnVisitOpening=false;}
-      }
       // 4. DIRECTORY & PROFILES
       let residentDirectoryPage = 1;
       let residentDirectoryQuery = '';
@@ -49,6 +22,26 @@
               renderDirectory(result.data);
           }catch(error){if(id!==residentRequest)return;grid.textContent='Resident profiles could not be loaded. Use Refresh residents to retry.';document.getElementById('resident-pagination')?.replaceChildren();document.getElementById('resident-page-count').textContent='Records unavailable';}
           finally{clearTimeout(timer);if(id===residentRequest)grid.setAttribute('aria-busy','false');}
+      }
+
+      function residentZoneKey(value) {
+          return String(value || '').trim().toLowerCase();
+      }
+
+      function refreshResidentPurokOptions() {
+          const zones = new Map(HealthIntelEncoding.purokOptions(window.currentBrgyName)
+              .map(({value,label})=>[residentZoneKey(value),label]));
+          for (const value of (window.residentDirectoryZones || [])) { const key=residentZoneKey(value); if(key&&!zones.has(key))zones.set(key,String(value).trim()); }
+          for (const person of (window.allResidents || [])) {
+              const key = residentZoneKey(person.purok);
+              if (key && !zones.has(key)) zones.set(key, String(person.purok).trim());
+          }
+          const choices = [...zones].sort((a,b)=>a[1].localeCompare(b[1], 'en', {numeric:true}));
+          const select = document.getElementById('resident-filter-purok');
+          const selected = residentZoneKey(select.value);
+          select.replaceChildren(new Option('All puroks / zones',''),
+              ...choices.map(([key,label])=>new Option(label,key)));
+          select.value = zones.has(selected) ? selected : '';
       }
 
       function residentAgeGroup(person) {
@@ -87,14 +80,13 @@
 
         // Build once: appending with innerHTML reparses every preceding card.
         grid.innerHTML = data.map(res => {
-            const patientName = res.patient_name || res.first_name + " " + res.last_name || "Unknown";
-            const nameParts = patientName.split(" ");
+            const patientName = String(res.patient_name || [res.first_name, res.last_name].filter(Boolean).join(' ')).trim() || 'Name not recorded';
+            const nameParts = patientName.split(/\s+/);
             const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
 
             const residentAge = window.HealthIntelDate?.residentAge ? HealthIntelDate.residentAge(res) : res.age;
             const ageNum = parseInt(residentAge);
             const isSenior = !isNaN(ageNum) && ageNum >= 60;
-            const caseCount = Number(res.case_count) || 0;
 
             return `
               <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center group">
@@ -107,7 +99,6 @@
 
                 <button type="button" onclick="viewPatientProfile('${Number(res.id)}')" class="bhw-dossier-link w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors">
                   View resident record
-                  <small>(${caseCount} ${caseCount===1?'Record':'Records'})</small>
                 </button>
               </div>
             `;
@@ -155,104 +146,27 @@
           addButton('Next', residentDirectoryPage + 1, residentDirectoryPage === totalPages);
       }
 
-      let patientProfileRequest = 0;
       let bhwPatientHistory;
-      let bhwProfileTabTouched;
-      const bhwProfileTabs = ['bhw-visit-tab','bhw-case-tab'];
-      function selectBhwProfileTab(index, userSelected = true) {
-          if (userSelected) bhwProfileTabTouched = true;
-          bhwProfileTabs.forEach((id, position) => {
-              const tab = document.getElementById(id);
-              const selected = index === position;
-              tab.setAttribute('aria-selected', String(selected));
-              tab.tabIndex = selected ? 0 : -1;
-              document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
-          });
+      function viewPatientProfile(residentId) {
+          const data = (window.allResidents || []).find(person => Number(person.id) === Number(residentId));
+          if (!data) return Swal.fire('Resident profile unavailable', 'Refresh the resident list and try again.', 'info');
+          const name = String(data.patient_name || [data.first_name, data.last_name].filter(Boolean).join(' ')).trim() || 'Name not recorded';
+          const parts = name.split(/\s+/);
+          document.getElementById('profile-initials').textContent = (parts[0][0] + (parts.length > 1 ? parts.at(-1)[0] : '')).toUpperCase();
+          document.getElementById('profile-name').textContent = name;
+          document.getElementById('profile-purok').textContent = data.purok || 'Purok not recorded';
+          const age = HealthIntelDate.residentAge(data);
+          document.getElementById('profile-age').textContent = data.is_deceased ? 'Historical profile' : age ?? 'Age not recorded';
+          document.getElementById('profile-age-unit').hidden = Boolean(data.is_deceased) || age == null;
+          const modal = document.getElementById('patientProfileModal');
+          const visits = document.getElementById('bhw-profile-history');
+          visits.dataset.residentId = String(data.id);
+          visits.dataset.readOnly = String(Boolean(data.is_deceased));
+          modal.querySelector('.bhw-profile-content').scrollTop = 0;
+          bhwPatientHistory ??= HealthIntelReferrals.mountPatientHistory(visits);
+          bhwPatientHistory.load(true);
+          HealthIntelModal.open(modal);
       }
-      document.getElementById('bhw-profile-tabs')?.addEventListener('keydown', event => {
-          const current = bhwProfileTabs.indexOf(event.target.id);
-          if (current<0 || !['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
-          const next = event.key==='Home' ? 0 : event.key==='End' ? 1 : 1-current;
-          event.preventDefault();
-          selectBhwProfileTab(next);
-          document.getElementById(bhwProfileTabs[next]).focus();
-      });
-      async function viewPatientProfile(residentId, selectedCase = null, onClose = null, beforeOpen = null) {
-          if (!Number.isSafeInteger(Number(residentId)) || Number(residentId)<=0) {
-              Swal.fire('Resident link unavailable', 'This historical case has no linked resident profile. Ask the Admin to review the source record; the system will not guess the identity.', 'info');
-              return;
-          }
-          const request = ++patientProfileRequest;
-          try {
-              const res = await fetch(`http://localhost:3000/api/residents/${residentId}/dossier`);
-              const result = await res.json();
-              if(request !== patientProfileRequest) return;
-              if(res.ok && result.success) {
-                  if (beforeOpen && !await beforeOpen()) return;
-                  if(request !== patientProfileRequest) return;
-                  const data = result.resident;
-                  const history = result.history;
-
-                  let patientName = data.patient_name || data.first_name + " " + data.last_name || "Unknown";
-                  const nameParts = patientName.split(" ");
-                  const initials = nameParts[0][0] + (nameParts.length > 1 ? nameParts[nameParts.length-1][0] : "");
-
-                  document.getElementById("profile-initials").innerText = initials.toUpperCase();
-                  document.getElementById("profile-name").innerText = patientName;
-                  document.getElementById("profile-purok").innerText = data.purok || "Unknown";
-                  const age = HealthIntelDate.residentAge(data);
-                  document.getElementById('profile-age').innerText = data.is_deceased ? 'Historical profile' : age ?? 'Age not recorded';
-                  document.getElementById('profile-age-unit').hidden = Boolean(data.is_deceased) || age == null;
-
-                  const tbody = document.getElementById("profile-history-body");
-                  tbody.innerHTML = history.length ? history.map(record => `
-                    <li class="bhw-previous-case">
-                      <div class="bhw-previous-case-copy">
-                        <p class="bhw-previous-case-id">REC-${Number(record.id)} · ${escapeText(HealthIntelDate.formatCaseDate(record.date_recorded))}</p>
-                        <h3>${HealthIntelEncoding.conditionCell(record)}</h3>
-                        <p class="bhw-previous-case-meta"><span>${escapeText(record.status === "Deceased" ? "Historical outcome" : record.status || "Status not recorded")}</span>${record.remarks ? " · "+escapeText(record.remarks) : ""}</p>
-                      </div>
-                      <button type="button" class="hi-vital-button" onclick="HealthIntelVisits.show(${Number(record.id)})" aria-label="View visits for case REC-${Number(record.id)}">View visits</button>
-                    </li>`).join("") : '<li class="bhw-previous-case-empty">No cases are linked to this patient.</li>';
-                  HealthIntelCaseDownload.mount(document.getElementById("bhw-case-download"), history, selectedCase);
-                  document.getElementById("bhw-profile-case-count").textContent = String(history.length);
-                  bhwProfileTabTouched = false;
-                  selectBhwProfileTab(selectedCase ? 1 : 0, false);
-                  const modal = document.getElementById("patientProfileModal");
-                  modal.querySelector(".bhw-profile-content").scrollTop = 0;
-                  const visits = document.getElementById("bhw-profile-history");
-                  visits.dataset.residentId = String(Number(residentId));
-                  visits.dataset.readOnly = String(Boolean(data.is_deceased));
-                  bhwPatientHistory ??= HealthIntelReferrals.mountPatientHistory(visits);
-                  bhwPatientHistory.load(true).then(visitCount => {
-                      if (visitCount !== 0 || !history.length || selectedCase || bhwProfileTabTouched ||
-                          request !== patientProfileRequest || modal.classList.contains('hidden')) return;
-                      const focusInHistory = visits.contains(document.activeElement);
-                      selectBhwProfileTab(1, false);
-                      if (focusInHistory || document.activeElement?.id === 'bhw-visit-tab') document.getElementById('bhw-case-tab').focus();
-                  });
-                  modal.classList.toggle('bhw-case-profile-transition', Boolean(beforeOpen));
-                  if (onClose) {
-                    const observer = new MutationObserver(() => {
-                      if (modal.classList.contains('hidden')) {
-                        observer.disconnect();
-                        onClose();
-                      }
-                    });
-                    observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
-                  }
-                  HealthIntelModal.open(modal);
-              } else {
-                  throw new Error(result.error || 'Please try again later.');
-              }
-          } catch (error) {
-              if (request !== patientProfileRequest) return;
-              if (beforeOpen) throw error;
-              Swal.fire('Patient profile unavailable', error.message || 'Please try again later.', 'error');
-          }
-      }
-
-
       function closeProfileModal() {
         const modal = document.getElementById("patientProfileModal");
         HealthIntelModal.close(modal);

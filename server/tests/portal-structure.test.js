@@ -104,7 +104,7 @@ function page(file) {
     s.Chart=class {static register(){} constructor(_ctx,config){this.data=config.data;this.options=config.options;}update(){}destroy(){}};
     const prefix=file==='index.html'?'index-':file.split('.')[0]+'-';
     // Ordered deferred scripts keep the same page scope; allow attributes around src.
-    const names=[...html.matchAll(/<script\b[^>]*\bsrc="assets\/js\/([^"?]+\.js)(?:\?[^"]*)?"[^>]*>\s*<\/script>/g)].map(m=>m[1]).filter(name=>path.basename(name).startsWith(prefix));
+    const names=[...html.matchAll(/<script\b[^>]*\bsrc="assets\/js\/([^"?]+\.js)(?:\?[^"]*)?"[^>]*>\s*<\/script>/g)].map(m=>m[1]).filter(name=>path.basename(name).startsWith(prefix)||name==='mho/municipal-dataset.js');
     function load() {
         const shared = ['theme.js','accessible-modal.js','chart-theme.js','pagination.js','registration-review.js'].filter(name=>html.includes('/'+name));
         for(const name of ['safe-text.js','date-format.js',...shared,...names,...(html.includes('portal-navigation.js')?['portal-navigation.js']:[])])vm.runInNewContext(fs.readFileSync(scriptPath(name),'utf8'),s,{filename:name});
@@ -114,50 +114,36 @@ function page(file) {
     return {s,html,elements,events,requests,errors,downloads,navigation,load,start,hooks,storage};
 }
 
-test('BHW profile shows patient-scoped visit history with read-only previous cases',async()=>{
+test('BHW profile shows patient-scoped visits without opening a clinical dossier',async()=>{
     const p=page('bhw.html');p.load();
     const history=p.elements['bhw-profile-history'];
     const nodes=Object.fromEntries(['referral-status','referral-list','referral-pages','referral-tools','profile-summary','profile-latest-visit','profile-referral']
         .map(key=>[key,p.s.document.createElement('div')]));
     history.querySelector=selector=>nodes[selector.slice(6,-1)];
-    history.contains=()=>false;
-    p.elements['bhw-visit-tab'].setAttribute('aria-controls','bhw-profile-history');
-    p.elements['bhw-case-tab'].setAttribute('aria-controls','bhw-previous-cases');
     p.elements.patientProfileModal.querySelector=selector=>selector==='.bhw-profile-content'?{scrollTop:0}:null;
     vm.runInNewContext(fs.readFileSync(scriptPath('patient-referrals.js'),'utf8'),p.s);
     const visit={id:7,visit_date:'2026-11-26',concern:'Fixture concern',state:'follow_up',follow_up_due:'2026-11-27',follow_up_result:'Fixture outcome'};
-    p.s.response=url=>url.includes('/dossier')?{success:true,resident:{age:0,patient_name:'Newborn Fixture',purok:'QA'},history:[{id:1,disease:'Fixture condition',status:'Active',date_recorded:'2026-11-25'}]}:
-        {success:true,data:[visit],current_referral:{state:'follow_up'}};
-    await p.s.viewPatientProfile(11);
+    p.s.response=()=>({success:true,data:[visit],current_referral:{state:'follow_up'}});
+    p.s.allResidents=[{id:11,age:0,patient_name:'Newborn Fixture',purok:'QA'},{id:12,age:36,patient_name:'Historical Fixture',is_deceased:1}];
+    p.s.viewPatientProfile(11);
     await settle();
-    assert.equal(p.elements['profile-age'].innerText,0);
-    assert.equal(p.elements['bhw-previous-cases'].hidden,true);
+    assert.equal(p.elements['profile-age'].textContent,0);
+    assert.equal(p.elements['bhw-previous-cases'],undefined);
     assert.equal(nodes['profile-summary'].hidden,false);
-    assert.equal(p.elements['bhw-profile-case-count'].textContent,'1');
-    assert.match(p.elements['profile-history-body'].innerHTML,/View visits/);
-    assert.doesNotMatch(p.elements['profile-history-body'].innerHTML,/Record follow-up visit/);
-    assert.ok(p.requests.some(({url})=>url==='/api/bhw/intakes?page=1&resident_id=11'));
     assert.match(nodes['profile-latest-visit'].textContent,/Nov 26, 2026/);
     assert.equal(nodes['profile-referral'].children[0].textContent,'Barangay follow-up');
     const textOf=node=>[node.textContent,...node.children.flatMap(textOf)];
     const texts=textOf(nodes['referral-list']);
-    for(const expected of ['Fixture concern','Follow-up outcome · Fixture outcome','Record follow-up note','Complete follow-up'])assert.ok(texts.includes(expected));
-    p.s.response=url=>url.includes('/dossier')?{success:true,resident:{age:0,patient_name:'Empty Fixture'},history:[]}:{success:true,data:[],current_referral:null};
-    await p.s.viewPatientProfile(12);
-    await settle();
-    assert.equal(nodes['profile-summary'].hidden,true);
-    assert.equal(history.hidden,false);
-    assert.equal(nodes['referral-list'].children.length,0);
+    for(const expected of ['Fixture concern','Follow-up outcome · Fixture outcome','Record follow-up note','Record follow-up outcome'])assert.ok(texts.includes(expected));
+    p.s.response=()=>({success:true,data:[visit],current_referral:{state:'follow_up'}});
+    p.s.viewPatientProfile(12);await settle();
+    assert.equal(p.elements['profile-age'].textContent,'Historical profile');
+    assert.ok(!textOf(nodes['referral-list']).includes('Record follow-up outcome'));
+    p.s.response=()=>({success:true,data:[],current_referral:null});
+    p.s.viewPatientProfile(11);await settle();
     assert.match(nodes['referral-status'].textContent,/No visits or referrals/);
-    p.s.response=url=>url.includes('/dossier')?{success:true,resident:{age:32,patient_name:'Legacy Fixture'},history:[{id:3,disease:'Fixture condition',date_recorded:'2026-11-11'}]}:{success:true,data:[],current_referral:null};
-    await p.s.viewPatientProfile(13);
-    await settle();
-    assert.equal(history.hidden,true);
-    assert.equal(p.elements['bhw-previous-cases'].hidden,false);
-    assert.equal(p.elements['bhw-case-tab'].getAttribute('aria-selected'),'true');
-    assert.match(p.elements['profile-history-body'].innerHTML,/REC-3/);
-    p.s.selectBhwProfileTab(0);
-    assert.equal(history.hidden,false);
+    assert.equal(nodes['profile-summary'].hidden,true);
+    assert.deepEqual(p.requests.map(({url})=>url),[11,12,11].map(id=>'/api/bhw/intakes?page=1&resident_id='+id));
     assert.deepEqual(p.errors,[]);
 });
 
@@ -173,7 +159,7 @@ test('newborn age zero survives both Admin record views',async()=>{
     assert.match(admin.elements['patient-archived-table-body'].innerHTML,/<td>N\/A<\/td>/);
 });
 
-test('BHW feature scripts initialize context, records, residents and charts in HTML order',async()=>{
+test('BHW feature scripts initialize context, residents and charts without loading older cases',async()=>{
     const p=page('bhw.html'),base=p.s.response;
     p.s.response = url => {
         if (url.includes('/bhw/context')) return {success:true,data:{barangay_id:1,barangay_name:'Blumentritt'}};
@@ -209,9 +195,9 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.ok(!p.requests.some(r=>r.url.includes('/api/patients')),'entering Visits and referrals does not load the case directory');
     assert.ok(!p.requests.some(r=>r.url.includes('/api/bhw/puroks')),'patient navigation must not fetch hidden report options');
     await p.navigation.find(n=>n.getAttribute('data-target')==='view-resident-profiles').emit('click');await settle();
-    p.elements['bhw-recorded-cases'].open=true;
-    await p.elements['bhw-recorded-cases'].emit('toggle');await settle();
-    assert.ok(p.requests.some(r=>r.url.includes('/api/patients')));
+    for(const id of ['bhw-recorded-cases','bhw-previous-cases','view-followups'])assert.equal(p.elements[id],undefined);
+    assert.doesNotMatch(p.html,/bhw-records\.js|patient-case-download\.js/);
+    assert.ok(!p.requests.some(r=>r.url.includes('/api/patients')));
     const reportNav=p.navigation.find(n=>n.getAttribute('data-target')==='view-reports');
     reportNav.click=()=>reportNav.emit('click');
     p.elements['bhw-report-date'].value='2026-10-01';
@@ -232,12 +218,7 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.ok(p.requests.some(r=>r.url.includes('/api/residents')));
     p.s.dispatchEvent(new Event('health-intel:cases-changed'));await settle();
     assert.ok(p.requests.filter(r=>r.url.includes('/api/residents')).length>=2);
-    await p.s.toggleArchiveView();await settle();
-    assert.ok(p.requests.some(r=>r.url.includes('/api/patients/archived')));
-    await p.navigation.find(n=>n.getAttribute('data-target')==='view-patients').emit('click');await settle();
-    const before=p.requests.length;
-    await p.navigation.find(n=>n.getAttribute('data-target')==='view-resident-profiles').emit('click');await settle();
-    assert.ok(p.requests.slice(before).some(r=>r.url.includes('/api/patients/archived')),'returning to Resident Profiles keeps the open archive');
+    assert.ok(!p.requests.some(r=>r.url.includes('/api/patients')),'returning to Resident Profiles still leaves clinical data unloaded');
 });
 
 test('BHW visit rows open a separate dialog with the selected details and referral actions',async()=>{
@@ -260,6 +241,11 @@ test('BHW visit rows open a separate dialog with the selected details and referr
     nav.click=()=>nav.emit('click');
     await nav.emit('click');await settle();
     assert.match(fields.status.textContent,/No visits or referrals recorded/);
+    p.elements['bhw-visit-search'].value='INT-7';
+    p.elements['bhw-visit-status'].value='today';
+    await p.elements['bhw-visit-filters'].emit('submit');await settle();
+    assert.match(p.requests.at(-1).url,/page=1&q=INT-7&status=today/);
+    assert.match(fields.status.textContent,/No visits match/);
     assert.ok(!p.requests.some(r=>r.url.includes('/api/patients')));
     visits=[{id:7,patient_name:'Fixture visit',barangay_name:'Fixture barangay',visit_date:'2026-11-27',state:'saved',concern:'Fixture concern'}];
     p.s.dispatchEvent(new Event('health-intel:referrals-changed'));await settle();
@@ -294,6 +280,13 @@ test('BHW visit rows open a separate dialog with the selected details and referr
     assert.ok(!textOf(modalFields.details).includes('Fixture concern'));
     assert.ok(textOf(modalFields.details).includes('Print referral slip'));
     assert.ok(textOf(modalFields.details).includes('Referral timeline'));
+    await modalFields.close.emit('click');
+    visits=[{...visits[0],state:'follow_up',follow_up_due:'2026-11-27',outcome:'Fixture instructions',case_id:42}];
+    await fields.tools.children[0].onclick();
+    fields.list.children[0].onclick();
+    assert.ok(textOf(modalFields.details).includes('Record follow-up outcome'));
+    assert.ok(textOf(modalFields.details).includes('Follow-up instructions · Fixture instructions'));
+    assert.ok(!textOf(modalFields.details).some(value=>value?.includes('Linked clinical case')));
     const workspace=p.html.slice(p.html.indexOf('id="view-patients"'),p.html.indexOf('id="view-resident-profiles"'));
     assert.doesNotMatch(workspace,/Search recorded cases|View visits and referrals/);
 });
@@ -332,23 +325,22 @@ test('BHW SQL directory keeps escaped cards, newborn age and dossier hooks',asyn
  p.s.response=()=>({success:true,data:[],total:0,page:1,page_count:1});await p.s.loadResidentDirectory();assert.match(p.elements['resident-grid'].innerHTML,/No residents found/);
 });
 
-test('Resident SQL page metadata bounds controls and keeps case paging independent',async()=>{
- const p=page('bhw.html');p.load();p.s.residentDirectoryZones=[];vm.runInNewContext('currentPage=4;residentDirectoryPage=63',p.s);
+test('Resident SQL page metadata bounds controls and resets paging after a new search',async()=>{
+ const p=page('bhw.html');p.load();p.s.residentDirectoryZones=[];vm.runInNewContext('residentDirectoryPage=63',p.s);
  p.s.response=()=>({success:true,data:Array.from({length:6},(_,i)=>({id:745+i,patient_name:'Synthetic '+i,age:20})),total:750,page:63,page_count:63});await p.s.loadResidentDirectory();
- assert.equal(p.elements['resident-page-count'].textContent,'Showing 745–750 of 750 residents');assert.equal(vm.runInNewContext('currentPage',p.s),4);
+ assert.equal(p.elements['resident-page-count'].textContent,'Showing 745–750 of 750 residents');
  const controls=p.elements['resident-pagination'].children;assert.ok(controls.filter(b=>b.type==='button').length<=9);assert.equal(controls.find(b=>b.textContent==='Next').disabled,true);
  p.elements['directory-search'].value='new search';p.s.filterDirectory();assert.equal(vm.runInNewContext('residentDirectoryPage',p.s),1);
 });
 
-test('MHO split scripts retain API charts, filter refresh and report downloads',async()=>{
+test('MHO split scripts retain municipal dashboard and report entry points',async()=>{
     const p=page('mho.html'),base=p.s.response;
-    p.s.response=url=>url.includes('/walk-in-options')?{success:true,data:{barangays:[],diseases:[]}}:base();
+    p.s.response=url=>url.includes('/walk-in-options')?{success:true,data:{barangays:[],diseases:[]}}:base(url);
     p.load();await p.start();p.hooks();
     assert.deepEqual(p.errors,[]);
-    for(const endpoint of ['mho/kpi','mho/trend','mho/year-comparison','mho/analytics-options','mho/mortality','mho/stats','mho/walk-in-options','mho/walk-in-cases','mho/disease-reviews'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
-    assert.match(p.elements['insight-text'].textContent,/No recorded disease cases/);
+    for(const endpoint of ['mho/kpi','mho/dataset-analytics','mho/walk-in-options','mho/disease-reviews'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
     p.elements['filter-year'].value='2025';await p.s.updateDynamicChart();
-    assert.ok(p.requests.some(r=>r.url.includes('/mho/stats?year=2025')));
+    assert.ok(p.requests.some(r=>r.url.includes('/mho/kpi?year=2025')));
     await p.s.generateOfficialPDF('FHSIS');
     assert.equal(p.downloads.length,1);assert.match(p.downloads[0][0],/\/api\/mho\/reports\/fhsis\?/);
 });
@@ -362,7 +354,7 @@ test('MHO and BHW report dropdowns download covered CSV months and annual counts
         assert.equal(p.elements[monthId].options.length, 13);
         assert.equal(p.elements['pidsr-week'], undefined);
         if (role === 'mho') {
-            assert.deepEqual(p.navigation.map(node => node.getAttribute('data-target')), ['view-analytics','view-history','view-patient-directory','view-predictive','view-review-center','view-heatmap','view-reports']);
+            assert.deepEqual(p.navigation.map(node => node.getAttribute('data-target')), ['view-analytics','view-history','view-patient-directory','view-referrals','view-predictive','view-review-center','view-heatmap','view-reports']);
             p.s.initializeMhoReportPeriods('2027-01-01');
             assert.equal(p.elements[monthId].value, 'January');
             assert.equal(p.elements[yearId].value, '2027');

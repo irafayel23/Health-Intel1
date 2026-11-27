@@ -11,10 +11,9 @@
     <script src="assets/js/shared/api-session.js?v=20261117-tab-accounts"></script>
     <script src="assets/js/shared/safe-text.js"></script>
     <script src="assets/js/shared/pagination.js?v=20261111-page-start"></script>
-    <script src="assets/js/shared/case-corrections.js?v=20261116-placeholder"></script>
     <script src="assets/js/shared/date-format.js"></script>
     <script src="assets/js/shared/daily-report-controls.js"></script>
-    <script defer src="assets/js/shared/daily-submissions.js?v=20261127-daily-workspace"></script>
+    <script defer src="assets/js/shared/daily-submissions.js?v=20261127-bhw-workflow"></script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="assets/img/Health-Intel-Symbol.png?v=20261003" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,7 +21,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-visit-bar-scale" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-bhw-workflow" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -68,10 +67,6 @@
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-resident-profiles">
           <i data-lucide="contact" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
           <span class="sidebar-label whitespace-nowrap">Resident Profiles</span>
-        </button>
-        <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-followups">
-          <i data-lucide="calendar-clock" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
-          <span class="sidebar-label whitespace-nowrap">Follow-up Tracking</span>
         </button>
         <button class="nav-item group w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl text-sm font-medium transition-all duration-300 hover:bg-blue-50 hover:translate-x-1 hover:text-blue-600 text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-300 [&.active]:bg-blue-500/10 [&.active]:text-blue-700 dark:[&.active]:bg-slate-800 dark:[&.active]:text-blue-400" data-target="view-predictive">
           <i data-lucide="chart-line" class="w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110"></i>
@@ -152,7 +147,7 @@
               <p id="bhw-referral-summary-status" class="hi-field-help" role="status" hidden>Counts unavailable.</p>
             </section>
             <section class="bhw-task-card rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm min-w-0" aria-labelledby="bhw-dashboard-followup-title">
-              <h2 id="bhw-dashboard-followup-title" class="text-sm font-semibold">Scheduled follow-ups</h2>
+              <h2 id="bhw-dashboard-followup-title" class="text-sm font-semibold">Referral follow-ups</h2>
               <div class="bhw-followup-actions" aria-live="polite">
                 <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="today"><strong id="bhw-dashboard-followup-today">—</strong> Due today</button>
                 <button type="button" class="hi-vital-button" data-bhw-followup-shortcut="past"><strong id="bhw-dashboard-followup-past">—</strong> Past due</button>
@@ -214,6 +209,16 @@
               <div><h2 id="bhw-visit-history-title">Visit and referral history</h2><p>Select a visit to see its details.</p></div>
               <div data-referral-tools></div>
             </div>
+            <form id="bhw-visit-filters" class="bhw-visit-filters" aria-label="Filter visits and referrals">
+              <label for="bhw-visit-search">Patient or visit ID<input type="search" id="bhw-visit-search" placeholder="Name or INT-123" maxlength="100"></label>
+              <label for="bhw-visit-status">Status<select id="bhw-visit-status">
+                <option value="">All statuses</option><option value="saved">Visit saved</option><option value="open">Open referrals</option>
+                <option value="follow_up">Assigned follow-ups</option><option value="today">Follow-ups due today</option>
+                <option value="past">Past-due follow-ups</option><option value="closed">Completed</option>
+              </select></label>
+              <button class="hi-vital-button" type="submit">Search</button>
+              <button class="hi-vital-button" type="reset">Clear</button>
+            </form>
             <p data-referral-status role="status" class="bhw-visit-history-status"></p>
             <div class="bhw-visit-table">
               <div class="bhw-visit-columns" aria-hidden="true"><span>Patient</span><span>Visit date</span><span>Status</span></div>
@@ -248,61 +253,7 @@
             <p id="resident-page-count" role="status" aria-live="polite" aria-atomic="true" class="text-sm text-[hsl(var(--muted-foreground))]"></p>
             <nav id="resident-pagination" aria-label="Resident profiles pagination" class="flex flex-wrap items-center justify-end gap-2"></nav>
           </div>
-          <details id="bhw-recorded-cases" class="bhw-recorded-cases">
-            <summary>Search recorded cases</summary>
-            <div class="bhw-recorded-cases-body">
-            <h2 id="patients-page-title" class="text-lg font-semibold mb-3">Recorded cases</h2>
-              <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <button id="toggle-archive-btn" onclick="toggleArchiveView()" class="px-5 py-2.5 border border-[hsl(var(--border))] text-[hsl(var(--foreground))] bg-[hsl(var(--card))] font-medium rounded-lg shadow-sm hover:bg-[hsl(var(--muted))] hover:shadow-md transition-all text-sm flex items-center gap-2">
-                  <i data-lucide="archive" class="w-4 h-4"></i> View Archived
-                </button>
-                <div class="relative w-full md:w-80 group">
-                  <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-[hsl(var(--muted-foreground))] group-focus-within:text-blue-500 transition-colors"></i>
-                  <input type="text" id="patient-search-input" aria-label="Search patient records" onkeyup="filterTable()" placeholder="Search name or condition..." class="w-full pl-9 pr-4 py-2.5 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-lg text-sm text-[hsl(var(--foreground))] outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all shadow-sm hover:shadow-md" />
-                </div>
-              </div>
-
-              <div class="flex flex-wrap gap-3 mb-5" aria-label="Filter patient records">
-                <label>Status <select id="patient-filter-status" onchange="patientFiltersChanged()"><option value="">All statuses</option><option>Active</option><option>Cleared</option></select></label>
-                <label>Severity <select id="patient-filter-severity" onchange="patientFiltersChanged()"><option value="">All severities</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select></label>
-                <label>Year <select id="patient-filter-year" onchange="patientFiltersChanged()"><option value="">All years</option></select></label>
-                <label>Month <select id="patient-filter-month" onchange="patientFiltersChanged()"><option value="">All months</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></label>
-                <label>Purok / zone <select id="patient-filter-purok" onchange="patientFiltersChanged()"><option value="">All puroks / zones</option></select></label>
-                <button type="button" onclick="clearPatientFilters()">Clear filters</button>
-              </div>
-              <div id="patient-load-status" role="status" aria-live="polite" aria-atomic="true" class="hidden flex-wrap items-center gap-3 mb-4 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] px-4 py-3 text-sm">
-                <span id="patient-load-spinner" hidden aria-hidden="true" class="h-4 w-4 shrink-0 rounded-full border-2 border-blue-600 dark:border-blue-400 border-t-transparent dark:border-t-transparent animate-spin motion-reduce:animate-none"></span>
-                <span id="patient-load-message" class="min-w-0 flex-1"></span>
-                <button id="patient-load-retry" hidden type="button" onclick="retryPatientLoad()" class="min-h-11 shrink-0 rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:focus-visible:outline-blue-400">Retry</button>
-              </div>
-              <div class="border border-[hsl(var(--border))] rounded-2xl overflow-hidden bg-[hsl(var(--card))] shadow-sm hover:shadow-md transition-shadow">
-                <div class="overflow-x-auto">
-                  <table id="main-patient-table" class="w-full text-sm text-left">
-                    <thead class="bg-[hsl(var(--muted))] text-slate-600 dark:text-slate-300">
-                      <tr>
-                        <th class="px-6 py-4 font-semibold">Name</th>
-                        <th class="px-6 py-4 font-semibold">Purok</th>
-                        <th class="px-6 py-4 font-semibold">Condition</th>
-                        <th class="px-6 py-4 font-semibold">Severity</th>
-                        <th class="px-6 py-4 font-semibold">Status</th>
-
-                      </tr>
-                    </thead>
-                    <tbody id="patients-table-body" class="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
-                      <!-- JS Injected -->
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <!-- Pagination injected here -->
-              <div id="patients-pagination" class="mt-4 flex justify-end gap-2"></div>
-            </div>
-          </details>
         </div>
-
-        <section id="view-followups" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500" aria-labelledby="bhw-followup-heading">
-          <div id="bhw-followup-panel"></div>
-        </section>
 
         <section id="view-predictive" data-assigned-barangay="true" class="view-section hidden mx-auto w-full max-w-[1440px] min-w-0 [&_[hidden]]:!hidden" aria-labelledby="bhw-predictive-title">
           <header class="forecast-page-heading">
@@ -315,12 +266,12 @@
         <!-- REPORTS VIEW -->
         <div id="view-reports" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="mb-8">
-            <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Report Generation</h1>
-            <p class="text-[hsl(var(--muted-foreground))] mt-1">Download case lists and daily consultation summaries for your assigned barangay.</p>
+            <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Barangay Reports</h1>
+            <p class="text-[hsl(var(--muted-foreground))] mt-1">Submit daily totals and download reports for your assigned barangay.</p>
           </div>
           <section class="hi-today-report bhw-daily-report" aria-labelledby="bhw-today-title">
             <header><h2 id="bhw-today-title">Daily barangay report</h2>
-              <p>Review and submit the cases and consultations recorded in your barangay for the selected date.</p>
+              <p>Review BHW visits, clinical consultations and disease cases for the selected date.</p>
             </header>
             <div class="bhw-daily-report-controls">
               <div class="bhw-daily-date-group">
@@ -339,18 +290,19 @@
             <small id="bhw-daily-help">Dates use Philippine time. Choose an earlier date to recover a missed report.</small>
           </section>
           
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <h2 class="text-lg font-semibold mb-3">Report downloads</h2>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             
             <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-8 shadow-sm border-t-4 border-t-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all group">
               <h2 class="text-xl font-bold text-[hsl(var(--foreground))] flex items-center gap-3 mb-3">
                 <div class="p-2 bg-blue-500/10 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-colors"><i data-lucide="file-spreadsheet" class="w-6 h-6 text-blue-500 group-hover:text-white"></i></div>
                 Monthly Case List
               </h2>
-              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Choose a month for your barangay’s case report or All months for its historical dataset totals for the selected year.</p>
+              <p class="text-sm text-[hsl(var(--muted-foreground))] mb-8 leading-relaxed">Choose a month for the case list. Historical dataset exports include synthetic counts and are labeled in the PDF.</p>
               
-              <div class="flex gap-4 mb-6">
+              <div class="bhw-monthly-period mb-6">
                 <select id="bhw-report-month" aria-label="Case report month" class="flex-1 bg-transparent border border-[hsl(var(--border))] rounded-lg text-sm px-4 py-3 outline-none text-[hsl(var(--foreground))] focus:ring-2 focus:ring-blue-500/50 hover:border-blue-500/50 transition-colors">
-<option value="all">All months (historical)</option>
+<option value="all">All months (demonstration)</option>
 <option value="January">January</option>
 <option value="February">February</option>
 <option value="March">March</option>
@@ -442,12 +394,9 @@
             <i data-lucide="x" aria-hidden="true"></i>
           </button>
         </header>
-        <div id="bhw-profile-tabs" class="bhw-profile-tabs" role="tablist" aria-label="Patient record sections">
-          <button type="button" id="bhw-visit-tab" role="tab" aria-controls="bhw-profile-history" aria-selected="true" onclick="selectBhwProfileTab(0)">Visits and Referrals</button>
-          <button type="button" id="bhw-case-tab" role="tab" aria-controls="bhw-previous-cases" aria-selected="false" tabindex="-1" onclick="selectBhwProfileTab(1)">Case history <span id="bhw-profile-case-count"></span></button>
-        </div>
         <div class="bhw-profile-content">
-          <section id="bhw-profile-history" role="tabpanel" aria-labelledby="bhw-visit-tab">
+          <h3 id="bhw-profile-history-title" class="mb-3 text-base font-semibold">Visits and Referrals</h3>
+          <section id="bhw-profile-history" aria-labelledby="bhw-profile-history-title">
             <div class="bhw-profile-history-header">
               <dl class="bhw-profile-summary" data-profile-summary hidden>
                 <div><dt>Latest recorded visit</dt><dd data-profile-latest-visit>—</dd></div>
@@ -459,10 +408,6 @@
             <div data-referral-list class="hi-referral-list"></div>
             <div data-referral-pages class="hi-referral-pages"></div>
           </section>
-          <section id="bhw-previous-cases" role="tabpanel" aria-labelledby="bhw-case-tab" hidden>
-            <ul id="profile-history-body" class="bhw-previous-cases"></ul>
-            <div id="bhw-case-download"></div>
-          </section>
         </div>
       </div>
     </div>
@@ -471,18 +416,14 @@
     <!-- UI Interaction Scripts -->
     <script src="assets/js/bhw/bhw-shell.js?v=20261108-bhw-icons"></script>
 
-    <script src="assets/js/bhw/bhw-records.js?v=20261127-visit-workspace"></script>
-    <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
-    <script src="assets/js/bhw/bhw-residents.js?v=20261127-record-labels"></script>
-    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-visit-bar-scale"></script>
-    <script src="assets/js/bhw/bhw-startup.js?v=20261127-visit-rows"></script>
+    <script src="assets/js/bhw/bhw-residents.js?v=20261127-bhw-workflow"></script>
+    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-bhw-workflow"></script>
+    <script src="assets/js/bhw/bhw-startup.js?v=20261127-bhw-workflow"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
-  <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
-  <script src="assets/js/shared/patient-referrals.js?v=20261127-visit-dialog"></script>
-  <script src="assets/js/bhw/bhw-dialogs.js?v=20261127-birthdate-limit"></script>
+  <script src="assets/js/shared/patient-referrals.js?v=20261127-bhw-workflow"></script>
+  <script src="assets/js/bhw/bhw-dialogs.js?v=20261127-bhw-workflow"></script>
     <script src="assets/js/shared/historical-reports.js?v=20261123-report-periods"></script>
-    <script src="assets/js/shared/followup-tracking.js?v=20261126-referral-workspace"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261120-loading"></script>
     <script src="assets/js/shared/portal-history.js?v=20261108-history"></script>
     <script src="assets/js/mho/mho-action-guidance.js?v=20261125-details"></script>

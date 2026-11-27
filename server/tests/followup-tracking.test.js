@@ -44,7 +44,8 @@ test('recorded returns clear or replace pending plans without changing original 
     const [[original]]=await f.db.execute('SELECT * FROM health_cases WHERE id=?',[ownCase]),[[counts]]=await f.db.query('SELECT (SELECT COUNT(*) FROM health_cases) cases,(SELECT COUNT(*) FROM residents) residents');
     const patient={first_name:'Due',last_name:'Tracking',suffix:'',birthdate:'1990-05-10',purok:'QA Zone',date_recorded:today,disease:'Synthetic Disease A',severity:'Mild',remarks:'Synthetic return only'};
     const visit={case_id:ownCase,transaction_mode:'Walk-in',nature_of_visit:'Follow-up visit',consultation_time:'10:00',blood_pressure:'120/80',temperature_c:'36.5',height_cm:'165',weight_kg:'60'};
-    const saved=await request('bhw','/patients',{...patient,visit});assert.equal(saved.status,201);assert.equal(saved.body.new_case,false);assert.equal((await request('bhw','/bhw/followups')).body.total,0);
+    const denied=await request('bhw','/patients',{...patient,visit});assert.equal(denied.status,403);
+    const saved=await request('mho','/mho/walk-in-cases',{...patient,barangay_id:f.own,visit});assert.equal(saved.status,201,saved.body.error);assert.equal(saved.body.new_case,false);assert.equal((await request('bhw','/bhw/followups')).body.total,0);
     const next=await request('mho','/mho/walk-in-cases',{...patient,barangay_id:f.own,visit:{...visit,consultation_time:'11:00',next_followup_date:day(8),followup_instructions:'Synthetic new plan'}});assert.equal(next.status,201);
     const pending=(await request('bhw','/bhw/followups?bucket=upcoming')).body.data.filter(v=>v.case_id===ownCase);assert.equal(pending.length,1);assert.equal(pending[0].next_followup_date,day(8));assert.equal(pending[0].visit_id,next.body.visit_id);
     const history=(await request('bhw','/residents/'+ownResident+'/dossier')).body;assert.ok(history.visits.some(v=>v.case_id===ownCase&&v.next_followup_date===today&&v.followup_instructions==='Synthetic instructions only'));
