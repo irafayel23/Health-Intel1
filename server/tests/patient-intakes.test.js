@@ -71,6 +71,12 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
         assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:0});
         assert.equal((await request('mho','/bhw/intakes/summary')).status,403);
         const date=todayInManila();
+        const activity=async(role='bhw',query='')=>(await request(role,'/bhw/intakes/activity'+query)).days;
+        assert.equal((await request('mho','/bhw/intakes/activity')).status,403);
+        const empty=await activity();
+        assert.equal(empty.length,14);
+        assert.equal(empty.at(-1).date,date);
+        assert.ok(empty.every(day=>day.visits===0));
         const patient={patient_mode:'new',first_name:'Synthetic Intake',last_name:'Test Profile',birthdate:'1990-06-11',purok:'Purok 1'};
         const input={...patient,request_key:randomUUID(),visit_date:date,concern:'Synthetic visit',request_referral:true,referral_reason:'Assessment requested'};
         const count=async()=>Number((await f.db.query('SELECT COUNT(*) AS total FROM health_cases'))[0][0].total);
@@ -82,6 +88,11 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
         assert.deepEqual(await summary(),{open_referrals:1,assigned_followups:0});
         assert.deepEqual(await summary('other-bhw'),{open_referrals:0,assigned_followups:0});
         assert.equal((await request('bhw','/bhw/intakes','POST',input)).id,saved.id);
+        assert.deepEqual((await activity()).at(-1),{date,visits:1});
+        assert.deepEqual(await activity('other-bhw','?barangay_id=1'),empty);
+        await f.db.execute('UPDATE patient_intakes SET visit_date=DATE_SUB(?, INTERVAL 14 DAY) WHERE id=?',[date,saved.id]);
+        assert.deepEqual(await activity(),empty);
+        await f.db.execute('UPDATE patient_intakes SET visit_date=? WHERE id=?',[date,saved.id]);
         assert.equal(await count(),before);
         assert.equal((await request('bhw','/mho/referrals')).status,403);
         assert.equal((await request('bhw','/mho/referrals/summary')).status,403);

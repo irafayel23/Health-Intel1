@@ -134,6 +134,7 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     const p=page('bhw.html'),base=p.s.response;
     p.s.response = url => {
         if (url.includes('/bhw/context')) return {success:true,data:{barangay_id:1,barangay_name:'Blumentritt'}};
+        if (url.endsWith('/bhw/intakes/activity')) return {success:true,days:Array.from({length:14},(_,day)=>({label:day,date:'2026-11-'+String(day+14),visits:day===13?1:0}))};
         if (url.includes('/bhw/dataset-analytics')) return {success:true,source:'demonstration_dataset',source_label:'Dataset fixture',
             filters:{barangay:'Blumentritt'},total:40,months:[{label:'2025-12',cases:31},{label:'2026-01',cases:9}]};
         return base(url);
@@ -143,7 +144,12 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.equal(p.s.currentBrgyId,1);
     assert.match(p.elements['dynamic-portal-title'].innerText,/Blumentritt/);
     assert.ok(p.requests.some(r=>r.url.includes('/api/bhw/context')));
-    assert.ok(!p.requests.some(r=>r.url.includes('/api/bhw-stats')||r.url.includes('/api/bhw/dataset-analytics')));
+    assert.ok(!p.requests.some(r=>r.url.includes('/api/bhw-stats')));
+    assert.equal(p.elements['bhw-dashboard-total'].innerText,'40');
+    assert.equal(p.elements['bhw-dashboard-trend-period'].innerText,'Jan 2026');
+    assert.equal(p.elements['bhw-activity-total'].innerText,'1 visit');
+    assert.match(p.elements['bhw-activity-status'].textContent,/1 visit today/);
+    assert.match(p.elements['bhwActivityChart'].getAttribute('aria-label'),/Nov 27, 1/);
     assert.equal(p.elements['bd-active'],undefined);
     assert.ok(p.elements['bhw-dashboard-report-status']);
     assert.equal(p.elements['stat-active'],undefined);
@@ -161,7 +167,7 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.equal(p.elements['bhw-report-date'].value,p.s.HealthIntelDate.todayInManila());
     assert.equal(p.elements['view-reports'].classList.contains('hidden'),false);
     assert.equal(p.elements['stat-total'].innerText,'40');
-    assert.equal(p.elements['bhw-trend-period'].innerText,'Jan–Jan 2026');
+    assert.equal(p.elements['bhw-trend-period'].innerText,'Jan 2026');
     assert.match(p.elements['bhw-trend-status'].innerText,/Blumentritt/);
     assert.equal(p.requests.filter(r=>r.url.endsWith('/api/bhw/dataset-analytics')).length,1);
     assert.ok(p.requests.some(r=>r.url.includes('/api/bhw/puroks')),'report filters load locations only when opened');

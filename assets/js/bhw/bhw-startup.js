@@ -28,6 +28,7 @@
 
           }
           if (targetId === 'view-reports') loadTrendChart();
+          if (targetId === 'view-dashboard') loadBhwDashboardCharts();
         });
       });
 
@@ -79,6 +80,15 @@
       });
       window.addEventListener('health-intel:cases-changed', refreshBHWSupportingViews);
 
+      function loadBhwDashboardCharts() {
+        if (document.getElementById('view-dashboard')?.classList.contains('hidden')) return;
+        loadTrendChart('dashboard');
+        loadBhwVisitActivity();
+      }
+      window.addEventListener('health-intel:referrals-changed', () => {
+        if (!document.getElementById('view-dashboard')?.classList.contains('hidden')) loadBhwVisitActivity();
+      });
+
 
       document.addEventListener("DOMContentLoaded", async () => {
         const userId = sessionStorage.getItem("active_user_id");
@@ -100,5 +110,6 @@
           } catch(e) { console.error("Error fetching context:", e); }
         }
 
+        if (!location.hash || location.hash === '#view-dashboard') loadBhwDashboardCharts();
         // Hidden record and resident views load when opened.
       });

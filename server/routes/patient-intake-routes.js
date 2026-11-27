@@ -1,4 +1,4 @@
-const { migratePatientIntakes, saveIntake, listIntakes, changeIntake, referralSummary, bhwReferralSummary } = require('../services/patient-intakes');
+const { migratePatientIntakes, saveIntake, listIntakes, changeIntake, referralSummary, bhwReferralSummary, bhwVisitActivity } = require('../services/patient-intakes');
 const { positiveId } = require('../services/encoding-residents');
 const { respond } = require('../services/service-errors');
 
@@ -20,6 +20,9 @@ function registerPatientIntakeRoutes(app,db) {
     app.get(['/api/bhw/intakes','/api/mho/referrals'],route(async (req,res) => {
         const page = req.query.page === undefined ? 1 : Math.min(100000,positiveId(req.query.page,'page'));
         res.json({success:true,...await listIntakes(db,req.user,page,{view:req.query.view,barangay:req.query.barangay_id})});
+    }));
+    app.get('/api/bhw/intakes/activity',route(async (req,res) => {
+        res.set('Cache-Control','no-store').json({success:true,days:await bhwVisitActivity(db,req.user)});
     }));
     app.get('/api/bhw/intakes/summary',route(async (req,res) => {
         res.set('Cache-Control','no-store').json({success:true,counts:await bhwReferralSummary(db,req.user)});

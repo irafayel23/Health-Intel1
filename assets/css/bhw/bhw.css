@@ -781,3 +781,12 @@ body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-
 :is(.bhw-referral-summary-link, .bhw-task-link):focus-visible { outline: none; }
 :is(.bhw-referral-summary-link, .bhw-task-link):focus-visible::after { outline: 2px solid #0d9488; outline-offset: 3px; }
 .bhw-followup-summary-status:empty { display: none; }
+
+.bhw-insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 1rem; }
+.bhw-insight-card { min-width: 0; }
+.bhw-insight-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: .5rem 1rem; margin-bottom: 1rem; }
+.bhw-insight-header p, .bhw-insight-note { color: hsl(var(--muted-foreground)); font-size: .8rem; }
+.bhw-insight-header p { margin-top: .25rem; }
+.bhw-insight-chart { position: relative; height: clamp(205px, 22vw, 270px); }
+.bhw-insight-tag { padding: .35rem .6rem; border-radius: .5rem; background: hsl(var(--muted)); color: hsl(var(--foreground)); font-size: .75rem; font-weight: 600; }
+.bhw-insight-note { margin-top: .75rem; min-height: 1.25rem; }

@@ -52,7 +52,7 @@ const rules = [
     ['POST', /^\/mho\/walk-in-matches$/, ['mho']],
     ['POST', /^\/mho\/walk-in-cases$/, ['mho']],
     ['GET', /^\/(patients(?:\/archived)?|residents(?:\/\d+\/dossier)?|bhw-trend|bhw-stats)$/, ['bhw', 'admin']],
-    ['GET', /^\/bhw\/intakes(?:\/summary)?$/, ['bhw']],
+    ['GET', /^\/bhw\/intakes(?:\/(?:summary|activity))?$/, ['bhw']],
     ['POST', /^\/bhw\/intakes$/, ['bhw']],
     ['PUT', /^\/bhw\/intakes\/\d+$/, ['bhw']],
     ['GET', /^\/mho\/referrals(?:\/summary)?$/, ['mho']],

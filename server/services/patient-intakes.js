@@ -124,6 +124,23 @@ async function bhwReferralSummary(db, user) {
     return {open_referrals:Number(row.open_referrals),assigned_followups:Number(row.assigned_followups)};
 }
 
+async function bhwVisitActivity(db,user) {
+    const barangay=positiveId(user.barangay_id,'assigned barangay');
+    const end=todayInManila();
+    const day=new Date(end+'T00:00:00Z');
+    day.setUTCDate(day.getUTCDate()-13);
+    const start=day.toISOString().slice(0,10);
+    const [rows]=await db.execute(`SELECT DATE_FORMAT(visit_date,'%Y-%m-%d') AS date, COUNT(*) AS visits
+        FROM patient_intakes WHERE barangay_id=? AND visit_date BETWEEN ? AND ?
+        GROUP BY visit_date`,[barangay,start,end]);
+    const counts=new Map(rows.map(row=>[row.date,Number(row.visits)]));
+    return Array.from({length:14},()=>{
+        const date=day.toISOString().slice(0,10);
+        day.setUTCDate(day.getUTCDate()+1);
+        return {date,visits:counts.get(date)??0};
+    });
+}
+
 async function listIntakes(db,user,page,{view,barangay}={}) {
     const bhw = user.role === 'bhw';
     const conditions = [bhw ? 'i.barangay_id=?' : "i.state<>'saved'"];
@@ -216,4 +233,4 @@ async function linkReferralAssessment(connection,id,caseId,systemId) {
     await audit(connection,{role:'mho',system_id:systemId},id,'Referral Assessment Recorded');
 }
 
-module.exports = { migratePatientIntakes,saveIntake,listIntakes,changeIntake,lockReferralAssessment,linkReferralAssessment,referralSummary,bhwReferralSummary };
+module.exports = { migratePatientIntakes,saveIntake,listIntakes,changeIntake,lockReferralAssessment,linkReferralAssessment,referralSummary,bhwReferralSummary,bhwVisitActivity };

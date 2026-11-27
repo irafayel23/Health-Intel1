@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-daily-workspace" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-activity-charts" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -177,6 +177,26 @@
                 <p id="bhw-dashboard-report-date" class="text-xs text-[hsl(var(--muted-foreground))] mt-2"></p>
               </div>
             </section>
+            </div>
+
+            <div class="bhw-insights-grid">
+              <section class="bhw-insight-card rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm" aria-labelledby="bhw-activity-heading">
+                <header class="bhw-insight-header">
+                  <div><h2 id="bhw-activity-heading" class="text-base font-semibold">Patient visit activity</h2><p>Recorded visits · Last 14 days</p></div>
+                  <span class="bhw-insight-tag" id="bhw-activity-total">—</span>
+                </header>
+                <div class="bhw-insight-chart"><canvas id="bhwActivityChart" role="img" aria-label="Loading daily patient visits"></canvas></div>
+                <p id="bhw-activity-status" class="bhw-insight-note" role="status">Loading patient visits…</p>
+              </section>
+              <section class="bhw-insight-card rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm" aria-labelledby="bhw-dashboard-trend-heading">
+                <header class="bhw-insight-header">
+                  <div><h2 id="bhw-dashboard-trend-heading" class="text-base font-semibold">Historical case trend</h2><p>Monthly case counts · Demonstration dataset</p></div>
+                  <div class="bhw-history-total"><strong id="bhw-dashboard-total">—</strong><span>Recorded cases · All years</span></div>
+                  <span id="bhw-dashboard-trend-period" class="bhw-insight-tag">Latest dataset year</span>
+                </header>
+                <div class="bhw-insight-chart"><canvas id="bhwDashboardTrendChart" role="img" aria-label="Loading historical monthly cases"></canvas></div>
+                <p id="bhw-dashboard-trend-status" class="bhw-insight-note" role="status">Loading historical monthly counts…</p>
+              </section>
             </div>
 
             <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm" aria-labelledby="bhw-quick-heading">
@@ -480,8 +500,8 @@
     <script src="assets/js/bhw/bhw-records.js?v=20261127-daily-workspace"></script>
     <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
     <script src="assets/js/bhw/bhw-residents.js?v=20261119-mobile-invite"></script>
-    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-daily-workspace"></script>
-    <script src="assets/js/bhw/bhw-startup.js?v=20261127-daily-workspace"></script>
+    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-activity-charts"></script>
+    <script src="assets/js/bhw/bhw-startup.js?v=20261127-activity-charts"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
