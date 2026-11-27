@@ -117,9 +117,12 @@ function page(file) {
 test('BHW profile shows patient-scoped visit history with read-only previous cases',async()=>{
     const p=page('bhw.html');p.load();
     const history=p.elements['bhw-profile-history'];
-    const nodes=Object.fromEntries(['referral-status','referral-list','referral-pages','referral-tools','profile-latest-visit','profile-referral']
+    const nodes=Object.fromEntries(['referral-status','referral-list','referral-pages','referral-tools','profile-summary','profile-latest-visit','profile-referral']
         .map(key=>[key,p.s.document.createElement('div')]));
     history.querySelector=selector=>nodes[selector.slice(6,-1)];
+    history.contains=()=>false;
+    p.elements['bhw-visit-tab'].setAttribute('aria-controls','bhw-profile-history');
+    p.elements['bhw-case-tab'].setAttribute('aria-controls','bhw-previous-cases');
     p.elements.patientProfileModal.querySelector=selector=>selector==='.bhw-profile-content'?{scrollTop:0}:null;
     vm.runInNewContext(fs.readFileSync(scriptPath('patient-referrals.js'),'utf8'),p.s);
     const visit={id:7,visit_date:'2026-11-26',concern:'Fixture concern',state:'follow_up',follow_up_due:'2026-11-27',follow_up_result:'Fixture outcome'};
@@ -128,7 +131,9 @@ test('BHW profile shows patient-scoped visit history with read-only previous cas
     await p.s.viewPatientProfile(11);
     await settle();
     assert.equal(p.elements['profile-age'].innerText,0);
-    assert.equal(p.elements['bhw-previous-cases'].open,false);
+    assert.equal(p.elements['bhw-previous-cases'].hidden,true);
+    assert.equal(nodes['profile-summary'].hidden,false);
+    assert.equal(p.elements['bhw-profile-case-count'].textContent,'1');
     assert.match(p.elements['profile-history-body'].innerHTML,/View visits/);
     assert.doesNotMatch(p.elements['profile-history-body'].innerHTML,/Record follow-up visit/);
     assert.ok(p.requests.some(({url})=>url==='/api/bhw/intakes?page=1&resident_id=11'));
@@ -140,9 +145,19 @@ test('BHW profile shows patient-scoped visit history with read-only previous cas
     p.s.response=url=>url.includes('/dossier')?{success:true,resident:{age:0,patient_name:'Empty Fixture'},history:[]}:{success:true,data:[],current_referral:null};
     await p.s.viewPatientProfile(12);
     await settle();
-    assert.equal(nodes['profile-referral'].textContent,'No referral recorded');
+    assert.equal(nodes['profile-summary'].hidden,true);
+    assert.equal(history.hidden,false);
     assert.equal(nodes['referral-list'].children.length,0);
     assert.match(nodes['referral-status'].textContent,/No visits or referrals/);
+    p.s.response=url=>url.includes('/dossier')?{success:true,resident:{age:32,patient_name:'Legacy Fixture'},history:[{id:3,disease:'Fixture condition',date_recorded:'2026-11-11'}]}:{success:true,data:[],current_referral:null};
+    await p.s.viewPatientProfile(13);
+    await settle();
+    assert.equal(history.hidden,true);
+    assert.equal(p.elements['bhw-previous-cases'].hidden,false);
+    assert.equal(p.elements['bhw-case-tab'].getAttribute('aria-selected'),'true');
+    assert.match(p.elements['profile-history-body'].innerHTML,/REC-3/);
+    p.s.selectBhwProfileTab(0);
+    assert.equal(history.hidden,false);
     assert.deepEqual(p.errors,[]);
 });
 

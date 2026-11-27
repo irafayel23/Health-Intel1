@@ -138,6 +138,8 @@
         }
         function summarize(visit, referral) {
             if (!patientHistory) return;
+            find('[data-profile-summary]').hidden = !visit;
+            if (!visit) return;
             find('[data-profile-latest-visit]').textContent=visit;
             const status=find('[data-profile-referral]');
             status.replaceChildren();
@@ -149,7 +151,7 @@
             const current=++revision;
             const query=new URLSearchParams({page:targetPage,...filters()});
             status.textContent=patientHistory?'Loading visits…':'Loading…';
-            if(targetPage===1)summarize('Loading…','Loading…');
+            if(targetPage===1)summarize();
             list.setAttribute('aria-busy','true');
             try {
                 const result=await request(base+'?'+query);
@@ -158,14 +160,15 @@
                 page=targetPage;
                 list.replaceChildren();pages.replaceChildren();
                 status.textContent=result.data.length?'':emptyMessage();
-                if(targetPage===1)summarize(result.data.length?formatDay(result.data[0].visit_date):'No visits recorded',result.current_referral || 'No referral recorded');
+                if(targetPage===1)summarize(result.data.length?formatDay(result.data[0].visit_date):null,result.current_referral || 'No referral recorded');
                 result.data.forEach(render);
                 if(page>1)action(pages,'Previous',()=>load(false,page-1));
                 if(result.has_more)action(pages,'Next',()=>load(false,page+1));
+                return result.data.length;
             }catch(error){
                 if(revision===current){
                     status.textContent=patientHistory?'Visit history could not be loaded. Use Refresh to try again.':error.message;
-                    if(targetPage===1)summarize('Unavailable','Unavailable');
+                    if(targetPage===1)summarize();
                 }
             }finally{
                 if(revision===current)list.setAttribute('aria-busy','false');
@@ -185,7 +188,7 @@
     function mountPatientHistory(root) {
         return mountQueue(root,{
             role:'bhw',patientHistory:true,filters:()=>({resident_id:root.dataset.residentId}),
-            emptyMessage:()=> 'No visits or referrals have been recorded for this patient.'
+            emptyMessage:()=> 'No visits or referrals recorded yet.'
         });
     }
     function open(role,firstPage=1) {

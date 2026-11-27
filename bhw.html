@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-patient-history" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-profile-polish" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -421,53 +421,39 @@
 
     <!-- PATIENT PROFILE MODAL -->
     <div id="patientProfileModal" role="dialog" aria-modal="true" aria-labelledby="profile-name" tabindex="-1" class="hidden fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex justify-center items-center p-4 animate-in fade-in duration-200">
-      <div class="hi-dossier bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl shadow-2xl w-full overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-        
-        <div class="p-6 border-b border-[hsl(var(--border))] flex items-center justify-between bg-[hsl(var(--muted))]">
-          <div class="flex items-center gap-5">
-            <div id="profile-initials" class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 text-white flex justify-center items-center text-2xl font-bold shadow-md border-2 border-white/20">
-              JD
-            </div>
-            <div>
-              <h2 id="profile-name" class="text-2xl font-bold text-[hsl(var(--foreground))]">Juan Dela Cruz</h2>
-              <p class="text-sm text-[hsl(var(--muted-foreground))] flex items-center gap-1.5 mt-1 font-medium">
-                <i data-lucide="map-pin" class="w-4 h-4 text-blue-500"></i> <span id="profile-purok">Purok 1</span> <span class="mx-1 text-[hsl(var(--border))]">|</span> <span id="profile-age">45</span> yrs old
-              </p>
-            </div>
+      <div class="hi-dossier bhw-profile-dialog">
+        <header class="bhw-profile-header">
+          <div id="profile-initials" class="bhw-profile-avatar" aria-hidden="true"></div>
+          <div class="bhw-profile-identity">
+            <h2 id="profile-name"></h2>
+            <p><span id="profile-purok"></span><span aria-hidden="true">·</span><span><span id="profile-age"></span><span id="profile-age-unit"> yrs old</span></span></p>
           </div>
-          <button aria-label="Close patient profile" onclick="closeProfileModal()" class="w-10 h-10 rounded-full flex items-center justify-center bg-[hsl(var(--background))] border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/10 transition-all hover:rotate-90">
-            <i data-lucide="x" class="w-5 h-5"></i>
+          <button type="button" aria-label="Close patient profile" onclick="closeProfileModal()" class="hi-vital-button bhw-profile-close">
+            <i data-lucide="x" aria-hidden="true"></i>
           </button>
+        </header>
+        <div id="bhw-profile-tabs" class="bhw-profile-tabs" role="tablist" aria-label="Patient record sections">
+          <button type="button" id="bhw-visit-tab" role="tab" aria-controls="bhw-profile-history" aria-selected="true" onclick="selectBhwProfileTab(0)">Visits and referrals</button>
+          <button type="button" id="bhw-case-tab" role="tab" aria-controls="bhw-previous-cases" aria-selected="false" tabindex="-1" onclick="selectBhwProfileTab(1)">Previous cases <span id="bhw-profile-case-count"></span></button>
         </div>
-
-        <div class="p-6 overflow-y-auto bhw-profile-content">
-          <section id="bhw-profile-history" aria-labelledby="bhw-profile-history-title">
-            <dl class="bhw-profile-summary">
-              <div><dt>Latest recorded visit</dt><dd data-profile-latest-visit>—</dd></div>
-              <div><dt>Referral status</dt><dd data-profile-referral>—</dd></div>
-            </dl>
-            <div class="hi-referral-toolbar bhw-profile-history-header">
-              <h2 id="bhw-profile-history-title">Visit and referral history</h2>
+        <div class="bhw-profile-content">
+          <section id="bhw-profile-history" role="tabpanel" aria-labelledby="bhw-visit-tab">
+            <div class="bhw-profile-history-header">
+              <dl class="bhw-profile-summary" data-profile-summary hidden>
+                <div><dt>Latest recorded visit</dt><dd data-profile-latest-visit>—</dd></div>
+                <div><dt>Referral status</dt><dd data-profile-referral>—</dd></div>
+              </dl>
+              <p data-referral-status role="status"></p>
               <div data-referral-tools></div>
             </div>
-            <p data-referral-status role="status"></p>
             <div data-referral-list class="hi-referral-list"></div>
             <div data-referral-pages class="hi-referral-pages"></div>
           </section>
-          <details id="bhw-previous-cases" class="bhw-previous-cases">
-            <summary>Previous case records</summary>
+          <section id="bhw-previous-cases" role="tabpanel" aria-labelledby="bhw-case-tab" hidden>
+            <ul id="profile-history-body" class="bhw-previous-cases"></ul>
             <div id="bhw-case-download"></div>
-            <div class="hi-table-scroll border border-[hsl(var(--border))] rounded-xl">
-              <table class="w-full text-sm text-left">
-                <thead class="bg-[hsl(var(--muted))] text-slate-600 dark:text-slate-300">
-                  <tr><th scope="col">Case</th><th scope="col">Recorded condition</th><th scope="col">Remarks</th><th scope="col">Status</th><th scope="col">History</th></tr>
-                </thead>
-                <tbody id="profile-history-body"></tbody>
-              </table>
-            </div>
-          </details>
+          </section>
         </div>
-        <div class="bhw-profile-footer"><button type="button" class="hi-vital-button" onclick="closeProfileModal()">Close</button></div>
       </div>
     </div>
 
@@ -478,13 +464,13 @@
 
     <script src="assets/js/bhw/bhw-records.js?v=20261127-daily-workspace"></script>
     <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
-    <script src="assets/js/bhw/bhw-residents.js?v=20261127-patient-history"></script>
+    <script src="assets/js/bhw/bhw-residents.js?v=20261127-profile-polish"></script>
     <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-patient-history"></script>
     <script src="assets/js/bhw/bhw-startup.js?v=20261127-activity-charts"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
-  <script src="assets/js/shared/patient-referrals.js?v=20261127-patient-history"></script>
+  <script src="assets/js/shared/patient-referrals.js?v=20261127-profile-polish"></script>
   <script src="assets/js/bhw/bhw-dialogs.js?v=20261127-referral-summary"></script>
     <script src="assets/js/shared/historical-reports.js?v=20261123-report-periods"></script>
     <script src="assets/js/shared/followup-tracking.js?v=20261126-referral-workspace"></script>

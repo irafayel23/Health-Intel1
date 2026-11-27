@@ -94,6 +94,7 @@
             const residentAge = window.HealthIntelDate?.residentAge ? HealthIntelDate.residentAge(res) : res.age;
             const ageNum = parseInt(residentAge);
             const isSenior = !isNaN(ageNum) && ageNum >= 60;
+            const caseCount = Number(res.case_count) || 0;
 
             return `
               <div class="bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-[hsl(var(--foreground))] rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col items-center text-center group">
@@ -104,8 +105,9 @@
                 ${isSenior ? '<span class="px-2 py-0.5 bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 rounded text-xs font-bold mb-2 inline-block">Senior Citizen</span>' : ''}
                 <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${escapeText(res.purok)} | ${res.is_deceased?'Historical profile':escapeText(residentAge ?? 'N/A')+' yrs'}</p>
 
-                <button onclick="viewPatientProfile('${res.id}')" class="w-full mt-auto py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors">
-                  View patient profile
+                <button type="button" onclick="viewPatientProfile('${Number(res.id)}')" class="bhw-dossier-link w-full mt-auto bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors">
+                  View Medical Dossier
+                  <small>(${caseCount} ${caseCount===1?'Record':'Records'})</small>
                 </button>
               </div>
             `;
@@ -155,6 +157,26 @@
 
       let patientProfileRequest = 0;
       let bhwPatientHistory;
+      let bhwProfileTabTouched;
+      const bhwProfileTabs = ['bhw-visit-tab','bhw-case-tab'];
+      function selectBhwProfileTab(index, userSelected = true) {
+          if (userSelected) bhwProfileTabTouched = true;
+          bhwProfileTabs.forEach((id, position) => {
+              const tab = document.getElementById(id);
+              const selected = index === position;
+              tab.setAttribute('aria-selected', String(selected));
+              tab.tabIndex = selected ? 0 : -1;
+              document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+          });
+      }
+      document.getElementById('bhw-profile-tabs')?.addEventListener('keydown', event => {
+          const current = bhwProfileTabs.indexOf(event.target.id);
+          if (current<0 || !['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+          const next = event.key==='Home' ? 0 : event.key==='End' ? 1 : 1-current;
+          event.preventDefault();
+          selectBhwProfileTab(next);
+          document.getElementById(bhwProfileTabs[next]).focus();
+      });
       async function viewPatientProfile(residentId, selectedCase = null, onClose = null, beforeOpen = null) {
           if (!Number.isSafeInteger(Number(residentId)) || Number(residentId)<=0) {
               Swal.fire('Resident link unavailable', 'This historical case has no linked resident profile. Ask the Admin to review the source record; the system will not guess the identity.', 'info');
@@ -178,27 +200,37 @@
                   document.getElementById("profile-initials").innerText = initials.toUpperCase();
                   document.getElementById("profile-name").innerText = patientName;
                   document.getElementById("profile-purok").innerText = data.purok || "Unknown";
-                  document.getElementById("profile-age").innerText = HealthIntelDate.residentAge(data) ?? 'N/A';
-                  if(data.is_deceased)document.getElementById('profile-age').innerText='Historical profile';
+                  const age = HealthIntelDate.residentAge(data);
+                  document.getElementById('profile-age').innerText = data.is_deceased ? 'Historical profile' : age ?? 'Age not recorded';
+                  document.getElementById('profile-age-unit').hidden = Boolean(data.is_deceased) || age == null;
 
                   const tbody = document.getElementById("profile-history-body");
                   tbody.innerHTML = history.length ? history.map(record => `
-                    <tr class="border-b border-[hsl(var(--border))]">
-                      <td><strong>REC-${Number(record.id)}</strong><br>${escapeText(HealthIntelDate.formatCaseDate(record.date_recorded))}</td>
-                      <td>${HealthIntelEncoding.conditionCell(record)}</td>
-                      <td>${escapeText(record.remarks || "No remarks")}</td>
-                      <td>${escapeText(record.status === "Deceased" ? "Historical outcome" : record.status)}</td>
-                      <td><button type="button" class="hi-vital-button" onclick="HealthIntelVisits.show(${Number(record.id)})" aria-label="View visits for case REC-${Number(record.id)}">View visits</button></td>
-                    </tr>`).join("") : '<tr><td colspan="5">No previous case records linked to this patient.</td></tr>';
+                    <li class="bhw-previous-case">
+                      <div class="bhw-previous-case-copy">
+                        <p class="bhw-previous-case-id">REC-${Number(record.id)} · ${escapeText(HealthIntelDate.formatCaseDate(record.date_recorded))}</p>
+                        <h3>${HealthIntelEncoding.conditionCell(record)}</h3>
+                        <p class="bhw-previous-case-meta"><span>${escapeText(record.status === "Deceased" ? "Historical outcome" : record.status || "Status not recorded")}</span>${record.remarks ? " · "+escapeText(record.remarks) : ""}</p>
+                      </div>
+                      <button type="button" class="hi-vital-button" onclick="HealthIntelVisits.show(${Number(record.id)})" aria-label="View visits for case REC-${Number(record.id)}">View visits</button>
+                    </li>`).join("") : '<li class="bhw-previous-case-empty">No previous cases are linked to this patient.</li>';
                   HealthIntelCaseDownload.mount(document.getElementById("bhw-case-download"), history, selectedCase);
-                  document.getElementById("bhw-previous-cases").open = Boolean(selectedCase);
+                  document.getElementById("bhw-profile-case-count").textContent = String(history.length);
+                  bhwProfileTabTouched = false;
+                  selectBhwProfileTab(selectedCase ? 1 : 0, false);
                   const modal = document.getElementById("patientProfileModal");
                   modal.querySelector(".bhw-profile-content").scrollTop = 0;
                   const visits = document.getElementById("bhw-profile-history");
                   visits.dataset.residentId = String(Number(residentId));
                   visits.dataset.readOnly = String(Boolean(data.is_deceased));
                   bhwPatientHistory ??= HealthIntelReferrals.mountPatientHistory(visits);
-                  bhwPatientHistory.load(true);
+                  bhwPatientHistory.load(true).then(visitCount => {
+                      if (visitCount !== 0 || !history.length || selectedCase || bhwProfileTabTouched ||
+                          request !== patientProfileRequest || modal.classList.contains('hidden')) return;
+                      const focusInHistory = visits.contains(document.activeElement);
+                      selectBhwProfileTab(1, false);
+                      if (focusInHistory || document.activeElement?.id === 'bhw-visit-tab') document.getElementById('bhw-case-tab').focus();
+                  });
                   modal.classList.toggle('bhw-case-profile-transition', Boolean(beforeOpen));
                   if (onClose) {
                     const observer = new MutationObserver(() => {
