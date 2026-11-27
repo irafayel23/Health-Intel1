@@ -77,10 +77,9 @@ async function loadTrendChart(view = 'reports') {
     }
 }
 
-let bhwActivityChart;
 let bhwActivityRequest=0;
 async function loadBhwVisitActivity() {
-    const canvas=document.getElementById('bhwActivityChart');
+    const grid=document.getElementById('bhwActivityChart');
     const status=document.getElementById('bhw-activity-status');
     const request=++bhwActivityRequest;
     try {
@@ -96,25 +95,25 @@ async function loadBhwVisitActivity() {
         const today=values.at(-1);
         setBhwDashboardText('bhw-activity-total',total+' '+(total===1?'visit':'visits'));
         status.textContent=total?today+' '+(today===1?'visit':'visits')+' today.':'No patient visits recorded in the last 14 days.';
-        canvas.setAttribute('aria-label','Patient visits by day: '+labels.map((label,i)=>label+', '+values[i]).join('; ')+'.');
-        if(bhwActivityChart){
-            bhwActivityChart.data.labels=labels;
-            bhwActivityChart.data.datasets[0].data=values;
-            bhwActivityChart.update();
-            return;
-        }
-        bhwActivityChart=new Chart(canvas.getContext('2d'),{
-            type:'bar',
-            data:{labels,datasets:[{label:'Recorded patient visits',data:values,backgroundColor:bhwChartColor,borderRadius:5,maxBarThickness:26}]},
-            options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-                scales:{y:{beginAtZero:true,suggestedMax:1,ticks:{precision:0}},x:{grid:{display:false},ticks:{maxRotation:0,autoSkip:true,maxTicksLimit:7}}}}
-        });
+        grid.replaceChildren(...days.map((day,index)=>{
+            const tile=document.createElement('li');
+            tile.className='bhw-activity-day';
+            const isToday=index===days.length-1;
+            tile.dataset.hasVisits=String(day.visits>0);
+            if(isToday)tile.setAttribute('aria-current','date');
+            const date=document.createElement('time');
+            date.dateTime=day.date;
+            date.textContent=isToday?'Today':labels[index];
+            const count=document.createElement('strong');
+            count.textContent=String(day.visits);
+            count.setAttribute('aria-label',day.visits+' '+(day.visits===1?'visit':'visits'));
+            tile.append(date,count);
+            return tile;
+        }));
     } catch {
         if(request!==bhwActivityRequest)return;
-        bhwActivityChart?.destroy();
-        bhwActivityChart=undefined;
+        grid.replaceChildren();
         setBhwDashboardText('bhw-activity-total','—');
-        canvas.setAttribute('aria-label','Patient visit counts unavailable.');
         status.textContent='Visit counts could not be loaded. Reopen the dashboard to try again.';
     }
 }

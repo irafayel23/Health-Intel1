@@ -192,7 +192,12 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.equal(p.elements['bhw-dashboard-trend-period'].innerText,'Jan 2026');
     assert.equal(p.elements['bhw-activity-total'].innerText,'1 visit');
     assert.match(p.elements['bhw-activity-status'].textContent,/1 visit today/);
-    assert.match(p.elements['bhwActivityChart'].getAttribute('aria-label'),/Nov 27, 1/);
+    const activity=p.elements['bhwActivityChart'].children;
+    assert.equal(activity.length,14);
+    assert.equal(activity[0].children[1].textContent,'0');
+    assert.equal(activity.at(-1).getAttribute('aria-current'),'date');
+    assert.equal(activity.at(-1).children[0].dateTime,'2026-11-27');
+    assert.equal(activity.at(-1).children[1].textContent,'1');
     assert.equal(p.elements['bd-active'],undefined);
     assert.ok(p.elements['bhw-dashboard-report-status']);
     assert.equal(p.elements['stat-active'],undefined);

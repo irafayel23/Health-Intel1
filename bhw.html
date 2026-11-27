@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-picker-controls" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-visit-calendar" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -178,7 +178,7 @@
                   <div><h2 id="bhw-activity-heading" class="text-base font-semibold">Patient visit activity</h2><p>Recorded visits · Last 14 days</p></div>
                   <span class="bhw-insight-tag" id="bhw-activity-total">—</span>
                 </header>
-                <div class="bhw-insight-chart"><canvas id="bhwActivityChart" role="img" aria-label="Loading daily patient visits"></canvas></div>
+                <ol id="bhwActivityChart" class="bhw-activity-days" role="list" aria-label="Daily patient visit counts"></ol>
                 <p id="bhw-activity-status" class="bhw-insight-note" role="status">Loading patient visits…</p>
               </section>
               <section class="bhw-insight-card rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm" aria-labelledby="bhw-dashboard-trend-heading">
@@ -474,7 +474,7 @@
     <script src="assets/js/bhw/bhw-records.js?v=20261127-visit-workspace"></script>
     <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
     <script src="assets/js/bhw/bhw-residents.js?v=20261127-record-labels"></script>
-    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-patient-history"></script>
+    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-visit-calendar"></script>
     <script src="assets/js/bhw/bhw-startup.js?v=20261127-visit-rows"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
