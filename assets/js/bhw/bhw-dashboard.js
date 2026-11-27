@@ -17,7 +17,7 @@ function setBhwDashboardText(id, value) {
 }
 
 async function loadDashboardStats() {
-    const ids = ['stat-active', 'stat-cleared', 'stat-high-risk', 'bd-active', 'bd-cleared', 'bd-mild', 'bd-monitored', 'bd-high', 'bd-unknown'];
+    const ids = ['stat-cleared', 'stat-high-risk', 'bd-active', 'bd-cleared', 'bd-mild', 'bd-monitored', 'bd-high', 'bd-unknown'];
     try {
         const url = window.currentBrgyId ? `http://localhost:3000/api/bhw-stats?barangay_id=${window.currentBrgyId}` : 'http://localhost:3000/api/bhw-stats';
         const res = await fetch(url);
@@ -25,7 +25,7 @@ async function loadDashboardStats() {
         if (!res.ok || !data.success) throw new Error('Recorded totals unavailable');
         const values = ['total', 'active', 'cleared', 'mild', 'monitored', 'high_risk'].map(key => data[key]);
         if (values.some(value => value === null || value === '' || !Number.isSafeInteger(Number(value)) || Number(value) < 0)) throw new Error('Invalid recorded totals');
-        for (const [id, key] of [['stat-active','active'], ['stat-cleared','cleared'], ['stat-high-risk','high_risk'], ['bd-active','active'], ['bd-cleared','cleared'], ['bd-mild','mild'], ['bd-monitored','monitored'], ['bd-high','high_risk']]) setBhwDashboardText(id, Number(data[key]).toLocaleString());
+        for (const [id, key] of [['stat-cleared','cleared'], ['stat-high-risk','high_risk'], ['bd-active','active'], ['bd-cleared','cleared'], ['bd-mild','mild'], ['bd-monitored','monitored'], ['bd-high','high_risk']]) setBhwDashboardText(id, Number(data[key]).toLocaleString());
         const active = Number(data.active), mild = Number(data.mild), monitored = Number(data.monitored), high = Number(data.high_risk);
         const unknown = active - mild - monitored - high;
         const bar = document.getElementById('bhw-severity-bar');

@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-referral-card" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-referral-summary" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -151,14 +151,15 @@
               <div id="stat-total" class="text-3xl font-bold tracking-tight tabular-nums text-slate-950 dark:text-slate-50 mt-2">—</div>
               <p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Historical dataset · All years</p>
             </section>
-            <section aria-label="Active cases and referrals" class="bhw-active-card rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 p-4 shadow-sm min-w-0">
-              <button type="button" onclick="openFilteredPatientRecords('Active','')" class="bhw-active-case-link w-full rounded-lg text-left">
-                <span class="block text-sm font-medium text-teal-900 dark:text-teal-100">Active cases</span>
-                <span id="stat-active" class="block text-3xl font-bold tracking-tight tabular-nums text-slate-950 dark:text-slate-50 mt-2">—</span>
-                <span class="block text-xs text-teal-900 dark:text-teal-200 mt-1">View active records</span>
-              </button>
-              <button type="button" class="hi-referral-trigger bhw-active-referral-link" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog">
-                <i data-lucide="clipboard-list" class="w-4 h-4" aria-hidden="true"></i><span>Visits and referrals</span>
+            <section aria-labelledby="bhw-referral-summary-title" class="bhw-referral-summary rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950 p-4 shadow-sm min-w-0">
+              <h2 id="bhw-referral-summary-title" class="text-sm font-semibold text-teal-900 dark:text-teal-100">Visits and referrals</h2>
+              <dl class="bhw-referral-counts" aria-live="polite">
+                <div><dt>Open referrals</dt><dd id="bhw-open-referrals">—</dd></div>
+                <div><dt>Assigned follow-ups</dt><dd id="bhw-assigned-followups">—</dd></div>
+              </dl>
+              <p id="bhw-referral-summary-status" class="hi-field-help" role="status" hidden>Counts unavailable.</p>
+              <button type="button" class="hi-referral-trigger bhw-referral-summary-link" onclick="HealthIntelReferrals.open('bhw')" aria-haspopup="dialog">
+                <i data-lucide="clipboard-list" class="w-4 h-4" aria-hidden="true"></i><span>View visits and referrals</span>
               </button>
             </section>
             <section role="button" tabindex="0" onclick="openFilteredPatientRecords('Cleared','')" onkeydown="if(event.key==='Enter' || event.key===' '){event.preventDefault();this.click()}" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-sm min-w-0">
@@ -500,13 +501,13 @@
     <script src="assets/js/bhw/bhw-records.js?v=20261126-intakes"></script>
     <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
     <script src="assets/js/bhw/bhw-residents.js?v=20261119-mobile-invite"></script>
-    <script src="assets/js/bhw/bhw-dashboard.js?v=20261115-no-heatmap"></script>
+    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-referral-summary"></script>
     <script src="assets/js/bhw/bhw-startup.js?v=20261125-polish"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
-  <script src="assets/js/shared/patient-referrals.js?v=20261126-referral-workspace"></script>
-  <script src="assets/js/bhw/bhw-dialogs.js?v=20261126-patient-fields"></script>
+  <script src="assets/js/shared/patient-referrals.js?v=20261127-referral-summary"></script>
+  <script src="assets/js/bhw/bhw-dialogs.js?v=20261127-referral-summary"></script>
     <script src="assets/js/shared/historical-reports.js?v=20261123-report-periods"></script>
     <script src="assets/js/shared/followup-tracking.js?v=20261126-referral-workspace"></script>
     <script src="assets/js/shared/portal-navigation.js?v=20261120-loading"></script>

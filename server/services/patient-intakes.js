@@ -5,6 +5,8 @@ const { transaction } = require('./database-transaction');
 const { invalid, plain } = require('./service-errors');
 
 async function migratePatientIntakes(db) {
+    const [tables]=await db.query("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='patient_intakes'");
+    if(tables.length)return;
     await db.query(`CREATE TABLE IF NOT EXISTS patient_intakes (
         id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         request_key CHAR(36) NOT NULL,
@@ -113,6 +115,15 @@ async function referralSummary(db) {
     return Object.fromEntries(Object.entries(row).map(([key,value])=>[key,Number(value)]));
 }
 
+async function bhwReferralSummary(db, user) {
+    const barangay=positiveId(user.barangay_id,'assigned barangay');
+    const [[row]]=await db.execute(`SELECT
+        COALESCE(SUM(i.state IN ('requested','sent','acknowledged','arrived')),0) AS open_referrals,
+        COALESCE(SUM(i.state='follow_up'),0) AS assigned_followups
+        FROM patient_intakes i WHERE i.barangay_id=?`,[barangay]);
+    return {open_referrals:Number(row.open_referrals),assigned_followups:Number(row.assigned_followups)};
+}
+
 async function listIntakes(db,user,page,{view,barangay}={}) {
     const bhw = user.role === 'bhw';
     const conditions = [bhw ? 'i.barangay_id=?' : "i.state<>'saved'"];
@@ -205,4 +216,4 @@ async function linkReferralAssessment(connection,id,caseId,systemId) {
     await audit(connection,{role:'mho',system_id:systemId},id,'Referral Assessment Recorded');
 }
 
-module.exports = { migratePatientIntakes,saveIntake,listIntakes,changeIntake,lockReferralAssessment,linkReferralAssessment,referralSummary };
+module.exports = { migratePatientIntakes,saveIntake,listIntakes,changeIntake,lockReferralAssessment,linkReferralAssessment,referralSummary,bhwReferralSummary };

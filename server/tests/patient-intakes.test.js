@@ -67,6 +67,9 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
             },body:body?JSON.stringify(body):undefined});
             return {status:response.status,...await response.json()};
         }
+        const summary=async(role='bhw')=>(await request(role,'/bhw/intakes/summary')).counts;
+        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:0});
+        assert.equal((await request('mho','/bhw/intakes/summary')).status,403);
         const date=todayInManila();
         const patient={patient_mode:'new',first_name:'Synthetic Intake',last_name:'Test Profile',birthdate:'1990-06-11',purok:'Purok 1'};
         const input={...patient,request_key:randomUUID(),visit_date:date,concern:'Synthetic visit',request_referral:true,referral_reason:'Assessment requested'};
@@ -76,6 +79,8 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
         const saved=await request('bhw','/bhw/intakes','POST',input);
         assert.equal(saved.status,201,saved.error);
         assert.equal(saved.state,'requested');
+        assert.deepEqual(await summary(),{open_referrals:1,assigned_followups:0});
+        assert.deepEqual(await summary('other-bhw'),{open_referrals:0,assigned_followups:0});
         assert.equal((await request('bhw','/bhw/intakes','POST',input)).id,saved.id);
         assert.equal(await count(),before);
         assert.equal((await request('bhw','/mho/referrals')).status,403);
@@ -121,10 +126,12 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
         assert.deepEqual((await request('mho','/mho/referrals?view=followups')).data,[]);
         const follow=await request('mho','/mho/referrals/'+saved.id,'PUT',{action:'follow_up',note:'Synthetic follow-up',due_date:date});
         assert.equal(follow.status,200,follow.error);
+        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:1});
         assert.deepEqual((await request('mho','/mho/referrals?view=incoming')).data,[]);
         assert.equal((await request('mho','/mho/referrals?view=followups')).data[0].id,saved.id);
         const close=await request('bhw','/bhw/intakes/'+saved.id,'PUT',{action:'follow_up_done',note:'Synthetic follow-up complete'});
         assert.equal(close.status,200,close.error);
+        assert.deepEqual(await summary(),{open_referrals:0,assigned_followups:0});
         const completed=(await request('bhw','/bhw/intakes')).data.find(row=>row.id===saved.id);
         assert.equal(completed.state,'closed');
         assert.equal(completed.case_id,assessed.id);

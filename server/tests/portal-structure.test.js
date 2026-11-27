@@ -144,7 +144,10 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.match(p.elements['dynamic-portal-title'].innerText,/Blumentritt/);
     for(const endpoint of ['bhw/context','bhw-stats','bhw/dataset-analytics'])assert.ok(p.requests.some(r=>r.url.includes('/api/'+endpoint)),endpoint);
     assert.equal(p.elements['stat-total'].innerText,'40');
-    assert.equal(p.elements['stat-active'].innerText,'0');
+    assert.equal(p.elements['bd-active'].innerText,'0');
+    assert.equal(p.elements['stat-active'],undefined);
+    assert.ok(p.elements['bhw-open-referrals']);
+    assert.ok(p.elements['bhw-assigned-followups']);
     assert.equal(p.elements['bhw-trend-period'].innerText,'Jan–Jan 2026');
     assert.match(p.elements['bhw-trend-status'].innerText,/Blumentritt/);
     assert.equal(p.requests.filter(r=>r.url.endsWith('/api/bhw/dataset-analytics')).length,1);

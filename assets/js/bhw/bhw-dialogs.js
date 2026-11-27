@@ -122,6 +122,7 @@
             if(returnVisit&&!returnVisit.fromTracking)viewPatientProfile(returnVisit.person.id);
             return;
           }
+          window.dispatchEvent(new Event('health-intel:referrals-changed'));
           Swal.fire({icon:'success',titleText:result.state==='requested'?'Referral requested':'Visit saved',
             text:'Reference #INT-'+result.id,confirmButtonColor:'#047857',customClass:{popup:'hi-dialog'}});
         });

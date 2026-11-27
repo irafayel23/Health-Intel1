@@ -256,6 +256,35 @@
         window.addEventListener('focus',refreshSummary);
         refreshSummary();
     }
-    document.addEventListener('DOMContentLoaded',initializeMunicipalReferrals);
+    function initializeBhwReferralSummary() {
+        const open=document.getElementById('bhw-open-referrals');
+        if(!open)return;
+        const followups=document.getElementById('bhw-assigned-followups');
+        const status=document.getElementById('bhw-referral-summary-status');
+        let version=0;
+        async function refresh() {
+            const current=++version;
+            try {
+                const {counts}=await request('/api/bhw/intakes/summary');
+                if(current!==version)return;
+                const values=[counts?.open_referrals,counts?.assigned_followups];
+                if(values.some(value=>!Number.isSafeInteger(value)||value<0))throw Error('Referral counts unavailable.');
+                [open.textContent,followups.textContent]=values.map(value=>value.toLocaleString('en-PH'));
+                status.hidden=true;
+            } catch {
+                if(current!==version)return;
+                open.textContent=followups.textContent='—';
+                status.hidden=false;
+            }
+        }
+        document.querySelector('[data-target="view-dashboard"]')?.addEventListener('click',refresh);
+        window.addEventListener('health-intel:referrals-changed',refresh);
+        window.addEventListener('focus',refresh);
+        refresh();
+    }
+    document.addEventListener('DOMContentLoaded',()=>{
+        initializeBhwReferralSummary();
+        initializeMunicipalReferrals();
+    });
     window.HealthIntelReferrals={request,open};
 })();

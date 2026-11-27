@@ -746,16 +746,12 @@ body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-
   body.hi-portal .bhw-page-scroll::-webkit-scrollbar { display: initial; }
 }
 
-/* Dashboard actions have independent focus and click targets. */
-.bhw-active-card { display: flex; flex-direction: column; gap: .75rem; }
-.bhw-active-case-link:hover { background: rgb(13 148 136 / .08); }
-.bhw-active-card button:focus-visible { outline: 2px solid #0d9488; outline-offset: 3px; }
-.bhw-active-card .bhw-active-referral-link {
-  align-self: flex-start;
-  max-width: 100%;
-  padding-inline: .6rem;
-  text-align: left;
-  margin-top: auto;
-}
-.bhw-active-referral-link svg { flex: none; }
+.bhw-referral-summary { display: flex; flex-direction: column; gap: .75rem; }
+.bhw-referral-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 6.5rem), 1fr)); gap: .5rem; }
+.bhw-referral-counts > div { display: flex; flex-direction: column; gap: .15rem; }
+.bhw-referral-counts dt { font-size: .75rem; }
+.bhw-referral-counts dd { order: -1; margin: 0; font-size: 1.5rem; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bhw-referral-summary .bhw-referral-summary-link { align-self: flex-start; max-width: 100%; margin-top: auto; padding-inline: .6rem; text-align: left; }
+.bhw-referral-summary-link svg { flex: none; }
+.bhw-referral-summary-link:focus-visible { outline: 2px solid #0d9488; outline-offset: 3px; }
 .bhw-followup-summary-status:empty { display: none; }
