@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-visit-dialog" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-picker-controls" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -33,8 +33,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="assets/js/shared/chart-theme.js"></script>
       <link rel="stylesheet" href="assets/css/shared/encoding-controls.css?v=20261112-purok-menu">
-    <link rel="stylesheet" href="assets/css/shared/patient-picker.css?v=20261113-resident-review">
-    <script src="assets/js/shared/patient-picker.js?v=20261126-intakes"></script>
+    <link rel="stylesheet" href="assets/css/shared/patient-picker.css?v=20261127-picker-controls">
+    <script src="assets/js/shared/patient-picker.js?v=20261127-picker-controls"></script>
     <script src="assets/js/shared/encoding-controls.js?v=20261115-purok-options"></script>
     <link rel="stylesheet" href="assets/css/shared/resident-vital.css">
     <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261120-loading">
@@ -213,7 +213,7 @@
             <h1 id="bhw-visit-page-title" class="text-3xl font-bold tracking-tight">Visits and Referrals</h1>
             <p>Record patient visits and track referrals from your barangay.</p>
             <div class="hi-wrap-actions bhw-visit-page-actions">
-              <button type="button" onclick="openAddPatientModal()" class="hi-vital-button bhw-record-visit"><i data-lucide="plus" class="w-4 h-4" aria-hidden="true"></i>Record visit</button>
+              <button type="button" onclick="openAddPatientModal()" class="hi-vital-button bhw-record-visit"><span class="bhw-record-visit-icon" aria-hidden="true"><i data-lucide="plus" class="w-4 h-4"></i></span>Record visit</button>
             </div>
           </header>
           <section id="bhw-visit-history" class="bhw-visit-history" aria-labelledby="bhw-visit-history-title">

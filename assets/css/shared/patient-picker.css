@@ -4,3 +4,9 @@
 @media(max-width:640px){.walkin-progress li .hi-picker-stage-label{font-size:0}.walkin-progress li .hi-picker-stage-label::after{content:attr(data-short);font-size:12px}.walkin-progress ol{gap:8px}.walkin-progress li{min-width:0;gap:7px}}
 
 .hi-picker-review{margin-top:16px;padding:16px;border:1px solid #bfcee2;border-radius:12px;background:#eff6ff}.hi-picker-review h3{font-size:16px;font-weight:700}.hi-picker-review p{margin:6px 0 10px;line-height:1.5}.hi-picker-review .hi-picker-change{margin-top:10px}.dark .hi-picker-review{background:#172f51;border-color:#4a6079}
+
+.hi-picker-arrow { display: grid; place-items: center; flex: 0 0 1.875rem; height: 1.875rem; border-radius: .5rem; background: #eaf1ff; }
+.hi-picker-arrow::before { content: ""; width: .5rem; height: .5rem; border: solid currentColor; border-width: 0 2px 2px 0; transform: translateX(-1px) rotate(-45deg); }
+.hi-picker-result:is(:hover,:focus-visible) .hi-picker-arrow { background: #dbe8ff; }
+.dark .hi-picker-arrow { background: #243955; }
+.dark .hi-picker-result:is(:hover,:focus-visible) .hi-picker-arrow { background: #304c72; }

@@ -850,7 +850,10 @@ body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-
 .bhw-visit-page-header { margin-bottom: 1.25rem; }
 .bhw-visit-page-header p { margin-top: .375rem; color: hsl(var(--muted-foreground)); }
 .bhw-visit-page-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
-.bhw-visit-page-actions .bhw-record-visit { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-color: #1d4ed8; background: #1d4ed8; color: white; }
+.bhw-visit-page-actions .bhw-record-visit { display: inline-flex; align-items: center; justify-content: center; gap: .625rem; min-height: 44px; padding: .5rem .875rem; border-color: #1d4ed8; background: #1d4ed8; color: white; box-shadow: 0 1px 2px #0f172a22; }
+.bhw-record-visit-icon { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: .375rem; background: #ffffff26; }
+.bhw-visit-page-actions .bhw-record-visit:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.dark .bhw-visit-page-actions .bhw-record-visit:focus-visible { outline-color: #93c5fd; }
 .bhw-visit-page-actions .bhw-record-visit:hover { background: #1e40af; border-color: #1e40af; color: white; }
 .bhw-visit-history, .bhw-recorded-cases {
   padding: clamp(.875rem, 2vw, 1.375rem);
