@@ -22,7 +22,7 @@
 
     
     <!-- Separated CSS -->
-    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-activity-charts" />
+    <link rel="stylesheet" href="assets/css/bhw/bhw.css?v=20261127-patient-history" />
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261126-referral-workspace" />
 
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261116-fixed-heat">
@@ -190,7 +190,7 @@
               </section>
               <section class="bhw-insight-card rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm" aria-labelledby="bhw-dashboard-trend-heading">
                 <header class="bhw-insight-header">
-                  <div><h2 id="bhw-dashboard-trend-heading" class="text-base font-semibold">Historical case trend</h2><p>Monthly case counts · Demonstration dataset</p></div>
+                  <div><h2 id="bhw-dashboard-trend-heading" class="text-base font-semibold">Historical case trend</h2><p>Monthly case counts · Includes synthetic data</p></div>
                   <div class="bhw-history-total"><strong id="bhw-dashboard-total">—</strong><span>Recorded cases · All years</span></div>
                   <span id="bhw-dashboard-trend-period" class="bhw-insight-tag">Latest dataset year</span>
                 </header>
@@ -273,7 +273,7 @@
         <div id="view-resident-profiles" class="view-section hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div class="mb-8">
             <h1 class="text-3xl font-bold tracking-tight text-[hsl(var(--foreground))]">Master Resident Directory</h1>
-            <p class="text-[hsl(var(--muted-foreground))] mt-1">Complete medical dossiers and historical records for all registered residents.</p>
+            <p class="text-[hsl(var(--muted-foreground))] mt-1">Find residents in your barangay and review their visits and referrals.</p>
           </div>
           
           <div class="relative w-full max-w-md mb-8 group">
@@ -407,7 +407,7 @@
           </div>
             <section class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-sm mt-6 min-w-0" aria-labelledby="bhw-trend-heading">
               <div class="bhw-history-heading">
-                <div><h2 id="bhw-trend-heading" class="text-base font-semibold text-slate-950 dark:text-slate-50">Historical case trend</h2><p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Monthly case counts in the demonstration dataset</p></div>
+                <div><h2 id="bhw-trend-heading" class="text-base font-semibold text-slate-950 dark:text-slate-50">Historical case trend</h2><p class="text-xs text-slate-700 dark:text-slate-300 mt-1">Monthly case counts · Includes synthetic data</p></div>
                 <div class="bhw-history-total"><strong id="stat-total">—</strong><span>Historical cases · All years</span></div>
                 <span id="bhw-trend-period" class="rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 shrink-0">Latest dataset year</span>
               </div>
@@ -435,60 +435,39 @@
               </p>
             </div>
           </div>
-          <button aria-label="Close medical dossier" onclick="closeProfileModal()" class="w-10 h-10 rounded-full flex items-center justify-center bg-[hsl(var(--background))] border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/10 transition-all hover:rotate-90">
+          <button aria-label="Close patient profile" onclick="closeProfileModal()" class="w-10 h-10 rounded-full flex items-center justify-center bg-[hsl(var(--background))] border border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/10 transition-all hover:rotate-90">
             <i data-lucide="x" class="w-5 h-5"></i>
           </button>
         </div>
 
-                  <div class="p-6 overflow-y-auto">
-            <!-- DOSSIER STATS -->
-            <div id="bhw-case-download"></div>
-            <p class="hi-dossier-intro">Resident record · Disease cases and their consultation history</p>
-            <div class="hi-dossier-stats">
-              <div class="bg-[hsl(var(--muted))] p-4 rounded-xl border border-[hsl(var(--border))]">
-                <p class="text-xs font-semibold text-[hsl(var(--muted-foreground))] uppercase tracking-wider mb-1">Total Cases</p>
-                <h3 id="dossier-total" class="text-2xl font-black text-[hsl(var(--foreground))]">0</h3>
-              </div>
-              <div class="bg-orange-500/10 p-4 rounded-xl border border-orange-500/20">
-                <p class="text-xs font-semibold text-orange-800 dark:text-orange-400 uppercase tracking-wider mb-1">Active Cases</p>
-                <h3 id="dossier-active" class="text-2xl font-black text-orange-800 dark:text-orange-400">0</h3>
-              </div>
-              <div class="bg-red-500/10 p-4 rounded-xl border border-red-500/20">
-                <p class="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wider mb-1">High Risk</p>
-                <h3 id="dossier-risk" class="text-2xl font-black text-red-700 dark:text-red-400">0</h3>
-              </div>
-              <div class="hi-dossier-visit-stat">
-                <p>Consultations</p><h3 id="dossier-visits">0</h3>
-              </div>
+        <div class="p-6 overflow-y-auto bhw-profile-content">
+          <section id="bhw-profile-history" aria-labelledby="bhw-profile-history-title">
+            <dl class="bhw-profile-summary">
+              <div><dt>Latest recorded visit</dt><dd data-profile-latest-visit>—</dd></div>
+              <div><dt>Referral status</dt><dd data-profile-referral>—</dd></div>
+            </dl>
+            <div class="hi-referral-toolbar bhw-profile-history-header">
+              <h2 id="bhw-profile-history-title">Visit and referral history</h2>
+              <div data-referral-tools></div>
             </div>
-            <p class="hi-dossier-explanation">Case totals count disease records. Admissions and follow-ups add consultations to the original case. High Risk reflects recorded case severity.</p>
-
-            <h2 class="font-bold text-[hsl(var(--foreground))] mb-4 text-lg flex items-center gap-2">
-              <i data-lucide="activity" class="w-5 h-5 text-blue-500"></i> Disease case history
-            </h2>
-            <div class="hi-table-scroll border border-[hsl(var(--border))] rounded-xl overflow-hidden shadow-sm">
-            <table class="w-full text-sm text-left">
-              <thead class="bg-[hsl(var(--muted))] text-slate-600 dark:text-slate-300">
-                <tr>
-                  <th class="px-5 py-3 font-semibold">System ID</th>
-                  <th class="px-5 py-3 font-semibold">Reported condition</th>
-                  <th class="px-5 py-3 font-semibold">Remarks</th>
-                  <th class="px-5 py-3 font-semibold">Status</th>
-                  <th class="px-5 py-3 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="profile-history-body" class="divide-y divide-[hsl(var(--border))] text-[hsl(var(--foreground))]">
-                <!-- JS Injected -->
-              </tbody>
-            </table>
-          </div>
-          <section class="hi-consultation-history" aria-labelledby="dossier-consultations-title">
-            <div class="hi-history-heading"><h2 id="dossier-consultations-title">Consultation history</h2><span id="dossier-visit-summary"></span></div>
-            <p class="hi-dossier-explanation">Each visit shows its date, nature, measurements and notes. This includes new consultations, admissions and follow-ups.</p>
-            <div id="profile-visits-list" class="hi-visit-list"></div>
+            <p data-referral-status role="status"></p>
+            <div data-referral-list class="hi-referral-list"></div>
+            <div data-referral-pages class="hi-referral-pages"></div>
           </section>
+          <details id="bhw-previous-cases" class="bhw-previous-cases">
+            <summary>Previous case records</summary>
+            <div id="bhw-case-download"></div>
+            <div class="hi-table-scroll border border-[hsl(var(--border))] rounded-xl">
+              <table class="w-full text-sm text-left">
+                <thead class="bg-[hsl(var(--muted))] text-slate-600 dark:text-slate-300">
+                  <tr><th scope="col">Case</th><th scope="col">Recorded condition</th><th scope="col">Remarks</th><th scope="col">Status</th><th scope="col">History</th></tr>
+                </thead>
+                <tbody id="profile-history-body"></tbody>
+              </table>
+            </div>
+          </details>
         </div>
-        <div class="bhw-profile-footer"><div id="bhw-selected-case-actions" class="bhw-case-actions" role="group"></div><button type="button" class="hi-vital-button" onclick="closeProfileModal()">Close</button></div>
+        <div class="bhw-profile-footer"><button type="button" class="hi-vital-button" onclick="closeProfileModal()">Close</button></div>
       </div>
     </div>
 
@@ -499,13 +478,13 @@
 
     <script src="assets/js/bhw/bhw-records.js?v=20261127-daily-workspace"></script>
     <script src="assets/js/shared/patient-case-download.js?v=20261120-placeholder"></script>
-    <script src="assets/js/bhw/bhw-residents.js?v=20261119-mobile-invite"></script>
-    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-activity-charts"></script>
+    <script src="assets/js/bhw/bhw-residents.js?v=20261127-patient-history"></script>
+    <script src="assets/js/bhw/bhw-dashboard.js?v=20261127-patient-history"></script>
     <script src="assets/js/bhw/bhw-startup.js?v=20261127-activity-charts"></script>
   <script src="assets/js/shared/pdf-export.js"></script>
   <script src="assets/js/shared/patient-visits.js?v=20261115-retire-outcome"></script>
   <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
-  <script src="assets/js/shared/patient-referrals.js?v=20261127-referral-summary"></script>
+  <script src="assets/js/shared/patient-referrals.js?v=20261127-patient-history"></script>
   <script src="assets/js/bhw/bhw-dialogs.js?v=20261127-referral-summary"></script>
     <script src="assets/js/shared/historical-reports.js?v=20261123-report-periods"></script>
     <script src="assets/js/shared/followup-tracking.js?v=20261126-referral-workspace"></script>

@@ -790,3 +790,22 @@ body :is(.bhw-dashboard-popup, .bhw-dashboard-popup .swal2-html-container, .bhw-
 .bhw-insight-chart { position: relative; height: clamp(205px, 22vw, 270px); }
 .bhw-insight-tag { padding: .35rem .6rem; border-radius: .5rem; background: hsl(var(--muted)); color: hsl(var(--foreground)); font-size: .75rem; font-weight: 600; }
 .bhw-insight-note { margin-top: .75rem; min-height: 1.25rem; }
+
+/* The patient profile prioritizes recorded visits and referral tasks. */
+#patientProfileModal [aria-label="Close patient profile"] { flex-shrink: 0; }
+.bhw-profile-content { display: grid; align-content: start; gap: 1rem; min-height: 0; }
+.bhw-profile-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 0 0 1rem; }
+.bhw-profile-summary > div { background: hsl(var(--muted)); border-radius: .75rem; padding: .75rem 1rem; }
+.bhw-profile-summary dt { color: hsl(var(--muted-foreground)); font-size: .8125rem; }
+.bhw-profile-summary dd { margin: .25rem 0 0; font-weight: 650; }
+.bhw-profile-history-header { margin-bottom: .625rem; }
+.bhw-profile-history-header h2 { font-size: 1rem; font-weight: 700; }
+.bhw-profile-content [data-referral-status]:not(:empty) { color: hsl(var(--muted-foreground)); font-size: .875rem; margin: .625rem 0; }
+.bhw-profile-content .hi-referral-card { overflow-wrap: anywhere; }
+.bhw-previous-cases { border: 1px solid hsl(var(--border)); border-radius: .75rem; padding: .75rem; }
+.bhw-previous-cases summary { cursor: pointer; font-weight: 650; }
+.bhw-previous-cases[open] summary { margin-bottom: .75rem; }
+.bhw-previous-cases th, .bhw-previous-cases td { padding: .625rem .75rem; vertical-align: top; }
+.bhw-previous-cases .hi-vital-button { white-space: nowrap; }
+
+@media (max-width: 480px) { .bhw-profile-summary { grid-template-columns: 1fr; } }

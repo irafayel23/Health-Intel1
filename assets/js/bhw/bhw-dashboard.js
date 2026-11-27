@@ -65,11 +65,13 @@ async function loadTrendChart(view = 'reports') {
             }
         });
         bhwTrendCharts.set(view,chart);
-        setBhwDashboardText(panel.status, [data.source_label, data.filters.barangay, 'Through ' + data.months.at(-1).label].join(' · '));
+        setBhwDashboardText(panel.status, '');
+        document.getElementById(panel.status).hidden = true;
     } catch (error) {
         setBhwDashboardText(panel.total, '—');
         setBhwDashboardText(panel.period, 'Unavailable');
         document.getElementById(panel.chart)?.setAttribute('aria-label', 'Historical monthly cases unavailable.');
+        document.getElementById(panel.status).hidden = false;
         setBhwDashboardText(panel.status, 'The monthly trend could not be loaded. Refresh the page to try again.');
         console.error('Error loading trend chart:', error);
     }

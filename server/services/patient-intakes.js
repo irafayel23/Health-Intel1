@@ -141,10 +141,15 @@ async function bhwVisitActivity(db,user) {
     });
 }
 
-async function listIntakes(db,user,page,{view,barangay}={}) {
+async function listIntakes(db,user,page,{view,barangay,resident}={}) {
     const bhw = user.role === 'bhw';
     const conditions = [bhw ? 'i.barangay_id=?' : "i.state<>'saved'"];
     const params = bhw ? [positiveId(user.barangay_id,'assigned barangay')] : [];
+    const patientHistory = bhw && resident !== undefined;
+    if (patientHistory) {
+        conditions.push('i.resident_id=?');
+        params.push(positiveId(resident,'resident'));
+    }
     if(!bhw && view!==undefined) {
         if(typeof view!=='string'||!Object.hasOwn(referralViews,view))throw invalid('Choose a valid referral list.');
         conditions.push(referralViews[view]);
@@ -159,7 +164,8 @@ async function listIntakes(db,user,page,{view,barangay}={}) {
         followups: 'i.follow_up_due,i.id DESC',
         completed: 'i.closed_at DESC,i.id DESC'
     };
-    const order = (!bhw && view && orderByView[view]) || "(i.state IN ('saved','closed')),i.id DESC";
+    const order = patientHistory ? "i.visit_date DESC,i.id DESC" :
+        (!bhw && view && orderByView[view]) || "(i.state IN ('saved','closed')),i.id DESC";
     const [rows] = await db.execute(`SELECT i.id,i.resident_id,i.barangay_id,i.source_case_id,i.state,
         DATE_FORMAT(i.visit_date,'%Y-%m-%d') AS visit_date,i.concern,i.destination,i.referral_reason,
         i.sent_at,i.acknowledged_at,i.arrived_at,i.assessed_at,i.case_id,i.outcome,i.closed_at,
@@ -167,7 +173,14 @@ async function listIntakes(db,user,page,{view,barangay}={}) {
         r.patient_name,b.name AS barangay_name
         FROM patient_intakes i JOIN residents r ON r.id=i.resident_id JOIN barangays b ON b.id=i.barangay_id
         WHERE ${conditions.join(' AND ')} ORDER BY ${order} LIMIT 21 OFFSET ${offset}`,params);
-    return { data:rows.slice(0,20), has_more:rows.length>20 };
+    const result = { data:rows.slice(0,20), has_more:rows.length>20 };
+    if (patientHistory && page === 1) {
+        const [[referral]] = await db.execute(`SELECT i.state,i.assessed_at FROM patient_intakes i
+            WHERE ${conditions.join(' AND ')} AND i.state<>'saved'
+            ORDER BY (i.state='closed'),i.visit_date DESC,i.id DESC LIMIT 1`,params);
+        result.current_referral = referral ?? null;
+    }
+    return result;
 }
 
 const actions = {

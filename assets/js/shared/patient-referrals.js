@@ -45,7 +45,10 @@
     const formatDay=value=>new Date(value+'T00:00:00Z').toLocaleDateString('en-PH',
         {month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
     const buttonStyle='hi-referral-action';
-    function mountQueue(root,{role,firstPage=1,filters=()=>({}),emptyMessage=()=>'No records on this page.',reopen}) {
+    function stateLabel(row) {
+        return row.state==='arrived' && row.assessed_at ? 'Awaiting outcome' : labels[row.state];
+    }
+    function mountQueue(root,{role,firstPage=1,filters=()=>({}),emptyMessage=()=>'No records on this page.',reopen,patientHistory=false}) {
         const mho=role==='mho',base=mho?'/api/mho/referrals':'/api/bhw/intakes';
         const find=selector=>root.querySelector(selector);
         const status=find('[data-referral-status]');
@@ -84,25 +87,25 @@
                 }
             }).then(result=>{
                 if(reopen)reopen(page);
-                else if(result.isConfirmed)load();
+                else if(result.isConfirmed)load(patientHistory);
             });
         }
         function render(row) {
             const card=add(list,'article','','hi-referral-card');
             const header=add(card,'div','','hi-referral-card-header');
             const identity=add(header,'div','');
-            add(identity,'h3',row.patient_name);
-            add(identity,'p','#INT-'+row.id+' · '+row.barangay_name+' · '+formatDay(row.visit_date),'hi-referral-meta');
-            const badge=add(header,'span',row.state==='arrived'&&row.assessed_at?'Awaiting outcome':labels[row.state],'hi-referral-badge');
+            add(identity,'h3',patientHistory?formatDay(row.visit_date):row.patient_name);
+            add(identity,'p',patientHistory?'#INT-'+row.id:'#INT-'+row.id+' · '+row.barangay_name+' · '+formatDay(row.visit_date),'hi-referral-meta');
+            const badge=add(header,'span',stateLabel(row),'hi-referral-badge');
             badge.dataset.state=row.state;
             const concern=add(card,'div','','hi-referral-concern');
             add(concern,'strong','Reason for visit');
             add(concern,'p',row.concern);
             if(row.referral_reason)add(card,'p','Referral · '+row.destination+' · '+row.referral_reason,'hi-field-help');
             if(row.case_id)add(card,'p','Linked clinical case · #REC-'+row.case_id,'hi-field-help');
-            if(row.outcome)add(card,'p',row.outcome,'mt-2');
+            if(row.outcome)add(card,'p',(patientHistory&&row.follow_up_due?'Follow-up instructions · ':'')+row.outcome,'mt-2');
             if(row.follow_up_due)add(card,'p','Follow-up due · '+formatDay(row.follow_up_due),'hi-field-help');
-            if(row.follow_up_result)add(card,'p','Follow-up note · '+row.follow_up_result,'hi-field-help');
+            if(row.follow_up_result)add(card,'p',(patientHistory?'Follow-up outcome':'Follow-up note')+' · '+row.follow_up_result,'hi-field-help');
             const milestones=[['sent_at','Sent'],['acknowledged_at','Acknowledged'],['arrived_at','Arrived'],['assessed_at','Assessed'],['closed_at','Completed']];
             const events=milestones.filter(([key])=>row[key]);
             if(events.length){
@@ -124,7 +127,7 @@
                     action(buttons,'Complete referral',()=>note(row,'complete','Complete referral','Assessment outcome or reason no case was recorded'));
                     action(buttons,'Assign follow-up',()=>note(row,'follow_up','Assign barangay follow-up','Instructions for the barangay health worker',true));
                 }
-            } else {
+            } else if(!patientHistory||root.dataset.readOnly!=='true') {
                 if(row.state==='saved')primary('Request referral',()=>note(row,'request','Request referral to Murcia MHO / RHU','Reason for referral'));
                 if(row.state==='follow_up') {
                     action(buttons,'Record follow-up note',()=>note(row,'follow_up_note','Record follow-up note','Contact attempted or needs review'));
@@ -133,11 +136,20 @@
             }
             if(row.sent_at)action(buttons,'Print referral slip',()=>printSlip(row));
         }
+        function summarize(visit, referral) {
+            if (!patientHistory) return;
+            find('[data-profile-latest-visit]').textContent=visit;
+            const status=find('[data-profile-referral]');
+            status.replaceChildren();
+            if (typeof referral==='string') status.textContent=referral;
+            else add(status,'span',stateLabel(referral),'hi-referral-badge').dataset.state=referral.state;
+        }
         async function load(reset=false,targetPage=reset?1:page) {
             if(reset){page=1;list.replaceChildren();pages.replaceChildren();}
             const current=++revision;
             const query=new URLSearchParams({page:targetPage,...filters()});
-            status.textContent='Loading…';
+            status.textContent=patientHistory?'Loading visits…':'Loading…';
+            if(targetPage===1)summarize('Loading…','Loading…');
             list.setAttribute('aria-busy','true');
             try {
                 const result=await request(base+'?'+query);
@@ -146,16 +158,20 @@
                 page=targetPage;
                 list.replaceChildren();pages.replaceChildren();
                 status.textContent=result.data.length?'':emptyMessage();
+                if(targetPage===1)summarize(result.data.length?formatDay(result.data[0].visit_date):'No visits recorded',result.current_referral || 'No referral recorded');
                 result.data.forEach(render);
                 if(page>1)action(pages,'Previous',()=>load(false,page-1));
                 if(result.has_more)action(pages,'Next',()=>load(false,page+1));
             }catch(error){
-                if(revision===current)status.textContent=error.message;
+                if(revision===current){
+                    status.textContent=patientHistory?'Visit history could not be loaded. Use Refresh to try again.':error.message;
+                    if(targetPage===1)summarize('Unavailable','Unavailable');
+                }
             }finally{
                 if(revision===current)list.setAttribute('aria-busy','false');
             }
         }
-        const refresh=action(find('[data-referral-tools]'),'',()=>load());
+        const refresh=action(find('[data-referral-tools]'),'',()=>load(patientHistory));
         refresh.classList.add('hi-referral-icon-action');
         refresh.setAttribute('aria-label',mho?'Refresh referrals':'Refresh visits and referrals');
         refresh.title='Refresh';
@@ -165,6 +181,12 @@
         refresh.append(icon);
         window.lucide?.createIcons();
         return {load};
+    }
+    function mountPatientHistory(root) {
+        return mountQueue(root,{
+            role:'bhw',patientHistory:true,filters:()=>({resident_id:root.dataset.residentId}),
+            emptyMessage:()=> 'No visits or referrals have been recorded for this patient.'
+        });
     }
     function open(role,firstPage=1) {
         if(role==='mho'){
@@ -286,5 +308,5 @@
         initializeBhwReferralSummary();
         initializeMunicipalReferrals();
     });
-    window.HealthIntelReferrals={request,open};
+    window.HealthIntelReferrals={request,open,mountPatientHistory};
 })();

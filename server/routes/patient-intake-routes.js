@@ -19,7 +19,7 @@ function registerPatientIntakeRoutes(app,db) {
     }
     app.get(['/api/bhw/intakes','/api/mho/referrals'],route(async (req,res) => {
         const page = req.query.page === undefined ? 1 : Math.min(100000,positiveId(req.query.page,'page'));
-        res.json({success:true,...await listIntakes(db,req.user,page,{view:req.query.view,barangay:req.query.barangay_id})});
+        res.json({success:true,...await listIntakes(db,req.user,page,{view:req.query.view,barangay:req.query.barangay_id,resident:req.query.resident_id})});
     }));
     app.get('/api/bhw/intakes/activity',route(async (req,res) => {
         res.set('Cache-Control','no-store').json({success:true,days:await bhwVisitActivity(db,req.user)});

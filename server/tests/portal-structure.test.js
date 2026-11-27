@@ -56,7 +56,7 @@ function page(file) {
             append(...nodes){e.children.push(...nodes);},prepend(node){e.children.unshift(node);},replaceChildren(...nodes){e.children=nodes;},reset(){},
             insertRow(){const row=element();row.insertCell=()=>{const cell=element();row.append(cell);return cell;};e.append(row);return row;},
             createTHead(){return element();},createTBody(){return element();},
-            querySelector:()=>null,querySelectorAll:()=>[],closest:()=>null,getClientRects:()=>[],hasAttribute:k=>k in attributes,
+            isConnected:true,querySelector:()=>null,querySelectorAll:()=>[],closest:()=>null,getClientRects:()=>[],hasAttribute:k=>k in attributes,
             getContext:()=>({createLinearGradient:()=>({addColorStop(){}})}),focus(){},scrollIntoView(){}};
         Object.defineProperty(e,'options',{get:()=>e.children});
         return e;
@@ -90,6 +90,7 @@ function page(file) {
         HealthIntel:{download:async(...args)=>downloads.push(args),clearSession(){}},
         HealthIntelEncoding:{purokOptions:()=>[],escape:value=>String(value),conditionLabel:r=>r.disease || '',conditionCell:r=>r.disease || '',bindCondition(){},bindPurokSuggestions(){return {close(){}};},enhanceSelect(){},populateConditions(){}},
         HealthIntelPatientPicker:{bind:()=>({validate(){},payload:()=>({}),reset(){},useExisting:async()=>{}})},
+        HealthIntelCaseDownload:{mount(){}},
         HealthIntelVisits:{bindBloodPressure(){},validateMeasurements(){},formatTime:()=> 'Time not recorded',renderResidentHistory(){},followupMarkup:()=>'',followupPayload:()=>({}),followupHistory:()=>''},
         fetch:async(url,options)=>{
             requests.push({url:String(url),options});
@@ -113,12 +114,39 @@ function page(file) {
     return {s,html,elements,events,requests,errors,downloads,navigation,load,start,hooks,storage};
 }
 
-test('newborn age zero survives the BHW dossier and both Admin record views',async()=>{
-    const bhw=page('bhw.html');bhw.load();
-    bhw.s.response=()=>({success:true,resident:{age:0,patient_name:'Newborn Fixture',purok:'QA'},history:[]});
-    await bhw.s.viewPatientProfile(1);
-    assert.equal(bhw.elements['profile-age'].innerText,0);
-    assert.deepEqual(bhw.errors,[]);
+test('BHW profile shows patient-scoped visit history with read-only previous cases',async()=>{
+    const p=page('bhw.html');p.load();
+    const history=p.elements['bhw-profile-history'];
+    const nodes=Object.fromEntries(['referral-status','referral-list','referral-pages','referral-tools','profile-latest-visit','profile-referral']
+        .map(key=>[key,p.s.document.createElement('div')]));
+    history.querySelector=selector=>nodes[selector.slice(6,-1)];
+    p.elements.patientProfileModal.querySelector=selector=>selector==='.bhw-profile-content'?{scrollTop:0}:null;
+    vm.runInNewContext(fs.readFileSync(scriptPath('patient-referrals.js'),'utf8'),p.s);
+    const visit={id:7,visit_date:'2026-11-26',concern:'Fixture concern',state:'follow_up',follow_up_due:'2026-11-27',follow_up_result:'Fixture outcome'};
+    p.s.response=url=>url.includes('/dossier')?{success:true,resident:{age:0,patient_name:'Newborn Fixture',purok:'QA'},history:[{id:1,disease:'Fixture condition',status:'Active',date_recorded:'2026-11-25'}]}:
+        {success:true,data:[visit],current_referral:{state:'follow_up'}};
+    await p.s.viewPatientProfile(11);
+    await settle();
+    assert.equal(p.elements['profile-age'].innerText,0);
+    assert.equal(p.elements['bhw-previous-cases'].open,false);
+    assert.match(p.elements['profile-history-body'].innerHTML,/View visits/);
+    assert.doesNotMatch(p.elements['profile-history-body'].innerHTML,/Record follow-up visit/);
+    assert.ok(p.requests.some(({url})=>url==='/api/bhw/intakes?page=1&resident_id=11'));
+    assert.match(nodes['profile-latest-visit'].textContent,/Nov 26, 2026/);
+    assert.equal(nodes['profile-referral'].children[0].textContent,'Barangay follow-up');
+    const textOf=node=>[node.textContent,...node.children.flatMap(textOf)];
+    const texts=textOf(nodes['referral-list']);
+    for(const expected of ['Fixture concern','Follow-up outcome · Fixture outcome','Record follow-up note','Complete follow-up'])assert.ok(texts.includes(expected));
+    p.s.response=url=>url.includes('/dossier')?{success:true,resident:{age:0,patient_name:'Empty Fixture'},history:[]}:{success:true,data:[],current_referral:null};
+    await p.s.viewPatientProfile(12);
+    await settle();
+    assert.equal(nodes['profile-referral'].textContent,'No referral recorded');
+    assert.equal(nodes['referral-list'].children.length,0);
+    assert.match(nodes['referral-status'].textContent,/No visits or referrals/);
+    assert.deepEqual(p.errors,[]);
+});
+
+test('newborn age zero survives both Admin record views',async()=>{
     const admin=page('admin.html');admin.load();
     const records=[{id:1,age:0,patient_name:'Newborn Fixture',date_recorded:'2026-10-04',status:'Active'},
         {id:2,age:null,patient_name:'Missing age Fixture',date_recorded:'2026-10-04',status:'Active'}];
@@ -168,7 +196,9 @@ test('BHW feature scripts initialize context, records, residents and charts in H
     assert.equal(p.elements['view-reports'].classList.contains('hidden'),false);
     assert.equal(p.elements['stat-total'].innerText,'40');
     assert.equal(p.elements['bhw-trend-period'].innerText,'Jan 2026');
-    assert.match(p.elements['bhw-trend-status'].innerText,/Blumentritt/);
+    assert.equal(p.elements['bhw-trend-status'].hidden,true);
+    assert.equal(p.elements['bhw-dashboard-trend-status'].hidden,true);
+    assert.match(p.elements.bhwChart.getAttribute('aria-label'),/Blumentritt/);
     assert.equal(p.requests.filter(r=>r.url.endsWith('/api/bhw/dataset-analytics')).length,1);
     assert.ok(p.requests.some(r=>r.url.includes('/api/bhw/puroks')),'report filters load locations only when opened');
     assert.equal(p.elements['bhw-purok-filter'].children.length,1);

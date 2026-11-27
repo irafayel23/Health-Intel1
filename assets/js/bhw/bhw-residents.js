@@ -105,8 +105,7 @@
                 <p class="text-[hsl(var(--muted-foreground))] text-sm mb-4">${escapeText(res.purok)} | ${res.is_deceased?'Historical profile':escapeText(residentAge ?? 'N/A')+' yrs'}</p>
 
                 <button onclick="viewPatientProfile('${res.id}')" class="w-full mt-auto py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm shadow-sm transition-colors">
-                  View Medical Dossier<br>
-                  <small>(${res.case_count || 0} Records)</small>
+                  View patient profile
                 </button>
               </div>
             `;
@@ -154,16 +153,21 @@
           addButton('Next', residentDirectoryPage + 1, residentDirectoryPage === totalPages);
       }
 
+      let patientProfileRequest = 0;
+      let bhwPatientHistory;
       async function viewPatientProfile(residentId, selectedCase = null, onClose = null, beforeOpen = null) {
           if (!Number.isSafeInteger(Number(residentId)) || Number(residentId)<=0) {
               Swal.fire('Resident link unavailable', 'This historical case has no linked resident profile. Ask the Admin to review the source record; the system will not guess the identity.', 'info');
               return;
           }
+          const request = ++patientProfileRequest;
           try {
-              // Now we call the real backend endpoint for dossiers
               const res = await fetch(`http://localhost:3000/api/residents/${residentId}/dossier`);
               const result = await res.json();
-              if(result.success) {
+              if(request !== patientProfileRequest) return;
+              if(res.ok && result.success) {
+                  if (beforeOpen && !await beforeOpen()) return;
+                  if(request !== patientProfileRequest) return;
                   const data = result.resident;
                   const history = result.history;
 
@@ -177,54 +181,24 @@
                   document.getElementById("profile-age").innerText = HealthIntelDate.residentAge(data) ?? 'N/A';
                   if(data.is_deceased)document.getElementById('profile-age').innerText='Historical profile';
 
-                                      const tbody = document.getElementById("profile-history-body");
-                    tbody.innerHTML = "";
-
-                    // Calculate stats
-                    const totalCases = history.length;
-                    const activeCases = history.filter(h => h.status === 'Active').length;
-                    const highRisk = history.filter(h => h.severity === 'High Risk').length;
-
-                    if (document.getElementById("dossier-total")) {
-                        document.getElementById("dossier-total").innerText = totalCases;
-                        document.getElementById("dossier-active").innerText = activeCases;
-                        document.getElementById("dossier-risk").innerText = highRisk;
-                    }
-
-                    if(history.length === 0) {
-                      tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-4 text-center text-[hsl(var(--muted-foreground))]">No linked disease cases recorded for this resident. Historical unlinked records are not attached automatically.</td></tr>';
-                  } else {
-                      history.forEach(record => {
-                          let statusColor = record.status === "Cleared" ? "text-green-600 dark:text-green-400" : (record.status === "Deceased" ? "text-slate-500 dark:text-slate-400" : "text-orange-600 dark:text-orange-400");
-                  let dateStr = window.HealthIntelDate.formatCaseDate(record.date_recorded);
-                          let severityBadge = record.severity === "High Risk" ? `<span class="bg-red-500/10 text-red-500 rounded px-1 text-xs">High Risk</span>` : "";
-                          const returnReason=bhwReturnVisitReason(data,record);
-
-                          tbody.innerHTML += `
-                            <tr class="border-b border-[hsl(var(--border))]">
-                              <td class="px-5 py-4 font-mono text-xs text-[hsl(var(--muted-foreground))]">
-                                #REC-${record.id}<br>${dateStr}<br><span class="font-sans">Age at case: ${escapeText(record.age_at_case ?? 'Not recorded')}<br>Age group: ${escapeText(record.age_group || 'Not recorded')}${record.age_group && record.age_group!=='Not recorded'?' years':''}</span>
-                              </td>
-                              <td class="px-5 py-4 font-semibold text-[hsl(var(--foreground))]">
-                                ${HealthIntelEncoding.conditionCell(record)} <br>${severityBadge}
-                              </td>
-                              <td class="px-5 py-4 text-[hsl(var(--muted-foreground))] text-sm">${escapeText(record.remarks || "No remarks")}</td>
-                              <td class="px-5 py-4 ${statusColor} font-bold text-sm">
-                                 ${escapeText(record.status === "Deceased" ? "Historical outcome" : record.status)}
-                              </td>
-                              <td class="px-5 py-4"><div class="flex flex-col items-start gap-2 min-w-40">
-                                <button type="button" class="hi-vital-button" onclick="HealthIntelVisits.show(${Number(record.id)})">View visits</button>
-                                ${returnReason?`<p class="text-xs text-[hsl(var(--muted-foreground))]">${escapeText(returnReason)}</p>`:`<button type="button" class="hi-vital-button !bg-blue-600 !text-white !border-blue-600 hover:!bg-blue-700" aria-label="Record follow-up visit for case REC-${Number(record.id)}" onclick="recordBhwReturnVisit(${Number(data.id)},${Number(record.id)})">Record follow-up visit</button>`}
-                              </div></td>
-                            </tr>
-                          `;
-                      });
-                  }
-                  if (window.HealthIntelVisits && document.getElementById('profile-visits-list')) HealthIntelVisits.renderResidentHistory(result.visits || []);
+                  const tbody = document.getElementById("profile-history-body");
+                  tbody.innerHTML = history.length ? history.map(record => `
+                    <tr class="border-b border-[hsl(var(--border))]">
+                      <td><strong>REC-${Number(record.id)}</strong><br>${escapeText(HealthIntelDate.formatCaseDate(record.date_recorded))}</td>
+                      <td>${HealthIntelEncoding.conditionCell(record)}</td>
+                      <td>${escapeText(record.remarks || "No remarks")}</td>
+                      <td>${escapeText(record.status === "Deceased" ? "Historical outcome" : record.status)}</td>
+                      <td><button type="button" class="hi-vital-button" onclick="HealthIntelVisits.show(${Number(record.id)})" aria-label="View visits for case REC-${Number(record.id)}">View visits</button></td>
+                    </tr>`).join("") : '<tr><td colspan="5">No previous case records linked to this patient.</td></tr>';
                   HealthIntelCaseDownload.mount(document.getElementById("bhw-case-download"), history, selectedCase);
+                  document.getElementById("bhw-previous-cases").open = Boolean(selectedCase);
                   const modal = document.getElementById("patientProfileModal");
-                  renderBhwCaseActions(document.getElementById("bhw-selected-case-actions"), selectedCase, closeProfileModal);
-                  if (beforeOpen && !await beforeOpen()) return;
+                  modal.querySelector(".bhw-profile-content").scrollTop = 0;
+                  const visits = document.getElementById("bhw-profile-history");
+                  visits.dataset.residentId = String(Number(residentId));
+                  visits.dataset.readOnly = String(Boolean(data.is_deceased));
+                  bhwPatientHistory ??= HealthIntelReferrals.mountPatientHistory(visits);
+                  bhwPatientHistory.load(true);
                   modal.classList.toggle('bhw-case-profile-transition', Boolean(beforeOpen));
                   if (onClose) {
                     const observer = new MutationObserver(() => {
@@ -240,8 +214,9 @@
                   throw new Error(result.error || 'Please try again later.');
               }
           } catch (error) {
+              if (request !== patientProfileRequest) return;
               if (beforeOpen) throw error;
-              Swal.fire('Dossier unavailable', error.message || 'Please try again later.', 'error');
+              Swal.fire('Patient profile unavailable', error.message || 'Please try again later.', 'error');
           }
       }
 

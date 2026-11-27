@@ -103,6 +103,14 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
         const record=queue.data.find(row=>row.id===saved.id);
         assert.ok(record);
         assert.equal(record.barangay_id,f.own);
+        const profilePath='/bhw/intakes?resident_id='+record.resident_id;
+        const profile=await request('bhw',profilePath);
+        assert.deepEqual(profile.data.map(row=>row.id),[saved.id]);
+        assert.equal(profile.current_referral.state,'requested');
+        const other=await request('other-bhw',profilePath);
+        assert.deepEqual(other.data,[]);
+        assert.equal(other.current_referral,null);
+        assert.equal((await request('bhw','/bhw/intakes?resident_id=invalid')).status,400);
         assert.deepEqual((await request('mho','/mho/referrals?view=incoming&barangay_id=2')).data,[]);
         assert.equal((await request('mho','/mho/referrals?view=invalid')).status,400);
         const counts=async()=> (await request('mho','/mho/referrals/summary')).counts;
@@ -146,6 +154,20 @@ test('BHW intake, MHO assessment and barangay follow-up share a single referral'
         const completed=(await request('bhw','/bhw/intakes')).data.find(row=>row.id===saved.id);
         assert.equal(completed.state,'closed');
         assert.equal(completed.case_id,assessed.id);
+        const closedProfile=await request('bhw',profilePath);
+        assert.equal(closedProfile.current_referral.state,'closed');
+        assert.equal(closedProfile.data[0].follow_up_result,'Synthetic follow-up complete');
+        const laterVisit=await request('bhw','/bhw/intakes','POST',{
+            ...input,patient_mode:'existing',resident_id:record.resident_id,request_key:randomUUID(),request_referral:false
+        });
+        assert.equal(laterVisit.status,201,laterVisit.error);
+        const differentPatient=await request('bhw','/bhw/intakes','POST',{
+            ...input,first_name:'Another Synthetic',birthdate:'1996-01-15',request_key:randomUUID()
+        });
+        assert.equal(differentPatient.status,201,differentPatient.error);
+        const latestProfile=await request('bhw',profilePath);
+        assert.deepEqual(latestProfile.data.map(row=>row.id),[laterVisit.id,saved.id]);
+        assert.equal(latestProfile.current_referral.state,'closed');
         assert.deepEqual((await request('mho','/mho/referrals?view=followups')).data,[]);
         assert.equal((await request('mho','/mho/referrals?view=completed')).data[0].id,saved.id);
     } finally { await f.close(); }
