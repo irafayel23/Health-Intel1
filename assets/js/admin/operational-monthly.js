@@ -1,8 +1,10 @@
 (() => {
  'use strict';
- const $=id=>document.getElementById(id),api='/api/admin/operational-predictions';let active=false,timer,elapsedTimer,statusSequence=0,probabilityTimer,reviewedRun,latestCompletedMonth,loadedReportMonth,reportComplete=false,canPrepare=false,preparing=false,reportSequence=0;
+ const $=id=>document.getElementById(id),api='/api/admin/operational-predictions';let active=false,timer,statusSequence=0,probabilityTimer,reviewedRun,latestCompletedMonth,loadedReportMonth,reportComplete=false,canPrepare=false,preparing=false,reportSequence=0;
  const node=(tag,cls,text)=>{const e=document.createElement(tag);e.className=cls||'';if(text!==undefined)e.textContent=text;return e;};
- let confirmedCount=null,lastRuns=[],pastRunsKey;
+ let confirmedCount=null,lastRuns=[],pastRunsKey,progressRun,batchReview,detailReport;
+ let reportRows=[],reportWriting=false;
+ const selectedReports=new Set();
  const fmt=x=>typeof x==='number'&&Number.isFinite(x)?x.toFixed(2):'Unavailable';
  const lowMemory=text=>text?.startsWith('Insufficient available memory');
  const base=()=>window.HealthIntel?.apiOrigin||'http://localhost:3000';
@@ -11,60 +13,209 @@
  function button(label,action,primary=false){const b=node('button',primary?'admin-monthly-button admin-monthly-primary':'admin-monthly-button',label);b.type='button';b.addEventListener('click',async()=>{b.disabled=true;try{await action();}catch(e){message(e.message);}finally{b.disabled=false;}});return b;}
  async function approval(title,text){if(window.Swal)return (await window.Swal.fire({icon:'warning',title,text,showCancelButton:true,confirmButtonText:'Confirm',focusCancel:true,customClass:{popup:'hi-dialog'}})).isConfirmed;return window.confirm(title+'\n'+text);}
 
+ const eligibleReport=report=>!report.confirmed&&!report.pending;
+ const reportState=report=>report.pending?'Pending disease review':report.stale?'Changed · review again':report.confirmed?'Confirmed':'Awaiting confirmation';
+ const quantity=(count,word)=>count+' '+word+(count===1?'':'s');
+
+ function renderReportSelection(){
+    const eligible=reportRows.filter(eligibleReport).length;
+    const all=$('monthly-report-all'),review=$('monthly-report-review'),count=selectedReports.size;
+    all.disabled=reportWriting||eligible===0;
+    all.checked=eligible>0&&count===eligible;
+    all.indeterminate=count>0&&count<eligible;
+    review.disabled=reportWriting||count===0;
+    review.textContent=count?'Review selected ('+count+')':'Review selected';
+    $('monthly-report-actions').hidden=reportComplete;
+    message(count?quantity(count,'report')+' selected':eligible?'Select reports you’ve reviewed.':'Resolve pending classifications before confirming.','monthly-report-selection');
+ }
+
  function clearReports(){
     reportSequence++;
     loadedReportMonth='';
     reportComplete=false;
     confirmedCount=null;
+    reportRows=[];
+    selectedReports.clear();
     renderSteps();
-    $('monthly-load-reports').disabled=false;
-    $('monthly-load-reports').textContent='Load reports';
     $('monthly-reports').replaceChildren();
-    $('monthly-report-summary').textContent='Load the reports for this month to see their confirmation status.';
+    $('monthly-report-grid').hidden=true;
+    $('monthly-report-count').hidden=true;
+    $('monthly-load-reports').disabled=reportWriting;
+    message('','monthly-report-feedback');
  }
+
+ function openReportDetail(report){
+    detailReport={report,month:loadedReportMonth};
+    message(report.barangay,'monthly-report-detail-title');
+    message(monthLabel(loadedReportMonth),'monthly-report-detail-month');
+    $('monthly-report-detail-values').replaceChildren(...[
+        ['Eligible cases',report.total],['Pending classifications',report.pending],
+        ['Outside prediction categories',report.other],['Status',reportState(report)]
+    ].map(([label,value])=>{
+        const row=node('div');
+        row.append(node('dt','',label),node('dd','',value));
+        return row;
+    }));
+    $('monthly-report-reopen').hidden=!report.confirmed;
+    $('monthly-report-reopen').disabled=reportWriting;
+    $('monthly-report-detail').showModal();
+ }
+
+ function renderReportTable(){
+    const host=$('monthly-reports');
+    const rows=reportRows.map(report=>{
+        const row=node('tr'),checkCell=node('td'),label=node('label','admin-monthly-checkbox');
+        if(eligibleReport(report)){
+            const checkbox=node('input');
+            checkbox.type='checkbox';
+            checkbox.checked=selectedReports.has(report.barangay);
+            checkbox.setAttribute('aria-label','Select '+report.barangay+' report');
+            checkbox.addEventListener('change',()=>{
+                if(checkbox.checked)selectedReports.add(report.barangay);
+                else selectedReports.delete(report.barangay);
+                renderReportSelection();
+            });
+            label.append(checkbox);
+            checkCell.append(label);
+        }
+        const name=node('th');
+        name.scope='row';
+        const details=node('button','admin-monthly-report-link',report.barangay);
+        details.type='button';
+        details.setAttribute('aria-label','View '+report.barangay+' report');
+        details.addEventListener('click',()=>openReportDetail(report));
+        name.append(details);
+        const status=node('td'),badge=node('span','admin-monthly-badge',reportState(report));
+        badge.dataset.state=report.pending||report.stale?'attention':report.confirmed?'confirmed':'waiting';
+        status.append(badge);
+        row.append(checkCell,name,node('td','',report.total),status);
+        return row;
+    });
+    host.replaceChildren(...rows);
+    renderReportSelection();
+ }
+
  async function loadReports(){
     const month=$('monthly-report-month').value;
-    if(!month||month>latestCompletedMonth||(trainingMode()===mixedMode&&month<firstReport))throw Error('Choose a completed reporting month within the selected history source.');
+    if(!month||month>latestCompletedMonth||(trainingMode()===mixedMode&&month<firstReport)){
+        clearReports();
+        message('Choose a completed reporting month within the selected history source.','monthly-report-summary');
+        return;
+    }
     const sequence=++reportSequence;
+    const previous=new Map(loadedReportMonth===month?reportRows.filter(r=>selectedReports.has(r.barangay)).map(r=>[r.barangay,r.digest]):[]);
     loadedReportMonth=month;
     reportComplete=false;
     confirmedCount=null;
     renderSteps();
-    const summary=$('monthly-report-summary'),host=$('monthly-reports'),load=$('monthly-load-reports');
+    const summary=$('monthly-report-summary'),load=$('monthly-load-reports'),grid=$('monthly-report-grid'),badge=$('monthly-report-count');
     summary.textContent='Loading barangay reports…';
     load.disabled=true;
-    try {
+    grid.hidden=true;
+    badge.hidden=true;
+    try{
         const rows=await request('/reports?month='+encodeURIComponent(month));
         if(sequence!==reportSequence)return;
-        host.replaceChildren();
-        const confirmed=rows.filter(r=>r.confirmed&&!r.pending).length;
-        confirmedCount=confirmed;
-        reportComplete=confirmed===7;
-        renderSteps();
-        load.textContent='Refresh reports';
-        summary.textContent=confirmed+' of 7 barangays confirmed. '+(reportComplete?'Reporting is complete for this month.':'Confirm the remaining reports before using this month.');
-        for(const r of rows){
-            const line=node('div','admin-monthly-row'),copy=node('div');
-            const status=node('p','admin-monthly-badge',r.pending?'Pending disease review':r.stale?'Changed · review again':r.confirmed?'Confirmed complete':'Awaiting confirmation');
-            status.dataset.state=r.pending||r.stale?'attention':r.confirmed?'confirmed':'waiting';
-            copy.append(node('p','font-semibold',r.barangay),node('p','text-sm',r.total+' eligible cases · '+r.pending+' pending classifications · '+r.other+' outside the prediction categories'),status);
-            const decision=button(r.confirmed?'Reopen report':'Confirm complete',async()=>{
-                const description=r.confirmed?'Confirm this report again before preparing another update.':'Check that all cases were entered and reviewed. Confirm zero only when the report is complete.';
-                if(!await approval(r.confirmed?'Reopen this monthly report?':'Confirm reporting is complete?',r.barangay+' · '+month+'. '+description))return;
-                if($('monthly-report-month').value!==month)return;
-                await request('/reports',{month,barangay:r.barangay,complete:!r.confirmed});
-                if($('monthly-report-month').value===month)await loadReports();
-            },!r.confirmed);
-            if(r.pending&&!r.confirmed)decision.disabled=true;
-            line.append(copy,decision);
-            host.append(line);
+        if(!Array.isArray(rows))throw Error('Unexpected report response.');
+        reportRows=rows.slice().sort((a,b)=>Number(a.confirmed)-Number(b.confirmed));
+        selectedReports.clear();
+        for(const report of reportRows){
+            if(eligibleReport(report)&&previous.has(report.barangay)&&previous.get(report.barangay)===report.digest)selectedReports.add(report.barangay);
         }
+        confirmedCount=reportRows.filter(r=>r.confirmed&&!r.pending).length;
+        reportComplete=confirmedCount===7;
+        renderSteps();
+        badge.textContent=confirmedCount+' of 7 confirmed';
+        badge.dataset.state=reportComplete?'confirmed':'waiting';
+        badge.hidden=false;
+        const total=reportRows.reduce((sum,report)=>sum+report.total,0);
+        const pending=reportRows.reduce((sum,report)=>sum+report.pending,0);
+        summary.textContent=quantity(total,'eligible case')+' · '+quantity(pending,'pending classification')+'. '+(reportComplete?'Reporting is complete for this month.':'Review the reports awaiting confirmation.');
+        renderReportTable();
+        grid.hidden=false;
     }catch(e){
         if(sequence===reportSequence){
-            host.replaceChildren();
+            reportRows=[];
+            selectedReports.clear();
+            $('monthly-reports').replaceChildren();
             summary.textContent='Could not load reports. '+e.message;
         }
-    }finally{if(sequence===reportSequence)load.disabled=false;}
+    }finally{
+        if(sequence===reportSequence)load.disabled=reportWriting;
+    }
+ }
+
+ function openBatchReview(){
+    if(reportWriting||$('monthly-report-grid').hidden)return;
+    const reports=reportRows.filter(r=>eligibleReport(r)&&selectedReports.has(r.barangay));
+    if(!reports.length)return;
+    batchReview={month:loadedReportMonth,reports};
+    const cases=reports.reduce((sum,report)=>sum+report.total,0),zeros=reports.filter(report=>report.total===0).length;
+    message('Confirm '+quantity(reports.length,'barangay report'),'monthly-report-dialog-title');
+    message(monthLabel(batchReview.month)+' · '+quantity(cases,'eligible case')+' · '+quantity(zeros,'zero-case report'),'monthly-report-dialog-summary');
+    $('monthly-report-dialog-list').replaceChildren(...reports.map(report=>node('li','',report.barangay+' · '+quantity(report.total,'eligible case'))));
+    $('monthly-report-ack').checked=false;
+    $('monthly-report-confirm').disabled=true;
+    $('monthly-report-dialog').showModal();
+ }
+
+ async function saveReportDecision(body,success){
+    if(reportWriting||body.month!==loadedReportMonth||body.month!==$('monthly-report-month').value)return;
+    reportWriting=true;
+    renderReportSelection();
+    $('monthly-load-reports').disabled=true;
+    message('Saving report review…','monthly-report-feedback');
+    try{
+        await request('/reports',body);
+        if($('monthly-report-month').value===body.month){
+            selectedReports.clear();
+            message(success,'monthly-report-feedback');
+            await loadReports();
+        }
+    }catch(error){
+        if($('monthly-report-month').value===body.month){
+            message(error.message,'monthly-report-feedback');
+            await loadReports();
+        }
+    }finally{
+        reportWriting=false;
+        $('monthly-load-reports').disabled=false;
+        renderReportSelection();
+    }
+ }
+
+ function initializeReportControls(){
+    $('monthly-report-all').addEventListener('change',event=>{
+        const checked=event.target.checked;
+        selectedReports.clear();
+        if(checked)for(const report of reportRows)if(eligibleReport(report))selectedReports.add(report.barangay);
+        for(const [index,row] of Array.from($('monthly-reports').children).entries()){
+            const checkbox=row.querySelector('input');
+            if(checkbox)checkbox.checked=selectedReports.has(reportRows[index].barangay);
+        }
+        renderReportSelection();
+    });
+    $('monthly-report-review').addEventListener('click',openBatchReview);
+    $('monthly-report-cancel').addEventListener('click',()=>$('monthly-report-dialog').close());
+    $('monthly-report-ack').addEventListener('change',event=>{$('monthly-report-confirm').disabled=!event.target.checked;});
+    $('monthly-report-confirm').addEventListener('click',()=>{
+        if(!$('monthly-report-ack').checked||!batchReview)return;
+        const {month,reports}=batchReview;
+        $('monthly-report-dialog').close();
+        $('monthly-load-reports').focus();
+        return saveReportDecision({
+            month,complete:true,reports:reports.map(({barangay,digest})=>({barangay,digest}))
+        },quantity(reports.length,'report')+' confirmed.');
+    });
+    $('monthly-report-detail-close').addEventListener('click',()=>$('monthly-report-detail').close());
+    $('monthly-report-reopen').addEventListener('click',async()=>{
+        if(!detailReport||reportWriting)return;
+        const {report,month}=detailReport;
+        $('monthly-report-detail').close();
+        if(!await approval('Reopen this monthly report?',report.barangay+' · '+monthLabel(month)+'. Confirm it again before using this month in training.'))return;
+        $('monthly-load-reports').focus();
+        return saveReportDecision({month,barangay:report.barangay,complete:false},report.barangay+' report reopened.');
+    });
  }
  const mixedMode='dataset_plus_reports';
  const uploadedVersions=new Map();
@@ -109,8 +260,6 @@
     $('monthly-dataset-summary').hidden=!mixed;
     $('monthly-history-description').hidden=mixed&&!upload;
     if($('monthly-report-card'))$('monthly-report-card').hidden=Boolean(upload);
-    message(upload?'Use saved CSV':'Confirm reports','monthly-step-source-label');
-    message(mixed?'Review results':'Review & publish','monthly-step-review-label');
     message(upload?'· Saved CSV preview':mixed?'· Dataset-backed preview':'· Operational reports','monthly-target-source');
     renderSteps();
     $('monthly-use-range').hidden=mixed;
@@ -245,57 +394,78 @@
  function renderSteps(){
     const cutoff=$('monthly-cutoff').value,mode=trainingMode();
     const matching=lastRuns.filter(run=>run.cutoff===cutoff&&(run.mode||'operational')===mode&&(run.dataset_id||undefined)===uploadId());
-    const updating=matching.some(isUpdating);
+    const activeRun=lastRuns.find(isUpdating),updating=Boolean(activeRun);
     const verified=matching.some(run=>['ready','published'].includes(run.status));
     const reportsDone=Boolean(uploadId())||loadedReportMonth===cutoff&&reportComplete;
     const reportsNeedReview=loadedReportMonth===cutoff&&confirmedCount!==null&&!reportsDone;
     const activeStep=updating?'train':reportsNeedReview?'reports':verified?'review':reportsDone?'train':'reports';
-    const reportStatus=uploadId()?'Saved CSV selected':loadedReportMonth===cutoff&&confirmedCount!==null?confirmedCount+' of 7 confirmed':updating||verified?'Confirmed for run':'Awaiting review';
+    const savedCsv=updating?Boolean(activeRun.dataset_id):Boolean(uploadId());
+    const preview=updating?activeRun.mode===mixedMode||savedCsv:mode===mixedMode;
+    const reportStatus=savedCsv?'Saved CSV selected':updating?'Confirmed for run':loadedReportMonth===cutoff&&confirmedCount!==null?confirmedCount+' of 7 confirmed':verified?'Confirmed for run':'Awaiting review';
+    message(savedCsv?'Use saved CSV':'Confirm reports','monthly-step-source-label');
+    message(preview?'Review results':'Review & publish','monthly-step-review-label');
     message(reportStatus,'monthly-step-report-status');
-    message(updating?'In progress':verified?'Complete':reportsDone?'Ready to prepare':'Waiting for reports','monthly-step-training-status');
+    message(updating?'In progress':verified?'Complete':reportsDone?'Ready to start':'Confirm reports first','monthly-step-training-status');
     message(verified&&!updating?'Results available':'Awaiting results','monthly-step-review-status');
     for(const step of ['reports','train','review']){
         const item=$('monthly-step-'+step);
         item.setAttribute('aria-current',step===activeStep?'step':'false');
-        item.dataset.complete=String(step==='reports'?(reportsDone||(!reportsNeedReview&&(updating||verified))):step==='train'&&verified&&!updating);
+        item.dataset.complete=String(step==='reports'?(updating||reportsDone||(!reportsNeedReview&&verified)):step==='train'&&verified&&!updating);
     }
  }
- function elapsedLabel(createdAt){
-    const seconds=Math.max(0,Math.floor((Date.now()-createdAt)/1000));
-    const hours=Math.floor(seconds/3600),minutes=String(Math.floor(seconds/60)%60).padStart(2,'0');
-    return 'Elapsed since queued: '+hours+':'+minutes+':'+String(seconds%60).padStart(2,'0');
+ function trainingFailure(run){
+    const reason=run.progress?.message||run.error||'Training ended before results could be verified.';
+    return reason.includes('host_memory_pressure')?'Training stopped because available memory was low.':reason;
  }
- function renderRun(run,published,clocks){
-    const updating=isUpdating(run);
-    const line=node('div',updating?'admin-monthly-row admin-monthly-active-run':'admin-monthly-row'),copy=node('div');
-    const labels={ready:'Ready to review',published:'Previously published',queued:'Queued for training',running:'Training and historical testing',failed:'Failed'};
-    const badge=node('p','admin-monthly-badge',published?'Currently published':labels[run.status]||run.status);
-    badge.dataset.state=published||run.status==='ready'?'confirmed':run.status==='failed'?'attention':'waiting';
-    copy.append(node('p','font-semibold',monthLabel(shiftMonth(run.cutoff,1))+' forecast'),badge);
-    copy.append(node('p','admin-monthly-run-context',(run.dataset_id?'Saved CSV '+run.dataset_id.slice(0,8):run.mode===mixedMode?'Dataset-backed preview':'Operational reports')+' · History through '+monthLabel(run.cutoff)));
-    const completed=run.progress?.completed;
-    if(updating){
-        const hasCount=Number.isInteger(completed)&&completed>=0&&completed<=70;
-        const label=hasCount?completed+' of 70 combinations processed':'Waiting for the worker to report progress';
-        const meta=node('div','admin-monthly-progress-meta'),progress=node('progress','admin-monthly-progress');
-        meta.append(node('p','',label));
-        const queuedAt=Date.parse(run.created_at);
-        if(Number.isFinite(queuedAt)){
-            const clock=node('p','',elapsedLabel(queuedAt));
-            meta.append(clock);
-            clocks.push(()=>{clock.textContent=elapsedLabel(queuedAt);});
+
+ function renderTrainingProgress(unavailable=false){
+    progressRun=lastRuns.find(isUpdating)||lastRuns[0];
+    const run=progressRun,badge=$('monthly-progress-state'),meter=$('monthly-progress-meter'),progress=$('monthly-progress-value');
+    const updating=run&&isUpdating(run),ready=run&&['ready','published'].includes(run.status);
+    const count=run?.progress?.completed,hasCount=Number.isInteger(count)&&count>=0&&count<=70;
+    const verifying=updating&&(count===70||run.progress?.state==='complete');
+    let label='',countText='',note='';
+    badge.hidden=!run;
+    meter.hidden=!updating;
+    $('monthly-progress-review').hidden=!ready;
+    if(!run){
+        message(unavailable?'Training status unavailable':'No training run yet','monthly-progress-context');
+        note=unavailable?'Use Check again to refresh training status.':'Start training after selecting a source and history range.';
+    }else{
+        const source=run.dataset_id?'Saved CSV preview':run.mode===mixedMode?'Dataset-backed preview':'Operational reports';
+        message(monthLabel(shiftMonth(run.cutoff,1))+' first prediction month · '+source,'monthly-progress-context');
+        badge.dataset.state=ready?'confirmed':updating?'waiting':'failed';
+        if(updating){
+            label=verifying?'Verifying results':run.status==='queued'?'Queued':hasCount?'Training and testing':'Starting training';
+            countText=hasCount?count+' of 70 combinations processed':run.status==='queued'?'Waiting for the training worker to start':'Waiting for the first progress update';
+            note=verifying?'The server is checking the saved results before review.':hasCount?'Training and historical testing cover 10 diseases across 7 barangays. Progress updates automatically.':'The request was received. The percentage appears when the worker reports its first count.';
+            if(hasCount)progress.value=count;
+            else progress.removeAttribute('value');
+            message(hasCount?Math.round(count*100/70)+'%':'','monthly-progress-percent');
+        }else if(ready){
+            label='Ready to review';
+            note='Saved results passed verification. Open the version to review its predictions and historical test results.';
+        }else{
+            label='Training stopped';
+            note=trainingFailure(run);
         }
-        progress.max=70;
-        if(hasCount)progress.value=completed;
-        progress.setAttribute('aria-label',label);
-        copy.append(meta,progress,node('p','admin-monthly-run-context','10 diseases across 7 barangays'));
     }
-    if(run.status==='failed'){
-        const reason=run.progress?.message||run.error||'Training ended before results could be verified.';
-        copy.append(node('p','text-sm',reason.includes('host_memory_pressure')?'Training stopped because available memory was low.':reason));
-    }
-    line.append(copy);
-    if(!updating)line.append(button(run.status==='failed'?'View failure details':'Review version',()=>review(run.id,true)));
+    if(unavailable&&run)note='Showing the last reported status. '+(updating?'Checking again automatically.':'Use Check again to refresh.');
+    message(label,'monthly-progress-state');
+    message(countText,'monthly-progress-count');
+    message(note,'monthly-progress-note');
+    const announcement=[label,countText,unavailable?'Training status could not be refreshed.':''].filter(Boolean).join('. ');
+    if($('monthly-progress-announcement').textContent!==announcement)message(announcement,'monthly-progress-announcement');
+ }
+
+ function renderRun(run,published){
+    const line=node('div','admin-monthly-row'),copy=node('div');
+    const badge=node('p','admin-monthly-badge',published?'Currently published':run.status==='published'?'Previously published':run.status==='ready'?'Ready to review':'Failed');
+    badge.dataset.state=run.status==='failed'?'attention':'confirmed';
+    copy.append(node('p','font-semibold',monthLabel(shiftMonth(run.cutoff,1))+' prediction'),badge);
+    copy.append(node('p','admin-monthly-run-context',(run.dataset_id?'Saved CSV '+run.dataset_id.slice(0,8):run.mode===mixedMode?'Dataset-backed preview':'Operational reports')+' · History through '+monthLabel(run.cutoff)));
+    if(run.status==='failed')copy.append(node('p','text-sm',trainingFailure(run)));
+    line.append(copy,button(run.status==='failed'?'View failure details':'Review version',()=>review(run.id,true)));
     return line;
  }
  async function loadStatus(){
@@ -306,10 +476,10 @@
     try{
         const state=await request('/status'),host=$('monthly-runs');
         if(sequence!==statusSequence)return;
-        clearInterval(elapsedTimer);
         showPublication(state);
         lastRuns=state.runs;
         renderSteps();
+        renderTrainingProgress();
         const updating=lastRuns.some(isUpdating);
         canPrepare=state.python_configured===true&&(state.worker_ready===true||state.worker_ready===undefined&&state.worker_platform==='Windows bounded worker')&&!updating;
         $('monthly-create').disabled=!canPrepare||preparing;
@@ -317,26 +487,23 @@
         else if(canPrepare)showWorkerStatus('ready','Training worker ready','');
         else if(lowMemory(state.worker_message))showWorkerStatus('paused','Training temporarily unavailable','You can still review saved predictions.');
         else showWorkerStatus('attention','Training unavailable','You can still confirm monthly reports.',state.worker_message||state.worker_platform||'The server did not report a ready training worker.');
-        const clocks=[],activeRuns=lastRuns.filter(isUpdating);
         const verified=lastRuns.filter(run=>!isUpdating(run)&&run.status!=='failed');
         const failed=lastRuns.filter(run=>run.status==='failed');
-        const rows=[...activeRuns,...verified].map(run=>renderRun(run,state.publication?.run_id===run.id,clocks));
-        if(!rows.length)rows.push(node('p','text-sm','Prepare an update to see its progress and results here.'));
+        const rows=verified.map(run=>renderRun(run,state.publication?.run_id===run.id));
+        if(!rows.length)rows.push(node('p','text-sm','Verified versions appear here after training.'));
         host.replaceChildren(...rows);
         $('monthly-past-attempts').hidden=!failed.length;
         message('('+failed.length+')','monthly-past-count');
         const key=JSON.stringify(failed);
         if(key!==pastRunsKey){
-            $('monthly-past-runs').replaceChildren(...failed.map(run=>renderRun(run,false,clocks)));
+            $('monthly-past-runs').replaceChildren(...failed.map(run=>renderRun(run,false)));
             pastRunsKey=key;
         }
-        if(updating&&active){
-            timer=setTimeout(loadStatus,10000);
-            if(clocks.length)elapsedTimer=setInterval(()=>clocks.forEach(tick=>tick()),1000);
-        }
+        if(updating&&active)timer=setTimeout(loadStatus,10000);
     }catch(e){
         if(sequence!==statusSequence)return;
-        clearInterval(elapsedTimer);
+        renderTrainingProgress(true);
+        if(active&&lastRuns.some(isUpdating))timer=setTimeout(loadStatus,10000);
         canPrepare=false;
         $('monthly-create').disabled=true;
         showWorkerStatus('attention','Training status unavailable','Check again to retry.',e.message);
@@ -351,7 +518,7 @@
         return loadStatus();
     }
     statusSequence++;
-    clearTimeout(probabilityTimer);clearTimeout(timer);clearInterval(elapsedTimer);
+    clearTimeout(probabilityTimer);clearTimeout(timer);
  }
 
  function openReports(period=latestCompletedMonth){
@@ -383,10 +550,12 @@
     $('monthly-start').addEventListener('input',updateRange);
     $('monthly-cutoff').addEventListener('input',updateRange);
     $('monthly-use-range').addEventListener('click',()=>{$('monthly-start').value=$('monthly-start').max;updateRange();});
-    const refreshReports=()=>{if(loadedReportMonth&&active)loadReports();};
+    initializeReportControls();
+    const refreshReports=()=>{if(loadedReportMonth&&active&&!reportWriting)loadReports();};
     window.addEventListener?.('health-intel:classification-reviewed',refreshReports);
-    $('monthly-report-month').addEventListener('change',clearReports);
-    $('monthly-load-reports').addEventListener('click',()=>loadReports().catch(e=>{$('monthly-report-summary').textContent=e.message;}));
+    $('monthly-report-month').addEventListener('change',()=>{clearReports();return loadReports();});
+    $('monthly-load-reports').addEventListener('click',loadReports);
+    $('monthly-progress-review').addEventListener('click',()=>review(progressRun.id,true).catch(e=>message(e.message,'monthly-progress-note')));
     $('monthly-refresh').addEventListener('click',loadStatus);
     $('monthly-check-worker').addEventListener('click',loadStatus);
     $('monthly-create').addEventListener('click',async()=>{
@@ -408,7 +577,13 @@
             if(!await approval('Prepare a new SARIMA update?',description))return;
             if(start!==$('monthly-start').value||cutoff!==$('monthly-cutoff').value||mode!==trainingMode()||dataset_id!==uploadId())return;
             const run=await request('/runs',{start,cutoff,mode,...(dataset_id?{dataset_id}:{})});
-            tell(['ready','published'].includes(run.status)?'A verified version already exists for this input. Review it below.':'Update requested. Follow its progress in Training progress and results.');
+            if(run.id&&run.cutoff){
+                lastRuns=[{...run,mode,dataset_id},...lastRuns.filter(previous=>previous.id!==run.id)];
+                renderSteps();
+                renderTrainingProgress();
+            }
+            tell(['ready','published'].includes(run.status)?'A verified version already exists for this input.':'Training requested. Progress appears at the top of this tab.');
+            $('monthly-progress-title').focus();
             await loadStatus();
         }catch(e){
             if(lowMemory(e.message)){

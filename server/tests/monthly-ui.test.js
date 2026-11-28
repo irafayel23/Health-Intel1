@@ -10,7 +10,7 @@ class Element{
  before(e){const p=this.parentElement;p.children.splice(p.children.indexOf(this),0,e);e.parentElement=p;}
  after(e){const p=this.parentElement;p.children.splice(p.children.indexOf(this)+1,0,e);e.parentElement=p;}
  replaceChildren(...e){this.children=[];this.append(...e);this._text='';} setAttribute(k,v){this.attributes[k]=String(v);} addEventListener(k,f){(this.listeners[k]??=[]).push(f);}
- async fire(k,e={}){for(const f of this.listeners[k]||[])await f({preventDefault(){},...e});} get lastElementChild(){return this.children.at(-1);} querySelector(t){return this.children.find(e=>e.tagName===t);} contains(e){return e===this;} focus(){} getBoundingClientRect(){return {left:0,width:700};}
+ async fire(k,e={}){for(const f of this.listeners[k]||[])await f({target:this,preventDefault(){},...e});} get lastElementChild(){return this.children.at(-1);} querySelector(t){for(const child of this.children){if(child.tagName===t)return child;const nested=child.querySelector(t);if(nested)return nested;}} removeAttribute(key){delete this.attributes[key];if(key==="value")this.value="";} showModal(){this.open=true;} close(){this.open=false;} contains(e){return e===this;} focus(){} getBoundingClientRect(){return {left:0,width:700};}
 }
 const settle=async()=>{await new Promise(r=>setImmediate(r));await new Promise(r=>setImmediate(r));};
 function app(handler, role='mho', includeProbability=false, Clock=Date){
@@ -80,12 +80,12 @@ test('Admin training is read-only until an eligible prediction is approved',asyn
  const review=a.els['monthly-review'];
  const publishButton=()=>review.children.find(e=>e.textContent==='Review and publish this version');
  const runRows=a.els['monthly-runs'].children;
- await runRows.find(row=>row.textContent.includes('October 2026 forecast')).children[1].fire('click');
+ await runRows.find(row=>row.textContent.includes('October 2026 prediction')).children[1].fire('click');
  assert.match(review.textContent,/first prediction month has ended/);
  assert.equal(publishButton(),undefined);
  assert.equal(posts().length,0);
 
- await runRows.find(row=>row.textContent.includes('November 2026 forecast')).children[1].fire('click');
+ await runRows.find(row=>row.textContent.includes('November 2026 prediction')).children[1].fire('click');
  let approve=false;
  a.context.window.confirm=()=>approve;
  const publish=publishButton();
@@ -111,17 +111,19 @@ test('restored monthly reports explain missing confirmations and block a known i
  await settle();
  await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
  await a.els['monthly-load-reports'].fire('click');
- assert.match(a.els['monthly-report-summary'].textContent,/6 of 7 barangays confirmed/);
+ assert.equal(a.els['monthly-report-count'].textContent,'6 of 7 confirmed');
  assert.equal(a.els['monthly-step-report-status'].textContent,'6 of 7 confirmed');
  assert.equal(a.els['monthly-step-reports'].attributes['aria-current'],'step');
- assert.equal(a.els['monthly-reports'].children.at(-1).children[1].disabled,true);
+ assert.match(a.els['monthly-reports'].textContent,/Pending disease review/);
+ assert.equal(a.els['monthly-report-all'].disabled,true);
  a.els['monthly-start'].value='2020-01';
  await a.els['monthly-create'].fire('click');
  assert.match(a.els['monthly-prepare-message'].textContent,/Finish confirming all seven/);
  assert.equal(a.calls.filter(c=>c.options?.method==='POST').length,0);
  a.els['monthly-report-month'].value='2020-02';
  await a.els['monthly-report-month'].fire('change');
- assert.equal(a.els['monthly-reports'].children.length,0);
+ assert.equal(a.els['monthly-reports'].children.length,7);
+ assert(a.calls.some(call=>call.url.endsWith('/reports?month=2020-02')));
 });
 
 test('both open portals switch from demonstration to the current publication, and label the result version even if it changes after status', async()=>{
@@ -245,40 +247,84 @@ test('disease review reloads an open monthly report without stale classification
  });
  await settle();await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
  await a.els['monthly-load-reports'].fire('click');
- assert.equal(a.els['monthly-reports'].children[0].children[1].disabled,true);
+ assert.equal(a.els['monthly-reports'].children[0].querySelector('input'),undefined);
  pending=0;a.events['health-intel:classification-reviewed']();await settle();
- assert.equal(a.els['monthly-reports'].children[0].children[1].disabled,false);
- assert.match(a.els['monthly-reports'].textContent,/0 pending classifications/);
+ assert.equal(a.els['monthly-reports'].children[0].querySelector('input').type,'checkbox');
+ assert.match(a.els['monthly-report-summary'].textContent,/0 pending classifications/);
  assert(a.calls.filter(call=>call.url.includes('/reports?')).every(call=>call.options.cache==='no-store'));
 });
 
-test('show actual worker progress when Monthly Updates is opened',async()=>{
- const a=trainingApp(async url=>url.endsWith('/status')||url.endsWith('/publication')
-  ?ok({runs:[{id:'run-fixture',cutoff:'2025-10',status:'running',created_at:new Date(Date.now()-125000).toISOString(),progress:{completed:24}},{id:'queued-fixture',cutoff:'2025-10',status:'queued'},{id:'failed-fixture',cutoff:'2025-10',status:'failed',progress:{state:'failed',message:'Resource control stopped training: host_memory_pressure'}}],publication:null}):ok(options));
- await settle();
+test('training progress distinguishes queued, fitting, verification and ready states',async()=>{
+ const run={id:'run-fixture',cutoff:'2025-10',status:'queued',mode:'dataset_plus_reports'};
+ const state={runs:[run,{id:'failed-fixture',cutoff:'2025-10',status:'failed',progress:{state:'failed',message:'Resource control stopped training: host_memory_pressure'}}],publication:null};
+ const a=trainingApp(async url=>url.endsWith('/status')?ok(state):ok([]),'2026-11-27T03:00:00Z');
+ const get=id=>a.els['monthly-progress-'+id];
+ const refresh=()=>a.els['monthly-refresh'].fire('click');
+ await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
  try{
-  await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
-  const progress=a.els['monthly-runs'].children[0].children[0].children.find(child=>child.tagName==='progress');
-  assert.equal(progress.value,24);assert.equal(progress.max,70);
-  a.els['monthly-cutoff'].value='2025-10';
-  await a.els['monthly-cutoff'].fire('input');
-  assert.equal(a.els['monthly-step-train'].attributes['aria-current'],'step');
-  assert.equal(a.els['monthly-step-report-status'].textContent,'Confirmed for run');
-  assert.match(a.els['monthly-runs'].textContent,/November 2025 forecast.*24 of 70 combinations processed/);
-  assert.doesNotMatch(a.els['monthly-runs'].textContent,/available memory/);
+  assert.equal(get('state').textContent,'Queued');
+  assert.equal(get('value').value,'');
+  assert.equal(get('percent').textContent,'');
+  run.status='running';run.progress={completed:24};
+  await refresh();
+  assert.equal(get('state').textContent,'Training and testing');
+  assert.equal(get('count').textContent,'24 of 70 combinations processed');
+  assert.equal(get('value').value,24);
+  assert.equal(get('percent').textContent,'34%');
+  assert.match(get('context').textContent,/November 2025 first prediction month · Dataset-backed preview/);
+  assert.equal(get('review').hidden,true);
   const past=a.els['monthly-past-attempts'],pastRows=a.els['monthly-past-runs'];
-  assert.equal(past.hidden,false);assert.equal(past.open,false);
+  assert.equal(past.hidden,false);
   assert.match(pastRows.textContent,/available memory/);
   past.open=true;const row=pastRows.children[0];
-  await a.els['monthly-refresh'].fire('click');
+  run.progress={state:'complete',completed:70};
+  await refresh();
+  assert.equal(get('state').textContent,'Verifying results');
+  assert.equal(get('percent').textContent,'100%');
+  assert.equal(get('review').hidden,true);
+  run.status='ready';
+  await refresh();
+  assert.equal(get('state').textContent,'Ready to review');
+  assert.equal(get('meter').hidden,true);
+  assert.equal(get('review').hidden,false);
   assert.equal(past.open,true);assert.equal(pastRows.children[0],row);
-  assert.match(a.els['monthly-runs'].children[0].textContent,/Elapsed since queued: 0:02:[0-5][0-9]/);
-  const waiting=a.els['monthly-runs'].children[1].children[0].children.find(child=>child.tagName==='progress');
-  assert.equal(waiting.value,'');
-  assert.match(waiting.attributes['aria-label'],/Waiting for the worker/);
-  assert.equal(a.els['monthly-load-test'],undefined);
   assert(!a.calls.some(call=>call.options?.method==='POST'));
- }finally{a.context.window.HealthIntelMonthlyUpdates.setActive(false);}
+ }finally{await a.context.window.HealthIntelMonthlyUpdates.setActive(false);}
+});
+
+test('Admin reviews selected eligible reports and explicitly acknowledges zero counts before one write',async()=>{
+ const rows=[
+  {barangay:'Alegria',total:0,pending:0,other:0,digest:'a'.repeat(64)},
+  {barangay:'Blumentritt',total:4,pending:0,other:0,digest:'b'.repeat(64)},
+  {barangay:'Caliban',total:0,pending:1,other:0,digest:'c'.repeat(64)}
+ ];
+ const a=trainingApp(async(url,request)=>{
+  if(url.endsWith('/status'))return ok({runs:[],publication:null});
+  if(request.method==='POST'){for(const row of rows.slice(0,2))row.confirmed=true;return ok({});}
+  return ok(rows);
+ },'2026-11-27T03:00:00Z');
+ const get=id=>a.els['monthly-report-'+id];
+ const posts=()=>a.calls.filter(call=>call.options?.method==='POST');
+ await a.context.window.HealthIntelMonthlyUpdates.setActive(true);
+ get('all').checked=true;await get('all').fire('change');
+ assert.equal(get('review').textContent,'Review selected (2)');
+ assert.equal(a.els['monthly-reports'].children[2].querySelector('input'),undefined);
+ await get('review').fire('click');
+ assert.equal(get('dialog').open,true);
+ assert.match(get('dialog-summary').textContent,/4 eligible cases · 1 zero-case report/);
+ await get('cancel').fire('click');assert.equal(posts().length,0);
+ await get('review').fire('click');
+ await get('confirm').fire('click');assert.equal(posts().length,0);
+ get('ack').checked=true;await get('ack').fire('change');
+ await get('confirm').fire('click');
+ assert.equal(posts().length,1);
+ assert.deepEqual(JSON.parse(posts()[0].options.body),{
+  month:'2026-10',complete:true,reports:rows.slice(0,2).map(({barangay,digest})=>({barangay,digest}))
+ });
+ assert.equal(get('count').textContent,'2 of 7 confirmed');
+ assert.equal(get('all').disabled,true);
+ assert.equal(get('dialog').open,false);
+ await a.context.window.HealthIntelMonthlyUpdates.setActive(false);
 });
 
 test('Disease Review ignores an older queue response after a newer refresh',async()=>{
@@ -340,7 +386,7 @@ test('dataset mode submits an updated preview after the latest month closes and 
  assert.equal(a.els['monthly-use-range'].hidden,true);
  assert.equal(a.els['monthly-cutoff'].max,'2026-11');
  assert.equal(a.els['monthly-cutoff'].value,'2026-11');
- assert.match(a.els['monthly-report-summary'].textContent,/7 of 7 barangays confirmed/);
+ assert.equal(a.els['monthly-report-count'].textContent,'7 of 7 confirmed');
  assert.equal(a.els['monthly-forecast-month'].textContent,'Prediction period · December 2026 – February 2027');
  await a.els['monthly-create'].fire('click');
  const posted=a.calls.find(call=>call.url.endsWith('/runs')&&call.options?.method==='POST');

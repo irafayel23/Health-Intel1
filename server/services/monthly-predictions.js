@@ -116,7 +116,42 @@ function createMonthlyPredictions(db,{directory=DIRECTORY,engine=ENGINE,python=p
  }
  async function freshness(input,c=db){try{const current=await inputFor(input.start,input.cutoff,c,input.mode,input.uploaded_dataset_sha256);if(!input.forecast_format)delete current.forecast_format;return D.hash(current)===D.hash(input);}catch{return false;}}
  async function list(){const readiness=await probe(python);const [rows]=await db.query('SELECT * FROM prediction_runs ORDER BY created_at DESC LIMIT 30');const result=[];for(const row of rows){const r=await reconcile(row);let progress=null;try{progress=read(row.id,'progress.json');}catch{}let mode,dataset_id;try{const input=read(row.id,'input.json');mode=input.mode;dataset_id=input.uploaded_dataset_sha256;}catch{}result.push({...r,progress,mode,dataset_id});}const [[publication]]=await db.query('SELECT * FROM prediction_publications WHERE id=1');return {runs:result,publication,minimum_months:45,source:'Operational database cases only',dataset_history:{start:D.DATASET_START,last_month:'2026-09',first_report_month:D.FIRST_REPORT_MONTH},worker_platform:process.platform==='win32'?'Windows bounded worker':process.platform==='linux'?'Linux cgroup-v2 bounded worker':'Unsupported worker platform',worker_ready:readiness.ready,worker_message:readiness.message||null,python_configured:readiness.ready,diseases:D.DISEASES,barangays:D.BARANGAYS};}
- async function confirm({month,barangay,complete},user){D.closed(month,now());if(typeof complete!=='boolean'||!D.BARANGAYS.includes(barangay))throw D.fail('Choose a pilot barangay and an explicit completeness decision.');return locked(async c=>{await c.beginTransaction();try{const summary=D.summarize(await monthRows(month,c),barangay);if(complete&&summary.pending)throw D.fail('Resolve pending disease classifications before confirming this report.',409);if(complete)await c.execute('INSERT INTO prediction_month_reports(month,barangay,digest,confirmed_by) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE digest=VALUES(digest),confirmed_by=VALUES(confirmed_by),confirmed_at=CURRENT_TIMESTAMP',[month,barangay,summary.digest,user.system_id]);else await c.execute('DELETE FROM prediction_month_reports WHERE month=? AND barangay=?',[month,barangay]);await createSystemAudit(c).record(user,'Monthly Report Reviewed',{summary:complete?'Completed operational monthly report confirmed':'Operational monthly report reopened',target_type:'Monthly report',target_id:month+' / '+barangay,outcome:'Succeeded'});await c.commit();return {month,barangay,complete};}catch(e){await c.rollback();throw e;}});}
+ async function confirm({month,barangay,complete,reports:selection},user){
+  D.closed(month,now());
+  const batch=selection!==undefined;
+  if(batch){
+   if(complete!==true||barangay!==undefined||!Array.isArray(selection)||!selection.length||selection.length>D.BARANGAYS.length||
+      selection.some(report=>!D.BARANGAYS.includes(report?.barangay)||typeof report.digest!=='string'||!/^[a-f0-9]{64}$/.test(report.digest))||
+      new Set(selection.map(report=>report.barangay)).size!==selection.length)throw D.fail('Choose distinct reviewed barangay reports and confirm reporting is complete.');
+  }else if(typeof complete!=='boolean'||!D.BARANGAYS.includes(barangay)){
+   throw D.fail('Choose a pilot barangay and an explicit completeness decision.');
+  }
+  return locked(async c=>{
+   await c.beginTransaction();
+   try{
+    const current=batch?await reports(month,c):[D.summarize(await monthRows(month,c),barangay)];
+    const selected=batch?selection:[{barangay}];
+    const summaries=selected.map(item=>{
+     const summary=current.find(report=>report.barangay===item.barangay);
+     if(batch&&summary.digest!==item.digest)throw D.fail(item.barangay+' changed after review. Refresh the reports and review the latest counts.',409);
+     if(complete&&summary.pending)throw D.fail('Resolve pending disease classifications for '+item.barangay+' before confirming this report.',409);
+     return summary;
+    });
+    const audit=createSystemAudit(c);
+    for(const summary of summaries){
+     if(batch&&summary.confirmed)continue;
+     if(complete)await c.execute('INSERT INTO prediction_month_reports(month,barangay,digest,confirmed_by) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE digest=VALUES(digest),confirmed_by=VALUES(confirmed_by),confirmed_at=CURRENT_TIMESTAMP',[month,summary.barangay,summary.digest,user.system_id]);
+     else await c.execute('DELETE FROM prediction_month_reports WHERE month=? AND barangay=?',[month,summary.barangay]);
+     await audit.record(user,'Monthly Report Reviewed',{summary:complete?'Completed operational monthly report confirmed':'Operational monthly report reopened',target_type:'Monthly report',target_id:month+' / '+summary.barangay,outcome:'Succeeded'});
+    }
+    await c.commit();
+    return batch?{month,barangays:summaries.map(summary=>summary.barangay),complete}:{month,barangay,complete};
+   }catch(e){
+    await c.rollback();
+    throw e;
+   }
+  });
+ }
  async function start({start,cutoff,mode,dataset_id},user){verifyEngine();const readiness=await probe(python);if(!readiness.ready)throw D.fail(readiness.message||'Scientific worker is not ready.',503);return locked(async c=>{const [pending]=await c.query("SELECT * FROM prediction_runs WHERE status IN ('running','queued')");for(const row of pending){const updated=await reconcile(row,c);if(['running','queued'].includes(updated.status))throw D.fail('A monthly fitting run is already active. Wait for it to finish.',409);}await c.beginTransaction();let run;try{const input=await inputFor(start,cutoff,c,mode,dataset_id);const [existing]=await c.execute("SELECT * FROM prediction_runs WHERE input_hash=? AND status IN ('ready','published') ORDER BY created_at DESC LIMIT 1",[D.hash(input)]);if(existing.length){verified(existing[0]);await c.commit();return existing[0];}run=crypto.randomUUID();write(run,'input.json',input);await c.execute("INSERT INTO prediction_runs(id,start_month,cutoff,status,input_hash,created_by) VALUES(?,?,?,'queued',?,?)",[run,start,cutoff,D.hash(input),user.system_id]);await createSystemAudit(c).record(user,'Prediction Update Prepared',{summary:input.uploaded_dataset_sha256?'Saved CSV preview prepared for SARIMA':input.mode===D.MIXED?'Dataset-backed preview prepared for SARIMA':'Frozen operational monthly totals prepared for SARIMA',target_type:'Prediction version',target_id:run,outcome:'Prepared'});await c.commit();}catch(e){await c.rollback();throw e;}
   activeRuns.add(run);
   try{

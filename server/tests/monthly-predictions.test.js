@@ -20,6 +20,41 @@ test('prediction management belongs to Admin and published predictions stay avai
 const name='health_intel_monthly_verify_'+process.pid+'_'+crypto.randomBytes(4).toString('hex'),directory=fs.mkdtempSync(path.join(os.tmpdir(),'health-intel-monthly-'));let admin,db,created=false,clock=new Date('2026-10-02T00:00:00Z');
 before(async()=>{admin=await mysql.createConnection({host:process.env.DB_HOST||'127.0.0.1',port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER||'root',password:process.env.DB_PASSWORD||''});await admin.query('CREATE DATABASE `'+name+'`');created=true;db=mysql.createPool({host:process.env.DB_HOST||'127.0.0.1',port:Number(process.env.DB_PORT||3306),user:process.env.DB_USER||'root',password:process.env.DB_PASSWORD||'',database:name,connectionLimit:4});await db.query('CREATE TABLE barangays(id INT PRIMARY KEY,name VARCHAR(100))');await db.query('CREATE TABLE disease_registry(id INT PRIMARY KEY,name VARCHAR(100))');await db.query('CREATE TABLE health_cases(id INT AUTO_INCREMENT PRIMARY KEY,date_recorded DATE,disease VARCHAR(100),disease_id INT,barangay_id INT,disease_review_status VARCHAR(30),is_archived BOOLEAN DEFAULT FALSE,deleted_at DATETIME NULL)');await db.query('CREATE TABLE case_visits(id INT PRIMARY KEY,case_id INT)');await db.query('CREATE TABLE system_audit_logs(id INT AUTO_INCREMENT PRIMARY KEY,user_id VARCHAR(50),role VARCHAR(30),action VARCHAR(100),details TEXT)');await db.query('CREATE INDEX qa_audit_action ON system_audit_logs(action)');await db.query('CREATE INDEX qa_case_period ON health_cases(date_recorded,barangay_id)');await migrateMonthlyPredictions(db);await migrateMonthlyPredictions(db);for(let i=0;i<7;i++)await db.execute('INSERT INTO barangays VALUES(?,?)',[i+1,D.BARANGAYS[i]]);for(let i=0;i<10;i++)await db.execute('INSERT INTO disease_registry VALUES(?,?)',[i+1,D.DISEASES[i]]);const values=[];for(const s of snapshot.scopes)for(let m=0;m<45;m++)for(let n=0;n<s.history[m];n++)values.push([snapshot.dates[m]+'-15',s.disease,D.DISEASES.indexOf(s.disease)+1,D.BARANGAYS.indexOf(s.barangay)+1,'Recorded']);await db.query('INSERT INTO health_cases(date_recorded,disease,disease_id,barangay_id,disease_review_status) VALUES ?',[values]);await db.query('INSERT INTO case_visits VALUES(1,1),(2,1)');});
 after(async()=>{if(db)await db.end();if(admin){if(created){assert.match(name,/^health_intel_monthly_verify_\d+_[a-f0-9]{8}$/);await admin.query('DROP DATABASE `'+name+'`');}await admin.end();}assert.ok(directory.startsWith(os.tmpdir()));fs.rmSync(directory,{recursive:true,force:true});});
+test('bulk confirmation is atomic, verifies reviewed digests, and keeps one audit per newly confirmed barangay',async()=>{
+ const service=createMonthlyPredictions(db,{directory,now:()=>new Date('2026-11-03T00:00:00Z')});
+ const user={system_id:'ADMIN-FIXTURE',role:'admin'};
+ const month='2026-10';
+ const first=D.BARANGAYS[0],second=D.BARANGAYS[1];
+ const selections=(await service.reports(month)).filter(row=>[first,second].includes(row.barangay)).map(({barangay,digest})=>({barangay,digest}));
+ const body={month,complete:true,reports:selections};
+ await assert.rejects(service.confirm({...body,reports:[selections[0],selections[0]]},user),/distinct/);
+ await assert.rejects(service.confirm({...body,month:'2026-11'},user),/completed/);
+ const [[before]]=await db.query("SELECT COUNT(*) AS total FROM system_audit_logs WHERE action='Monthly Report Reviewed'");
+ const [caseRow]=await db.execute("INSERT INTO health_cases(date_recorded,disease,barangay_id,disease_review_status) VALUES('2026-10-20','Cough',?,'Pending')",[D.BARANGAYS.indexOf(second)+1]);
+ try{
+  await assert.rejects(service.confirm(body,user),/changed after review/);
+  const refreshed=(await service.reports(month)).filter(row=>[first,second].includes(row.barangay)).map(({barangay,digest})=>({barangay,digest}));
+  await assert.rejects(service.confirm({...body,reports:refreshed},user),/pending disease classifications/);
+  assert(!(await service.reports(month)).some(row=>row.confirmed));
+  const [[afterRejected]]=await db.query("SELECT COUNT(*) AS total FROM system_audit_logs WHERE action='Monthly Report Reviewed'");
+  assert.equal(afterRejected.total,before.total);
+ }finally{
+  await db.execute('DELETE FROM health_cases WHERE id=?',[caseRow.insertId]);
+ }
+ try{
+  assert.deepEqual(await service.confirm(body,user),{month,complete:true,barangays:[first,second]});
+  assert.equal((await service.reports(month)).filter(row=>row.confirmed).length,2);
+  await service.confirm(body,user);
+  const [[afterSuccess]]=await db.query("SELECT COUNT(*) AS total FROM system_audit_logs WHERE action='Monthly Report Reviewed'");
+  assert.equal(afterSuccess.total,before.total+2);
+  await service.confirm({month,barangay:second,complete:false},user);
+  assert.deepEqual((await service.reports(month)).filter(row=>row.confirmed).map(row=>row.barangay),[first]);
+ }finally{
+  await service.confirm({month,barangay:first,complete:false},user);
+  if((await service.reports(month)).find(row=>row.barangay===second).confirmed)await service.confirm({month,barangay:second,complete:false},user);
+ }
+});
+
 test('dataset-backed forecast reads October confirmations and preserves the operational publication',async()=>{
  const user={system_id:'MHO-FIXTURE',role:'mho'};
  let inputRead;

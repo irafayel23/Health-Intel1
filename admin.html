@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="assets/css/shared/health-dialogs.css?v=20261115-comparison" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="assets/css/shared/health-map.css?v=20261124-admin-fullscreen" />
-    <link rel="stylesheet" href="assets/css/admin/admin-analytics.css?v=20261125-multi-month" />
+    <link rel="stylesheet" href="assets/css/admin/admin-analytics.css?v=20261128-monthly-review" />
     <link rel="stylesheet" href="assets/css/admin/admin-overview.css?v=1" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -398,26 +398,85 @@
                     <section id="monthly-updates" class="admin-monthly">
                       <header class="admin-monthly-intro">
                         <div class="admin-monthly-titlebar">
-                          <div><h2>Monthly Updates</h2><p><strong id="monthly-forecast-month" role="status">—</strong> <span id="monthly-target-source">· Operational reports</span></p></div>
+                          <div><h2>Model Training</h2><p><strong id="monthly-forecast-month" role="status">—</strong> <span id="monthly-target-source">· Operational reports</span></p></div>
                           <p id="monthly-publication" class="admin-monthly-badge" role="status">Checking published version…</p>
                         </div>
-                        <ol class="admin-monthly-steps" aria-label="Forecast update steps">
-                          <li id="monthly-step-reports" aria-current="step"><span id="monthly-step-source-label">Confirm reports</span><small id="monthly-step-report-status">Awaiting review</small></li>
-                          <li id="monthly-step-train"><span>Train and test</span><small id="monthly-step-training-status">Waiting for reports</small></li>
-                          <li id="monthly-step-review"><span id="monthly-step-review-label">Review &amp; publish</span><small id="monthly-step-review-status">Awaiting results</small></li>
-                        </ol>
                         <p id="monthly-message" role="status" aria-live="polite" class="admin-monthly-message"></p>
                       </header>
 
+                      <section class="admin-monthly-card admin-monthly-training-card" aria-labelledby="monthly-progress-title">
+                        <div class="admin-monthly-titlebar">
+                          <div>
+                            <h3 id="monthly-progress-title" tabindex="-1">Training progress</h3>
+                            <p id="monthly-progress-context">Checking for a training run…</p>
+                          </div>
+                          <span id="monthly-progress-state" class="admin-monthly-badge" hidden></span>
+                        </div>
+                        <div id="monthly-progress-meter" hidden>
+                          <div class="admin-monthly-progress-meta">
+                            <strong id="monthly-progress-count"></strong>
+                            <strong id="monthly-progress-percent" class="admin-monthly-percent"></strong>
+                          </div>
+                          <progress id="monthly-progress-value" class="admin-monthly-progress" max="70" aria-labelledby="monthly-progress-count"></progress>
+                        </div>
+                        <div class="admin-monthly-titlebar admin-monthly-progress-footer">
+                          <p id="monthly-progress-note">Checking training status…</p>
+                          <button id="monthly-progress-review" type="button" class="admin-monthly-button admin-monthly-primary" hidden>Review version</button>
+                        </div>
+                        <span id="monthly-progress-announcement" class="sr-only" role="status"></span>
+                      </section>
+
+                      <ol class="admin-monthly-steps" aria-label="Prediction update steps">
+                        <li id="monthly-step-reports" aria-current="step"><span id="monthly-step-source-label">Confirm reports</span><small id="monthly-step-report-status">Awaiting review</small></li>
+                        <li id="monthly-step-train"><span>Train and test</span><small id="monthly-step-training-status">Waiting for reports</small></li>
+                        <li id="monthly-step-review"><span id="monthly-step-review-label">Review &amp; publish</span><small id="monthly-step-review-status">Awaiting results</small></li>
+                      </ol>
+
                       <section id="monthly-report-card" class="admin-monthly-card admin-monthly-report-card" aria-labelledby="monthly-reports-title">
-                        <h3 id="monthly-reports-title">Confirm barangay reports</h3>
-                        <p>Review all seven barangays for a completed month. Confirm zero cases only when reporting is complete. Resolve pending disease classifications before confirming.</p>
+                        <div class="admin-monthly-titlebar">
+                          <h3 id="monthly-reports-title">Barangay reports</h3>
+                          <span id="monthly-report-count" class="admin-monthly-badge" hidden></span>
+                        </div>
+                        <p>Review the reports for a completed month before confirming them.</p>
                         <div class="admin-monthly-fields">
                           <label for="monthly-report-month">Reporting month<input id="monthly-report-month" type="month" required></label>
-                          <button id="monthly-load-reports" type="button" class="admin-monthly-button">Load reports</button>
+                          <button id="monthly-load-reports" type="button" class="admin-monthly-button" aria-label="Refresh barangay reports" title="Refresh barangay reports"><i data-lucide="refresh-cw" class="h-4 w-4" aria-hidden="true"></i></button>
                         </div>
-                        <p id="monthly-report-summary" class="admin-monthly-report-summary" role="status">Select a completed month and load its reports.</p>
-                        <div id="monthly-reports" class="admin-monthly-list"></div>
+                        <p id="monthly-report-summary" class="admin-monthly-report-summary" role="status">Loading barangay reports…</p>
+                        <div id="monthly-report-grid" class="admin-monthly-report-grid" hidden>
+                          <table>
+                            <caption class="sr-only">Monthly case counts and confirmation by barangay</caption>
+                            <thead><tr>
+                              <th scope="col"><label class="admin-monthly-checkbox"><input id="monthly-report-all" type="checkbox" aria-label="Select all reports available for confirmation"></label></th>
+                              <th scope="col">Barangay</th><th scope="col">Eligible cases</th><th scope="col">Status</th>
+                            </tr></thead>
+                            <tbody id="monthly-reports"></tbody>
+                          </table>
+                          <div id="monthly-report-actions" class="admin-monthly-report-actions">
+                            <span id="monthly-report-selection" role="status">Select reports you’ve reviewed.</span>
+                            <button id="monthly-report-review" type="button" class="admin-monthly-button admin-monthly-primary" disabled>Review selected</button>
+                          </div>
+                        </div>
+                        <p id="monthly-report-feedback" class="admin-monthly-message" role="status"></p>
+                        <dialog id="monthly-report-dialog" class="admin-monthly-dialog" aria-labelledby="monthly-report-dialog-title">
+                          <h3 id="monthly-report-dialog-title">Confirm barangay reports</h3>
+                          <p id="monthly-report-dialog-summary"></p>
+                          <ul id="monthly-report-dialog-list"></ul>
+                          <label class="admin-monthly-report-ack"><input id="monthly-report-ack" type="checkbox"><span>I verified that reporting is complete for every selected barangay, including any with zero eligible cases.</span></label>
+                          <div class="admin-monthly-dialog-actions">
+                            <button id="monthly-report-cancel" type="button" class="admin-monthly-button" autofocus>Back to reports</button>
+                            <button id="monthly-report-confirm" type="button" class="admin-monthly-button admin-monthly-primary" disabled>Confirm reports</button>
+                          </div>
+                        </dialog>
+                        <dialog id="monthly-report-detail" class="admin-monthly-dialog" aria-labelledby="monthly-report-detail-title">
+                          <h3 id="monthly-report-detail-title">Barangay report</h3>
+                          <p id="monthly-report-detail-month"></p>
+                          <dl id="monthly-report-detail-values"></dl>
+                          <div class="admin-monthly-dialog-actions">
+                            <button id="monthly-report-detail-close" type="button" class="admin-monthly-button" autofocus>Close</button>
+                            <button id="monthly-report-reopen" type="button" class="admin-monthly-button" hidden>Reopen report</button>
+                          </div>
+                        </dialog>
                       </section>
 
                       <section class="admin-monthly-card admin-monthly-prepare-card" aria-labelledby="monthly-prepare-title">
@@ -450,7 +509,7 @@
 
                       <section class="admin-monthly-card admin-monthly-versions-card" aria-labelledby="monthly-versions-title">
                         <div class="admin-monthly-titlebar">
-                          <h3 id="monthly-versions-title">Training progress and results</h3>
+                          <h3 id="monthly-versions-title">Training results and versions</h3>
                           <button id="monthly-refresh" type="button" class="admin-monthly-button" aria-label="Refresh update status" title="Refresh update status"><i data-lucide="refresh-cw" class="h-4 w-4" aria-hidden="true"></i></button>
                         </div>
                         <div id="monthly-runs" class="admin-monthly-list"></div>
@@ -559,7 +618,7 @@
     <script src="assets/js/shared/account-settings.js?v=20261107-password-renewal"></script>
     <script src="assets/js/shared/role-overview.js?v=20261125-admin"></script>
     <script src="assets/js/admin/admin-shell.js?v=20261125-polish"></script>
-    <script src="assets/js/admin/operational-monthly.js?v=20261127-training-display"></script>
+    <script src="assets/js/admin/operational-monthly.js?v=20261128-monthly-review"></script>
     <script src="assets/js/shared/map-details.js?v=20261123-map-periods"></script>
     <script src="assets/js/shared/map-fullscreen.js?v=20261124-admin-fullscreen"></script>
     <script src="assets/js/admin/admin-analytics.js?v=20261127-dataset-display"></script>
