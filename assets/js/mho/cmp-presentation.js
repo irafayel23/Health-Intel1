@@ -83,7 +83,7 @@
   if(!on||active)return;active=true;
   const dash=$('sarima-dashboard'),summary=$('sarima-summary'),history=dash.querySelector('aside');
   dash.className='grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]';
-  const notice=el('p','mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs leading-relaxed text-blue-950 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-100','Experimental model-based probabilities · Validation against new MHO-confirmed monthly outcomes is still required.','cmp-notice');dash.before(notice);
+  const notice=el('p','mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs leading-relaxed text-blue-950 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-100','Model-based probabilities · Validation against new MHO-confirmed monthly outcomes is still required.','cmp-notice');dash.before(notice);
   summary.classList.remove('mt-5');txt('sarima-summary-title','Count and probabilities');
   const months=$('forecast-months');months.className='grid min-w-0 grid-cols-1 gap-4';
   const detail=el('details','mt-4 border-t border-border pt-3');detail.append(el('summary','cursor-pointer text-sm font-semibold text-foreground','Recorded history and SARIMA model details'));
@@ -97,7 +97,7 @@
    if($('sarima-estimate-info'))heading.append(probabilityInfo());
    card.append(heading);
   }else{
-   card.append(el('p','text-xs font-semibold text-blue-800 dark:text-blue-200','Case count: SARIMA · Experimental probabilities: conditional-pooled COM-Poisson'));
+   card.append(el('p','text-xs font-semibold text-blue-800 dark:text-blue-200','Case count: SARIMA · Probabilities: conditional-pooled COM-Poisson'));
    card.append(el('p','text-xs text-foreground','', 'cmp-unrounded'));
   }
   for(const[k,label]of [['exact','Exactly the estimated count'],['nearby','Within one case']]){
@@ -108,7 +108,7 @@
   card.append(el('p','rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-foreground dark:bg-slate-900','','cmp-intervals'),el('p','text-xs leading-relaxed text-foreground','Select Predict to see the matching saved probability evidence.','cmp-status'));
   card.lastElementChild.setAttribute('role','status');months.append(card);
   const distribution=el('section','min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6',undefined,'cmp-distribution-panel');distribution.setAttribute('aria-labelledby','cmp-distribution-title');
-  distribution.append(el('p','mb-2 text-xs font-semibold uppercase tracking-wider text-teal-800 dark:text-teal-200','COM-Poisson probability distribution'),el('h2','text-lg font-bold text-foreground','Possible case counts','cmp-distribution-title'),el('p','mt-2 text-sm leading-relaxed text-foreground','Highlighted counts are within one case of the SARIMA estimate. Hover or focus a bar for its experimental probability.'),el('div','mt-4 min-w-0','','cmp-distribution'),el('p','mt-2 min-h-10 text-xs leading-relaxed text-foreground','Select Predict to view the distribution.','cmp-distribution-readout'));
+  distribution.append(el('p','mb-2 text-xs font-semibold uppercase tracking-wider text-teal-800 dark:text-teal-200','COM-Poisson probability distribution'),el('h2','text-lg font-bold text-foreground','Possible case counts','cmp-distribution-title'),el('p','mt-2 text-sm leading-relaxed text-foreground','Highlighted counts are within one case of the SARIMA estimate. Hover or focus a bar for its estimated probability.'),el('div','mt-4 min-w-0','','cmp-distribution'),el('p','mt-2 min-h-10 text-xs leading-relaxed text-foreground','Select Predict to view the distribution.','cmp-distribution-readout'));
   dash.append(summary,distribution,history);
   $('cmp-distribution-readout').setAttribute('aria-live','polite');
   history.querySelector('h2').textContent='Historical SARIMA performance';
@@ -119,32 +119,32 @@
  function distribution(r){
   let sum=0,last=0;for(let k=0;k<r.probabilities.length;k++){sum+=r.probabilities[k];last=k;if(sum>=.9999)break;}last=Math.max(last,r.count+1,r.range95[1],6);
   const end=Math.min(last,60),p=r.probabilities,ns='http://www.w3.org/2000/svg',n=(tag,a={},text)=>{const x=document.createElementNS(ns,tag);for(const[k,v]of Object.entries(a))x.setAttribute(k,v);if(text!==undefined)x.textContent=text;return x;};
-  const svg=n('svg',{viewBox:'0 0 560 260',width:'100%',class:'text-foreground',role:'img','aria-label':`Experimental conditional-pooled COM-Poisson probabilities for ${r.disease} in ${r.barangay}`}),max=Math.max(...p),w=490/(end+1);
+  const svg=n('svg',{viewBox:'0 0 560 260',width:'100%',class:'text-foreground',role:'img','aria-label':`Conditional-pooled COM-Poisson probabilities for ${r.disease} in ${r.barangay}`}),max=Math.max(...p),w=490/(end+1);
   svg.append(n('line',{x1:40,x2:540,y1:222,y2:222,stroke:'#64748b'}));
   for(let k=0;k<=end;k++){
    const prob=p[k]||0,near=k>=Math.max(0,r.count-1)&&k<=r.count+1,h=prob/max*165,x=40+k*w+2;
-   const bar=n('rect',{x,y:222-h,width:Math.max(1,w-4),height:Math.max(prob?2:0,h),rx:3,fill:near?'currentColor':'#64748b',class:near?'text-teal-800 dark:text-teal-200':'',tabindex:0,role:'img','aria-label':`${k} cases: ${percent(prob)} experimental probability`});
-   const announce=()=>txt('cmp-distribution-readout',`${k} cases · ${percent(prob)} experimental model probability${near?' · nearby range':''}`);bar.addEventListener('focus',announce);bar.addEventListener('pointerenter',announce);bar.append(n('title',{},`${k} cases: ${percent(prob)}`));svg.append(bar);
+   const bar=n('rect',{x,y:222-h,width:Math.max(1,w-4),height:Math.max(prob?2:0,h),rx:3,fill:near?'currentColor':'#64748b',class:near?'text-teal-800 dark:text-teal-200':'',tabindex:0,role:'img','aria-label':`${k} cases: ${percent(prob)} estimated probability`});
+   const announce=()=>txt('cmp-distribution-readout',`${k} cases · ${percent(prob)} model probability${near?' · nearby range':''}`);bar.addEventListener('focus',announce);bar.addEventListener('pointerenter',announce);bar.append(n('title',{},`${k} cases: ${percent(prob)}`));svg.append(bar);
    svg.append(n('text',{x:x+(w-4)/2,y:240,'text-anchor':'middle',fill:'currentColor','font-size':12},k));
    if(prob>=.02&&end<18)svg.append(n('text',{x:x+(w-4)/2,y:Math.max(15,214-h),'text-anchor':'middle',fill:'currentColor','font-size':11},percent(prob)));
   }
   $('cmp-distribution').replaceChildren(svg);
-  const visible=p.slice(0,end+1).reduce((a,b)=>a+b,0);txt('cmp-distribution-readout',`Horizontal axis: case count. Bar height: experimental probability. Shown counts contain ${percent(Math.min(1,visible))} of model mass; calculations retain the full saved distribution.`);
+  const visible=p.slice(0,end+1).reduce((a,b)=>a+b,0);txt('cmp-distribution-readout',`Horizontal axis: case count. Bar height: estimated probability. Shown counts contain ${percent(Math.min(1,visible))} of model mass; calculations retain the full saved distribution.`);
  }
  function render(result,d){
   if(!active)return null;
   const r=validate(result);
   renderProbabilityInfo(r);
   txt('cmp-history-score',finite(d.score)?d.score.toFixed(2)+'%':'Unavailable');txt('cmp-exact-label','Exactly the estimated count');txt('cmp-nearby-label','Within one case');txt(unroundedId,d.available?'Unrounded expected count: '+d.prediction.toFixed(4):estimateModel?'':'SARIMA count unavailable');
-  if(!r){txt('cmp-exact','Unavailable');txt('cmp-nearby','Unavailable');txt('cmp-status','Experimental probability unavailable. '+({
+  if(!r){txt('cmp-exact','Unavailable');txt('cmp-nearby','Unavailable');txt('cmp-status','COM-Poisson probability unavailable. '+({
    genuine_history_review_required:'This version has no published probability based on MHO-reviewed history.',
    insufficient_prior_prediction_pairs:'There are too few usable earlier SARIMA predictions and confirmed outcomes for this disease.',
    SARIMA_unavailable:'This selection has no accepted SARIMA estimate.',
    zero_mean_positive_training_outcome:'A prior zero estimate was followed by recorded cases, so the frozen calculation could not fit this disease.',
-  }[result.experimental_probability?.reason]||'No verified probability is available for this prediction version.'));txt('cmp-intervals','Experimental COM-Poisson intervals unavailable.');$('cmp-distribution').replaceChildren();txt('cmp-distribution-readout','No matching probability distribution is displayed.');return null;}
+  }[result.experimental_probability?.reason]||'No verified probability is available for this prediction version.'));txt('cmp-intervals','COM-Poisson intervals unavailable.');$('cmp-distribution').replaceChildren();txt('cmp-distribution-readout','No matching probability distribution is displayed.');return null;}
   txt('sarima-method','SARIMA + COM-Poisson');txt('cmp-exact-label',`Exactly ${r.count} ${r.count===1?'case':'cases'}`);txt('cmp-nearby-label',`${Math.max(0,r.count-1)}–${r.count+1} cases`);txt('cmp-exact',percent(r.exact));txt('cmp-nearby',percent(r.nearby));
-  txt('cmp-intervals',`Experimental conditional-pooled COM-Poisson intervals: 80% = ${r.range80.join('–')}; 95% = ${r.range95.join('–')} cases.`);txt('cmp-status','Model-based estimates, not validated real-world probabilities. Historical test performance is shown separately.');distribution(r);
-  return {lower:r.range95[0],upper:r.range95[1],label:'Experimental conditional-pooled COM-Poisson 95% model interval'};
+  txt('cmp-intervals',`Conditional-pooled COM-Poisson intervals: 80% = ${r.range80.join('–')}; 95% = ${r.range95.join('–')} cases.`);txt('cmp-status','Model-based estimates, not validated real-world probabilities. Historical test performance is shown separately.');distribution(r);
+  return {lower:r.range95[0],upper:r.range95[1],label:'Conditional-pooled COM-Poisson 95% model interval'};
  }
  return {enable,reset,render,validate,percent,get active(){return active;}};
 });

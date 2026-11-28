@@ -43,7 +43,7 @@
     <link rel="stylesheet" href="assets/css/shared/resident-vital.css">
     <link rel="stylesheet" href="assets/css/shared/portal-responsive.css?v=20261120-loading">
   <link rel="stylesheet" href="assets/css/shared/account-settings.css?v=20261107-password-renewal">
-    <link rel="stylesheet" href="assets/css/shared/forecast-board.css?v=20261125-centered-details" />
+    <link rel="stylesheet" href="assets/css/shared/forecast-board.css?v=20261128-ui-polish" />
   </head>
   <body class="hi-portal hi-role-readable hi-clinical-readable h-screen flex overflow-hidden antialiased selection:bg-emerald-500/30 bg-slate-100 dark:bg-neutral-950">
     <a class="hi-skip-link" href="#portal-main">Skip to main content</a>
@@ -507,7 +507,7 @@
                   <div id="walkin-unlisted" class="hi-unlisted-fields" hidden><label for="walkin-reported">Reported condition *</label><input id="walkin-reported" maxlength="255" placeholder="Enter the condition exactly as reported"><label for="walkin-source">Source / reference *</label><input id="walkin-source" maxlength="500" placeholder="For example: clinic referral or patient report"><p class="hi-field-help">This case will be saved for MHO review. Recording it does not establish a diagnosis.</p></div></div>
                   
                 </div>
-                <div class="walkin-field"><label for="walkin-severity">Recorded visit severity *</label><select id="walkin-severity" required><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select><p class="walkin-help">For a return visit, the original case severity stays unchanged.</p></div>
+                <div class="walkin-field"><label for="walkin-severity">Recorded visit severity *</label><select id="walkin-severity" required><option value="">Select severity</option><option>Mild</option><option>Monitored</option><option>High Risk</option></select><p class="walkin-help">Use the receiving clinician’s assessment and document the supporting findings in the consultation notes. A return visit keeps the original case severity.</p></div>
                 <div class="walkin-field walkin-full"><label for="walkin-remarks">Symptoms / remarks</label><textarea id="walkin-remarks" maxlength="4000" rows="3" placeholder="Optional notes from this consultation"></textarea></div>
                 <div id="walkin-followup-plan" class="walkin-field walkin-full"></div>
               </div>
@@ -544,7 +544,7 @@
     <script src="assets/js/shared/portal-history.js?v=20261108-history"></script>
     <script src="assets/js/shared/dataset-analytics.js?v=20261113-dataset"></script>
     <script src="assets/js/mho/mho-action-guidance.js?v=20261125-details"></script>
-    <script src="assets/js/shared/forecast-board.js?v=20261127-rolling"></script>
+    <script src="assets/js/shared/forecast-board.js?v=20261128-predictive-preview"></script>
   </body>
 </html>
 

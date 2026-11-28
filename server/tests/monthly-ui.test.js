@@ -205,7 +205,7 @@ test('operational probabilities render in both portals and mismatches keep the S
   assert.match(document.getElementById('cmp-count-probabilities').textContent,/COM-Poisson · Estimated probability/);
   result.experimental_probability.binding.sarima_version='another-run';
   await predict();
-  assert.match(document.getElementById('cmp-status').textContent,/Experimental probability unavailable/);
+  assert.match(document.getElementById('cmp-status').textContent,/COM-Poisson probability unavailable/);
   assert.equal(document.getElementById('cmp-distribution').children.length,0);
   assert.equal(a.els['sarima-main-estimate'].textContent,'4');
   result=structuredClone(saved);

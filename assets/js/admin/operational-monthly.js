@@ -304,16 +304,16 @@
  if(mixed&&!data.dataset_id&&data.current_data_matches)host.append(node('p','text-sm','Review the forecasts by disease and barangay below. This dataset-backed preview stays in Model Training. After the forecast month ends, confirm its reports to prepare the following month’s forecast.'));
  const probability=data.probability;
  if(!mixed)host.append(node('p','text-sm text-slate-800 dark:text-slate-200',probability?.status==='prepared'
-  ? `Experimental probabilities ${data.run.status==='published'?'published':'prepared'} for ${probability.available}/${Object.keys(probability.by_horizon||{1:true}).length*70} estimates.`
-  : probability?.status==='invalid'?'The experimental probability file could not be verified. Ask the maintainer to check it.'
-  : probability?.status==='calculating'?'Calculating experimental probabilities. You can leave this page and return to review the version.'
-  : probability?.status==='failed'?'Experimental probability preparation failed. Retry or publish SARIMA alone.'
-  : 'Experimental probability unavailable.'));
+  ? `COM-Poisson probabilities ${data.run.status==='published'?'published':'prepared'} for ${probability.available}/${Object.keys(probability.by_horizon||{1:true}).length*70} estimates.`
+  : probability?.status==='invalid'?'The COM-Poisson probability file could not be verified. Ask the maintainer to check it.'
+  : probability?.status==='calculating'?'Calculating COM-Poisson probabilities. You can leave this page and return to review the version.'
+  : probability?.status==='failed'?'COM-Poisson probability preparation failed. Retry or publish SARIMA alone.'
+  : 'COM-Poisson probability unavailable.'));
  if(probability?.status==='calculating'&&active)probabilityTimer=setTimeout(()=>review(run).catch(e=>message(e.message)),5000);
  if(!mixed&&data.run.status==='ready'&&data.current_data_matches&&data.available>0&&data.context.main_target===shiftMonth(latestCompletedMonth,1)&&!['prepared','invalid','calculating'].includes(probability?.status)){
-  host.append(button('Prepare experimental probabilities',async()=>{
+  host.append(button('Prepare COM-Poisson probabilities',async()=>{
    if(!await approval('Confirm genuine reporting history','I verified that the selected months contain complete, genuine case reports and exclude test and demonstration records. I confirm the final target-month outcomes are still unknown.'))return;
-   message('Calculating experimental probabilities…');
+   message('Calculating COM-Poisson probabilities…');
    await request('/runs/'+run+'/probability',{genuine_history_reviewed:true,outcomes_unknown:true});
    await review(run);
    message('');
@@ -364,7 +364,7 @@
     const counts=data.context.availability||{1:data.available};
     const coverage=[0,1,2].map(offset=>monthLabel(shiftMonth(target,offset))+' · '+(counts[offset+1]??0)+'/70 estimates').join(', ');
     host.append(button(isPublished?'Select this published version (rollback)':'Review and publish this version',async()=>{
-        const description=coverage+'. MHO and BHW will see this version after you confirm. Available experimental probabilities publish with the estimates.';
+        const description=coverage+'. MHO and BHW will see this version after you confirm. Available COM-Poisson probabilities publish with the estimates.';
         if(!await approval(isPublished?'Select this published version?':'Publish this operational version?',description))return;
         await request('/publish',{run_id:run,acknowledged:true,probability_sha256:probability?.sha256||null});
         message('Operational version published.');

@@ -141,7 +141,72 @@
 .forecast-metadata > span { display: grid; gap: .15rem; }
 .forecast-metadata small { color: var(--fb-secondary); }
 .forecast-metadata strong { font-weight: 650; }
+[data-forecast-board="admin"] > .forecast-toolbar { gap: .65rem 1rem; }
 [data-forecast-board="admin"] > .forecast-toolbar .forecast-meta { flex-basis: 100%; }
+[data-forecast-board="admin"] > .forecast-toolbar .forecast-control { min-width: min(14rem, 100%); }
+[data-forecast-board="admin"] .forecast-admin-sr-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+[data-forecast-board="admin"] .forecast-admin-state {
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: .6rem;
+    padding: clamp(1rem, 3vw, 1.75rem);
+    background: var(--fb-soft);
+    border: 1px solid var(--fb-border);
+    border-inline-start: 3px solid var(--fb-accent);
+    border-radius: .85rem;
+    min-width: 0;
+}
+[data-forecast-board="admin"] .forecast-admin-state[data-state="error"] { border-inline-start-color: var(--fb-warn); }
+[data-forecast-board="admin"] .forecast-admin-state h3 {
+    margin: 0;
+    font-size: clamp(1.08rem, 2vw, 1.25rem);
+    font-weight: 700;
+    line-height: 1.3;
+}
+[data-forecast-board="admin"] .forecast-admin-state p {
+    color: var(--fb-secondary);
+    font-size: .9rem;
+    line-height: 1.55;
+    max-width: 58ch;
+}
+[data-forecast-board="admin"] .forecast-admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .25rem;
+    max-width: 100%;
+}
+[data-forecast-board="admin"] .forecast-admin-actions .forecast-action {
+    font-size: .875rem;
+    font-weight: 650;
+    min-height: 44px;
+    white-space: normal;
+    cursor: pointer;
+}
+[data-forecast-board="admin"] .forecast-admin-actions .forecast-action:hover { border-color: var(--fb-accent); }
+[data-forecast-board="admin"] .forecast-admin-actions .forecast-admin-primary {
+    background: #2146b7;
+    border-color: #2146b7;
+    color: #fff;
+}
+[data-forecast-board="admin"] .forecast-admin-actions .forecast-admin-primary:hover { background: #17318b; border-color: #17318b; }
+.dark [data-forecast-board="admin"] .forecast-admin-actions .forecast-admin-primary {
+    background: #a8bfff;
+    border-color: #a8bfff;
+    color: #132747;
+}
+.dark [data-forecast-board="admin"] .forecast-admin-actions .forecast-admin-primary:hover { background: #c3d1ff; border-color: #c3d1ff; }
+@media (max-width: 600px) {
+    [data-forecast-board="admin"] > .forecast-toolbar .forecast-control { flex: 1 1 100%; }
+}
 [data-forecast-board]:not([data-forecast-board="admin"]) > .forecast-toolbar { align-items: center; padding-block: .7rem; gap: .4rem 1rem; }
 .forecast-leaders { margin: 0; }
 .forecast-leader { border: 1px solid var(--fb-border); border-block-start: 3px solid var(--fb-accent); border-radius: .8rem; }
@@ -655,4 +720,96 @@
     .prediction-workspace .prediction-filter-bar { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
     .prediction-workspace .prediction-matrix th:first-child { width: 8rem; min-width: 8rem; }
     .prediction-workspace .prediction-dialog-footer .prediction-action { font-size: .78rem; }
+}
+
+/* Prediction status, overview and model disclosure. */
+.forecast-meta.forecast-metadata {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .65rem 1rem;
+    padding: 0;
+}
+.forecast-meta-status, .forecast-report-note { grid-column: 1 / -1; }
+.forecast-meta-status { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem .75rem; }
+.forecast-meta .forecast-meta-entry { display: grid; gap: .15rem; align-content: start; min-width: 0; }
+.forecast-meta-entry strong { margin: 0; font-size: .86rem; }
+.forecast-meta-status[data-prediction-status="demonstration"] .forecast-source-badge {
+    color: var(--fb-warn);
+    background: var(--fb-warn-bg);
+}
+.forecast-meta-status[data-prediction-status="draft"] .forecast-source-badge {
+    color: var(--fb-text);
+    background: var(--fb-soft);
+}
+
+.prediction-workspace {
+    & nav { gap: .2rem .4rem; margin-bottom: 1rem; }
+    & nav button { min-height: 2.6rem; }
+    & nav button[aria-current="true"] { box-shadow: inset 0 -2px var(--blue); }
+    & article { margin-block: 0 1rem; }
+    & .prediction-section-context { font-size: .85rem; margin-block: .35rem .65rem; }
+    & .prediction-outlook .prediction-section-head {
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+        gap: .6rem 1rem; margin-bottom: .2rem;
+    }
+    & .prediction-outlook .prediction-filter-bar { border: 0; padding: 0; background: transparent; }
+    & .prediction-outlook .prediction-filter-bar > .prediction-field { flex: 1 1 auto; min-width: 9rem; }
+    & .prediction-outlook-grid {
+        display: grid; grid-template-columns: minmax(0, 2fr) minmax(14rem, 1fr);
+        align-items: start; gap: clamp(.8rem, 2vw, 1.5rem);
+    }
+    & .prediction-ranking { min-width: 0; }
+    & .bars { display: grid; gap: .18rem; }
+    & .bars button {
+        grid-template-columns: minmax(0, 7fr) minmax(2rem, 8fr) minmax(4ch, auto);
+        gap: .55rem; min-height: 2.35rem; padding: .3rem .45rem; line-height: 1.35;
+    }
+    & .bars button > span:first-child { overflow-wrap: anywhere; }
+    & .bars b { font-variant-numeric: tabular-nums; }
+    & .bars .prediction-leading-bar { color: var(--fb-link); background: var(--soft); font-weight: 700; }
+    & .prediction-bar-track { border-radius: 999px; background: var(--bg); }
+    & .prediction-bar-track .bar { display: block; height: .46rem; }
+    & .prediction-leading-bar .bar { height: .58rem; }
+    & .prediction-planning {
+        background: var(--soft);
+        border: 1px solid color-mix(in srgb, var(--teal) 28%, var(--line));
+        border-radius: .8rem; padding: .85rem 1rem; margin-block-start: .45rem;
+    }
+    & .prediction-planning p { margin-block: .5rem 0; }
+    & .prediction-planning .prediction-planning-lead { color: var(--ink); font-size: 1.1rem; }
+    & .prediction-planning-lead strong { color: var(--fb-link); }
+    & .prediction-reading-guide { margin-top: .75rem; border-top: 1px solid var(--line); }
+    & .prediction-reading-guide summary { font-size: .83rem; }
+    & .prediction-model-control {
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+        gap: .65rem 1rem; background: var(--bg); border: 1px solid var(--line);
+        border-radius: .85rem; padding: .8rem clamp(.75rem, 1.6vw, 1.25rem);
+        margin-bottom: 1rem;
+    }
+    & .prediction-model-control p { margin: .18rem 0 0; }
+    & .prediction-disclosure { display: inline-flex; align-items: center; gap: .65rem; border-color: var(--blue); text-align: start; }
+    & .prediction-disclosure::after {
+        content: ""; flex: none; width: .42rem; height: .42rem;
+        border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+        transform: translateY(-.12rem) rotate(45deg);
+    }
+    & .prediction-disclosure[aria-expanded="true"]::after { transform: translateY(.12rem) rotate(225deg); }
+    & #prediction-model-results > .cards { margin-bottom: 1rem; }
+    & .prediction-matrix tbody tr:hover th:first-child { background: var(--bg); }
+    & .prediction-performance-comparison h3 { margin-bottom: .35rem; }
+    & #actionBox .actionPreview { background: var(--panel); }
+    & dialog[data-region="calc"] .mathSteps > section { padding: .75rem; border: 1px solid var(--line); border-radius: .65rem; }
+}
+@media (max-width: 900px) {
+    .prediction-workspace .prediction-outlook-grid { grid-template-columns: minmax(0, 1fr); gap: .4rem; }
+}
+@media (max-width: 650px) {
+    .forecast-meta.forecast-metadata { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+    .forecast-meta .forecast-meta-entry { font-size: .78rem; }
+    .forecast-meta .forecast-meta-entry:nth-of-type(3) { grid-column: 1 / -1; }
+    .prediction-workspace .prediction-outlook .prediction-filter-bar { width: 100%; }
+    .prediction-workspace .prediction-outlook .prediction-filter-bar > .prediction-field { min-width: 0; }
+    .prediction-workspace .prediction-disclosure { justify-content: space-between; width: 100%; }
+    .prediction-workspace nav { gap: .15rem; }
+    .prediction-workspace nav button { padding-inline: .34rem; }
 }

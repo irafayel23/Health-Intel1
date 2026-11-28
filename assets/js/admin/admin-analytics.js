@@ -282,7 +282,7 @@
             return item;
         }));
         const interval = probability.range95.join('–');
-        status('cmp-status', '95% model interval: ' + interval + ' cases. ' + (source === 'demo' ? 'Experimental probabilities from the synthetic demonstration.' : 'Experimental probabilities based on MHO-reviewed reports.'));
+        status('cmp-status', '95% model interval: ' + interval + ' cases. ' + (source === 'demo' ? 'COM-Poisson probabilities from the synthetic demonstration.' : 'COM-Poisson probabilities based on MHO-reviewed reports.'));
     }
     $('published-form').addEventListener('submit',busy($('published-view'),'published-result',async () => {
         $('cmp').hidden = true;

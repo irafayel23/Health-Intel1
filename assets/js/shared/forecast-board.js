@@ -81,16 +81,13 @@
     const meta = element('div', undefined, 'forecast-meta forecast-metadata');
     meta.setAttribute('role', 'status');
     const source = control('Prediction source', [
-        ['published', 'Published operational predictions'],
-        ['demo', 'Historical demonstration'],
-    ], () => load());
-    const history = control('Version', [['', 'Current publication']], () => load());
-    const retry = element('button', 'Retry', 'forecast-action');
-    retry.type = 'button';
-    retry.hidden = true;
-    retry.addEventListener('click', () => load());
-    history.wrapper.hidden = role !== 'admin';
-    if (role === 'admin') toolbar.append(source.wrapper, history.wrapper, retry);
+        ['published', 'Published predictions'],
+        ['draft', 'Saved drafts'],
+        ['demo', 'Predictive preview'],
+    ], value => selectAdminSource(value));
+    const history = control('Version', [], () => load());
+    history.wrapper.hidden = true;
+    if (role === 'admin') toolbar.append(source.wrapper, history.wrapper);
     toolbar.append(meta);
     host.append(toolbar, forecastBody);
 
@@ -397,7 +394,12 @@
         const all = 'Municipality';
         const geography = data.barangay ? 'My Barangay' : 'Barangay Analysis';
         let place = data.barangay || all;
-        let month = Number(!!data.previous_target), view = 'Overview', span = 12, sort = true;
+        let modelsOpen = false;
+        const manilaMonth = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 7);
+        const nextMonth = shiftMonth(manilaMonth, 1);
+        const upcomingIndex = periods.findIndex(period => period.target === nextMonth && !period.outside);
+        let month = upcomingIndex >= 0 ? upcomingIndex : Number(!!data.previous_target);
+        let view = 'Overview', span = 12, sort = true;
         const scopes = (d,p) => rows.filter(row => row.disease === d && (p === all || row.barangay === p));
         function mean(d,p,i) {
             const group = scopes(d,p);
@@ -430,7 +432,7 @@
         const cell=(d,p,i,label)=>'<button aria-haspopup="dialog" aria-label="'+esc(d+' · '+p+' · '+monthLabel(periods[i].target)+' · '+label)+'" data-d="'+esc(d)+'" data-p="'+esc(p)+'" data-i="'+i+'">'+label+'</button>';
         function drawPlots() {
             const plot = $('plot');
-            if (plot) {
+            if (plot && modelsOpen) {
                 const parts = scopes(disease, place);
                 const history = parts.length === 7 ? municipalHistory(parts) : parts[0]?.history || [];
                 const recorded = history.slice(-span);
@@ -467,7 +469,18 @@
                 ]);
             }
         }
-        function bars(items,value,button){const top=Math.max(1,...items.map(value));return '<div class="bars">'+items.map(item=>'<button '+button(item)+'><span>'+item+'</span><span class="bar" style="width:'+100*(value(item)||0)/top+'%"></span><b>'+fmt(value(item))+'</b></button>').join('')+'</div>'}
+        function bars(items, value, button, highlightLeader = false) {
+            const maximum = Math.max(0, ...items.map(value));
+            const rows = items.map(item => {
+                const count = value(item);
+                const width = count == null || !maximum ? 0 : 100 * count / maximum;
+                const leading = highlightLeader && maximum > 0 && count === maximum;
+                return '<button type="button" ' + button(item) + (leading ? ' class="prediction-leading-bar"' : '') + '>' +
+                    '<span>' + esc(item) + '</span><span class="prediction-bar-track" aria-hidden="true">' +
+                    '<span class="bar" style="width:' + width + '%"></span></span><b>' + fmt(count) + '</b></button>';
+            });
+            return '<div class="bars">' + rows.join('') + '</div>';
+        }
         const fixed=(value, digits=4)=>Number.isFinite(value)?value.toFixed(digits):'Unavailable';
         const infoButton=(key,label)=>'<button class="infoIcon" type="button" data-info="'+key+'" aria-label="'+label+'" aria-haspopup="dialog">i</button>';
         const metricHelp={
@@ -478,7 +491,7 @@
          mae:['Mean absolute error','Average absolute difference between predicted and recorded cases, measured in cases.'],
          rmse:['Root mean squared error','Square root of the average squared prediction error, measured in cases. Larger errors receive more weight.'],
          mape:['Mean absolute percentage error','Average absolute percentage difference relative to the recorded count. Only positive recorded counts are included.'],
-         poisson:['COM-Poisson probabilities','These experimental probabilities describe possible monthly counts for the named barangay, disease, and prediction month. The exact-count probability refers to one count. The nearby probability includes counts within one case of that count. The 80% and 95% intervals summarize ranges from the same saved distribution.']
+         poisson:['COM-Poisson probabilities','These model-based probabilities describe possible monthly counts for the named barangay, disease, and prediction month. The exact-count probability refers to one count. The nearby probability includes counts within one case of that count. The 80% and 95% intervals summarize ranges from the same saved distribution. Validation against future confirmed monthly counts is pending.']
         };
         function openInfo(button,title,content){
          const dialog=$('quickInfo');
@@ -534,7 +547,7 @@
 
         function recommendationContext(index = month) {
             return element('p', data.status === 'demonstration' || data.source === 'dataset-backed preview'
-                ? 'Demonstration suggestions · Review the saved rules and evidence.'
+                ? 'Predictive preview suggestions · Review the saved rules and evidence.'
                 : data.status !== 'published' || data.expired || periods[index].target < shiftMonth(new Date(Date.now() + 28800000).toISOString().slice(0,7), 0)
                     ? 'Historical suggestions from a saved prediction. Confirm current reports before using them for planning.'
                     : 'Planning suggestions based on the selected prediction. Confirm current reports before acting.', 'note');
@@ -558,12 +571,14 @@
                         <p class="cardScope">${esc(scope)}</p>
                         <div class="prediction-hero"><strong class="caseNumber">${fmt(value)}</strong>${value == null ? '' : '<span>predicted cases</span>'}</div>
                         <p>Unrounded expected count · ${fixed(value)}</p>
+                        <p class="note">SARIMA fits each disease’s monthly history in each barangay through ${monthLabel(data.cutoff, 'long')}. It carries the fitted pattern forward to the selected month, including seasonal effects when supported.</p>
                         <p class="note">${municipal ? 'Sum of the seven barangay estimates. Change Geographic scope to view one barangay.' : 'Estimated monthly cases for this barangay.'}</p>
                         <button id="explain" class="prediction-action">How was this calculated?</button>
                     </section>
                     <section>
-                        <div class="row"><h3>COM-Poisson</h3><div class="filters"><span class="tag">Experimental</span>
+                        <div class="row"><h3>COM-Poisson</h3><div class="filters">
                             ${infoButton('poisson', 'About COM-Poisson probabilities')}</div></div>
+                        <p class="note">Each percentage is the estimated chance of a case count in one barangay during one month.</p>
                         <div class="prediction-probability-scope">
                             <div><p class="cardScope">Barangay-level probabilities</p>
                                 <p class="note">${municipal ? 'This barangay filter also updates the action preview.' : esc(barangay)}</p></div>
@@ -577,12 +592,21 @@
                         </div>` : '<p>Probability unavailable for this selection.</p>'}
                     </section>
                 </div>`;
+            const comparison = estimate => {
+                const prob = estimate.probability;
+                return [monthLabel(estimate.target), prob ? 'Exactly ' + prob.count + ' · ' + percentage(prob.exact) : 'Unavailable',
+                    prob ? Math.max(0, prob.count - 1) + '–' + (prob.count + 1) + ' · ' + percentage(prob.nearby) : 'Unavailable',
+                    prob ? prob.range80.join('–') : 'Unavailable', prob ? prob.range95.join('–') : 'Unavailable'];
+            };
+            const windowRows = row.estimates.filter(item => data.targets.some(target => target.target === item.target));
+            const probabilities = table(['Month', 'Case count · chance', 'Nearby counts · chance', '80% interval', '95% interval'], windowRows.map(comparison), {scroll: 'Monthly COM-Poisson probabilities'}).wrap;
+            $('detailsBox').append(disclosure('Compare monthly probabilities · ' + disease + ' · ' + barangay, probabilities));
             $('explain').onclick = () => calculation(disease, place, month);
             const previous = row.history.find(item => item.month === shiftMonth(estimate.target, -1));
             const action = window.HealthIntelActionGuidance.prediction(row, estimate.mean, previous?.cases, estimate.target)[0];
             const actions = $('actionBox');
             actions.innerHTML = '<div class="row"><h2>Recommended actions</h2><button id="allActions" class="prediction-action">View all recommendations</button></div>';
-            actions.append(recommendationContext());
+            actions.append(element('p', disease + ' · ' + barangay + ' · ' + target, 'prediction-section-context'), recommendationContext());
             if (action) {
                 const preview = element('div', undefined, 'actionPreview');
                 const source = element('a', action.source.label);
@@ -625,12 +649,24 @@
                 const sameMonth = history.find(row => row.month === shiftMonth(period.target, -12));
                 if (sameMonth) body.append(element('p', 'For comparison · ' + monthLabel(sameMonth.month, 'long') + ' recorded count · ' + number(sameMonth.cases) + ' cases'));
             }
-            if (data.status === 'demonstration') body.append(element('small', 'Demonstration data · includes synthetic counts'));
+            if (data.status === 'demonstration') body.append(element('small', 'Predictive preview'));
             const math = element('button', 'How was this calculated?', 'prediction-action');
             math.type = 'button';
             math.onclick = () => calculation(disease, place, month);
             openPredictionDialog(monthLabel(period.target, 'long') + ' prediction', body, value == null ? [] : [math]);
         }
+        function volumePlanning(names) {
+            const available = names.filter(name => Number.isFinite(mean(name, place, month)));
+            const highest = available.length ? mean(available[0], place, month) : null;
+            if (highest == null) return '<p>No saved estimates are available for this month and scope.</p>';
+            if (highest === 0) return '<p>All available estimates are zero. Review current reports before allocating resources.</p>';
+            const leaders = available.filter(name => mean(name, place, month) === highest);
+            const partial = available.length < names.length ? ' Only ' + available.length + ' of ' + names.length + ' conditions have estimates.' : '';
+            return `<p class="prediction-planning-lead"><strong>${leaders.map(esc).join(' and ')}</strong> · ${fmt(highest)} predicted ${cases(Math.round(highest))}${leaders.length > 1 ? ' each' : ''}</p>
+                <p>Highest expected volume for ${esc(place)} in ${monthLabel(periods[month].target, 'long')}, ranked before rounding.${partial}</p>
+                <p>${role === 'bhw' ? 'Check local visit and referral activity and share supply needs with the MHO.' : 'Review recent reports, supplies on hand and equipment readiness with the health center before adjusting stock or staffing.'}</p>`;
+        }
+
         function overview() {
             const captions = periods.map(t => monthLabel(t.target) + (t.previous ? '<br><small>Previous prediction</small>' : ''));
             const monthCards = periods.map((target, index) => {
@@ -647,9 +683,29 @@
                 return value == null ? 'Unavailable' : cell(name,place,index,fmt(value));
             });
             const breakdown = (sort ? ranking(place,month) : diseases.slice().sort()).map(name => [esc(name), ...forecastCells(name)]);
-            return `<div class="cards">${monthCards}</div>
+            const ranked = ranking(place, month);
+            return `<article class="prediction-outlook">
+                    ${sectionHeading('Predicted cases by disease', ps() + months())}
+                    <p class="prediction-section-context">${monthLabel(periods[month].target,'long')} · ${esc(place)} · All study diseases</p>
+                    ${upcomingIndex < 0 ? '<p class="note">This version has no supported prediction month for ' + monthLabel(nextMonth,'long') + '. Showing its saved window.</p>' : ''}
+                    <div class="prediction-outlook-grid"><div class="prediction-ranking">
+                        ${bars(ranked, name => mean(name,place,month), name => 'aria-haspopup="dialog" data-d="'+esc(name)+'" data-p="'+esc(place)+'" data-i="'+month+'"', true)}
+                    </div><aside class="prediction-planning">
+                        <h3>First planning review</h3>${volumePlanning(ranked)}
+                    </aside></div>
+                    <details class="prediction-reading-guide"><summary>How to read predicted cases</summary>
+                        <p class="note">A case counts one recorded disease episode. A person can have several cases, and a case can have several visits. These totals measure workload. Comparing population rates requires approved population figures for the same areas and period.</p>
+                        ${role === 'mho' ? '<p class="note">Clinical urgency is assessed for each patient by the receiving clinician. The MHO records the assessment at the consultation.</p>' : ''}
+                    </details>
+                </article>
+                <section class="prediction-model-control" aria-labelledby="prediction-model-heading">
+                    <div><h2 id="prediction-model-heading">Model results</h2><p>Monthly estimates, probability ranges and calculations.</p></div>
+                    <button type="button" id="toggleModels" class="prediction-action prediction-disclosure" aria-controls="prediction-model-results" aria-expanded="${modelsOpen}">${modelsOpen ? 'Hide' : 'Show'} SARIMA and COM-Poisson results</button>
+                </section>
+                <div id="prediction-model-results"${modelsOpen ? '' : ' hidden'}>
+                <div class="cards">${monthCards}</div>
                 <article>
-                    ${sectionHeading('Historical and predicted cases',ds()+ps()+months()+select('History',[[12,'12 months'],[24,'24 months'],[60,'All months']],span,'span'))}
+                    ${sectionHeading('Historical and predicted cases',ds()+select('History',[[12,'12 months'],[24,'24 months'],[60,'All months']],span,'span'))}
                     <p>${esc(disease)} · ${esc(place)} · Monthly case count</p>
                     <div id="plot" class="prediction-plot" aria-label="Historical and predicted monthly case counts"></div>
                     <div class="legend"><b>━ Recorded</b><i>┄ SARIMA prediction</i>${place===all?'':'<span>Vertical bars · saved COM-Poisson 80% intervals</span>'}</div>
@@ -658,16 +714,10 @@
                     ${htmlTable(['Predicted cases',...captions],[[esc(disease),...forecastCells(disease)]])}
                 </article>
                 <article id="detailsBox"></article>
-                <article id="actionBox"></article>
-                <div class="pair">
-                    <article>${sectionHeading('Disease comparison',monthLabel(periods[month].target))}
-                        <p>${esc(place)} · Predicted cases</p>
-                        ${bars(ranking(place,month),name=>mean(name,place,month),name=>'data-d="'+esc(name)+'" data-p="'+esc(place)+'" data-i="'+month+'"')}
-                    </article>
-                    <article>${sectionHeading('Monthly breakdown','<button id="sort" class="prediction-action">Sort by '+(sort?'name':'estimate')+'</button>')}
-                        ${htmlTable(['Disease',...captions],breakdown)}
-                    </article>
-                </div>`;
+                <article>${sectionHeading('Monthly breakdown','<button id="sort" class="prediction-action">Sort by '+(sort?'name':'estimate')+'</button>')}
+                    ${htmlTable(['Disease',...captions],breakdown,{region:'Monthly prediction breakdown'})}
+                </article></div>
+                <article id="actionBox"></article>`;
         }
         function barangayAnalysis() {
             const max = Math.max(0,...rows.map(row=>row.estimates[month].mean));
@@ -690,7 +740,7 @@
             const barangay = analysisPlace();
             const row = scopes(disease,barangay)[0];
             const performance = row.performance.find(item=>item.horizon===periods[month].horizon);
-            const context = '<p class="prediction-section-context">' +esc(disease)+' · '+esc(barangay)+' · '+monthLabel(periods[month].target)+'</p>';
+            const context = '<p class="prediction-section-context">' +esc(disease)+' · '+esc(barangay)+' · '+monthLabel(periods[month].target,'long')+'</p>';
             const filters = ds()+ls()+months();
             if (view === 'Recommended Actions') return '<article>'+sectionHeading('Recommended surveillance actions',filters)+context+'<div id="analysisBody" class="prediction-action-list"></div></article>';
             const labels = [['Months ahead','horizon'],['Prediction availability','available'],['Within tolerance','tolerance'],['MAE','mae'],['RMSE','rmse'],['MAPE¹','mape']];
@@ -705,7 +755,7 @@
                 : '<p>No saved evaluation for this horizon.</p>';
             return `<article>${sectionHeading('Historical prediction performance',filters)}${context}
                 <div class="performanceHelp"><small>80/20 historical evaluation · Retrospective results</small>${infoButton('evaluation','About the 80/20 historical evaluation')}</div>
-                <div class="prediction-performance-summary">${htmlTable(labels.map(([label,key])=>label+' '+infoButton(key,'About '+label)),metrics,{currentRow:selectedRow})}</div>
+                <div class="prediction-performance-summary">${htmlTable(labels.map(([label,key])=>label+' '+infoButton(key,'About '+label)),metrics,{currentRow:selectedRow,region:'Historical prediction performance metrics'})}</div>
                 <p class="note">¹ Positive actual counts only.</p>
                 <section class="prediction-performance-comparison"><h3>Predicted versus recorded · ${periods[month].horizon} ${periods[month].horizon===1?'month':'months'} ahead</h3>${comparison}</section>
                 </article>`;
@@ -721,6 +771,14 @@
             $('root').innerHTML = content;
             if (view === 'Overview') {
                 overviewDetails();
+                const toggle = $('toggleModels');
+                toggle.onclick = () => {
+                    modelsOpen = !modelsOpen;
+                    $('prediction-model-results').hidden = !modelsOpen;
+                    toggle.setAttribute('aria-expanded', String(modelsOpen));
+                    toggle.textContent = (modelsOpen ? 'Hide' : 'Show') + ' SARIMA and COM-Poisson results';
+                    if (modelsOpen) drawPlots();
+                };
                 $('sort').onclick = () => { sort = !sort; renderView(); $('sort').focus(); };
             }
             if (view === 'Recommended Actions') {
@@ -771,7 +829,7 @@
             if (value != null) summary.append(element('span', ' predicted cases'), element('p', 'Unrounded expected count · ' + fixed(value)));
             body.append(summary);
             if (probability) {
-                body.append(element('h3', 'Experimental COM-Poisson probabilities'), table(['Measure', 'Saved result'], [
+                body.append(element('h3', 'COM-Poisson probabilities'), table(['Measure', 'Saved result'], [
                     ['Exactly ' + probability.count + ' cases', percentage(probability.exact)],
                     ['Within one case', percentage(probability.nearby)],
                     ['80% prediction interval', probability.range80.join('–') + ' cases'],
@@ -794,6 +852,7 @@
             use.id = 'useSelection';
             use.type = 'button';
             use.onclick = () => {
+                modelsOpen = true;
                 disease = d;
                 place = p;
                 month = i;
@@ -847,6 +906,9 @@
                 case 'local': local = value; if (place !== all) place = value; break;
                 case 'disease': disease = value; break;
             }
+            if (view === 'Overview' && !modelsOpen && (field === 'place' || field === 'month')) {
+                disease = ranking(place, month)[0];
+            }
             renderView();
             const select = workspace.querySelector('[data-field=' + field + ']');
             (select?.parentElement.querySelector('.hi-select-trigger') || select)?.focus({ preventScroll: true });
@@ -868,26 +930,74 @@
         renderView();
     }
 
+    function selectAdminSource(value, focus = false) {
+        source.select.value = value;
+        history.select.value = '';
+        history.wrapper.hidden = true;
+        if (focus) source.select.focus({ preventScroll: true });
+        return load();
+    }
+
+    function adminStatusPanel(title, description, primary, secondary, error = false) {
+        const panel = element('section', undefined, 'forecast-admin-state');
+        panel.dataset.state = error ? 'error' : 'empty';
+        const actions = element('div', undefined, 'forecast-admin-actions');
+        for (const [index, [label, action]] of [primary, secondary].filter(Boolean).entries()) {
+            const button = element('button', label, 'forecast-action' + (index === 0 ? ' forecast-admin-primary' : ''));
+            button.type = 'button';
+            button.addEventListener('click', action);
+            actions.append(button);
+        }
+        panel.append(element('h3', title), element('p', description), actions);
+        forecastBody.replaceChildren(panel);
+        meta.classList.add('forecast-admin-sr-status');
+        meta.textContent = title;
+    }
+
+    function showUnavailablePublication(selection, hasDrafts) {
+        const draftView = selection === 'draft';
+        const primary = !draftView && hasDrafts
+            ? ['View latest draft', () => selectAdminSource('draft', true)]
+            : ['Go to Model Training', () => window.HealthIntelAdminAnalytics.openTab('training')];
+        adminStatusPanel(
+            draftView ? 'No saved drafts yet' : 'No predictions published yet',
+            draftView ? 'Completed training runs will appear here for Admin review.' :
+                hasDrafts ? 'A saved draft is ready for Admin review. Published predictions will appear here after an operational version is approved.' :
+                    'Complete reporting, then train and review an operational version in Model Training. Published versions will appear here.',
+            primary,
+            ['View predictive preview', () => selectAdminSource('demo', true)]
+        );
+    }
+
     async function load() {
         const token = ++sequence;
-        retry.hidden = true;
-        history.wrapper.hidden = role !== 'admin' || source.select.value !== 'published';
+        const selection = role === 'admin' ? source.select.value : 'auto';
+        let hasDrafts = false;
+        meta.classList.remove('forecast-admin-sr-status');
         meta.textContent = 'Loading saved predictions…';
         disposeDrawer();
         forecastBody.replaceChildren();
         host.setAttribute('aria-busy', 'true');
         try {
-            const query = new URLSearchParams({ source: role === 'admin' ? source.select.value : 'auto' });
-            if (role === 'admin' && source.select.value === 'published') {
+            const query = new URLSearchParams({ source: selection === 'draft' ? 'published' : selection });
+            if (role === 'admin' && selection !== 'demo') {
                 const previous = history.select.value;
-                const response = await request('/versions');
+                const { versions, active } = await request('/versions');
                 if (token !== sequence) return;
-                const versions = response.versions;
-                history.select.replaceChildren(new Option('Current publication', ''), ...versions.map(version =>
-                    new Option((version.id === response.active ? 'Current · ' : version.status === 'published' ? 'Issued · ' : 'Draft · ') +
-                        monthLabel(version.cutoff) + ' cutoff · ' + version.id.slice(0, 8), version.id)));
-                if (versions.some(v => v.id === previous)) history.select.value = previous;
+                if (!Array.isArray(versions) || (active !== null && typeof active !== 'string')) throw Error('Invalid prediction versions.');
+                const drafts = versions.filter(version => version.status === 'ready');
+                hasDrafts = drafts.length > 0;
+                const choices = selection === 'draft' ? drafts : versions.filter(version => version.status === 'published' && version.id !== active);
+                const options = choices.map(version => new Option(monthLabel(version.cutoff) + ' cutoff · ' + version.id.slice(0, 8), version.id));
+                if (selection === 'published') options.unshift(new Option(active ? 'Current publication' : 'No current publication', ''));
+                history.select.replaceChildren(...options);
+                history.select.value = choices.some(version => version.id === previous) ? previous : selection === 'draft' ? choices[0]?.id || '' : '';
+                history.wrapper.hidden = options.length < 2;
                 if (history.select.value) query.set('version', history.select.value);
+                else if (!active || selection === 'draft') {
+                    showUnavailablePublication(selection, hasDrafts);
+                    return;
+                }
             }
             const data = await request('/overview?' + query);
             if (token !== sequence) return;
@@ -897,19 +1007,25 @@
             const formatMonth = period => monthLabel(period, 'long');
             const entry = (label, value) => {
                 const item = element('span', undefined, 'forecast-meta-entry');
-                item.append(element('strong', label), document.createTextNode(' ' + value));
+                item.append(element('small', label), element('strong', value));
                 return item;
             };
-            const sourceLabel = isDemo ? 'Demonstration data · includes synthetic counts' :
+            const sourceLabel = isDemo ? 'Predictive preview' :
                 data.status === 'draft' ? 'Draft · ' + data.source : 'Published operational predictions';
+            const status = element('div', undefined, 'forecast-meta-status');
+            status.dataset.predictionStatus = data.status;
+            status.append(element('strong', sourceLabel, 'forecast-source-badge'),
+                element('strong', 'SARIMA + COM-Poisson', 'forecast-model-label'));
             const items = [
-                element('strong', sourceLabel, 'forecast-source-badge'),
-                element('strong', 'SARIMA + COM-Poisson', 'forecast-model-label'),
+                status,
+                entry('Prediction period', formatMonth(data.targets[0].target) + ' – ' + formatMonth(data.targets.at(-1).target)),
                 entry('Historical coverage', formatMonth(coverageStart) + ' – ' + formatMonth(coverageEnd)),
-                entry('Prediction period', formatMonth(data.targets[0].target) + ' – ' + formatMonth(data.targets.at(-1).target))
+                entry('Data source', isDemo ? 'Historical study dataset (includes simulated counts)' :
+                    data.source === 'dataset-backed preview' ? 'Historical study dataset (includes simulated counts) and confirmed monthly reports' :
+                    data.source === 'uploaded preview' ? 'Uploaded dataset' : 'MHO case records from confirmed monthly reports')
             ];
             if (data.cutoff !== coverageEnd) items.push(entry('Last observed', formatMonth(data.cutoff)));
-            if (data.missing) items.push(element('p', formatMonth(data.missing) + ' actual report unavailable in this demonstration. Predictions use available historical patterns.', 'forecast-report-note'));
+            if (data.missing) items.push(element('p', formatMonth(data.missing) + ' actual report unavailable in this predictive preview. Predictions use available historical patterns.', 'forecast-report-note'));
             if (data.next_update) {
                 const { reporting_month, status } = data.next_update;
                 const period = formatMonth(reporting_month);
@@ -925,11 +1041,15 @@
         } catch (error) {
             if (token !== sequence) return;
             if (error.code === 'OPERATIONAL_PREDICTIONS_UNPUBLISHED') {
-                meta.textContent = 'No operational predictions are published yet.';
-                if (role === 'admin') forecastBody.append(element('p', 'Select a saved draft or the historical demonstration to review predictions.', 'forecast-info'));
+                if (role === 'admin') showUnavailablePublication(selection, hasDrafts);
+                else meta.textContent = 'No operational predictions are published yet.';
+            } else if (role === 'admin') {
+                adminStatusPanel('Couldn’t load predictions', 'Try again to refresh this view.', ['Retry', () => {
+                    source.select.focus({ preventScroll: true });
+                    void load();
+                }], null, true);
             } else {
                 meta.textContent = error.message;
-                retry.hidden = role !== 'admin';
             }
         } finally {
             if (token === sequence) host.removeAttribute('aria-busy');
